@@ -114,7 +114,7 @@ def write_K_functions_wide_angle(
             if additional_parameters is not None:
                 for add in additional_parameters:
                     additional_str = additional_str + f",{add}"
-            f.write(f"def K_{type_list[i]}_{i}_{l}(theta,phi,k{additional_str}):\n")
+            f.write(f"def K_{type_list[i]}_{t}_{l}(theta,phi,k{additional_str}):\n")
             f.write(f"    def func(k):\n")
             f.write(f"        return({K_ab_i_l})\n")
             f.write(f"    return(func)\n")
@@ -178,7 +178,7 @@ def write_K_functions_parallel_plane(
             if additional_parameters is not None:
                 for add in additional_parameters:
                     additional_str = additional_str + f",{add}"
-            f.write(f"def K_{type_list[i]}_{i}_{l}(theta,phi,k{additional_str}):\n")
+            f.write(f"def K_{type_list[i]}_{t}_{l}(theta,phi,k{additional_str}):\n")
             f.write(f"    def func(k):\n")
             f.write(f"        return({K_ab_i_l})\n")
             f.write(f"    return(func)\n")
@@ -192,7 +192,7 @@ def generate_generalized_carreres23_functions(
     filename="./carreres23/flip_terms.py", number_worker=8
 ):
     mu1, mu2 = sy.symbols("mu1 mu2")
-    k = sy.symbols("k", nonzero=True, finite=True)
+    k = sy.symbols("k", positive=True, finite=True, real=True)
     type_list = ["vv"]
     term_index_list = ["0"]
     l_list = [0, 2]
@@ -215,8 +215,8 @@ def generate_generalized_adamsblake20_functions(
     filename="./adamsblake20/flip_terms.py", number_worker=8
 ):
     mu = sy.symbols("mu")
-    k = sy.symbols("k", nonzero=True, finite=True)
-    sig_g = sy.symbols("sig_g", nonzero=True, finite=True)
+    k = sy.symbols("k", positive=True, finite=True, real=True)
+    sig_g = sy.symbols("sig_g", positive=True, finite=True, real=True)
     type_list = ["gg", "gg", "gg"] + ["gv", "gv"] + ["vv"]
     term_index_list = ["0", "1", "2"] + ["0", "1"] + ["0"]
     l_list = [0, 1, 2, 3, 4]
@@ -244,8 +244,8 @@ def generate_generalized_ravouxcarreres_functions(
     filename="./ravouxcarreres/flip_terms.py", number_worker=8
 ):
     mu1, mu2 = sy.symbols("mu1 mu2")
-    k = sy.symbols("k", nonzero=True, finite=True)
-    sig_g = sy.symbols("sig_g", nonzero=True, finite=True)
+    k = sy.symbols("k", positive=True, finite=True, real=True)
+    sig_g = sy.symbols("sig_g", positive=True, finite=True, real=True)
     type_list = ["gg", "gg", "gg"] + ["gv", "gv"] + ["vv"]
     term_index_list = ["0", "1", "2"] + ["0", "1"] + ["0"]
     l_list = [0, 1, 2, 3, 4]
@@ -283,4 +283,5 @@ def generate_files():
     generate_generalized_ravouxcarreres_functions()
 
 
+generate_generalized_carreres23_functions()
 generate_generalized_adamsblake20_functions()

@@ -2,36 +2,12 @@ import itertools
 import numpy as np
 from scipy.special import spherical_jn, factorial
 from flip.covariance_model.lai22 import h_terms
+from flip.flip.covariance_model import cov_utils
 import multiprocessing as mp
 from functools import partial
 from scipy import integrate
 from scipy.interpolate import interp1d
 import cosmoprimo
-
-
-def compute_i_j(N, seq):
-    i = (N - 2 - np.floor(np.sqrt(-8 * seq + 4 * N * (N - 1) - 7) / 2.0 - 0.5)).astype(
-        "int"
-    )
-    j = (seq + i + 1 - N * (N - 1) / 2 + (N - i) * ((N - i) - 1) / 2).astype("int")
-    return i, j
-
-
-def compute_i_j_cross_matrix(Nv, seq):
-    i = np.floor(1 + (seq - Nv) / Nv).astype("int")
-    j = (seq - i * Nv).astype("int")
-    return i, j
-
-
-def angle_separation(ra_0, ra_1, dec_0, dec_1, r_0, r_1):
-    cos_theta = np.cos(ra_1 - ra_0) * np.cos(dec_0) * np.cos(dec_1) + np.sin(
-        dec_0
-    ) * np.sin(dec_1)
-    r = np.sqrt(r_0**2 + r_1**2 - 2 * r_0 * r_1 * cos_theta)
-    sin_phi = ((r_0 + r_1) / r) * np.sqrt((1 - cos_theta) / 2)
-    sin_phi = np.clip(sin_phi, -1, 1)
-    cos_theta = np.clip(cos_theta, -1, 1)
-    return r, np.arccos(cos_theta), np.arcsin(sin_phi)
 
 
 def compute_correlation_coefficient_simple_integration(p, q, l, r, k, pk):
@@ -65,39 +41,6 @@ def compute_correlation_coefficient_hankel(
     return output
 
 
-def compute_sep(
-    ra,
-    dec,
-    comoving_distance,
-    size_batch=10_000,
-):
-    number_objects = len(ra)
-    n_task = int((number_objects * (number_objects + 1)) / 2) - number_objects
-
-    sep = []
-    sep_perp = []
-    sep_par = []
-    for n in range(0, n_task, size_batch):
-        batches = np.arange(n, np.min((n + size_batch, n_task)))
-        i_list, j_list = compute_i_j(number_objects, batches)
-        r_i, ra_i, dec_i = comoving_distance[i_list], ra[i_list], dec[i_list]
-        r_j, ra_j, dec_j = comoving_distance[j_list], ra[j_list], dec[j_list]
-        r, theta, _ = angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
-        sep.append(r)
-        sep_perp.append(r * np.sin(theta))
-        sep_par.append(r * np.cos(theta))
-
-    sep = np.concatenate(sep)
-    sep_perp = np.concatenate(sep_perp)
-    sep_par = np.concatenate(sep_par)
-
-    sep = np.insert(sep, 0, 0)
-    sep_perp = np.insert(sep_perp, 0, 0)
-    sep_par = np.insert(sep_par, 0, 0)
-
-    return sep, sep_perp, sep_par
-
-
 def compute_cov_vv(
     ra,
     dec,
@@ -118,10 +61,10 @@ def compute_cov_vv(
     parameters = []
     for n in range(0, n_task, size_batch):
         batches = np.arange(n, np.min((n + size_batch, n_task)))
-        i_list, j_list = compute_i_j(number_objects, batches)
+        i_list, j_list = cov_utils.compute_i_j(number_objects, batches)
         r_i, ra_i, dec_i = comoving_distance[i_list], ra[i_list], dec[i_list]
         r_j, ra_j, dec_j = comoving_distance[j_list], ra[j_list], dec[j_list]
-        r, theta, phi = angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
+        r, theta, phi = cov_utils.angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
         parameters.append([r, theta, phi])
 
     func = partial(coefficient_vv, wavenumber_tt, power_spectrum_tt, hankel=hankel)
@@ -199,10 +142,10 @@ def compute_cov_gg(
     parameters = []
     for n in range(0, n_task, size_batch):
         batches = np.arange(n, np.min((n + size_batch, n_task)))
-        i_list, j_list = compute_i_j(number_objects, batches)
+        i_list, j_list = cov_utils.compute_i_j(number_objects, batches)
         r_i, ra_i, dec_i = comoving_distance[i_list], ra[i_list], dec[i_list]
         r_j, ra_j, dec_j = comoving_distance[j_list], ra[j_list], dec[j_list]
-        r, theta, phi = angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
+        r, theta, phi = cov_utils.angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
         parameters.append([r, theta, phi])
 
     p_index = np.arange(pmax + 1)
@@ -348,10 +291,10 @@ def compute_cov_gg_add(
     parameters = []
     for n in range(0, n_task, size_batch):
         batches = np.arange(n, np.min((n + size_batch, n_task)))
-        i_list, j_list = compute_i_j(number_objects, batches)
+        i_list, j_list = cov_utils.compute_i_j(number_objects, batches)
         r_i, ra_i, dec_i = comoving_distance[i_list], ra[i_list], dec[i_list]
         r_j, ra_j, dec_j = comoving_distance[j_list], ra[j_list], dec[j_list]
-        r, theta, phi = angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
+        r, theta, phi = cov_utils.angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
         parameters.append([r, theta, phi])
 
     p_index = np.arange(pmax + 1)
@@ -552,10 +495,10 @@ def compute_cov_gv(
     parameters = []
     for n in range(0, n_task, size_batch):
         batches = np.arange(n, np.min((n + size_batch, n_task)))
-        i_list, j_list = compute_i_j_cross_matrix(number_objects_v, batches)
+        i_list, j_list = cov_utils.compute_i_j_cross_matrix(number_objects_v, batches)
         r_i, ra_i, dec_i = comoving_distance_g[i_list], ra_g[i_list], dec_g[i_list]
         r_j, ra_j, dec_j = comoving_distance_v[j_list], ra_v[j_list], dec_v[j_list]
-        r, theta, phi = angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
+        r, theta, phi = cov_utils.angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
         parameters.append([r, theta, phi])
 
     cov_gv_f2 = []

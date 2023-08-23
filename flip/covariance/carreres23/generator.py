@@ -3,7 +3,7 @@ import numpy as np
 from scipy.special import spherical_jn
 import multiprocessing as mp
 from functools import partial
-from flip.covariance_model import cov_utils
+from flip.covariance import cov_utils
 
 
 def window(r_0, r_1, cos_alpha, sep, j0kr, j2kr):

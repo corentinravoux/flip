@@ -1,8 +1,8 @@
 import itertools
 import numpy as np
 from scipy.special import spherical_jn, factorial
-from flip.covariance_model.lai22 import h_terms
-from flip.flip.covariance_model import cov_utils
+from flip.covariance.lai22 import h_terms
+from flip.covariance import cov_utils
 import multiprocessing as mp
 from functools import partial
 from scipy import integrate

@@ -57,3 +57,40 @@ def angle_separation(ra_0, ra_1, dec_0, dec_1, r_0, r_1):
     sin_phi = np.clip(sin_phi, -1, 1)
     cos_theta = np.clip(cos_theta, -1, 1)
     return r, np.arccos(cos_theta), np.arcsin(sin_phi)
+
+
+def return_full_cov(cov):
+    variance_val = cov[0]
+
+    non_diagonal_cov = np.delete(cov, 0)
+    number_objects = int((1 + np.sqrt(1 + 8 * non_diagonal_cov.size)) / 2)
+
+    variance_val = variance_val * np.eye(number_objects)
+
+    full_cov = np.zeros((number_objects, number_objects))
+    vi, vj = np.triu_indices(number_objects, k=1)
+    full_cov[vi, vj] = non_diagonal_cov
+    full_cov[vj, vi] = non_diagonal_cov
+
+    full_cov = full_cov + variance_val
+    return full_cov
+
+
+def return_full_cov_cross(cov, number_objects_g, number_objects_v):
+    full_cov = cov.reshape((number_objects_g, number_objects_v))
+    return full_cov
+
+
+def return_correlation_matrix(cov):
+    sigma = np.sqrt(np.diag(cov))
+    corr_matrix = cov / np.outer(sigma, sigma)
+    return corr_matrix
+
+
+def save_matrix(matrix, name):
+    np.save(f"{name}.npy", matrix)
+
+
+def open_matrix(name):
+    matrix = np.load(f"{name}.npy")
+    return matrix

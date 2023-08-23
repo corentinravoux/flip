@@ -1,8 +1,7 @@
 from flip.utils import create_log
-from flip.covariance_model.lai22 import generator as generator_lai22
-from flip.covariance_model.adamsblake20 import generator as generator_adamsblake20
-from flip.covariance_model.carreres23 import generator as generator_carreres23
-from flip.covariance_model import generator_flip
+from flip.covariance.lai22 import generator as generator_lai22
+from flip.covariance.carreres23 import generator as generator_carreres23
+from flip.covariance import generator as generator_flip
 
 
 log = create_log()

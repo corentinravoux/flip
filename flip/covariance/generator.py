@@ -49,7 +49,7 @@ def coefficient(
     wavenumber,
     power_spectrum,
     coord,
-    additional_parameters_values,
+    additional_parameters_values=None,
 ):
     cov_ab_i = 0
     dictionary_subterms = eval(f"flip_terms_{model_name}.dictionary_subterms")
@@ -143,7 +143,7 @@ def compute_cov(
             lmax_list[i],
             power_spectrum_list[i][0],
             power_spectrum_list[i][1],
-            additional_parameters_values,
+            additional_parameters_values=additional_parameters_values,
         )
 
     if number_worker == 1:
@@ -172,7 +172,7 @@ def compute_cov(
             power_spectrum_list[i][0],
             power_spectrum_list[i][1],
             np.zeros((3, 1)),
-            additional_parameters_values,
+            additional_parameters_values=additional_parameters_values,
         )[0]
 
         locals()[f"cov_{index}"] = np.insert(eval(f"cov_{index}"), 0, variance_t)

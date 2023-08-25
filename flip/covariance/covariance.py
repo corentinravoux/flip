@@ -196,7 +196,7 @@ class CovMatrix:
         coordinates_density=None,
         additional_parameters_values=None,
     ):
-        covariance_dict, model_type = generate_flip(
+        covariance_dict = generate_flip(
             model_name,
             model_type,
             power_spectrum_dict,

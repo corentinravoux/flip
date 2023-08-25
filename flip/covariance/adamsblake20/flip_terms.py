@@ -337,7 +337,10 @@ def N_vv_0_2_0(theta, phi):
     return (3 / 4) * np.cos(2 * phi) + 1 / 4
 
 
-dictionary_terms = {
+dictionary_terms = {"gg": ["0", "1", "2"], "gv": ["0", "1"], "vv": ["0"]}
+dictionary_lmax = {"gg": [4, 4, 4], "gv": [3, 3], "vv": [2]}
+
+dictionary_subterms = {
     "gg_0_0": 1,
     "gg_0_1": 0,
     "gg_0_2": 1,
@@ -357,15 +360,11 @@ dictionary_terms = {
     "gv_0_1": 1,
     "gv_0_2": 0,
     "gv_0_3": 1,
-    "gv_0_4": 0,
     "gv_1_0": 0,
     "gv_1_1": 1,
     "gv_1_2": 0,
     "gv_1_3": 1,
-    "gv_1_4": 0,
     "vv_0_0": 1,
     "vv_0_1": 0,
     "vv_0_2": 1,
-    "vv_0_3": 0,
-    "vv_0_4": 0,
 }

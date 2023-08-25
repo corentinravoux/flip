@@ -32,7 +32,11 @@ def generator_need(
             raise ValueError("Power spectra not provided")
 
 
-def generate_carreres23(coordinates_velocity, power_spectrum_list):
+def generate_carreres23(
+    coordinates_velocity=None,
+    coordinates_density=None,
+    power_spectrum_list=None,
+):
     generator_need(
         coordinates_density=False,
         coordinates_velocity=coordinates_velocity,
@@ -45,9 +49,7 @@ def generate_carreres23(coordinates_velocity, power_spectrum_list):
         power_spectrum_list[0][0],
         power_spectrum_list[0][1],
         grid_window_in=None,
-        nobj_in=None,
         n_per_batch=100_000,
-        fullcov=True,
         number_worker=8,
     )
     return {"vv": cov_vv}
@@ -117,13 +119,13 @@ class CovMatrix:
         coordinates_velocity=None,
         coordinates_density=None,
         power_spectrum_list=None,
-        additional_parameters=None,
+        **kwargs,
     ):
         covariance_dict = eval(f"generate_{model_name}")(
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
             power_spectrum_list=power_spectrum_list,
-            **additional_parameters,
+            **kwargs,
         )
 
         log.add(f"Covariance matrix generated from {model_name} model")
@@ -148,15 +150,15 @@ class CovMatrix:
 
     @property
     def type(self):
-        if self.model_type is "velocity":
+        if self.model_type == "velocity":
             log.add("The covariance model contains is computed for velocity")
-        elif self.model_type is "density":
+        elif self.model_type == "density":
             log.add("The covariance model contains is computed for density")
-        elif self.model_type is "density_velocity":
+        elif self.model_type == "density_velocity":
             log.add(
                 "The covariance model contains is computed for velocity and density, without cross-term"
             )
-        elif self.model_type is "full":
+        elif self.model_type == "full":
             log.add(
                 "The covariance model contains is computed for velocity and density, with cross-term"
             )
@@ -164,24 +166,24 @@ class CovMatrix:
 
     @property
     def loaded(self):
-        if self.model_type is "density":
+        if self.model_type == "density":
             if "gg" in self.covariance_dict.keys():
                 return True
             else:
                 return False
-        elif self.model_type is "velocity":
+        elif self.model_type == "velocity":
             if "vv" in self.covariance_dict.keys():
                 return True
             else:
                 return False
-        elif self.model_type is "density_velocity":
+        elif self.model_type == "density_velocity":
             if ("vv" in self.covariance_dict.keys()) & (
                 "gg" in self.covariance_dict.keys()
             ):
                 return True
             else:
                 return False
-        elif self.model_type is "full":
+        elif self.model_type == "full":
             if (
                 ("vv" in self.covariance_dict.keys())
                 & ("gg" in self.covariance_dict.keys())

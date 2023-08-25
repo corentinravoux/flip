@@ -31,7 +31,7 @@ def correlation_integration(l, r, k, integrand):
 
 def correlation_hankel(l, r, k, integrand, hankel_overhead_coefficient=2):
     """If l is odd, count a 1j term in the integrand, without the need for adding it"""
-    Hankel = cosmoprimo.fftlog.PowerToCorrelation(k, ell=l, q=0, complex=True)
+    Hankel = cosmoprimo.fftlog.PowerToCorrelation(k, ell=l, q=0, complex=False)
     Hankel.set_fft_engine("numpy")
     r_hankel, xi_hankel = Hankel(integrand)
     mask = r < np.min(r_hankel) * hankel_overhead_coefficient
@@ -52,9 +52,9 @@ def coefficient(
     additional_parameters_values=(),
 ):
     cov_ab_i = 0
-    dictionary_terms = eval(f"flip_terms_{model_name}.dictionary_terms")
+    dictionary_subterms = eval(f"flip_terms_{model_name}.dictionary_subterms")
     for l in range(lmax + 1):
-        number_terms = dictionary_terms[f"{type}_{term_index}_{l}"]
+        number_terms = dictionary_subterms[f"{type}_{term_index}_{l}"]
         for j in range(number_terms):
             M_ab_i_l_j = eval(f"flip_terms_{model_name}.M_{type}_{term_index}_{l}_{j}")(
                 *additional_parameters_values
@@ -72,12 +72,10 @@ def coefficient(
 def compute_cov(
     model_name,
     covariance_type,
-    term_index_list,
     power_spectrum_list,
-    lmax_list,
     coordinates_density=None,
     coordinates_velocity=None,
-    additional_parameters_values=None,
+    additional_parameters_values=(),
     size_batch=10_000,
     number_worker=8,
 ):
@@ -129,6 +127,9 @@ def compute_cov(
             ra_j, dec_j, r_j = ra[j_list], dec[j_list], comoving_distance[j_list]
         r, theta, phi = cov_utils.angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
         parameters.append([r, theta, phi])
+
+    term_index_list = eval(f"flip_terms_{model_name}.dictionary_terms")[covariance_type]
+    lmax_list = eval(f"flip_terms_{model_name}.dictionary_lmax")[covariance_type]
 
     for i, index in enumerate(term_index_list):
         locals()[f"func_{index}"] = partial(

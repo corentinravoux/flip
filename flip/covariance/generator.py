@@ -49,7 +49,7 @@ def coefficient(
     wavenumber,
     power_spectrum,
     coord,
-    additional_parameters_values=(),
+    additional_parameters_values,
 ):
     cov_ab_i = 0
     dictionary_subterms = eval(f"flip_terms_{model_name}.dictionary_subterms")
@@ -75,7 +75,7 @@ def compute_cov(
     power_spectrum_list,
     coordinates_density=None,
     coordinates_velocity=None,
-    additional_parameters_values=(),
+    additional_parameters_values=None,
     size_batch=10_000,
     number_worker=8,
 ):
@@ -84,6 +84,9 @@ def compute_cov(
             f"Model {model_name} not available."
             "Please choose between: {_avail_models}"
         )
+
+    if additional_parameters_values is None:
+        additional_parameters_values = ()
 
     if covariance_type == "gg":
         ra = coordinates_density[0]
@@ -140,7 +143,7 @@ def compute_cov(
             lmax_list[i],
             power_spectrum_list[i][0],
             power_spectrum_list[i][1],
-            additional_parameters_values=additional_parameters_values,
+            additional_parameters_values,
         )
 
     if number_worker == 1:
@@ -169,7 +172,7 @@ def compute_cov(
             power_spectrum_list[i][0],
             power_spectrum_list[i][1],
             np.zeros((3, 1)),
-            additional_parameters_values=additional_parameters_values,
+            additional_parameters_values,
         )[0]
 
         locals()[f"cov_{index}"] = np.insert(eval(f"cov_{index}"), 0, variance_t)

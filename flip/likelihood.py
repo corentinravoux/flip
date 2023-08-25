@@ -6,6 +6,24 @@ import iminuit
 # CR - first start at building an oriented object framework for likelihood + sampling
 # --> interface between the model and the fitting method (Add minuit + MCMC)
 
+# CR - We need a generalized way to define the likelihood based on:
+# - A type of likelihood: Gaussian multivariate
+# - The model: link with flip.covariance.covariance
+
+
+def parameters_lai22(params, covariance, variant=None):
+    if variant == "densitynoRSD":
+        b = params[0]
+    elif variant == "density":
+        b = params[0]
+        f = params[1]
+        sig_g = params[2]
+    else:
+        b = params[0]
+        f = params[1]
+        sig_g = params[2]
+    return (covariance,)
+
 
 def log_likelihood(self):
     cholesky = cho_factor(self.covariance)

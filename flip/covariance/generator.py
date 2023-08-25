@@ -11,6 +11,7 @@ from flip.covariance.adamsblake20 import flip_terms as flip_terms_adamsblake20
 from flip.covariance.lai22 import flip_terms as flip_terms_lai22
 from flip.covariance.carreres23 import flip_terms as flip_terms_carreres23
 from flip.covariance.ravouxcarreres import flip_terms as flip_terms_ravouxcarreres
+
 from flip.utils import create_log
 
 log = create_log()
@@ -20,19 +21,23 @@ _avail_models = ["adamsblake20", "lai22", "carreres23", "ravouxcarreres"]
 def correlation_integration(l, r, k, integrand):
     kr = np.outer(k, r)
     integrand = (
-        (1j**l) * (k**2 / (2 * np.pi**2)) * integrand * spherical_jn(l, kr).T
+        (-1) ** (l // 2)
+        * (k**2 / (2 * np.pi**2))
+        * integrand
+        * spherical_jn(l, kr).T
     )
-    return integrate.simps(integrand, x=k)
+    return (-1) ** (l % 2) * integrate.simps(integrand, x=k)
 
 
 def correlation_hankel(l, r, k, integrand, hankel_overhead_coefficient=2):
-    Hankel = cosmoprimo.fftlog.PowerToCorrelation(k, ell=l, q=0, complex=False)
+    """If l is odd, count a 1j term in the integrand, without the need for adding it"""
+    Hankel = cosmoprimo.fftlog.PowerToCorrelation(k, ell=l, q=0, complex=True)
     Hankel.set_fft_engine("numpy")
     r_hankel, xi_hankel = Hankel(integrand)
     mask = r < np.min(r_hankel) * hankel_overhead_coefficient
     output = np.empty_like(r)
     output[mask] = correlation_integration(l, r[mask], k, integrand)
-    output[~mask] = (-1) ** (l // 2) * interp1d(r_hankel, xi_hankel)(r[~mask])
+    output[~mask] = (-1) ** (l % 2) * interp1d(r_hankel, xi_hankel)(r[~mask])
     return output
 
 
@@ -69,7 +74,7 @@ def compute_cov(
     covariance_type,
     term_index_list,
     power_spectrum_list,
-    lmax,
+    lmax_list,
     coordinates_density=None,
     coordinates_velocity=None,
     additional_parameters_values=None,
@@ -131,7 +136,7 @@ def compute_cov(
             model_name,
             covariance_type,
             index,
-            lmax,
+            lmax_list[i],
             power_spectrum_list[i][0],
             power_spectrum_list[i][1],
             additional_parameters_values=additional_parameters_values,
@@ -159,12 +164,12 @@ def compute_cov(
             model_name,
             covariance_type,
             index,
-            lmax,
+            lmax_list[i],
             power_spectrum_list[i][0],
             power_spectrum_list[i][1],
-            [0, 0, 0],
+            np.zeros((3, 1)),
             additional_parameters_values=additional_parameters_values,
-        )
+        )[0]
 
         locals()[f"cov_{index}"] = np.insert(eval(f"cov_{index}"), 0, variance_t)
 

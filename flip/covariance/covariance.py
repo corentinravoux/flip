@@ -53,6 +53,51 @@ def generate_carreres23(coordinates_velocity, power_spectrum_list):
     return {"vv": cov_vv}
 
 
+def generate_flip(
+    model_name,
+    model_type,
+    power_spectrum_list,
+    coordinates_velocity=None,
+    coordinates_density=None,
+    additional_parameters_values=None,
+):
+    covariance_dict = {}
+    if model_type in ["density", "density_velocity", "full"]:
+        covariance_dict["gg"] = generator_flip.compute_cov(
+            model_name,
+            "gg",
+            power_spectrum_list,
+            coordinates_density=coordinates_density,
+            coordinates_velocity=coordinates_velocity,
+            additional_parameters_values=additional_parameters_values,
+            size_batch=10_000,
+            number_worker=8,
+        )
+    if model_type in ["full"]:
+        covariance_dict["gv"] = generator_flip.compute_cov(
+            model_name,
+            "gv",
+            power_spectrum_list,
+            coordinates_density=coordinates_density,
+            coordinates_velocity=coordinates_velocity,
+            additional_parameters_values=additional_parameters_values,
+            size_batch=10_000,
+            number_worker=8,
+        )
+    if model_type in ["velocity", "density_velocity", "full"]:
+        covariance_dict["vv"] = generator_flip.compute_cov(
+            model_name,
+            "vv",
+            power_spectrum_list,
+            coordinates_density=coordinates_density,
+            coordinates_velocity=coordinates_velocity,
+            additional_parameters_values=additional_parameters_values,
+            size_batch=10_000,
+            number_worker=8,
+        )
+    return covariance_dict
+
+
 class CovMatrix:
     def __init__(
         self,

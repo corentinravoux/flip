@@ -1,4 +1,3 @@
-"""Function to compute the covariance."""
 import numpy as np
 from scipy.special import spherical_jn
 import multiprocessing as mp
@@ -7,7 +6,6 @@ from flip.covariance import cov_utils
 
 
 def window(r_0, r_1, cos_alpha, sep, j0kr, j2kr):
-    """From Johnson et al. 2014"""
     win = 1 / 3 * (j0kr - 2 * j2kr) * cos_alpha
     win += j2kr * r_0 * r_1 / sep**2 * (1 - cos_alpha**2)
     return win
@@ -21,7 +19,6 @@ def intp(win, k, pk):
 def finalize_cov(N, val, k, pk, pk_nogrid=None, nobj=None):
     var_val = np.trapz(pk / 3, x=k)
 
-    # If there is a grid account for sampling problem
     cov_val = np.zeros((N, N))
     vi, vj = np.triu_indices(N, k=1)
     cov_val[vi, vj] = val
@@ -48,40 +45,6 @@ def covariance_vv(
     fullcov=True,
     number_worker=8,
 ):
-    """
-    Compute the covariance matrix for a set of angular positions.
-
-    Parameters
-    ----------
-    ra_in : array_like
-        Right ascension of angular positions in radians.
-    dec_in : array_like
-        Declination of angular positions in radians.
-    rcomov_in : array_like
-        Comoving distance to the angular positions in Mpc/h.
-    k_in : array_like
-        Wavenumber array for the power spectrum in h/Mpc.
-    pk_in : array_like
-        Power spectrum in (Mpc/h)^3.
-    grid_window_in : array_like, optional
-        Grid window function for the power spectrum in h/Mpc corresponding to bin size. (default is None)
-    nobj_in : array_like, optional
-        Number of objects in each angular bin. (default is None)
-    n_per_batch : int, optional
-        Number of elements to compute in each batch. (default is 100_000)
-    fullcov : bool, optional
-        Flag to compute the full covariance matrix. If False, give flatten matrix. (default is True)
-
-    Returns
-    -------
-    cov : array_like
-        Covariance matrix.
-
-    Notes
-    -----
-    This docstring has been generated using ChatGPT ^^
-    """
-
     N = len(ra_in)
 
     if grid_window_in is not None:

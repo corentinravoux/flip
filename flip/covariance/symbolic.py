@@ -433,7 +433,7 @@ def generate_generalized_ravouxcarreres_functions(
     mu1, mu2 = sy.symbols("mu1 mu2")
     k = sy.symbols("k", positive=True, finite=True, real=True)
     sig_g = sy.symbols("sig_g", positive=True, finite=True, real=True)
-    type_list = ["gg", "gg", "gg"] + ["gv", "gv"] + ["vv"]
+    type_list = ["gg", "gv", "vv"]
     term_index_list = [["0", "1", "2"], ["0", "1"], ["0"]]
     # lmax_list = [[4, 4, 4], [3, 3], [2]] # Lists to follow the logic of AD20
     # l1max_list = [[2, 2, 2] , [2, 2] , [1]]

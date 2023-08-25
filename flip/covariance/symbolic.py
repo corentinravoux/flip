@@ -49,52 +49,38 @@ def simplify_term(
 def generate_MN_ab_i_l_function_wide_angle(
     term_B,
     l,
-    l1max,
-    l2max,
+    l1,
+    l2,
 ):
     theta, phi = sy.symbols("theta phi")
     mu1, mu2 = sy.symbols("mu1 mu2")
-    list_M_l = []
-    list_N_l = []
-    for l1 in range(l1max + 1):
-        integral_mu1_M_l = sy.integrate(term_B * legendre_poly(l1, x=mu1), (mu1, -1, 1))
-        if integral_mu1_M_l == 0:
-            continue
-        for l2 in range(l2max + 1):
-            integral_mu1_mu2_M_l = sy.integrate(
-                integral_mu1_M_l * legendre_poly(l2, x=mu2), (mu2, -1, 1)
-            )
-            if integral_mu1_mu2_M_l == 0:
-                continue
-            term_N_l_l1_l2 = 0
-            for m in range(-l, l + 1):
-                for m1 in range(-l1, l1 + 1):
-                    for m2 in range(-l2, l2 + 1):
-                        term_N_l_l1_l2_m_m1_m2 = wigner.gaunt(l, l1, l2, m, m1, m2)
-                        term_N_l_l1_l2_m_m1_m2 *= (
-                            sy.Ynm_c(l, m, sy.pi - phi, 0)
-                            * sy.Ynm_c(l1, m1, theta / 2, sy.pi)
-                            * sy.Ynm_c(l2, m2, theta / 2, 0)
-                        )
-                        term_N_l_l1_l2 = term_N_l_l1_l2 + term_N_l_l1_l2_m_m1_m2
-            if term_N_l_l1_l2 != 0:
-                term_M_l = (1 / sy.Rational(4)) * integral_mu1_mu2_M_l.expand(func=True)
-                term_N_l = (sy.Rational(4) * sy.pi) ** 2 * term_N_l_l1_l2.expand(
-                    func=True
+    integral_mu1_M_l = sy.integrate(term_B * legendre_poly(l1, x=mu1), (mu1, -1, 1))
+    integral_mu1_mu2_M_l = sy.integrate(
+        integral_mu1_M_l * legendre_poly(l2, x=mu2), (mu2, -1, 1)
+    )
+    term_N_l_l1_l2 = 0
+    for m in range(-l, l + 1):
+        for m1 in range(-l1, l1 + 1):
+            for m2 in range(-l2, l2 + 1):
+                term_N_l_l1_l2_m_m1_m2 = wigner.gaunt(l, l1, l2, m, m1, m2)
+                term_N_l_l1_l2_m_m1_m2 *= (
+                    sy.Ynm_c(l, m, sy.pi - phi, 0)
+                    * sy.Ynm_c(l1, m1, theta / 2, sy.pi)
+                    * sy.Ynm_c(l2, m2, theta / 2, 0)
                 )
-                term_M_l = simplify_term(
-                    term_M_l,
-                    simplification_method="simplify_iteration",
-                )
-                term_N_l = simplify_term(
-                    term_N_l,
-                    simplification_method="tr8_iteration",
-                )
+                term_N_l_l1_l2 = term_N_l_l1_l2 + term_N_l_l1_l2_m_m1_m2
+    term_M_l_l1_l2 = (1 / sy.Rational(4)) * integral_mu1_mu2_M_l.expand(func=True)
+    term_N_l_l1_l2 = (sy.Rational(4) * sy.pi) ** 2 * term_N_l_l1_l2.expand(func=True)
+    term_M_l_l1_l2 = simplify_term(
+        term_M_l_l1_l2,
+        simplification_method="simplify_iteration",
+    )
+    term_N_l_l1_l2 = simplify_term(
+        term_N_l_l1_l2,
+        simplification_method="tr8_iteration",
+    )
 
-                list_M_l.append(term_M_l)
-                list_N_l.append(term_N_l)
-
-    return list_M_l, list_N_l
+    return term_M_l_l1_l2, term_N_l_l1_l2
 
 
 def generate_MN_ab_i_l_function_parallel_plane(term_B, l):
@@ -112,10 +98,7 @@ def generate_MN_ab_i_l_function_parallel_plane(term_B, l):
         N_l.expand(func=True),
         simplification_method="tr8_iteration",
     )
-    if (N_l == 0) | (M_l == 0):
-        return ([], [])
-    else:
-        return ([M_l], [N_l])
+    return M_l, N_l
 
 
 def write_output(
@@ -125,49 +108,78 @@ def write_output(
     lmax_list,
     output_pool,
     index_pool,
+    wide_angle,
     additional_parameters=None,
+    l1max_list=None,
+    l2max_list=None,
 ):
     f = open(filename, "w")
     f.write("import numpy as np\n")
     f.write("import scipy\n")
     f.write("\n")
     f.write("\n")
-    dict_len_j = {}
-    for i, t in enumerate(term_index_list):
-        for l in range(lmax_list[i] + 1):
-            list_M_ab_i_l, list_N_ab_i_l = output_pool[
-                index_pool[f"{type_list[i]}_{t}_{l}"]
-            ]
-            dict_len_j[f"{type_list[i]}_{t}_{l}"] = len(list_M_ab_i_l)
-            for j in range(len(list_M_ab_i_l)):
-                M_ab_i_l_j = (
-                    pycode(list_M_ab_i_l[j])
-                    .replace("math.erf", "scipy.special.erf")
-                    .replace("math.", "np.")
-                )
-                N_ab_i_l_j = (
-                    pycode(list_N_ab_i_l[j])
-                    .replace("math.erf", "scipy.special.erf")
-                    .replace("math.", "np.")
-                )
+    dict_terms = {}
+    dict_lmax = {}
+    dict_j = {}
+    for k, type in enumerate(type_list):
+        dict_terms[f"{type}"] = term_index_list[k]
+        dict_lmax[f"{type}"] = lmax_list[k]
+        for i, t in enumerate(term_index_list[k]):
+            for l in range(lmax_list[k][i] + 1):
+                list_M_ab_i_l = []
+                list_N_ab_i_l = []
+                if wide_angle:
+                    for l1 in range(l1max_list[k][i] + 1):
+                        for l2 in range(l2max_list[k][i] + 1):
+                            M_ab_i_l_l1_l2, N_ab_i_l_l1_l2 = output_pool[
+                                index_pool[f"{type}_{t}_{l}_{l1}_{l2}"]
+                            ]
+                            if (M_ab_i_l_l1_l2 != 0) & (N_ab_i_l_l1_l2 != 0):
+                                list_M_ab_i_l.append(M_ab_i_l_l1_l2)
+                                list_N_ab_i_l.append(N_ab_i_l_l1_l2)
+                else:
+                    M_ab_i_l_l1_l2, N_ab_i_l_l1_l2 = output_pool[
+                        index_pool[f"{type}_{t}_{l}"]
+                    ]
+                    if (M_ab_i_l_l1_l2 != 0) & (N_ab_i_l_l1_l2 != 0):
+                        list_M_ab_i_l.append(M_ab_i_l_l1_l2)
+                        list_N_ab_i_l.append(N_ab_i_l_l1_l2)
+                dict_j[f"{type}_{t}_{l}"] = len(list_M_ab_i_l)
+                for j in range(len(list_M_ab_i_l)):
+                    M_ab_i_l_j = (
+                        pycode(list_M_ab_i_l[j])
+                        .replace("math.erf", "scipy.special.erf")
+                        .replace("math.", "np.")
+                    )
+                    N_ab_i_l_j = (
+                        pycode(list_N_ab_i_l[j])
+                        .replace("math.erf", "scipy.special.erf")
+                        .replace("math.", "np.")
+                    )
 
-                additional_str = ""
-                if additional_parameters is not None:
-                    for add in additional_parameters:
-                        additional_str = additional_str + f"{add},"
-                additional_str = additional_str[:-1]
-                f.write(f"def M_{type_list[i]}_{t}_{l}_{j}({additional_str}):\n")
-                f.write(f"    def func(k):\n")
-                f.write(f"        return({M_ab_i_l_j})\n")
-                f.write(f"    return(func)\n")
-                f.write("\n")
+                    additional_str = ""
+                    if additional_parameters is not None:
+                        for add in additional_parameters:
+                            additional_str = additional_str + f"{add},"
+                    additional_str = additional_str[:-1]
+                    f.write(f"def M_{type}_{t}_{l}_{j}({additional_str}):\n")
+                    f.write(f"    def func(k):\n")
+                    f.write(f"        return({M_ab_i_l_j})\n")
+                    f.write(f"    return(func)\n")
+                    f.write("\n")
 
-                f.write(f"def N_{type_list[i]}_{t}_{l}_{j}(theta,phi):\n")
-                f.write(f"    return({N_ab_i_l_j})\n")
-                f.write("\n")
+                    f.write(f"def N_{type}_{t}_{l}_{j}(theta,phi):\n")
+                    f.write(f"    return({N_ab_i_l_j})\n")
+                    f.write("\n")
 
     f.write("dictionary_terms = ")
-    f.write(repr(dict_len_j))
+    f.write(repr(dict_terms))
+
+    f.write("dictionary_lmax = ")
+    f.write(repr(dict_lmax))
+
+    f.write("dictionary_subterms = ")
+    f.write(repr(dict_j))
 
     f.write("\n")
     f.close()
@@ -188,15 +200,20 @@ def write_M_N_functions(
     params_pool = []
     index_pool = {}
     index = 0
-    for i, t in enumerate(term_index_list):
-        for l in range(lmax_list[i] + 1):
-            B_ab_i = dict_B[f"B_{type_list[i]}_{t}"]
-            if wide_angle:
-                params_pool.append([B_ab_i, l, l1max_list[i], l2max_list[i]])
-            else:
-                params_pool.append([B_ab_i, l])
-            index_pool[f"{type_list[i]}_{t}_{l}"] = index
-            index = index + 1
+    for k, type in enumerate(type_list):
+        for i, t in enumerate(term_index_list[k]):
+            for l in range(lmax_list[k][i] + 1):
+                B_ab_i = dict_B[f"B_{type}_{t}"]
+                if wide_angle:
+                    for l1 in range(l1max_list[k][i] + 1):
+                        for l2 in range(l2max_list[k][i] + 1):
+                            params_pool.append([B_ab_i, l, l1, l2])
+                            index_pool[f"{type}_{t}_{l}_{l1}_{l2}"] = index
+                            index = index + 1
+                else:
+                    params_pool.append([B_ab_i, l])
+                    index_pool[f"{type}_{t}_{l}"] = index
+                    index = index + 1
 
     if number_worker == 1:
         if wide_angle:
@@ -227,7 +244,10 @@ def write_M_N_functions(
         lmax_list,
         output_pool,
         index_pool,
+        wide_angle,
         additional_parameters=additional_parameters,
+        l1max_list=l1max_list,
+        l2max_list=l2max_list,
     )
 
 
@@ -238,10 +258,11 @@ def generate_generalized_adamsblake20_functions(
     k = sy.symbols("k", positive=True, finite=True, real=True)
     sig_g = sy.symbols("sig_g", positive=True, finite=True, real=True)
     type_list = ["gg", "gg", "gg"] + ["gv", "gv"] + ["vv"]
-    term_index_list = ["0", "1", "2"] + ["0", "1"] + ["0"]
-    # lmax_list = [4, 4, 4] + [3, 3] + [2] # lmax list to stick to AD20
-    # lmax_list = [6, 6, 6] + [5, 5] + [2] # lmax list to generate lmax + 1
-    lmax_list = [4, 4, 4] + [3, 3] + [2]
+    type_list = ["gg", "gv", "vv"]
+    term_index_list = [["0", "1", "2"], ["0", "1"], ["0"]]
+    # lmax_list = [[4, 4, 4], [3, 3], [2]] # lmax list to stick to AD20
+    # lmax_list = [[6, 6, 6], [5, 5], [2]] # lmax list to generate lmax + 1
+    lmax_list = [[4, 4, 4], [3, 3], [2]]
     dict_B = {
         "B_gg_0": sy.exp(-((k * sig_g * mu) ** 2)),
         "B_gg_1": mu**2 * sy.exp(-((k * sig_g * mu) ** 2)),
@@ -269,13 +290,12 @@ def generate_generalized_lai22_functions(
     mu1, mu2 = sy.symbols("mu1 mu2")
     k = sy.symbols("k", positive=True, finite=True, real=True)
 
-    type_list = []
-    term_index_list = []
-    lmax_list = []
-    l1max_list = []
-    l2max_list = []
-
     # gg
+    term_index_list_gg = []
+    lmax_list_gg = []
+    l1max_list_gg = []
+    l2max_list_gg = []
+
     pmax_gg, qmax_gg = 3, 3
     p_index = np.arange(pmax_gg + 1)
     q_index = np.arange(qmax_gg + 1)
@@ -286,20 +306,19 @@ def generate_generalized_lai22_functions(
     for i in ["0", "1", "2"]:
         for m_value in m_index_gg:
             pq_index = iter_pq[sum_iter_pq == m_value]
-            type_list.append("gg")
-            term_index_list.append(f"{i}_{m_value}")
+            term_index_list_gg.append(f"{i}_{m_value}")
             if i == "0":
-                lmax_list.append(2 * m_value)
-                l1max_list.append(min(2 * m_value, 2 * pmax_gg))
-                l2max_list.append(min(2 * m_value, 2 * qmax_gg))
+                lmax_list_gg.append(2 * m_value)
+                l1max_list_gg.append(min(2 * m_value, 2 * pmax_gg))
+                l2max_list_gg.append(min(2 * m_value, 2 * qmax_gg))
             elif i == "1":
-                lmax_list.append(2 * (m_value + 1))
-                l1max_list.append(min(2 * (m_value + 1), 2 * (pmax_gg + 1)))
-                l2max_list.append(min(2 * (m_value + 1), 2 * (qmax_gg + 1)))
+                lmax_list_gg.append(2 * (m_value + 1))
+                l1max_list_gg.append(min(2 * (m_value + 1), 2 * (pmax_gg + 1)))
+                l2max_list_gg.append(min(2 * (m_value + 1), 2 * (qmax_gg + 1)))
             elif i == "2":
-                lmax_list.append(2 * (m_value + 2))
-                l1max_list.append(min(2 * (m_value + 1), 2 * (pmax_gg + 1)))
-                l2max_list.append(min(2 * (m_value + 1), 2 * (qmax_gg + 1)))
+                lmax_list_gg.append(2 * (m_value + 2))
+                l1max_list_gg.append(min(2 * (m_value + 1), 2 * (pmax_gg + 1)))
+                l2max_list_gg.append(min(2 * (m_value + 1), 2 * (qmax_gg + 1)))
 
             B_gg_i = 0
             for pq in pq_index:
@@ -325,23 +344,27 @@ def generate_generalized_lai22_functions(
                 dict_B[f"B_gg_{i}_{m_value}"] = B_gg_i
 
     # gv
+    term_index_list_gv = []
+    lmax_list_gv = []
+    l1max_list_gv = []
+    l2max_list_gv = []
+
     pmax_gv = 3
     m_index_gv = np.arange(pmax_gv + 1)
 
     for i in ["0", "1"]:
         for m_value in m_index_gv:
-            type_list.append("gv")
-            term_index_list.append(f"{i}_{m_value}")
-            l2max_list.append(1)
+            term_index_list_gv.append(f"{i}_{m_value}")
+            l2max_list_gv.append(1)
             B_gv_i = 0
             if i == "0":
                 add = 1
-                lmax_list.append(2 * m_value + 1)
-                l1max_list.append(2 * m_value)
+                lmax_list_gv.append(2 * m_value + 1)
+                l1max_list_gv.append(2 * m_value)
             elif i == "1":
                 add = mu1**2
-                lmax_list.append(2 * m_value + 3)
-                l1max_list.append(2 * m_value + 2)
+                lmax_list_gv.append(2 * m_value + 3)
+                l1max_list_gv.append(2 * m_value + 2)
             B_gv_i = (
                 B_gv_i
                 + ((-1) ** (m_value) / (2 ** (m_value) * sy.factorial(m_value)))
@@ -353,12 +376,17 @@ def generate_generalized_lai22_functions(
             dict_B[f"B_gv_{i}_{m_value}"] = B_gv_i
 
     # vv
-    lmax_list.append(2)
-    l1max_list.append(1)
-    l2max_list.append(1)
-    type_list.append("vv")
-    term_index_list.append(f"0_0")
+    lmax_list_vv = [2]
+    l1max_list_vv = [1]
+    l2max_list_vv = [1]
+    term_index_list_vv = ["0_0"]
     dict_B["B_vv_0_0"] = mu1 * mu2 / k**2
+
+    type_list = ["gg", "gv", "vv"]
+    term_index_list = [term_index_list_gg, term_index_list_gv, term_index_list_vv]
+    lmax_list = [lmax_list_gg, lmax_list_gv, lmax_list_vv]
+    l1max_list = [l1max_list_gg, l1max_list_gv, l1max_list_vv]
+    l2max_list = [l2max_list_gg, l2max_list_gv, l2max_list_vv]
 
     write_M_N_functions(
         filename,
@@ -366,7 +394,7 @@ def generate_generalized_lai22_functions(
         term_index_list,
         lmax_list,
         dict_B,
-        additional_parameters=["sig_g"],
+        additional_parameters=None,
         number_worker=number_worker,
         wide_angle=True,
         l1max_list=l1max_list,
@@ -380,10 +408,10 @@ def generate_generalized_carreres23_functions(
     mu1, mu2 = sy.symbols("mu1 mu2")
     k = sy.symbols("k", positive=True, finite=True, real=True)
     type_list = ["vv"]
-    term_index_list = ["0"]
-    lmax_list = [2]
-    l1max_list = [1]
-    l2max_list = [1]
+    term_index_list = [["0"]]
+    lmax_list = [[2]]
+    l1max_list = [[1]]
+    l2max_list = [[1]]
     dict_B = {"B_vv_0": mu1 * mu2 / k**2}
 
     write_M_N_functions(
@@ -406,16 +434,16 @@ def generate_generalized_ravouxcarreres_functions(
     k = sy.symbols("k", positive=True, finite=True, real=True)
     sig_g = sy.symbols("sig_g", positive=True, finite=True, real=True)
     type_list = ["gg", "gg", "gg"] + ["gv", "gv"] + ["vv"]
-    term_index_list = ["0", "1", "2"] + ["0", "1"] + ["0"]
-    # lmax_list = [4, 4, 4] + [3, 3] + [2] # Lists to follow the logic of AD20
-    # l1max_list = [2, 2, 2] + [2, 2] + [1]
-    # l2max_list = [2, 2, 2] + [1, 1] + [1]
-    # lmax_list = [6, 6, 6] + [5, 5] + [2] # Lists to generate the model lmax + 1
-    # l1max_list = [4, 4, 4] + [4, 4] + [1]
-    # l2max_list = [4, 4, 4] + [1, 1] + [1]
-    lmax_list = [6, 6, 6] + [5, 5] + [2]
-    l1max_list = [4, 4, 4] + [4, 4] + [1]
-    l2max_list = [4, 4, 4] + [1, 1] + [1]
+    term_index_list = [["0", "1", "2"], ["0", "1"], ["0"]]
+    # lmax_list = [[4, 4, 4], [3, 3], [2]] # Lists to follow the logic of AD20
+    # l1max_list = [[2, 2, 2] , [2, 2] , [1]]
+    # l2max_list = [[2, 2, 2] , [1, 1] , [1]]
+    # lmax_list = [[6, 6, 6] , [5, 5] , [2]] # Lists to generate the model lmax + 1
+    # l1max_list = [[4, 4, 4] , [4, 4] , [1]]
+    # l2max_list = [[4, 4, 4] , [1, 1] , [1]]
+    lmax_list = [[6, 6, 6], [5, 5], [2]]
+    l1max_list = [[4, 4, 4], [4, 4], [1]]
+    l2max_list = [[4, 4, 4], [1, 1], [1]]
     dict_B = {
         "B_gg_0": sy.exp(-((k * sig_g) ** 2) * (mu1**2 + mu2**2) / 2),
         "B_gg_1": (mu1**2 + mu2**2)

@@ -129,9 +129,8 @@ def generate_flip(
     covariance_dict = {}
     if model_type in ["density", "full"]:
         generator_need(
-            coordinates_density=False,
-            coordinates_velocity=coordinates_velocity,
-            power_spectrum_list=power_spectrum_dict["vv"],
+            coordinates_density=coordinates_density,
+            coordinates_velocity=False,
         )
         covariance_dict["gg"] = generator_flip.compute_cov(
             model_name,
@@ -144,6 +143,10 @@ def generate_flip(
             number_worker=8,
         )
     if model_type in ["full"]:
+        generator_need(
+            coordinates_density=coordinates_density,
+            coordinates_velocity=coordinates_velocity,
+        )
         covariance_dict["gv"] = generator_flip.compute_cov(
             model_name,
             "gv",
@@ -155,6 +158,10 @@ def generate_flip(
             number_worker=8,
         )
     if model_type in ["velocity", "full"]:
+        generator_need(
+            coordinates_density=False,
+            coordinates_velocity=coordinates_velocity,
+        )
         covariance_dict["vv"] = generator_flip.compute_cov(
             model_name,
             "vv",

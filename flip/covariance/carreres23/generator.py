@@ -49,6 +49,7 @@ def covariance_vv(
     n_task = int((N * (N + 1)) / 2) - N
 
     batches = []
+    print(n_task)
     for n in range(0, n_task, n_per_batch):
         brange = np.arange(n, np.min((n + n_per_batch, n_task)))
         i_list, j_list = cov_utils.compute_i_j(N, brange)

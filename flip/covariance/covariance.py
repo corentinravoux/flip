@@ -29,7 +29,6 @@ def generate_carreres23(
     model_type,
     power_spectrum_dict,
     coordinates_velocity=None,
-    coordinates_density=None,
     **kwargs,
 ):
     generator_need(

@@ -36,7 +36,7 @@ def covariance_vv(
     k_in,
     pk_in,
     grid_window_in=None,
-    n_per_batch=100_000,
+    size_batch=100_000,
     number_worker=8,
 ):
     N = len(ra_in)
@@ -50,8 +50,8 @@ def covariance_vv(
 
     batches = []
     print(n_task)
-    for n in range(0, n_task, n_per_batch):
-        brange = np.arange(n, np.min((n + n_per_batch, n_task)))
+    for n in range(0, n_task, size_batch):
+        brange = np.arange(n, np.min((n + size_batch, n_task)))
         i_list, j_list = cov_utils.compute_i_j(N, brange)
         r_comovi, rai, deci = rcomov_in[i_list], ra_in[i_list], dec_in[i_list]
         r_comovj, raj, decj = rcomov_in[j_list], ra_in[j_list], dec_in[j_list]

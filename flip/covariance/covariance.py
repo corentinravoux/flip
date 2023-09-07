@@ -1,3 +1,4 @@
+import numpy as np
 from flip.utils import create_log
 from flip.covariance.lai22 import generator as generator_lai22
 from flip.covariance.carreres23 import generator as generator_carreres23

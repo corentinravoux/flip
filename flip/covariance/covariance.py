@@ -28,6 +28,7 @@ def generator_need(
 def generate_carreres23(
     model_type,
     power_spectrum_dict,
+    coordinates_density=False,
     coordinates_velocity=None,
     **kwargs,
 ):
@@ -295,5 +296,7 @@ class CovMatrix:
     def write(
         self,
         filename,
-    ):
-        log.add(f"Writing not implemented yet")
+    ):  
+        
+        np.savez(filename, **self.covariance_dict)
+        log.add(f"Cov written in {filename}.")

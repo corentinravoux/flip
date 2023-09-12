@@ -265,7 +265,7 @@ def generate_generalized_adamsblake20_functions(
     lmax_list = [[4, 4, 4], [3, 3], [2]]
     dict_B = {
         "B_gg_0": sy.exp(-((k * sig_g * mu) ** 2)),
-        "B_gg_1": mu**2 * sy.exp(-((k * sig_g * mu) ** 2)),
+        "B_gg_1": 2 * mu**2 * sy.exp(-((k * sig_g * mu) ** 2)),
         "B_gg_2": mu**4 * sy.exp(-((k * sig_g * mu) ** 2)),
         "B_gv_0": (mu / k) * sy.exp(-((k * sig_g * mu) ** 2) / 2),
         "B_gv_1": (mu**3 / k) * sy.exp(-((k * sig_g * mu) ** 2) / 2),

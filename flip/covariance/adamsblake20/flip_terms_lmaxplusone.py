@@ -91,8 +91,8 @@ def N_gg_0_6_0(theta, phi):
 
 def M_gg_1_0_0(sig_g):
     def func(k):
-        return -1 / 2 * np.exp(-(k**2) * sig_g**2) / (k**2 * sig_g**2) + (
-            1 / 4
+        return -np.exp(-(k**2) * sig_g**2) / (k**2 * sig_g**2) + (
+            1 / 2
         ) * np.sqrt(np.pi) * scipy.special.erf(k * sig_g) / (k**3 * sig_g**3)
 
     return func
@@ -105,23 +105,16 @@ def N_gg_1_0_0(theta, phi):
 def M_gg_1_2_0(sig_g):
     def func(k):
         return (
-            -5
-            / 16
-            * (
-                8 * k**3 * sig_g**3
-                + 2
-                * np.sqrt(np.pi)
-                * k**2
-                * sig_g**2
-                * np.exp(k**2 * sig_g**2)
-                * scipy.special.erf(k * sig_g)
-                + 18 * k * sig_g
-                - 9
-                * np.sqrt(np.pi)
-                * np.exp(k**2 * sig_g**2)
-                * scipy.special.erf(k * sig_g)
-            )
-            * np.exp(-(k**2) * sig_g**2)
+            -5 * np.exp(-(k**2) * sig_g**2) / (k**2 * sig_g**2)
+            - 5
+            / 4
+            * np.sqrt(np.pi)
+            * scipy.special.erf(k * sig_g)
+            / (k**3 * sig_g**3)
+            - 45 / 4 * np.exp(-(k**2) * sig_g**2) / (k**4 * sig_g**4)
+            + (45 / 8)
+            * np.sqrt(np.pi)
+            * scipy.special.erf(k * sig_g)
             / (k**5 * sig_g**5)
         )
 
@@ -136,7 +129,7 @@ def M_gg_1_4_0(sig_g):
     def func(k):
         return (
             -9
-            / 128
+            / 64
             * (
                 64 * k**5 * sig_g**5
                 - 12
@@ -173,7 +166,7 @@ def M_gg_1_6_0(sig_g):
     def func(k):
         return (
             -13
-            / 512
+            / 256
             * (
                 256 * k**7 * sig_g**7
                 + 40

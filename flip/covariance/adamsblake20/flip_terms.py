@@ -332,7 +332,6 @@ def N_vv_0_2_0(theta, phi):
 
 dictionary_terms = {"gg": ["0", "1", "2"], "gv": ["0", "1"], "vv": ["0"]}
 dictionary_lmax = {"gg": [4, 4, 4], "gv": [3, 3], "vv": [2]}
-
 dictionary_subterms = {
     "gg_0_0": 1,
     "gg_0_1": 0,
@@ -361,3 +360,4 @@ dictionary_subterms = {
     "vv_0_1": 0,
     "vv_0_2": 1,
 }
+multi_index_model = False

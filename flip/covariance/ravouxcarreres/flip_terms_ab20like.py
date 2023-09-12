@@ -883,3 +883,5 @@ dictionary_subterms = {
     "vv_0_1": 0,
     "vv_0_2": 1,
 }
+
+multi_index_model = True

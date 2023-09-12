@@ -125,6 +125,9 @@ def generate_flip(
     coordinates_velocity=None,
     coordinates_density=None,
     additional_parameters_values=None,
+    size_batch=10_000,
+    number_worker=8,
+    hankel=True,
 ):
     covariance_dict = {}
     if model_type in ["density", "full"]:
@@ -139,8 +142,9 @@ def generate_flip(
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
             additional_parameters_values=additional_parameters_values,
-            size_batch=10_000,
-            number_worker=8,
+            size_batch=size_batch,
+            number_worker=number_worker,
+            hankel=hankel,
         )
     if model_type in ["full"]:
         generator_need(
@@ -154,8 +158,9 @@ def generate_flip(
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
             additional_parameters_values=additional_parameters_values,
-            size_batch=10_000,
-            number_worker=8,
+            size_batch=size_batch,
+            number_worker=number_worker,
+            hankel=hankel,
         )
     if model_type in ["velocity", "full"]:
         generator_need(
@@ -169,8 +174,9 @@ def generate_flip(
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
             additional_parameters_values=additional_parameters_values,
-            size_batch=10_000,
-            number_worker=8,
+            size_batch=size_batch,
+            number_worker=number_worker,
+            hankel=hankel,
         )
     return covariance_dict
 
@@ -192,9 +198,10 @@ class CovMatrix:
         model_name,
         model_type,
         power_spectrum_dict,
-        coordinates_velocity=None,
         coordinates_density=None,
+        coordinates_velocity=None,
         additional_parameters_values=None,
+        **kwargs,
     ):
         covariance_dict = generate_flip(
             model_name,
@@ -203,6 +210,7 @@ class CovMatrix:
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
             additional_parameters_values=additional_parameters_values,
+            **kwargs,
         )
         log.add(f"Covariance matrix generated from flip with {model_name} model")
         return cls(

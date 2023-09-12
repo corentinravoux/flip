@@ -112,6 +112,7 @@ def write_output(
     additional_parameters=None,
     l1max_list=None,
     l2max_list=None,
+    multi_index_model=False,
 ):
     f = open(filename, "w")
     f.write("import numpy as np\n")
@@ -174,14 +175,19 @@ def write_output(
 
     f.write("dictionary_terms = ")
     f.write(repr(dict_terms))
+    f.write("\n")
 
     f.write("dictionary_lmax = ")
     f.write(repr(dict_lmax))
+    f.write("\n")
 
     f.write("dictionary_subterms = ")
     f.write(repr(dict_j))
-
     f.write("\n")
+
+    f.write(f"multi_index_model = {multi_index_model}")
+    f.write("\n")
+
     f.close()
 
 
@@ -196,6 +202,7 @@ def write_M_N_functions(
     wide_angle=False,
     l1max_list=None,
     l2max_list=None,
+    multi_index_model=False,
 ):
     params_pool = []
     index_pool = {}
@@ -248,6 +255,7 @@ def write_M_N_functions(
         additional_parameters=additional_parameters,
         l1max_list=l1max_list,
         l2max_list=l2max_list,
+        multi_index_model=multi_index_model,
     )
 
 
@@ -399,6 +407,7 @@ def generate_generalized_lai22_functions(
         wide_angle=True,
         l1max_list=l1max_list,
         l2max_list=l2max_list,
+        multi_index_model=True,
     )
 
 

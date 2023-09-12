@@ -15952,3 +15952,5 @@ dictionary_subterms = {"gg_0_0_0": 1,"gg_0_1_0": 1,
     "vv_0_0_1": 0,
     "vv_0_0_2": 1,
 }
+
+multi_index_model = True

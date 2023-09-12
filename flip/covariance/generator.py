@@ -41,7 +41,7 @@ def correlation_hankel(l, r, k, integrand, hankel_overhead_coefficient=2):
     return output
 
 
-def coefficient(
+def coefficient_hankel(
     model_name,
     type,
     term_index,
@@ -69,6 +69,41 @@ def coefficient(
     return cov_ab_i
 
 
+def coefficient_trapz(
+    model_name,
+    type,
+    term_index,
+    lmax,
+    wavenumber,
+    power_spectrum,
+    coord,
+    additional_parameters_values=None,
+):
+    cov_ab_i = 0
+    dictionary_subterms = eval(f"flip_terms_{model_name}.dictionary_subterms")
+    for l in range(lmax + 1):
+        number_terms = dictionary_subterms[f"{type}_{term_index}_{l}"]
+        for j in range(number_terms):
+            M_ab_i_l_j = eval(f"flip_terms_{model_name}.M_{type}_{term_index}_{l}_{j}")(
+                *additional_parameters_values
+            )
+            N_ab_i_l_j = eval(f"flip_terms_{model_name}.N_{type}_{term_index}_{l}_{j}")(
+                coord[1], coord[2]
+            )
+
+            kr = np.outer(wavenumber, coord[0])
+            integrand = (
+                (-1) ** (l // 2)
+                * (wavenumber**2 / (2 * np.pi**2))
+                * M_ab_i_l_j(wavenumber)
+                * power_spectrum
+                * spherical_jn(l, kr).T
+            )
+            hankel_ab_i_l_j = (-1) ** (l % 2) * np.trapz(integrand, x=wavenumber)
+            cov_ab_i = cov_ab_i + N_ab_i_l_j * hankel_ab_i_l_j
+    return cov_ab_i
+
+
 def compute_cov(
     model_name,
     covariance_type,
@@ -78,6 +113,7 @@ def compute_cov(
     additional_parameters_values=None,
     size_batch=10_000,
     number_worker=8,
+    hankel=True,
 ):
     if model_name not in _avail_models:
         log.add(
@@ -87,6 +123,10 @@ def compute_cov(
 
     if additional_parameters_values is None:
         additional_parameters_values = ()
+    if hankel:
+        coefficient = coefficient_hankel
+    else:
+        coefficient = coefficient_trapz
 
     if covariance_type == "gg":
         ra = coordinates_density[0]
@@ -133,16 +173,22 @@ def compute_cov(
 
     term_index_list = eval(f"flip_terms_{model_name}.dictionary_terms")[covariance_type]
     lmax_list = eval(f"flip_terms_{model_name}.dictionary_lmax")[covariance_type]
+    multi_index_model = eval(f"flip_terms_{model_name}.multi_index_model")
 
     for i, index in enumerate(term_index_list):
+        if multi_index_model:
+            index_power_spectrum = int(index[0])
+        else:
+            index_power_spectrum = i
+
         locals()[f"func_{index}"] = partial(
             coefficient,
             model_name,
             covariance_type,
             index,
             lmax_list[i],
-            power_spectrum_list[i][0],
-            power_spectrum_list[i][1],
+            power_spectrum_list[index_power_spectrum][0],
+            power_spectrum_list[index_power_spectrum][1],
             additional_parameters_values=additional_parameters_values,
         )
 
@@ -164,13 +210,17 @@ def compute_cov(
                 )
 
     for i, index in enumerate(term_index_list):
+        if multi_index_model:
+            index_power_spectrum = int(index[0])
+        else:
+            index_power_spectrum = i
         variance_t = coefficient(
             model_name,
             covariance_type,
             index,
             lmax_list[i],
-            power_spectrum_list[i][0],
-            power_spectrum_list[i][1],
+            power_spectrum_list[index_power_spectrum][0],
+            power_spectrum_list[index_power_spectrum][1],
             np.zeros((3, 1)),
             additional_parameters_values=additional_parameters_values,
         )[0]

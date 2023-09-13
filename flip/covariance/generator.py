@@ -115,6 +115,32 @@ def compute_cov(
     number_worker=8,
     hankel=True,
 ):
+    """Compute the covariance matrix.
+
+    Parameters
+    ----------
+    model_name : str
+        Name of the model of covariance matrix to use.
+    covariance_type : str
+        The covariance type to compute 'gg', 'vv' or 'gv'.
+    power_spectrum_list : list(list)
+        [k, Pk] # BC : Not sure of the format
+    coordinates_density : list(list, list, list) optional
+        RA, Dec and RCOM [Mpc/h] for density data, by default None
+    coordinates_velocity : list(list, list, list), optional
+        RA, Dec and RCOM [Mpc/h] for velocity data, by default None
+    additional_parameters_values : _type_, optional
+        _description_, by default None
+    size_batch : int, optional
+        Number of coefficient computed by batch, by default 10_000
+    number_worker : int, optional
+        Number of processes to use, by default 8
+
+    Returns
+    -------
+    list
+        Matrix coefficient in ordered list.
+    """    
     if model_name not in _avail_models:
         log.add(
             f"Model {model_name} not available."

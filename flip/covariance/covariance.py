@@ -1,3 +1,4 @@
+import numpy as np
 from flip.utils import create_log
 from flip.covariance.lai22 import generator as generator_lai22
 from flip.covariance.carreres23 import generator as generator_carreres23
@@ -28,8 +29,8 @@ def generator_need(
 def generate_carreres23(
     model_type,
     power_spectrum_dict,
+    coordinates_density=False,
     coordinates_velocity=None,
-    coordinates_density=None,
     **kwargs,
 ):
     generator_need(
@@ -305,5 +306,7 @@ class CovMatrix:
     def write(
         self,
         filename,
-    ):
-        log.add(f"Writing not implemented yet")
+    ):  
+        
+        np.savez(filename, **self.covariance_dict)
+        log.add(f"Cov written in {filename}.")

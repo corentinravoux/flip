@@ -55,7 +55,7 @@ def covariance_vv(
         i_list, j_list = cov_utils.compute_i_j(N, brange)
         r_comovi, rai, deci = rcomov_in[i_list], ra_in[i_list], dec_in[i_list]
         r_comovj, raj, decj = rcomov_in[j_list], ra_in[j_list], dec_in[j_list]
-        batches.append([rai, raj, deci, decj, r_comovi, r_comovj, k_in, pk])
+        batches.append([rai, raj, deci, decj, r_comovi, r_comovj])
 
     with mp.Pool(number_worker) as pool:
         func = partial(compute_coef, k_in, pk)

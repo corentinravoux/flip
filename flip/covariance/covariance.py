@@ -227,6 +227,7 @@ class CovMatrix:
         power_spectrum_dict,
         coordinates_velocity=None,
         coordinates_density=None,
+        additional_parameters_values=None,
         **kwargs,
     ):
         covariance_dict = eval(f"generate_{model_name}")(

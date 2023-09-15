@@ -3,7 +3,7 @@ from flip.utils import create_log
 from flip.covariance.lai22 import generator as generator_lai22
 from flip.covariance.carreres23 import generator as generator_carreres23
 from flip.covariance import generator as generator_flip
-
+from flip.covariance import cov_utils
 
 log = create_log()
 
@@ -26,6 +26,24 @@ def generator_need(
             raise ValueError("Velocity coordinates not provided")
 
 
+def check_generator_need(model_type, coordinates_density, coordinates_velocity):
+    if model_type == "density":
+        generator_need(
+            coordinates_density=coordinates_density,
+            coordinates_velocity=False,
+        )
+    if model_type == "velocity":
+        generator_need(
+            coordinates_density=False,
+            coordinates_velocity=coordinates_velocity,
+        )
+    if model_type in ["full", "density_velocity"]:
+        generator_need(
+            coordinates_density=coordinates_density,
+            coordinates_velocity=coordinates_velocity,
+        )
+
+
 def generate_carreres23(
     model_type,
     power_spectrum_dict,
@@ -33,10 +51,14 @@ def generate_carreres23(
     coordinates_velocity=None,
     **kwargs,
 ):
-    generator_need(
-        coordinates_density=False,
-        coordinates_velocity=coordinates_velocity,
+    assert model_type == "velocity"
+    check_generator_need(
+        model_type,
+        coordinates_density,
+        coordinates_velocity,
     )
+    number_densities = None
+    number_velocities = len(coordinates_velocity[0])
     cov_vv = generator_carreres23.covariance_vv(
         coordinates_velocity[0],
         coordinates_velocity[1],
@@ -45,7 +67,7 @@ def generate_carreres23(
         power_spectrum_dict["vv"][0][1],
         **kwargs,
     )
-    return {"vv": cov_vv}
+    return {"vv": [cov_vv]}, number_densities, number_velocities
 
 
 def generate_lai22(
@@ -57,24 +79,14 @@ def generate_lai22(
     qmax=3,
     **kwargs,
 ):
-    if model_type == "joint":
-        generator_need(
-            coordinates_density=coordinates_density,
-            coordinates_velocity=coordinates_velocity,
-        )
-    elif model_type == "density":
-        generator_need(
-            coordinates_density=coordinates_density,
-            coordinates_velocity=False,
-        )
-    elif model_type == "velocity":
-        generator_need(
-            coordinates_density=False,
-            coordinates_velocity=coordinates_velocity,
-        )
+    check_generator_need(
+        model_type,
+        coordinates_density,
+        coordinates_velocity,
+    )
     covariance_dict = {}
 
-    if model_type in ["joint", "density"]:
+    if model_type in ["density", "full", "density_velocity"]:
         covariance_dict["gg"] = generator_lai22.compute_cov_gg(
             pmax,
             qmax,
@@ -89,8 +101,24 @@ def generate_lai22(
             power_spectrum_dict["gg"][2][1],
             **kwargs,
         )
+        number_densities = len(coordinates_density[0])
+    else:
+        number_densities = None
 
-    if model_type == "joint":
+    if model_type in ["velocity", "full", "density_velocity"]:
+        covariance_dict["vv"] = generator_lai22.compute_cov_vv(
+            coordinates_velocity[0],
+            coordinates_velocity[1],
+            coordinates_velocity[2],
+            power_spectrum_dict["vv"][0][0],
+            power_spectrum_dict["vv"][1][0],
+            **kwargs,
+        )
+        number_velocities = len(coordinates_velocity[0])
+    else:
+        number_velocities = None
+
+    if model_type == "full":
         covariance_dict["gv"] = generator_lai22.compute_cov_gv(
             pmax,
             coordinates_density[0],
@@ -105,18 +133,7 @@ def generate_lai22(
             power_spectrum_dict["gv"][1][1],
             **kwargs,
         )
-
-    if model_type in ["joint", "velocity"]:
-        covariance_dict["vv"] = generator_lai22.compute_cov_vv(
-            coordinates_velocity[0],
-            coordinates_velocity[1],
-            coordinates_velocity[2],
-            power_spectrum_dict["vv"][0][0],
-            power_spectrum_dict["vv"][1][0],
-            **kwargs,
-        )
-
-    return covariance_dict
+    return covariance_dict, number_densities, number_velocities
 
 
 def generate_flip(
@@ -130,12 +147,13 @@ def generate_flip(
     number_worker=8,
     hankel=True,
 ):
+    check_generator_need(
+        model_type,
+        coordinates_density,
+        coordinates_velocity,
+    )
     covariance_dict = {}
-    if model_type in ["density", "full"]:
-        generator_need(
-            coordinates_density=coordinates_density,
-            coordinates_velocity=False,
-        )
+    if model_type in ["density", "full", "density_velocity"]:
         covariance_dict["gg"] = generator_flip.compute_cov(
             model_name,
             "gg",
@@ -147,27 +165,11 @@ def generate_flip(
             number_worker=number_worker,
             hankel=hankel,
         )
-    if model_type in ["full"]:
-        generator_need(
-            coordinates_density=coordinates_density,
-            coordinates_velocity=coordinates_velocity,
-        )
-        covariance_dict["gv"] = generator_flip.compute_cov(
-            model_name,
-            "gv",
-            power_spectrum_dict["gv"],
-            coordinates_density=coordinates_density,
-            coordinates_velocity=coordinates_velocity,
-            additional_parameters_values=additional_parameters_values,
-            size_batch=size_batch,
-            number_worker=number_worker,
-            hankel=hankel,
-        )
-    if model_type in ["velocity", "full"]:
-        generator_need(
-            coordinates_density=False,
-            coordinates_velocity=coordinates_velocity,
-        )
+        number_densities = len(coordinates_density[0])
+    else:
+        number_densities = None
+
+    if model_type in ["velocity", "full", "density_velocity"]:
         covariance_dict["vv"] = generator_flip.compute_cov(
             model_name,
             "vv",
@@ -179,7 +181,23 @@ def generate_flip(
             number_worker=number_worker,
             hankel=hankel,
         )
-    return covariance_dict
+        number_velocities = len(coordinates_velocity[0])
+    else:
+        number_velocities = None
+
+    if model_type == "full":
+        covariance_dict["gv"] = generator_flip.compute_cov(
+            model_name,
+            "gv",
+            power_spectrum_dict["gv"],
+            coordinates_density=coordinates_density,
+            coordinates_velocity=coordinates_velocity,
+            additional_parameters_values=additional_parameters_values,
+            size_batch=size_batch,
+            number_worker=number_worker,
+            hankel=hankel,
+        )
+    return covariance_dict, number_densities, number_velocities
 
 
 class CovMatrix:
@@ -188,10 +206,16 @@ class CovMatrix:
         model_name=None,
         model_type=None,
         covariance_dict=None,
+        full_matrix=False,
+        number_densities=None,
+        number_velocities=None,
     ):
         self.model_name = model_name
         self.model_type = model_type
         self.covariance_dict = covariance_dict
+        self.full_matrix = full_matrix
+        self.number_densities = number_densities
+        self.number_velocities = number_velocities
 
     @classmethod
     def init_from_flip(
@@ -204,7 +228,7 @@ class CovMatrix:
         additional_parameters_values=None,
         **kwargs,
     ):
-        covariance_dict = generate_flip(
+        covariance_dict, number_densities, number_velocities = generate_flip(
             model_name,
             model_type,
             power_spectrum_dict,
@@ -218,6 +242,9 @@ class CovMatrix:
             model_name=model_name,
             model_type=model_type,
             covariance_dict=covariance_dict,
+            number_densities=number_densities,
+            number_velocities=number_velocities,
+            full_matrix=False,
         )
 
     @classmethod
@@ -231,7 +258,9 @@ class CovMatrix:
         additional_parameters_values=None,
         **kwargs,
     ):
-        covariance_dict = eval(f"generate_{model_name}")(
+        covariance_dict, number_densities, number_velocities = eval(
+            f"generate_{model_name}"
+        )(
             model_type,
             power_spectrum_dict,
             coordinates_density=coordinates_density,
@@ -244,6 +273,9 @@ class CovMatrix:
             model_name=model_name,
             model_type=model_type,
             covariance_dict=covariance_dict,
+            number_densities=number_densities,
+            number_velocities=number_velocities,
+            full_matrix=False,
         )
 
     @classmethod
@@ -303,10 +335,28 @@ class CovMatrix:
             log.add("The model type was not found")
             return False
 
+    def compute_full_matrix(self):
+        if self.full_matrix is False:
+            for key in ["gg", "vv", "gv"]:
+                if key in self.covariance_dict.keys():
+                    for i, _ in enumerate(self.covariance_dict[key]):
+                        if key == "gv":
+                            self.covariance_dict[key][
+                                i
+                            ] = cov_utils.return_full_cov_cross(
+                                self.covariance_dict[key][i],
+                                self.covariance_dict["gg"][0].shape[0],
+                                self.covariance_dict["vv"][0].shape[0],
+                            )
+                        else:
+                            self.covariance_dict[key][i] = cov_utils.return_full_cov(
+                                self.covariance_dict[key][i]
+                            )
+            self.full_matrix = True
+
     def write(
         self,
         filename,
-    ):  
-        
+    ):
         np.savez(filename, **self.covariance_dict)
         log.add(f"Cov written in {filename}.")

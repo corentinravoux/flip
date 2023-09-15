@@ -2,34 +2,12 @@ import numpy as np
 from scipy.linalg import cho_factor, cho_solve
 from flip.utils import create_log
 
+from flip.covariance.adamsblake20 import coefficients as coefficients_adamsblake20
+from flip.covariance.lai22 import coefficients as coefficients_lai22
+from flip.covariance.carreres23 import coefficients as coefficients_carreres23
+from flip.covariance.ravouxcarreres import coefficients as coefficients_ravouxcarreres
+
 log = create_log()
-
-
-def get_coefficients_adamsblake20(model_type, parameter_values_dict):
-    coefficients_dict = {}
-    if model_type in ["density", "full", "density_velocity"]:
-        coefficients_dict["gg"] = [
-            parameter_values_dict["bs8"] ** 2,
-            parameter_values_dict["bs8"] * parameter_values_dict["fs8"],
-            parameter_values_dict["fs8"] ** 2,
-        ]
-    if model_type in ["full"]:
-        coefficients_dict["gv"] = [
-            parameter_values_dict["bs8"] * parameter_values_dict["fs8"],
-            parameter_values_dict["fs8"] ** 2,
-        ]
-    if model_type in ["velocity", "full", "density_velocity"]:
-        coefficients_dict["vv"] = [parameter_values_dict["fs8"] ** 2]
-    return coefficients_dict
-
-
-def get_diagonal_coefficients_adamsblake20(model_type, parameter_values_dict):
-    coefficients_dict = {}
-    if model_type in ["density", "full", "density_velocity"]:
-        coefficients_dict["gg"] = 1.0
-    if model_type in ["velocity", "full", "density_velocity"]:
-        coefficients_dict["vv"] = parameter_values_dict["sigv"] ** 2
-    return coefficients_dict
 
 
 class BaseLikelihood(object):
@@ -74,12 +52,14 @@ class BaseLikelihood(object):
         self,
         parameter_values_dict,
     ):
-        coefficients_dict = eval(f"get_coefficients_{self.covariance.model_name}")(
+        coefficients_dict = eval(
+            f"coefficients_{self.covariance.model_name}.get_coefficients"
+        )(
             self.covariance.model_type,
             parameter_values_dict,
         )
         coefficients_dict_diagonal = eval(
-            f"get_diagonal_coefficients_{self.covariance.model_name}"
+            f"coefficients_{self.covariance.model_name}.get_diagonal_coefficients"
         )(
             self.covariance.model_type,
             parameter_values_dict,

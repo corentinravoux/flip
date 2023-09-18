@@ -74,7 +74,7 @@ class BaseLikelihood(object):
                 axis=0,
             )
             covariance_sum += np.diag(
-                coefficients_dict_diagonal["gg"] * self.vector_err**2
+                coefficients_dict_diagonal["gg"] + self.vector_err**2
             )
 
         elif self.covariance.model_type == "velocity":
@@ -85,8 +85,9 @@ class BaseLikelihood(object):
                 ],
                 axis=0,
             )
+
             covariance_sum += np.diag(
-                coefficients_dict_diagonal["vv"] * self.vector_err**2
+                coefficients_dict_diagonal["vv"] + self.vector_err**2
             )
 
         elif self.covariance.model_type in ["density_velocity", "full"]:
@@ -115,8 +116,9 @@ class BaseLikelihood(object):
                 axis=0,
             )
             covariance_sum_gg += np.diag(
-                coefficients_dict_diagonal["gg"] * density_err**2
+                coefficients_dict_diagonal["gg"] + density_err**2
             )
+
             covariance_sum_vv = np.sum(
                 [
                     coefficients_dict["vv"][i] * cov
@@ -124,9 +126,11 @@ class BaseLikelihood(object):
                 ],
                 axis=0,
             )
+
             covariance_sum_vv += np.diag(
-                coefficients_dict_diagonal["vv"] * velocity_err**2
+                coefficients_dict_diagonal["vv"] + velocity_err**2
             )
+
             covariance_sum = np.block(
                 [
                     [covariance_sum_gg, covariance_sum_gv],

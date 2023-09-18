@@ -16,23 +16,22 @@ def simplify_term(
     simplification_method="simplify_iteration",
     max_simplification=20,
 ):
-    term_to_simplify = term.copy()
     _avail_simplification_methods = "simplify_iteration", "tr8_iteration"
 
     if simplification_method == "simplify_iteration":
-        term_simplified = sy.simplify(term_to_simplify)
+        term_simplified = sy.simplify(term)
         i = 0
-        while (term_simplified != term_to_simplify) & (i < max_simplification):
-            term_simplified, term_to_simplify = (
+        while (term_simplified != term) & (i < max_simplification):
+            term_simplified, term = (
                 sy.factor(TR8(term_simplified)),
                 term_simplified,
             )
             i += 1
     elif simplification_method == "tr8_iteration":
-        term_simplified = sy.factor(TR8(term_to_simplify))
+        term_simplified = sy.factor(TR8(term))
         i = 0
-        while (term_simplified != term_to_simplify) & (i < max_simplification):
-            term_simplified, term_to_simplify = (
+        while (term_simplified != term) & (i < max_simplification):
+            term_simplified, term = (
                 sy.factor(TR8(term_simplified)),
                 term_simplified,
             )
@@ -275,9 +274,9 @@ def generate_generalized_adamsblake20_functions(
         "B_gg_0": sy.exp(-((k * sig_g * mu) ** 2)),
         "B_gg_1": 2 * mu**2 * sy.exp(-((k * sig_g * mu) ** 2)),
         "B_gg_2": mu**4 * sy.exp(-((k * sig_g * mu) ** 2)),
-        "B_gv_0": (mu / k) * sy.exp(-((k * sig_g * mu) ** 2) / 2),
-        "B_gv_1": (mu**3 / k) * sy.exp(-((k * sig_g * mu) ** 2) / 2),
-        "B_vv_0": mu**2 / k**2,
+        "B_gv_0": 100 * (mu / k) * sy.exp(-((k * sig_g * mu) ** 2) / 2),
+        "B_gv_1": 100 * (mu**3 / k) * sy.exp(-((k * sig_g * mu) ** 2) / 2),
+        "B_vv_0": 100**2 * mu**2 / k**2,
     }
 
     write_M_N_functions(
@@ -381,14 +380,14 @@ def generate_generalized_lai22_functions(
                 * mu2
                 * add
             )
-            dict_B[f"B_gv_{i}_{m_value}"] = B_gv_i
+            dict_B[f"B_gv_{i}_{m_value}"] = 100 * B_gv_i
 
     # vv
     lmax_list_vv = [2]
     l1max_list_vv = [1]
     l2max_list_vv = [1]
     term_index_list_vv = ["0_0"]
-    dict_B["B_vv_0_0"] = mu1 * mu2 / k**2
+    dict_B["B_vv_0_0"] = 100**2 * mu1 * mu2 / k**2
 
     type_list = ["gg", "gv", "vv"]
     term_index_list = [term_index_list_gg, term_index_list_gv, term_index_list_vv]
@@ -421,7 +420,7 @@ def generate_generalized_carreres23_functions(
     lmax_list = [[2]]
     l1max_list = [[1]]
     l2max_list = [[1]]
-    dict_B = {"B_vv_0": mu1 * mu2 / k**2}
+    dict_B = {"B_vv_0": 100**2 * mu1 * mu2 / k**2}
 
     write_M_N_functions(
         filename,
@@ -459,9 +458,9 @@ def generate_generalized_ravouxcarreres_functions(
         * sy.exp(-((k * sig_g) ** 2) * (mu1**2 + mu2**2) / 2),
         "B_gg_2": (mu1**2 * mu2**2)
         * sy.exp(-((k * sig_g) ** 2) * (mu1**2 + mu2**2) / 2),
-        "B_gv_0": (mu2 / k) * sy.exp(-((k * sig_g * mu1) ** 2) / 2),
-        "B_gv_1": (mu2 * mu1**2 / k) * sy.exp(-((k * sig_g * mu1) ** 2) / 2),
-        "B_vv_0": mu1 * mu2 / k**2,
+        "B_gv_0": 100 * (mu2 / k) * sy.exp(-((k * sig_g * mu1) ** 2) / 2),
+        "B_gv_1": 100 * (mu2 * mu1**2 / k) * sy.exp(-((k * sig_g * mu1) ** 2) / 2),
+        "B_vv_0": 100**2 * mu1 * mu2 / k**2,
     }
 
     write_M_N_functions(

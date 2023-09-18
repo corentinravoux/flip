@@ -15102,7 +15102,7 @@ def N_gg_2_6_16_0(theta, phi):
 
 def M_gv_0_0_1_0():
     def func(k):
-        return (1 / 3) / k
+        return (100 / 3) / k
 
     return func
 
@@ -15113,7 +15113,7 @@ def N_gv_0_0_1_0(theta, phi):
 
 def M_gv_0_1_1_0():
     def func(k):
-        return -1 / 18 * k
+        return -50 / 9 * k
 
     return func
 
@@ -15124,7 +15124,7 @@ def N_gv_0_1_1_0(theta, phi):
 
 def M_gv_0_1_1_1():
     def func(k):
-        return -1 / 45 * k
+        return -20 / 9 * k
 
     return func
 
@@ -15135,7 +15135,7 @@ def N_gv_0_1_1_1(theta, phi):
 
 def M_gv_0_1_3_0():
     def func(k):
-        return -1 / 45 * k
+        return -20 / 9 * k
 
     return func
 
@@ -15150,7 +15150,7 @@ def N_gv_0_1_3_0(theta, phi):
 
 def M_gv_0_2_1_0():
     def func(k):
-        return (1 / 120) * k**3
+        return (5 / 6) * k**3
 
     return func
 
@@ -15161,7 +15161,7 @@ def N_gv_0_2_1_0(theta, phi):
 
 def M_gv_0_2_1_1():
     def func(k):
-        return (1 / 210) * k**3
+        return (10 / 21) * k**3
 
     return func
 
@@ -15172,7 +15172,7 @@ def N_gv_0_2_1_1(theta, phi):
 
 def M_gv_0_2_3_0():
     def func(k):
-        return (1 / 210) * k**3
+        return (10 / 21) * k**3
 
     return func
 
@@ -15187,7 +15187,7 @@ def N_gv_0_2_3_0(theta, phi):
 
 def M_gv_0_2_3_1():
     def func(k):
-        return (1 / 945) * k**3
+        return (20 / 189) * k**3
 
     return func
 
@@ -15203,7 +15203,7 @@ def N_gv_0_2_3_1(theta, phi):
 
 def M_gv_0_2_5_0():
     def func(k):
-        return (1 / 945) * k**3
+        return (20 / 189) * k**3
 
     return func
 
@@ -15220,7 +15220,7 @@ def N_gv_0_2_5_0(theta, phi):
 
 def M_gv_0_3_1_0():
     def func(k):
-        return -1 / 1008 * k**5
+        return -25 / 252 * k**5
 
     return func
 
@@ -15231,7 +15231,7 @@ def N_gv_0_3_1_0(theta, phi):
 
 def M_gv_0_3_1_1():
     def func(k):
-        return -1 / 1512 * k**5
+        return -25 / 378 * k**5
 
     return func
 
@@ -15242,7 +15242,7 @@ def N_gv_0_3_1_1(theta, phi):
 
 def M_gv_0_3_3_0():
     def func(k):
-        return -1 / 1512 * k**5
+        return -25 / 378 * k**5
 
     return func
 
@@ -15257,7 +15257,7 @@ def N_gv_0_3_3_0(theta, phi):
 
 def M_gv_0_3_3_1():
     def func(k):
-        return -1 / 4158 * k**5
+        return -50 / 2079 * k**5
 
     return func
 
@@ -15273,7 +15273,7 @@ def N_gv_0_3_3_1(theta, phi):
 
 def M_gv_0_3_5_0():
     def func(k):
-        return -1 / 4158 * k**5
+        return -50 / 2079 * k**5
 
     return func
 
@@ -15290,7 +15290,7 @@ def N_gv_0_3_5_0(theta, phi):
 
 def M_gv_0_3_5_1():
     def func(k):
-        return -1 / 27027 * k**5
+        return -100 / 27027 * k**5
 
     return func
 
@@ -15308,7 +15308,7 @@ def N_gv_0_3_5_1(theta, phi):
 
 def M_gv_0_3_7_0():
     def func(k):
-        return -1 / 27027 * k**5
+        return -100 / 27027 * k**5
 
     return func
 
@@ -15327,7 +15327,7 @@ def N_gv_0_3_7_0(theta, phi):
 
 def M_gv_1_0_1_0():
     def func(k):
-        return (1 / 9) / k
+        return (100 / 9) / k
 
     return func
 
@@ -15338,7 +15338,7 @@ def N_gv_1_0_1_0(theta, phi):
 
 def M_gv_1_0_1_1():
     def func(k):
-        return (2 / 45) / k
+        return (40 / 9) / k
 
     return func
 
@@ -15349,7 +15349,7 @@ def N_gv_1_0_1_1(theta, phi):
 
 def M_gv_1_0_3_0():
     def func(k):
-        return (2 / 45) / k
+        return (40 / 9) / k
 
     return func
 
@@ -15364,7 +15364,7 @@ def N_gv_1_0_3_0(theta, phi):
 
 def M_gv_1_1_1_0():
     def func(k):
-        return -1 / 30 * k
+        return -10 / 3 * k
 
     return func
 
@@ -15375,7 +15375,7 @@ def N_gv_1_1_1_0(theta, phi):
 
 def M_gv_1_1_1_1():
     def func(k):
-        return -2 / 105 * k
+        return -40 / 21 * k
 
     return func
 
@@ -15386,7 +15386,7 @@ def N_gv_1_1_1_1(theta, phi):
 
 def M_gv_1_1_3_0():
     def func(k):
-        return -2 / 105 * k
+        return -40 / 21 * k
 
     return func
 
@@ -15401,7 +15401,7 @@ def N_gv_1_1_3_0(theta, phi):
 
 def M_gv_1_1_3_1():
     def func(k):
-        return -4 / 945 * k
+        return -80 / 189 * k
 
     return func
 
@@ -15417,7 +15417,7 @@ def N_gv_1_1_3_1(theta, phi):
 
 def M_gv_1_1_5_0():
     def func(k):
-        return -4 / 945 * k
+        return -80 / 189 * k
 
     return func
 
@@ -15434,7 +15434,7 @@ def N_gv_1_1_5_0(theta, phi):
 
 def M_gv_1_2_1_0():
     def func(k):
-        return (1 / 168) * k**3
+        return (25 / 42) * k**3
 
     return func
 
@@ -15445,7 +15445,7 @@ def N_gv_1_2_1_0(theta, phi):
 
 def M_gv_1_2_1_1():
     def func(k):
-        return (1 / 252) * k**3
+        return (25 / 63) * k**3
 
     return func
 
@@ -15456,7 +15456,7 @@ def N_gv_1_2_1_1(theta, phi):
 
 def M_gv_1_2_3_0():
     def func(k):
-        return (1 / 252) * k**3
+        return (25 / 63) * k**3
 
     return func
 
@@ -15471,7 +15471,7 @@ def N_gv_1_2_3_0(theta, phi):
 
 def M_gv_1_2_3_1():
     def func(k):
-        return (1 / 693) * k**3
+        return (100 / 693) * k**3
 
     return func
 
@@ -15487,7 +15487,7 @@ def N_gv_1_2_3_1(theta, phi):
 
 def M_gv_1_2_5_0():
     def func(k):
-        return (1 / 693) * k**3
+        return (100 / 693) * k**3
 
     return func
 
@@ -15504,7 +15504,7 @@ def N_gv_1_2_5_0(theta, phi):
 
 def M_gv_1_2_5_1():
     def func(k):
-        return (2 / 9009) * k**3
+        return (200 / 9009) * k**3
 
     return func
 
@@ -15522,7 +15522,7 @@ def N_gv_1_2_5_1(theta, phi):
 
 def M_gv_1_2_7_0():
     def func(k):
-        return (2 / 9009) * k**3
+        return (200 / 9009) * k**3
 
     return func
 
@@ -15541,7 +15541,7 @@ def N_gv_1_2_7_0(theta, phi):
 
 def M_gv_1_3_1_0():
     def func(k):
-        return -1 / 1296 * k**5
+        return -25 / 324 * k**5
 
     return func
 
@@ -15552,7 +15552,7 @@ def N_gv_1_3_1_0(theta, phi):
 
 def M_gv_1_3_1_1():
     def func(k):
-        return -1 / 1782 * k**5
+        return -50 / 891 * k**5
 
     return func
 
@@ -15563,7 +15563,7 @@ def N_gv_1_3_1_1(theta, phi):
 
 def M_gv_1_3_3_0():
     def func(k):
-        return -1 / 1782 * k**5
+        return -50 / 891 * k**5
 
     return func
 
@@ -15578,7 +15578,7 @@ def N_gv_1_3_3_0(theta, phi):
 
 def M_gv_1_3_3_1():
     def func(k):
-        return -1 / 3861 * k**5
+        return -100 / 3861 * k**5
 
     return func
 
@@ -15594,7 +15594,7 @@ def N_gv_1_3_3_1(theta, phi):
 
 def M_gv_1_3_5_0():
     def func(k):
-        return -1 / 3861 * k**5
+        return -100 / 3861 * k**5
 
     return func
 
@@ -15611,7 +15611,7 @@ def N_gv_1_3_5_0(theta, phi):
 
 def M_gv_1_3_5_1():
     def func(k):
-        return -4 / 57915 * k**5
+        return -80 / 11583 * k**5
 
     return func
 
@@ -15629,7 +15629,7 @@ def N_gv_1_3_5_1(theta, phi):
 
 def M_gv_1_3_7_0():
     def func(k):
-        return -4 / 57915 * k**5
+        return -80 / 11583 * k**5
 
     return func
 
@@ -15648,7 +15648,7 @@ def N_gv_1_3_7_0(theta, phi):
 
 def M_gv_1_3_7_1():
     def func(k):
-        return -8 / 984555 * k**5
+        return -160 / 196911 * k**5
 
     return func
 
@@ -15668,7 +15668,7 @@ def N_gv_1_3_7_1(theta, phi):
 
 def M_gv_1_3_9_0():
     def func(k):
-        return -8 / 984555 * k**5
+        return -160 / 196911 * k**5
 
     return func
 
@@ -15689,7 +15689,7 @@ def N_gv_1_3_9_0(theta, phi):
 
 def M_vv_0_0_0_0():
     def func(k):
-        return (1 / 9) / k**2
+        return (10000 / 9) / k**2
 
     return func
 
@@ -15700,7 +15700,7 @@ def N_vv_0_0_0_0(theta, phi):
 
 def M_vv_0_0_2_0():
     def func(k):
-        return (1 / 9) / k**2
+        return (10000 / 9) / k**2
 
     return func
 
@@ -15709,10 +15709,41 @@ def N_vv_0_0_2_0(theta, phi):
     return (9 / 2) * np.cos(2 * phi) + (3 / 2) * np.cos(theta)
 
 
-dictionary_terms = {'gg': ['0_0', '0_1', '0_2', '0_3', '0_4', '0_5', '0_6', '1_0', '1_1', '1_2', '1_3', '1_4', '1_5', '1_6', '2_0', '2_1', '2_2', '2_3', '2_4', '2_5', '2_6'], 'gv': ['0_0', '0_1', '0_2', '0_3', '1_0', '1_1', '1_2', '1_3'], 'vv': ['0_0'],}
-dictionary_lmax = {'gg': [0, 2, 4, 6, 8, 10, 12, 2, 4, 6, 8, 10, 12, 14, 4, 6, 8, 10, 12, 14, 16], 'gv': [1, 3, 5, 7, 3, 5, 7, 9], 'vv': [2],}
-
-dictionary_subterms = {"gg_0_0_0": 1,"gg_0_1_0": 1,
+dictionary_terms = {
+    "gg": [
+        "0_0",
+        "0_1",
+        "0_2",
+        "0_3",
+        "0_4",
+        "0_5",
+        "0_6",
+        "1_0",
+        "1_1",
+        "1_2",
+        "1_3",
+        "1_4",
+        "1_5",
+        "1_6",
+        "2_0",
+        "2_1",
+        "2_2",
+        "2_3",
+        "2_4",
+        "2_5",
+        "2_6",
+    ],
+    "gv": ["0_0", "0_1", "0_2", "0_3", "1_0", "1_1", "1_2", "1_3"],
+    "vv": ["0_0"],
+}
+dictionary_lmax = {
+    "gg": [0, 2, 4, 6, 8, 10, 12, 2, 4, 6, 8, 10, 12, 14, 4, 6, 8, 10, 12, 14, 16],
+    "gv": [1, 3, 5, 7, 3, 5, 7, 9],
+    "vv": [2],
+}
+dictionary_subterms = {
+    "gg_0_0_0": 1,
+    "gg_0_1_0": 1,
     "gg_0_1_1": 0,
     "gg_0_1_2": 2,
     "gg_0_2_0": 2,
@@ -15952,5 +15983,4 @@ dictionary_subterms = {"gg_0_0_0": 1,"gg_0_1_0": 1,
     "vv_0_0_1": 0,
     "vv_0_0_2": 1,
 }
-
 multi_index_model = True

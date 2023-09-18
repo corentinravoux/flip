@@ -13,20 +13,22 @@ class BaseFitter(object):
         self,
         covariance=None,
         data=None,
+        likelihood=None,
     ):
         self.covariance = covariance
         self.data = data
+        self.likelihood = likelihood
 
     @classmethod
-    def init_from_cov(
+    def init_from_covariance(
         cls,
         covariance,
         data,
         parameter_dict,
         likelihood_type=None,
     ):
-        log.add("Method to override, no initialization will be done here")
-        return None
+        log.add("Method to override, no initialization is done in this super class")
+        raise RuntimeError("Ghost override method")
 
     @classmethod
     def init_from_file(
@@ -40,7 +42,7 @@ class BaseFitter(object):
     ):
         covariance = CovMatrix.init_from_file(model_name, model_type, filename)
 
-        fitter = cls.init_from_cov(
+        fitter = cls.init_from_covariance(
             covariance,
             data,
             parameter_dict,
@@ -68,7 +70,7 @@ class BaseFitter(object):
 
         parameter_names = [parameters for parameters in parameter_dict]
 
-        likelihood_class = self.select_likelihood(likelihood_type)
+        likelihood_class = BaseFitter.select_likelihood(likelihood_type)
 
         likelihood = likelihood_class.init_from_covariance(
             self.covariance,
@@ -94,16 +96,18 @@ class FitMinuit(BaseFitter):
         self,
         covariance=None,
         data=None,
+        likelihood=None,
         minuit=None,
     ):
         super(FitMinuit, self).__init__(
             covariance=covariance,
             data=data,
+            likelihood=likelihood,
         )
         self.minuit = minuit
 
     @classmethod
-    def init_from_cov(
+    def init_from_covariance(
         cls,
         covariance,
         data,
@@ -118,9 +122,15 @@ class FitMinuit(BaseFitter):
             parameter_dict,
             likelihood_type=likelihood_type,
         )
+        minuit_fitter.likelihood = likelihood
+        parameter_values = [
+            parameter_dict[parameters]["value"] for parameters in parameter_dict
+        ]
 
         minuit_fitter.minuit = iminuit.Minuit(
-            likelihood, name=likelihood.parameter_names
+            likelihood,
+            parameter_values,
+            name=likelihood.parameter_names,
         )
 
         minuit_fitter.setup_minuit(parameter_dict)
@@ -161,16 +171,18 @@ class FitMcmc:
         self,
         covariance=None,
         data=None,
+        likelihood=None,
         sampler=None,
     ):
         super(FitMinuit, self).__init__(
             covariance=covariance,
             data=data,
+            likelihood=likelihood,
         )
         self.sampler = sampler
 
     @classmethod
-    def init_from_cov(
+    def init_from_covariance(
         cls,
         covariance,
         data,
@@ -185,6 +197,7 @@ class FitMcmc:
             parameter_dict,
             likelihood_type=likelihood_type,
         )
+        mcmc_fitter.likelihood = likelihood
 
         # CR - need to add the sampler here.
 

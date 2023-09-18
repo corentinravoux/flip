@@ -19,7 +19,7 @@ def get_coefficients(model_type, parameter_values_dict):
 def get_diagonal_coefficients(model_type, parameter_values_dict):
     coefficients_dict = {}
     if model_type in ["density", "full", "density_velocity"]:
-        coefficients_dict["gg"] = 1.0
+        coefficients_dict["gg"] = 0.0
     if model_type in ["velocity", "full", "density_velocity"]:
         coefficients_dict["vv"] = parameter_values_dict["sigv"] ** 2
     return coefficients_dict

@@ -140,11 +140,11 @@ def compute_cov(
     -------
     list
         Matrix coefficient in ordered list.
-    """    
+    """
     if model_name not in _avail_models:
         log.add(
             f"Model {model_name} not available."
-            "Please choose between: {_avail_models}"
+            f"Please choose between: {_avail_models}"
         )
 
     if additional_parameters_values is None:

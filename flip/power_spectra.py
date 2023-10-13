@@ -50,7 +50,7 @@ def compute_power_spectra(
     np.savetxt(
         os.path.join(
             path,
-            f"./power_spectrum_{kmin:.4f}_{kmax:.4f}_{number_points}_{'log' if logspace else 'lin'}_class.txt",
+            f"./power_spectrum_{kmin:.4f}_{kmax:.4f}_{number_points}_{'log' if logspace else 'lin'}_z{z}_class.txt",
         ),
         [k_class, pk_class_lin_normalized],
     )
@@ -73,21 +73,21 @@ def compute_power_spectra(
     np.savetxt(
         os.path.join(
             path,
-            f"power_spectrum_tt_{kmin:.4f}_{kmax:.4f}_{number_points}_{'log' if logspace else 'lin'}{'' if halofit else '_nohf'}_bel.txt",
+            f"power_spectrum_tt_{kmin:.4f}_{kmax:.4f}_{number_points}_{'log' if logspace else 'lin'}{'' if halofit else '_nohf'}_z{z}_bel.txt",
         ),
         [k_class, p_tt],
     )
     np.savetxt(
         os.path.join(
             path,
-            f"power_spectrum_mt_{kmin:.4f}_{kmax:.4f}_{number_points}_{'log' if logspace else 'lin'}{'' if halofit else '_nohf'}_bel.txt",
+            f"power_spectrum_mt_{kmin:.4f}_{kmax:.4f}_{number_points}_{'log' if logspace else 'lin'}{'' if halofit else '_nohf'}_z{z}_bel.txt",
         ),
         [k_class, p_mt],
     )
     np.savetxt(
         os.path.join(
             path,
-            f"power_spectrum_mm_{kmin:.4f}_{kmax:.4f}_{number_points}_{'log' if logspace else 'lin'}{'' if halofit else '_nohf'}_bel.txt",
+            f"power_spectrum_mm_{kmin:.4f}_{kmax:.4f}_{number_points}_{'log' if logspace else 'lin'}{'' if halofit else '_nohf'}_z{z}_bel.txt",
         ),
         [k_class, p_mm],
     )

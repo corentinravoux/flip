@@ -16,6 +16,22 @@ def simplify_term(
     simplification_method="simplify_iteration",
     max_simplification=20,
 ):
+    """
+    The simplify_term function takes a sympy expression and simplifies it.
+    It does so by applying the TR8 function to the term, then checks if this is different from the original term.
+    If it is, then it applies TR8 again to this new simplified term and compares that with the previous one.
+    This process continues until either no further simplification can be achieved or max_simplification iterations have been reached.
+
+    Args:
+        term: Pass the term to be simplified
+        simplification_method: Choose between two different methods of simplification
+        max_simplification: Limit the number of iterations
+        : Set the method of simplification
+
+    Returns:
+        The simplified term
+
+    """
     _avail_simplification_methods = "simplify_iteration", "tr8_iteration"
 
     if simplification_method == "simplify_iteration":
@@ -51,6 +67,20 @@ def generate_MN_ab_i_l_function_wide_angle(
     l1,
     l2,
 ):
+    """
+    The generate_MN_ab_i_l_function_wide_angle function generates the M and N terms for a given l, l', and l'' value.
+
+    Args:
+        term_B: Define the integrand of the integral over mu_2
+        l: Determine the order of the legendre polynomial
+        l1: Define the first legendre polynomial in the integral
+        l2: Determine the order of the legendre polynomial in the second integral
+        : Determine the number of terms in the sum
+
+    Returns:
+        The terms m_l,l',l'' and n_l, l', l''
+
+    """
     theta, phi = sy.symbols("theta phi")
     mu1, mu2 = sy.symbols("mu1 mu2")
     integral_mu1_M_l = sy.integrate(term_B * legendre_poly(l1, x=mu1), (mu1, -1, 1))
@@ -83,6 +113,19 @@ def generate_MN_ab_i_l_function_wide_angle(
 
 
 def generate_MN_ab_i_l_function_parallel_plane(term_B, l):
+    """
+    The generate_MN_ab_i_l_function_parallel_plane function takes in a term_B and an l value.
+    It then generates the M_l and N_l functions for that particular term B, which is used to calculate the parallel plane integral.
+    The function returns both M_l and N_l as sympy expressions.
+
+    Args:
+        term_B: Define the term b in the equation for m_l and n_l
+        l: Determine the order of the legendre polynomial
+
+    Returns:
+        A tuple of
+
+    """
     phi = sy.symbols("phi")
     mu = sy.symbols("mu")
     M_l = sy.Rational((2 * l + 1) / 2) * sy.integrate(
@@ -113,6 +156,30 @@ def write_output(
     l2max_list=None,
     multi_index_model=False,
 ):
+    """
+    The write_output function takes the following arguments:
+        filename (str): The name of the file to be written.
+        type_list (list): A list of strings that are used as keys for each term in the model. For example, if you have a model with two terms, one called 'A' and one called 'B', then type_list = ['A','B'] would be appropriate.
+        term_index_list (nested list): A nested list containing integers that correspond to each term in your model. For example, if you have a three-term model where terms 1 and 2 are both linear functions
+
+    Args:
+        filename: Specify the name of the output file
+        type_list: Specify the type of term
+        term_index_list: Determine the order of the terms in
+        lmax_list: Specify the maximum l value for each term
+        output_pool: Store the output of the function
+        index_pool: Store the index of each term in the output_pool
+        wide_angle: Determine if the wide angle approximation should be used
+        additional_parameters: Pass additional parameters to the functions
+        l1max_list: Specify the maximum l value for the first index of a wide-angle term
+        l2max_list: Specify the maximum l2 value for each term in the wide-angle case
+        multi_index_model: Distinguish between the two models
+        : Determine whether the model is a multi-index model or not
+
+    Returns:
+        A python file with the functions m_ab_i_l and n_ab_i
+
+    """
     f = open(filename, "w")
     f.write("import numpy as np\n")
     f.write("import scipy\n")
@@ -203,6 +270,29 @@ def write_M_N_functions(
     l2max_list=None,
     multi_index_model=False,
 ):
+    """
+    The write_M_N_functions function is used to generate the M_N functions for a given model.
+    The function takes in the following arguments:
+        filename (str): The name of the file that will be generated. This should end with .py, and should not include any path information. If no path information is included, then this file will be saved in your current working directory.
+
+    Args:
+        filename: Specify the name of the file to which the output is written
+        type_list: Specify the type of terms that are to be included in the calculation
+        term_index_list: Specify the index of each term in a given type
+        lmax_list: Determine the maximum value of l for each term in the model
+        dict_B: Store the b_ab_i values
+        additional_parameters: Add additional parameters to the output file
+        number_worker: Specify the number of processes to be used
+        wide_angle: Determine if the function should be written for wide angle or not
+        l1max_list: Define the maximum value of l_i in the wide angle approximation
+        l2max_list: Specify the maximum l2 value for each term in the model
+        multi_index_model: Tell the function whether to use a multi-index model or not
+        : Write the output to a file
+
+    Returns:
+        The output_pool and index_pool
+
+    """
     params_pool = []
     index_pool = {}
     index = 0
@@ -261,6 +351,17 @@ def write_M_N_functions(
 def generate_generalized_adamsblake20_functions(
     filename="./adamsblake20/flip_terms.py", number_worker=8
 ):
+    """
+    The generate_generalized_adamsblake20_functions function generates the functions needed to compute the M and N matrices for a generalized version of Adams, Blake &amp; Kitching (2020).
+
+    Args:
+        filename: Specify the name of the file where the functions will be written
+        number_worker: Parallelize the computation of the m and n functions
+
+    Returns:
+        A dictionary of functions
+
+    """
     mu = sy.symbols("mu")
     k = sy.symbols("k", positive=True, finite=True, real=True)
     sig_g = sy.symbols("sig_g", positive=True, finite=True, real=True)
@@ -294,6 +395,18 @@ def generate_generalized_adamsblake20_functions(
 def generate_generalized_lai22_functions(
     filename="./lai22/flip_terms.py", number_worker=8
 ):
+    """
+    The generate_generalized_lai22_functions function generates the functions for calculating the M and N terms in
+    the generalized Lai22 model. The function is called by running:
+
+    Args:
+        filename: Specify the name of the file where all functions will be written
+        number_worker: Determine the number of processes that will be used to generate the functions
+
+    Returns:
+        A set of functions that are used in the calculation of the scattering matrix
+
+    """
     mu1, mu2 = sy.symbols("mu1 mu2")
     k = sy.symbols("k", positive=True, finite=True, real=True)
 
@@ -413,6 +526,17 @@ def generate_generalized_lai22_functions(
 def generate_generalized_carreres23_functions(
     filename="./carreres23/flip_terms.py", number_worker=8
 ):
+    """
+    The generate_generalized_carreres23_functions function generates the flip_terms.py file in the carreres23 directory, which contains functions that calculate M and N terms for a generalized version of Carreres' (2012) model 2 and 3.
+
+    Args:
+        filename: Specify the name of the file that will be generated
+        number_worker: Determine the number of processes to use for multiprocessing
+
+    Returns:
+        A list of functions,
+
+    """
     mu1, mu2 = sy.symbols("mu1 mu2")
     k = sy.symbols("k", positive=True, finite=True, real=True)
     type_list = ["vv"]
@@ -438,6 +562,17 @@ def generate_generalized_carreres23_functions(
 def generate_generalized_ravouxcarreres_functions(
     filename="./ravouxcarreres/flip_terms.py", number_worker=8
 ):
+    """
+    The generate_generalized_ravouxcarreres_functions function generates the functions needed to compute the generalized Ravoux-Carreres model.
+
+    Args:
+        filename: Specify the name of the file where you want to write your functions
+        number_worker: Specify the number of cores to use for multiprocessing
+
+    Returns:
+        A dictionary of functions
+
+    """
     mu1, mu2 = sy.symbols("mu1 mu2")
     k = sy.symbols("k", positive=True, finite=True, real=True)
     sig_g = sy.symbols("sig_g", positive=True, finite=True, real=True)
@@ -478,6 +613,19 @@ def generate_generalized_ravouxcarreres_functions(
 
 
 def generate_files():
+    """
+    The generate_files function generates the following files:
+        - generalized_carreres23.py
+        - generalized_adamsblake20.py
+        - generalized_lai22.py
+        - generalized_ravouxcarreres.py
+
+    Args:
+
+    Returns:
+        A list of all the functions that have been generated
+
+    """
     generate_generalized_carreres23_functions()
     generate_generalized_adamsblake20_functions()
     generate_generalized_lai22_functions()

@@ -7,6 +7,20 @@ def compute_sep(
     comoving_distance,
     size_batch=10_000,
 ):
+    """
+    The compute_sep function computes the separation between all pairs of objects in a catalog.
+
+    Args:
+        ra: Store the right ascension of each object
+        dec: Compute the angular separation between two objects
+        comoving_distance: Calculate the separation between two objects
+        size_batch: Control the number of objects that are processed at a time
+        : Set the number of objects in a batch
+
+    Returns:
+        The separation, the perpendicular component of the separation, and
+
+    """
     number_objects = len(ra)
     n_task = int((number_objects * (number_objects + 1)) / 2) - number_objects
 
@@ -35,6 +49,21 @@ def compute_sep(
 
 
 def compute_i_j(N, seq):
+    """
+    The compute_i_j function takes in a number of nodes N and a sequence number seq.
+    It returns the i, j indices for the upper triangular matrix that correspond to
+    the given sequence number. The function is used to convert between an indexing scheme
+    that uses integers from 0 to (N^2 - N)/2 - 1 and one that uses i,j indices where
+    i = 0,...,N-2 and j = i+ 1,...,N-2.
+
+    Args:
+        N: Determine the size of the matrix
+        seq: Find the row and column of the element in a matrix
+
+    Returns:
+        The row and column of the lower triangle matrix
+
+    """
     i = (N - 2 - np.floor(np.sqrt(-8 * seq + 4 * N * (N - 1) - 7) / 2.0 - 0.5)).astype(
         "int"
     )
@@ -43,12 +72,40 @@ def compute_i_j(N, seq):
 
 
 def compute_i_j_cross_matrix(Nv, seq):
+    """
+    The compute_i_j_cross_matrix function takes in the number of vertices, Nv, and a sequence of numbers
+    and returns two arrays. The first array is an array containing the row indices for each element in the
+    sequence. The second array contains column indices for each element in the sequence.
+
+    Args:
+        Nv: Determine the number of vertices in a given face
+        seq: Create the i and j arrays
+
+    Returns:
+        The indices of the cross-terms in the matrix
+
+    """
     i = np.floor(1 + (seq - Nv) / Nv).astype("int")
     j = (seq - i * Nv).astype("int")
     return i, j
 
 
 def angle_separation(ra_0, ra_1, dec_0, dec_1, r_0, r_1):
+    """
+    The angle_separation function calculates the angle between two points on a sphere.
+
+    Args:
+        ra_0: Calculate the cosine of the angle between two points in spherical coordinates
+        ra_1: Calculate the cosine of the angle between two points
+        dec_0: Calculate the cosine of the angle between two points
+        dec_1: Calculate the cos_theta parameter
+        r_0: Calculate the distance between two points
+        r_1: Calculate the distance between two objects
+
+    Returns:
+        The separation angle between two points
+
+    """
     cos_theta = np.cos(ra_1 - ra_0) * np.cos(dec_0) * np.cos(dec_1) + np.sin(
         dec_0
     ) * np.sin(dec_1)
@@ -60,6 +117,20 @@ def angle_separation(ra_0, ra_1, dec_0, dec_1, r_0, r_1):
 
 
 def return_full_cov(cov):
+    """
+    The return_full_cov function takes in a 1D array of covariance values and returns the full covariance matrix.
+    The first value in the input array is assumed to be the variance, and all other values are assumed to be non-diagonal
+    covariance terms. The function then creates an empty square matrix with dimensions equal to the number of objects
+    (calculated from cov_array size), fills it with zeros, adds diagonal elements (variance) using numpy's eye function,
+    and finally fills in upper triangle elements (non-diagonal covariances) using numpy's triu_indices function
+
+    Args:
+        cov: Store the covariance matrix of a multivariate normal distribution
+
+    Returns:
+        A full covariance matrix from a vector of covariances
+
+    """
     variance_val = cov[0]
 
     non_diagonal_cov = np.delete(cov, 0)
@@ -77,20 +148,65 @@ def return_full_cov(cov):
 
 
 def return_full_cov_cross(cov, number_objects_g, number_objects_v):
+    """
+    The return_full_cov_cross function takes in a covariance matrix and the number of objects in each band.
+    It then reshapes the covariance matrix into a full cross-covariance matrix, which is returned.
+
+    Args:
+        cov: Reshape the covariance matrix
+        number_objects_g: Reshape the covariance matrix into a full covariance matrix
+        number_objects_v: Reshape the covariance matrix into a full covariance matrix
+
+    Returns:
+        The full covariance matrix
+
+    """
     full_cov = cov.reshape((number_objects_g, number_objects_v))
     return full_cov
 
 
 def return_correlation_matrix(cov):
+    """
+    The return_correlation_matrix function takes a covariance matrix as input and returns the correlation matrix.
+    The correlation matrix is calculated by dividing each element of the covariance matrix by the product of its row's standard deviation and column's standard deviation.
+
+    Args:
+        cov: Calculate the correlation matrix
+
+    Returns:
+        The correlation matrix
+
+    """
     sigma = np.sqrt(np.diag(cov))
     corr_matrix = cov / np.outer(sigma, sigma)
     return corr_matrix
 
 
 def save_matrix(matrix, name):
+    """
+    The save_matrix function takes a matrix and saves it to the current directory as a .npy file.
+
+    Args:
+        matrix: Save the matrix to a file
+        name: Save the matrix with a name
+
+    Returns:
+        The name of the file that was saved
+
+    """
     np.save(f"{name}.npy", matrix)
 
 
 def open_matrix(name):
+    """
+    The open_matrix function takes in a string as an argument and returns the matrix that is saved under that name.
+
+    Args:
+        name: Specify the name of the matrix to be loaded
+
+    Returns:
+        A matrix
+
+    """
     matrix = np.load(f"{name}.npy")
     return matrix

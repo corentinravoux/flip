@@ -13,6 +13,19 @@ _GRID_KIND = ["ngp", "ngp_errw", "cic", "tsc", "pcs"]
 
 
 def _compute_grid_window(grid_size, k, order, n):
+    """
+    The _compute_grid_window function computes the window function for a given grid size.
+
+    Args:
+        grid_size: Determine the size of the grid
+        k: Compute the window function
+        order: Determine the order of the sinc function
+        n: Determine the number of points in the grid
+
+    Returns:
+        The window function for a given grid size, k, order and n
+
+    """
     window = np.zeros_like(k)
     theta = np.linspace(0, np.pi, n)
     phi = np.linspace(0, 2 * np.pi, n)
@@ -36,6 +49,19 @@ def _compute_grid_window(grid_size, k, order, n):
 
 
 def compute_grid_window(grid_size, kh, kind="ngp", n=1000):
+    """
+    The compute_grid_window function computes the window function for a given grid size and kind.
+
+    Args:
+        grid_size: Define the size of the grid
+        kh: Compute the window function
+        kind: Specify the type of grid
+        n: Define the number of points used to compute the window function
+
+    Returns:
+        A window function
+
+    """
     _order_dic = {
         "ngp": 1,
         "ngp_errw": 1,
@@ -55,6 +81,20 @@ def compute_grid_window(grid_size, kh, kind="ngp", n=1000):
 
 
 def radec2cart(rcom, ra, dec):
+    """
+    The radec2cart function takes in the comoving distance to a galaxy,
+        its right ascension and declination, and returns the x, y, z coordinates
+        of that galaxy.
+
+    Args:
+        rcom: Convert the ra and dec to cartesian coordinates
+        ra: Calculate the x-coordinate of a point in space
+        dec: Calculate the z coordinate
+
+    Returns:
+        The x, y and z coordinates of each galaxy
+
+    """
     x = rcom * np.cos(ra) * np.cos(dec)
     y = rcom * np.sin(ra) * np.cos(dec)
     z = rcom * np.sin(dec)
@@ -62,7 +102,17 @@ def radec2cart(rcom, ra, dec):
 
 
 def construct_grid_regular_sphere(grid_size, rcom_max):
-    """Construct a regular spherical grid"""
+    """
+    The construct_grid_regular_sphere function constructs a regular spherical grid.
+
+    Args:
+        grid_size: Determine the number of grid voxels per axis
+        rcom_max: Cut the grid with rcom_max
+
+    Returns:
+        A dictionary with the following keys:
+
+    """
 
     # Number of grid voxels per axis
     n_grid = np.floor(rcom_max / grid_size).astype(np.int64)
@@ -99,7 +149,17 @@ def construct_grid_regular_sphere(grid_size, rcom_max):
 
 
 def construct_grid_regular_rectangular(grid_size, rcom_max):
-    """Construct a regular rectangular grid"""
+    """
+    The construct_grid_regular_rectangular function constructs a regular rectangular grid.
+
+    Args:
+        grid_size: Determine the number of grid voxels per axis
+        rcom_max: Determine the size of the grid
+
+    Returns:
+        A dictionary with the grid coordinates
+
+    """
 
     # Number of grid voxels per axis
     n_grid = np.floor(rcom_max / grid_size).astype(np.int64)
@@ -169,34 +229,37 @@ def pcs_weight(ds):
 
 
 def attribute_weight_density(
-    grid_size, xobj, yobj, zobj, xgrid, ygrid, zgrid, weight_fun
+    grid_size,
+    xobj,
+    yobj,
+    zobj,
+    xgrid,
+    ygrid,
+    zgrid,
+    weight_fun,
 ):
-    """Attribute weighted value and errors to cells.
-
-    Parameters
-    ----------
-    grid_size : float
-        _description_
-    xobj : array(float)
-        _description_
-    yobj : array(float)
-        _description_
-    zobj : array(float)
-        _description_
-    xgrid : array(float)
-        _description_
-    ygrid : array(float)
-        _description_
-    zgrid : array(float)
-        _description_
-    weight_fun : _type_
-        _description_
-
-    Returns
-    -------
-    _type_
-        _description_
     """
+    The attribute_weight_density function takes in the grid size, xobj, yobj, zobj (the coordinates of the objects),
+    xgrid, ygrid and zgrid (the coordinates of the grid) and a weight function. It then calculates how many objects are
+    in each cell by using a for loop to iterate through all of them. The dX is calculated by taking the difference between
+    each object's x coordinate and each cell's x coordinate divided by grid_size. This is done for both dY and dZ as well.
+    The w variable is calculated using this formula: w = weight_fun(dX)
+
+    Args:
+        grid_size: Normalize the distances between objects and grid points
+        xobj: Store the x coordinates of all objects in a galaxy
+        yobj: Create a grid of y values
+        zobj: Calculate the z-component of the distance between a grid point and an object
+        xgrid: Define the x-coordinate of each grid cell
+        ygrid: Calculate the distance between the object and grid
+        zgrid: Determine the z-coordinate of the grid cell
+        weight_fun: Determine the weight of each object
+
+    Returns:
+        A tuple of three arrays
+
+    """
+
     Nobj = len(xobj)
     Ngrid = len(xgrid)
 
@@ -234,28 +297,29 @@ def grid_data_density(
     Nrandom=100,
     random_method="cartesian",
 ):
-    """Grid the velocities with the given grid_size and method.
+    """
+    The grid_data_density function takes in the data and grids it using a given grid size.
+    It also computes the density of each voxel, as well as its error.
 
-    Parameters
-    ----------
-    grid_size : float
-        Grid size in Mpc/h
-    ra : array(float)
-        Obj RA coord
-    dec : array(float)
-        Obj Dec corrd
-    rcom : array(float)
-        Obj comoving distance in Mpc/h
-    kind : str, optional
-        THe method used to compute voxcell values, by default 'ngp'
-    n_cut : int, optional
-        Minimum number of obj that contribute to a voxcell, by default no cut
-    weight_min : int, optional
-        Minimum weight in a voxcell, by default no cut
-    Returns
-    -------
-    dict
-        grid properties
+
+    Args:
+        grid: Store the grid properties
+        grid_size: Define the size of each voxel in mpc/h
+        ra: Define the right ascension of the object
+        dec: Compute the cartesian coordinates of the objects
+        rcom: Compute the comoving distance of each object
+        kind: Select the method used to compute voxcell values
+        n_cut: Cut the grid in cells with a minimum number of objects
+        weight_min: Cut the grid
+        verbose: Print the number of cells in the grid
+        compute_density: Compute the density field
+        Nrandom: Create random points in the grid_data_density function
+        random_method: Choose the method to create random points
+        : Define the grid size
+
+    Returns:
+        A dictionary with the following keys:
+
     """
     # Check valid input grid kind
     kind = kind.lower()
@@ -381,14 +445,24 @@ def cut_grid(
     ymax=None,
     zmax=None,
 ):
-    """Cut low quality cells
+    """
+    The cut_grid function is used to cut out low quality cells from the grid.
 
-    n_cut : int, optional
-         Minimum number of obj that contribute to a voxcell, by default no cut
-    weight_min : int, optional
-         Minimum weight in a voxcell, by default no cut
-    rcom_max : float, optional
-        Maximal comoving distance of a voxcell, by default no cut"""
+    Args:
+        grid: Cut the grid
+        remove_nan_density: Remove cells with nan density
+        n_cut: Remove voxels that have less than n_cut objects in them
+        weight_min: Remove cells with a weight below the specified value
+        rcom_max: Cut out cells that are too far away from the center of the grid
+        xmax: Cut the grid in x direction
+        ymax: Cut the grid in the y direction
+        zmax: Cut the grid in z direction
+        : Remove the nan values in the density and density_err fields
+
+    Returns:
+        A mask, which is then used to cut the grid
+
+    """
 
     mask = np.full(grid["ra"].shape, True)
     if n_cut is not None:
@@ -426,6 +500,30 @@ def grid_data_density_pypower(
     interlacing=2,
     compensate=False,
 ):
+    """
+    The grid_data_density_pypower function takes in the ra, dec, and rcom values of a galaxy catalog
+    and returns a grid of density contrast values. The function uses pypower to create the grid.
+    The function also has options for creating random points using different methods: choice, healpix, or cartesian.
+
+
+    Args:
+        raobj: Pass the ra values of the data
+        decobj: Calculate the z coordinate of the object in cartesian coordinates
+        rcomobj: Calculate the comoving distance of each galaxy
+        rcom_max: Cut the grid in a sphere of radius rcom_max
+        grid_size: Determine the size of each cell in the grid
+        grid_type: Determine whether to use a rectangular or spherical grid
+        kind: Set the resampler in the catalogmesh function
+        Nrandom: Determine the number of random points to be generated
+        random_method: Choose the method used to generate random points
+        interlacing: Reduce the variance of the density field
+        compensate: Correct for the fact that we are using a finite number of random points
+        : Remove the nan values from the grid
+
+    Returns:
+        A dictionary with the grid coordinates and density contrast values
+
+    """
     xobj, yobj, zobj = radec2cart(rcomobj, raobj, decobj)
     mask = np.abs(xobj) < rcom_max
     mask &= np.abs(yobj) < rcom_max

@@ -19,6 +19,23 @@ _avail_models = ["adamsblake20", "lai22", "carreres23", "ravouxcarreres"]
 
 
 def correlation_integration(l, r, k, integrand):
+    """
+    The correlation_integration function is used to calculate the correlation function for a given multipole.
+    It does this by integrating over k, which is the magnitude of the wavevector. The integration is performed using
+    the Simpson's rule (integrate.simps). This function takes in four arguments: l, r, k and integrand. l represents
+    the multipole that we are calculating for; it can be 0 (monopole), 2 (quadrupole) or 4 (hexadecapole). r represents
+    the radial distance at which we want to evaluate our correlation function at; it can be any value between 0 and 200 M
+
+    Args:
+        l: Determine the order of the spherical bessel function
+        r: Calculate the spherical bessel function
+        k: Calculate the spherical bessel function
+        integrand: Calculate the integrand of the correlation function
+
+    Returns:
+        The integral of the integrand
+
+    """
     kr = np.outer(k, r)
     integrand = (
         (-1) ** (l // 2)
@@ -30,7 +47,26 @@ def correlation_integration(l, r, k, integrand):
 
 
 def correlation_hankel(l, r, k, integrand, hankel_overhead_coefficient=2):
-    """If l is odd, count a 1j term in the integrand, without the need for adding it"""
+    """
+    The correlation_hankel function is a wrapper for the cosmoprimo.fftlog.PowerToCorrelation function,
+    which computes the correlation function from power spectrum using FFTLog (Hamilton 2000).
+    The PowerToCorrelation class takes in an array of k values and an array of P(k) values, and returns
+    an array of r values and an array of xi(r) values. The PowerToCorrelation class has two methods: set_fft_engine()
+    and __call__(). The set_fft_engine() method sets which fft engine to use; it can be either &quot;n
+
+    Args:
+        l: Determine the parity of the integrand, and therefore whether to add a 1j term
+        r: Set the radius of the sphere
+        k: Set the kmin and kmax values in the powertocorrelation function
+        integrand: Pass the integrand to the correlation_hankel function
+        hankel_overhead_coefficient: Determine the minimum r value for which to use the hankel transform
+
+    Returns:
+        The correlation function
+
+    Note:
+        If l is odd, count a 1j term in the integrand, without the need for adding it
+    """
     Hankel = cosmoprimo.fftlog.PowerToCorrelation(k, ell=l, q=0, complex=False)
     Hankel.set_fft_engine("numpy")
     r_hankel, xi_hankel = Hankel(integrand)
@@ -51,6 +87,29 @@ def coefficient_hankel(
     coord,
     additional_parameters_values=None,
 ):
+    """
+    The coefficient_hankel function computes the covariance between two terms of a given model.
+    The function takes as input:
+        - The name of the model (e.g., adamsblake20, lai22, carreres23 or ravouxcarreres)
+        - The type of term (i.e., either 'delta' or 'v')
+        - The index i for the first term in question (i = 1 corresponds to delta_0 and v_0; i = 2 corresponds to delta_2 and v_2; etc.)
+        - lmax: maximum multipole moment
+
+    Args:
+        model_name: Call the dictionary_subterms function from the flip_terms file
+        type: Determine which subterms to use
+        term_index: Select the term in the dictionary_subterms
+        lmax: Determine the number of terms in the sum
+        wavenumber: Calculate the hankel transform
+        power_spectrum: Calculate the correlation function
+        coord: Pass the coordinates of the point where we want to evaluate
+        additional_parameters_values: Pass the values of additional parameters to the functions that
+        : Define the model name
+
+    Returns:
+        The covariance of the a-th and b-th terms
+
+    """
     cov_ab_i = 0
     dictionary_subterms = eval(f"flip_terms_{model_name}.dictionary_subterms")
     for l in range(lmax + 1):
@@ -79,6 +138,24 @@ def coefficient_trapz(
     coord,
     additional_parameters_values=None,
 ):
+    """
+    The coefficient_trapz function computes the covariance matrix element for a given term.
+
+    Args:
+        model_name: Call the dictionary_subterms function from the flip_terms file
+        type: Distinguish between the different terms in the covariance matrix
+        term_index: Specify which term of the model is being used
+        lmax: Specify the maximum order of spherical harmonics
+        wavenumber: Calculate the integrand
+        power_spectrum: Multiply the integrand
+        coord: Pass in the coordinates of the point at which we want to evaluate
+        additional_parameters_values: Pass the values of the additional parameters
+        : Determine the model to be used
+
+    Returns:
+        A matrix
+
+    """
     cov_ab_i = 0
     dictionary_subterms = eval(f"flip_terms_{model_name}.dictionary_subterms")
     for l in range(lmax + 1):

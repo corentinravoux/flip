@@ -1,4 +1,5 @@
 import numpy as np
+import time
 from flip.utils import create_log
 from flip.covariance.lai22 import generator as generator_lai22
 from flip.covariance.carreres23 import generator as generator_carreres23
@@ -349,6 +350,7 @@ class CovMatrix:
             A covariancematrix object
 
         """
+        begin = time.time()
         covariance_dict, number_densities, number_velocities = generate_flip(
             model_name,
             model_type,
@@ -358,7 +360,10 @@ class CovMatrix:
             additional_parameters_values=additional_parameters_values,
             **kwargs,
         )
-        log.add(f"Covariance matrix generated from flip with {model_name} model")
+        end = time.time()
+        log.add(
+            f"Covariance matrix generated from flip with {model_name} model in {'{:.2e}'.format(end - begin)} seconds"
+        )
         return cls(
             model_name=model_name,
             model_type=model_type,
@@ -403,6 +408,7 @@ class CovMatrix:
             An object of the class covariancematrix
 
         """
+        begin = time.time()
         covariance_dict, number_densities, number_velocities = eval(
             f"generate_{model_name}"
         )(
@@ -412,8 +418,10 @@ class CovMatrix:
             coordinates_velocity=coordinates_velocity,
             **kwargs,
         )
-
-        log.add(f"Covariance matrix generated from {model_name} model")
+        end = time.time()
+        log.add(
+            f"Covariance matrix generated from {model_name} model in {'{:.2e}'.format(end - begin)} seconds"
+        )
         return cls(
             model_name=model_name,
             model_type=model_type,

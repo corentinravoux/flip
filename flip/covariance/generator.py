@@ -181,56 +181,25 @@ def coefficient_trapz(
     return cov_ab_i
 
 
-def compute_cov(
-    model_name,
+def compute_coordinates(
     covariance_type,
-    power_spectrum_list,
     coordinates_density=None,
     coordinates_velocity=None,
-    additional_parameters_values=None,
     size_batch=10_000,
-    number_worker=8,
-    hankel=True,
 ):
-    """Compute the covariance matrix.
-
-    Parameters
-    ----------
-    model_name : str
-        Name of the model of covariance matrix to use.
-    covariance_type : str
-        The covariance type to compute 'gg', 'vv' or 'gv'.
-    power_spectrum_list : list(list)
-        [k, Pk] # BC : Not sure of the format
-    coordinates_density : list(list, list, list) optional
-        RA, Dec and RCOM [Mpc/h] for density data, by default None
-    coordinates_velocity : list(list, list, list), optional
-        RA, Dec and RCOM [Mpc/h] for velocity data, by default None
-    additional_parameters_values : _type_, optional
-        _description_, by default None
-    size_batch : int, optional
-        Number of coefficient computed by batch, by default 10_000
-    number_worker : int, optional
-        Number of processes to use, by default 8
-
-    Returns
-    -------
-    list
-        Matrix coefficient in ordered list.
     """
-    if model_name not in _avail_models:
-        log.add(
-            f"Model {model_name} not available."
-            f"Please choose between: {_avail_models}"
-        )
+    The compute_coordinates function computes the spherical coordinates of all pairs of objects in a given catalog.
 
-    if additional_parameters_values is None:
-        additional_parameters_values = ()
-    if hankel:
-        coefficient = coefficient_hankel
-    else:
-        coefficient = coefficient_trapz
+    Args:
+        covariance_type: Determine whether the covariance is a cross-covariance or an auto-covariance
+        coordinates_density: Store the coordinates of the density field
+        coordinates_velocity: Pass the coordinates of the velocity field
+        size_batch: Control the size of the batches
+        : Compute the angle separation between two objects
 
+    Returns:
+        A list of parameters
+    """
     if covariance_type == "gg":
         ra = coordinates_density[0]
         dec = coordinates_density[1]
@@ -273,6 +242,40 @@ def compute_cov(
             ra_j, dec_j, r_j = ra[j_list], dec[j_list], comoving_distance[j_list]
         r, theta, phi = cov_utils.angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
         parameters.append([r, theta, phi])
+    return parameters
+
+
+def compute_coeficient(
+    parameters,
+    model_name,
+    covariance_type,
+    power_spectrum_list,
+    additional_parameters_values=None,
+    number_worker=8,
+    hankel=True,
+):
+    """
+    The compute_coeficient function computes the covariance matrix for a given model.
+
+    Args:
+        parameters: Compute the covariance matrix for each parameter
+        model_name: Select the model to be used
+        covariance_type: Select the type of covariance we want to compute
+        power_spectrum_list: Compute the power spectrum of each term in the covariance matrix
+        additional_parameters_values: Pass the values of additional parameters, such as the redshift
+        number_worker: Specify the number of cores to use for multiprocessing
+        hankel: Choose between the trapezoidal rule and the hankel transform
+        : Define the number of threads used to compute the covariance matrix
+
+    Returns:
+        A list of arrays
+    """
+    if additional_parameters_values is None:
+        additional_parameters_values = ()
+    if hankel:
+        coefficient = coefficient_hankel
+    else:
+        coefficient = coefficient_trapz
 
     term_index_list = eval(f"flip_terms_{model_name}.dictionary_terms")[covariance_type]
     lmax_list = eval(f"flip_terms_{model_name}.dictionary_lmax")[covariance_type]
@@ -331,5 +334,61 @@ def compute_cov(
         locals()[f"cov_{index}"] = np.insert(eval(f"cov_{index}"), 0, variance_t)
 
     loc = locals()
-    covariance = [eval(f"cov_{index}", loc) for i, index in enumerate(term_index_list)]
+    return np.array(
+        [eval(f"cov_{index}", loc) for i, index in enumerate(term_index_list)]
+    )
+
+
+def compute_cov(
+    model_name,
+    covariance_type,
+    power_spectrum_list,
+    coordinates_density=None,
+    coordinates_velocity=None,
+    additional_parameters_values=None,
+    size_batch=10_000,
+    number_worker=8,
+    hankel=True,
+):
+    """
+    The compute_cov function computes the covariance matrix for a given model.
+
+    Args:
+        model_name: Choose the model to be used
+        covariance_type: Determine the type of covariance to be computed
+        power_spectrum_list: Compute the power spectrum of the density field
+        coordinates_density: Set the range of values for the density coordinates
+        coordinates_velocity: Compute the velocity covariance
+        additional_parameters_values: Pass the values of the additional parameters to be used in the model
+        size_batch: Split the computation of the covariance matrix in smaller matrices
+        number_worker: Specify the number of cores to be used
+        hankel: Choose between the hankel transform or the fourier transform
+        : Compute the covariance matrix for a given model
+
+    Returns:
+        The covariance matrix for a given model and set of parameters
+
+    """
+    if model_name not in _avail_models:
+        log.add(
+            f"Model {model_name} not available."
+            f"Please choose between: {_avail_models}"
+        )
+
+    parameters = compute_coordinates(
+        covariance_type,
+        coordinates_density=coordinates_density,
+        coordinates_velocity=coordinates_velocity,
+        size_batch=size_batch,
+    )
+    covariance = compute_coeficient(
+        parameters,
+        model_name,
+        covariance_type,
+        power_spectrum_list,
+        additional_parameters_values=additional_parameters_values,
+        number_worker=number_worker,
+        hankel=hankel,
+    )
+
     return covariance

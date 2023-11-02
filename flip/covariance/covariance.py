@@ -288,6 +288,105 @@ def generate_flip(
     return covariance_dict, number_densities, number_velocities
 
 
+def contract_with_flip(
+    model_name,
+    model_type,
+    power_spectrum_dict,
+    bin_centers_2d,
+    r0,
+    additional_parameters_values=None,
+    number_worker=8,
+    hankel=True,
+):
+    """
+    The contract_with_flip function is used to contract the covariance matrix for a given model.
+    The function takes as input:
+        - model_name: name of the model (e.g., &quot;adamsblake20&quot;)
+        - model_type: type of the covariance matrix (&quot;density&quot;, &quot;velocity&quot;, or &quot;full&quot;)
+        - power_spectrum_dict: dictionary containing all relevant power spectra (gg, gv, vv) for this contraction; each entry in this dictionary is an array with shape [nk] where nk is the number of k bins in which we have computed these power
+
+    Args:
+        model_name: Specify the model to be used
+        model_type: Select the type of model to be used in the contraction
+        power_spectrum_dict: Compute the covariance matrix
+        bin_centers_2d: Compute the contraction coordinates
+        r0: Define the radial binning
+        additional_parameters_values: Pass the values of the parameters that are not in the model
+        number_worker: Set the number of workers used to compute the covariance matrix
+        hankel: Switch between the hankel transform and the direct integration
+        : Compute the covariance matrix
+
+    Returns:
+        A dictionary of covariance matrices (contraction_covariance_dict) and a set of coordinates in 3d space (contraction_coordinates)
+    """
+    # CR - make it more general, not only one binning.
+
+    coord_rper_rpar = np.array(
+        np.meshgrid(bin_centers_2d, bin_centers_2d, indexing="ij")
+    ).reshape((2, len(bin_centers_2d) * len(bin_centers_2d)))
+
+    contraction_coordinates = np.zeros((3, len(bin_centers_2d) * len(bin_centers_2d)))
+    contraction_coordinates[0, :] = np.sqrt(
+        coord_rper_rpar[0, :] ** 2 + coord_rper_rpar[1, :] ** 2
+    )
+    contraction_coordinates[1, :] = np.arctan2(
+        coord_rper_rpar[0, :], r0 + coord_rper_rpar[1, :]
+    )
+    contraction_coordinates[2, :] = np.arcsin(
+        np.clip(
+            (
+                (r0 / contraction_coordinates[0, :])
+                + (
+                    coord_rper_rpar[0, :]
+                    / (
+                        contraction_coordinates[0, :]
+                        * np.sin(contraction_coordinates[1, :])
+                    )
+                )
+            )
+            * np.sqrt((1 - np.cos(contraction_coordinates[1, :])) / 2),
+            -1,
+            1,
+        )
+    )
+
+    contraction_covariance_dict = {}
+    if model_type in ["density", "full", "density_velocity"]:
+        contraction_covariance_dict["gg"] = generator_flip.compute_coeficient(
+            [contraction_coordinates],
+            model_name,
+            "gg",
+            power_spectrum_dict["gg"],
+            additional_parameters_values=additional_parameters_values,
+            number_worker=number_worker,
+            hankel=hankel,
+        )[:, 1:]
+
+    if model_type in ["velocity", "full", "density_velocity"]:
+        contraction_covariance_dict["vv"] = generator_flip.compute_coeficient(
+            [contraction_coordinates],
+            model_name,
+            "vv",
+            power_spectrum_dict["vv"],
+            additional_parameters_values=additional_parameters_values,
+            number_worker=number_worker,
+            hankel=hankel,
+        )[:, 1:]
+
+    if model_type == "full":
+        contraction_covariance_dict["gv"] = generator_flip.compute_coeficient(
+            [contraction_coordinates],
+            model_name,
+            "gv",
+            power_spectrum_dict["gv"],
+            additional_parameters_values=additional_parameters_values,
+            number_worker=number_worker,
+            hankel=hankel,
+        )[:, 1:]
+
+    return contraction_covariance_dict, contraction_coordinates
+
+
 class CovMatrix:
     def __init__(
         self,
@@ -297,6 +396,8 @@ class CovMatrix:
         full_matrix=False,
         number_densities=None,
         number_velocities=None,
+        contraction_covariance_dict=None,
+        contraction_coordinates=None,
     ):
         """
         The __init__ function is called when the class is instantiated.
@@ -323,6 +424,8 @@ class CovMatrix:
         self.full_matrix = full_matrix
         self.number_densities = number_densities
         self.number_velocities = number_velocities
+        self.contraction_covariance_dict = contraction_covariance_dict
+        self.contraction_coordinates = contraction_coordinates
 
     @classmethod
     def init_from_flip(
@@ -461,6 +564,54 @@ class CovMatrix:
 
         """
         log.add(f"Reading from filename not implemented yet")
+
+    @classmethod
+    def init_contraction_from_flip(
+        cls,
+        model_name,
+        model_type,
+        power_spectrum_dict,
+        bin_centers_2d,
+        r0,
+        additional_parameters_values=None,
+        **kwargs,
+    ):
+        """
+        The init_contraction_from_flip function is a helper function that allows the user to initialize
+        a Contraction object from a FLIP model. The contraction_covariance_dict and contraction_coordinates
+        are calculated by contracting with the FLIP model, which is done in contract_with_flip. This function
+        is called in __init__ of Contraction.
+
+        Args:
+            cls: Create a new instance of the class
+            model_name: Determine which model to use for the contraction
+            model_type: Determine the type of model to be used
+            power_spectrum_dict: Store the power spectrum of the model
+            bin_centers_2d: Pass the bin centers of the 2d correlation function
+            r0: Define the size of the grid
+            additional_parameters_values: Pass in the values of the additional parameters that are
+            **kwargs: Pass keyworded, variable-length argument list
+            : Set the model type
+
+        Returns:
+            An instance of the contraction class
+        """
+
+        contraction_covariance_dict, contraction_coordinates = contract_with_flip(
+            model_name,
+            model_type,
+            power_spectrum_dict,
+            bin_centers_2d,
+            r0,
+            additional_parameters_values=additional_parameters_values,
+            **kwargs,
+        )
+        return cls(
+            model_name=model_name,
+            model_type=model_type,
+            contraction_covariance_dict=contraction_covariance_dict,
+            contraction_coordinates=contraction_coordinates,
+        )
 
     @property
     def type(self):
@@ -638,6 +789,62 @@ class CovMatrix:
             log.add(f"Wrong model type in the loaded covariance.")
 
         return covariance_sum
+
+    def compute_contraction_sum(
+        self,
+        parameter_values_dict,
+    ):
+        coefficients_dict = eval(f"coefficients_{self.model_name}.get_coefficients")(
+            self.model_type,
+            parameter_values_dict,
+        )
+        contraction_covariance_sum_dict = {}
+        if self.model_type == "density":
+            contraction_covariance_sum_dict["gg"] = np.sum(
+                [
+                    coefficients_dict["gg"][i] * cov
+                    for i, cov in enumerate(self.contraction_covariance_dict["gg"])
+                ],
+                axis=0,
+            )
+
+        elif self.model_type == "velocity":
+            contraction_covariance_sum_dict["vv"] = np.sum(
+                [
+                    coefficients_dict["vv"][i] * cov
+                    for i, cov in enumerate(self.contraction_covariance_dict["vv"])
+                ],
+                axis=0,
+            )
+
+        elif self.model_type in ["density_velocity", "full"]:
+            if self.model_type == "full":
+                contraction_covariance_sum_dict["gv"] = np.sum(
+                    [
+                        coefficients_dict["gv"][i] * cov
+                        for i, cov in enumerate(self.contraction_covariance_dict["gv"])
+                    ],
+                    axis=0,
+                )
+            contraction_covariance_sum_dict["gg"] = np.sum(
+                [
+                    coefficients_dict["gg"][i] * cov
+                    for i, cov in enumerate(self.contraction_covariance_dict["gg"])
+                ],
+                axis=0,
+            )
+
+            contraction_covariance_sum_dict["vv"] = np.sum(
+                [
+                    coefficients_dict["vv"][i] * cov
+                    for i, cov in enumerate(self.contraction_covariance_dict["vv"])
+                ],
+                axis=0,
+            )
+        else:
+            log.add(f"Wrong model type in the loaded covariance.")
+
+        return contraction_covariance_sum_dict
 
     def compute_full_matrix(self):
         """

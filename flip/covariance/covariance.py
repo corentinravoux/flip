@@ -3,8 +3,16 @@ import time
 from flip.utils import create_log
 from flip.covariance.lai22 import generator as generator_lai22
 from flip.covariance.carreres23 import generator as generator_carreres23
+
+from flip.covariance.adamsblake20 import coefficients as coefficients_adamsblake20
+from flip.covariance.lai22 import coefficients as coefficients_lai22
+from flip.covariance.carreres23 import coefficients as coefficients_carreres23
+from flip.covariance.ravouxcarreres import coefficients as coefficients_ravouxcarreres
+
+
 from flip.covariance import generator as generator_flip
 from flip.covariance import cov_utils
+
 
 log = create_log()
 
@@ -525,6 +533,111 @@ class CovMatrix:
         else:
             log.add("The model type was not found")
             return False
+
+    def compute_covariance_sum(
+        self,
+        parameter_values_dict,
+    ):
+        """
+        The compute_covariance_sum function computes the sum of all covariance matrices
+            and adds the diagonal terms.
+
+        Args:
+            self: Access the attributes of the class
+            parameter_values_dict: Pass the values of the parameters
+            : Compute the covariance matrix
+
+        Returns:
+            The sum of the covariance matrices with their respective coefficients
+
+        """
+        coefficients_dict = eval(f"coefficients_{self.model_name}.get_coefficients")(
+            self.model_type,
+            parameter_values_dict,
+        )
+        coefficients_dict_diagonal = eval(
+            f"coefficients_{self.model_name}.get_diagonal_coefficients"
+        )(
+            self.model_type,
+            parameter_values_dict,
+        )
+
+        if self.model_type == "density":
+            covariance_sum = np.sum(
+                [
+                    coefficients_dict["gg"][i] * cov
+                    for i, cov in enumerate(self.covariance_dict["gg"])
+                ],
+                axis=0,
+            )
+            covariance_sum += np.diag(
+                coefficients_dict_diagonal["gg"] + self.vector_err**2
+            )
+
+        elif self.model_type == "velocity":
+            covariance_sum = np.sum(
+                [
+                    coefficients_dict["vv"][i] * cov
+                    for i, cov in enumerate(self.covariance_dict["vv"])
+                ],
+                axis=0,
+            )
+
+            covariance_sum += np.diag(
+                coefficients_dict_diagonal["vv"] + self.vector_err**2
+            )
+
+        elif self.model_type in ["density_velocity", "full"]:
+            number_densities = self.number_densities
+            number_velocities = self.number_velocities
+            density_err = self.vector_err[:number_densities]
+            velocity_err = self.vector_err[
+                number_densities : number_densities + number_velocities
+            ]
+
+            if self.model_type == "density_velocity":
+                covariance_sum_gv = np.zeros((number_densities, number_velocities))
+            elif self.model_type == "full":
+                covariance_sum_gv = np.sum(
+                    [
+                        coefficients_dict["gv"][i] * cov
+                        for i, cov in enumerate(self.covariance_dict["gv"])
+                    ],
+                    axis=0,
+                )
+            covariance_sum_gg = np.sum(
+                [
+                    coefficients_dict["gg"][i] * cov
+                    for i, cov in enumerate(self.covariance_dict["gg"])
+                ],
+                axis=0,
+            )
+            covariance_sum_gg += np.diag(
+                coefficients_dict_diagonal["gg"] + density_err**2
+            )
+
+            covariance_sum_vv = np.sum(
+                [
+                    coefficients_dict["vv"][i] * cov
+                    for i, cov in enumerate(self.covariance_dict["vv"])
+                ],
+                axis=0,
+            )
+
+            covariance_sum_vv += np.diag(
+                coefficients_dict_diagonal["vv"] + velocity_err**2
+            )
+
+            covariance_sum = np.block(
+                [
+                    [covariance_sum_gg, covariance_sum_gv],
+                    [covariance_sum_gv.T, covariance_sum_vv],
+                ]
+            )
+        else:
+            log.add(f"Wrong model type in the loaded covariance.")
+
+        return covariance_sum
 
     def compute_full_matrix(self):
         """

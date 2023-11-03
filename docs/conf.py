@@ -45,6 +45,8 @@ intersphinx_mapping = {
 
 extensions = ['myst_parser', 'sphinx.ext.napoleon', 'sphinx_markdown_tables', 'sphinx.ext.autosectionlabel',
               'sphinx.ext.linkcode', 'sphinx.ext.intersphinx', 'sphinx.ext.autodoc', 'sphinx.ext.autosummary']
+extensions.append('autoapi.extension')
+autoapi_dirs = ['', '../flip']
 
 napoleon_google_docstring = True
 myst_enable_extensions = ["dollarmath"]
@@ -52,12 +54,12 @@ myst_dmath_double_inline = True
 
 autosectionlabel_prefix_document = True
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+autosummary_generate = True
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = ['_build', '_templates']
 
 source_suffix = {
     '.rst': 'restructuredtext',

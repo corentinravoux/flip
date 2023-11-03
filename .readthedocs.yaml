@@ -13,4 +13,3 @@ sphinx:
 python:
    install:
        path: .[docs]
-     - method: pip

@@ -127,4 +127,4 @@ def linkcode_resolve(domain, info):
 
     fn = relpath(fn, start=flip.__flip_dir_path__)
     
-    return "https://github.com/corentinravoux/flip/tree/main/%s%s" % (fn, linespec)
+    return "https://github.com/corentinravoux/flip/tree/main/flip/%s%s" % (fn, linespec)

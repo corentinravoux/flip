@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.abspath('..'))
 import flip 
 
 project = 'flip'
-copyright = '2023, C. Ravoux'
+copyright = '2023, C. Ravoux, B. Carreres'
 author = 'C. Ravoux, B. Carreres'
 
 # The full version, including alpha/beta/rc tags

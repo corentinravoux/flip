@@ -1,4 +1,5 @@
 import numpy as np
+
 from flip.utils import create_log
 
 log = create_log()

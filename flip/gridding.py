@@ -7,7 +7,7 @@ try:
 except:
     log.add("No pypower module detected, gridding with this method is unavailable")
 
-# CR - no cut in healpix implemented 
+# CR - no cut in healpix implemented  
 
 _GRID_KIND = ["ngp", "ngp_errw", "cic", "tsc", "pcs"]
 

@@ -1,18 +1,16 @@
-import numpy as np
 import time
-from flip.utils import create_log
-from flip.covariance.lai22 import generator as generator_lai22
-from flip.covariance.carreres23 import generator as generator_carreres23
 
-from flip.covariance.adamsblake20 import coefficients as coefficients_adamsblake20
-from flip.covariance.lai22 import coefficients as coefficients_lai22
-from flip.covariance.carreres23 import coefficients as coefficients_carreres23
-from flip.covariance.ravouxcarreres import coefficients as coefficients_ravouxcarreres
+import numpy as np
 
-
-from flip.covariance import generator as generator_flip
 from flip.covariance import cov_utils
-
+from flip.covariance import generator as generator_flip
+from flip.covariance.adamsblake20 import coefficients as coefficients_adamsblake20
+from flip.covariance.carreres23 import coefficients as coefficients_carreres23
+from flip.covariance.carreres23 import generator as generator_carreres23
+from flip.covariance.lai22 import coefficients as coefficients_lai22
+from flip.covariance.lai22 import generator as generator_lai22
+from flip.covariance.ravouxcarreres import coefficients as coefficients_ravouxcarreres
+from flip.utils import create_log
 
 log = create_log()
 
@@ -299,8 +297,24 @@ def contract_flip(
     number_worker=8,
     hankel=True,
 ):
-    # CR - make it more general, not only one binning.
+    """
+    The contract_flip function computes the covariance matrix for a given model.
 
+    Args:
+        model_name: Select the model to be used
+        model_type: Determine which type of model we are using
+        power_spectrum_dict: Pass the power spectrum of the model
+        r_perpendicular: Define the perpendicular separation between two points
+        r_parallel: Define the parallel separation between two points
+        r_reference: Define the reference point for the flip
+        additional_parameters_values: Pass additional parameters to the model
+        number_worker: Specify the number of cores to use for computation
+        hankel: Switch between the hankel transform and the direct integration
+
+    Returns:
+        A dictionary with the covariance matrices
+
+    """
     coord_rper_rpar = np.array(
         np.meshgrid(r_perpendicular, r_parallel, indexing="ij")
     ).reshape((2, len(r_perpendicular) * len(r_parallel)))
@@ -551,41 +565,44 @@ class CovMatrix:
         model_name,
         model_type,
         power_spectrum_dict,
-        bin_centers_2d,
-        r0,
+        r_perpendicular,
+        r_parallel,
+        r_reference,
         additional_parameters_values=None,
         **kwargs,
     ):
         """
-        The init_contraction_from_flip function is a helper function that allows the user to initialize
-        a Contraction object from a FLIP model. The contraction_covariance_dict and contraction_coordinates
-        are calculated by contracting with the FLIP model, which is done in contract_flip. This function
-        is called in __init__ of Contraction.
+        The init_contraction_from_flip function is a class method that initializes the contraction_covariance_dict and
+        contraction_coordinates attributes of the Contraction object. The init_contraction function calls this function, which
+        in turn calls contract_flip to generate these attributes. This allows us to use the same code for both initialization
+        and contraction.
 
         Args:
-            cls: Create a new instance of the class
-            model_name: Determine which model to use for the contraction
+            cls: Refer to the class that is being instantiated
+            model_name: Name the model
             model_type: Determine the type of model to be used
-            power_spectrum_dict: Store the power spectrum of the model
-            bin_centers_2d: Pass the bin centers of the 2d correlation function
-            r0: Define the size of the grid
-            additional_parameters_values: Pass in the values of the additional parameters that are
+            power_spectrum_dict: Pass the power spectrum of the model
+            r_perpendicular: Define the perpendicular distance from the observer to a point in space
+            r_parallel: Define the parallel direction of the contraction
+            r_reference: Set the reference scale for the contraction
+            additional_parameters_values: Pass in the values of additional parameters
             **kwargs: Pass keyworded, variable-length argument list
-            : Set the model type
+            : Create a new instance of the class
 
         Returns:
             An instance of the contraction class
         """
-
         contraction_covariance_dict, contraction_coordinates = contract_flip(
             model_name,
             model_type,
             power_spectrum_dict,
-            bin_centers_2d,
-            r0,
+            r_perpendicular,
+            r_parallel,
+            r_reference,
             additional_parameters_values=additional_parameters_values,
             **kwargs,
         )
+
         return cls(
             model_name=model_name,
             model_type=model_type,

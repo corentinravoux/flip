@@ -1,17 +1,17 @@
-import numpy as np
-from flip.covariance import cov_utils
 import multiprocessing as mp
 from functools import partial
-from scipy.special import spherical_jn
+
+import cosmoprimo
+import numpy as np
 from scipy import integrate
 from scipy.interpolate import interp1d
-import cosmoprimo
+from scipy.special import spherical_jn
 
+from flip.covariance import cov_utils
 from flip.covariance.adamsblake20 import flip_terms as flip_terms_adamsblake20
-from flip.covariance.lai22 import flip_terms as flip_terms_lai22
 from flip.covariance.carreres23 import flip_terms as flip_terms_carreres23
+from flip.covariance.lai22 import flip_terms as flip_terms_lai22
 from flip.covariance.ravouxcarreres import flip_terms as flip_terms_ravouxcarreres
-
 from flip.utils import create_log
 
 log = create_log()
@@ -335,7 +335,7 @@ def compute_coeficient(
 
     loc = locals()
     return np.array(
-        [eval(f"cov_{index}", loc) for i, index in enumerate(term_index_list)]
+        [eval(f"cov_{index}", loc) for _, index in enumerate(term_index_list)]
     )
 
 

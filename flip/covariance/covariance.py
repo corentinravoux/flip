@@ -319,26 +319,21 @@ def contract_flip(
         np.meshgrid(r_perpendicular, r_parallel, indexing="ij")
     ).reshape((2, len(r_perpendicular) * len(r_parallel)))
 
-    contraction_coordinates = np.zeros((3, len(r_perpendicular) * len(r_parallel)))
-    contraction_coordinates[0, :] = np.sqrt(
-        coord_rper_rpar[0, :] ** 2 + coord_rper_rpar[1, :] ** 2
-    )
-    contraction_coordinates[1, :] = np.arctan2(
+    coordinates = np.zeros((3, len(r_perpendicular) * len(r_parallel)))
+    coordinates[0, :] = np.sqrt(coord_rper_rpar[0, :] ** 2 + coord_rper_rpar[1, :] ** 2)
+    coordinates[1, :] = np.arctan2(
         coord_rper_rpar[0, :], r_reference + coord_rper_rpar[1, :]
     )
-    contraction_coordinates[2, :] = np.arcsin(
+    coordinates[2, :] = np.arcsin(
         np.clip(
             (
-                (r_reference / contraction_coordinates[0, :])
+                (r_reference / coordinates[0, :])
                 + (
                     coord_rper_rpar[0, :]
-                    / (
-                        contraction_coordinates[0, :]
-                        * np.sin(contraction_coordinates[1, :])
-                    )
+                    / (coordinates[0, :] * np.sin(coordinates[1, :]))
                 )
             )
-            * np.sqrt((1 - np.cos(contraction_coordinates[1, :])) / 2),
+            * np.sqrt((1 - np.cos(coordinates[1, :])) / 2),
             -1,
             1,
         )
@@ -347,38 +342,47 @@ def contract_flip(
     contraction_covariance_dict = {}
     if model_type in ["density", "full", "density_velocity"]:
         contraction_covariance_dict["gg"] = generator_flip.compute_coeficient(
-            [contraction_coordinates],
+            [coordinates],
             model_name,
             "gg",
             power_spectrum_dict["gg"],
             additional_parameters_values=additional_parameters_values,
             number_worker=number_worker,
             hankel=hankel,
-        )[:, 1:]
+        )[:, 1:].reshape(-1, len(r_perpendicular), len(r_parallel))
 
     if model_type in ["velocity", "full", "density_velocity"]:
         contraction_covariance_dict["vv"] = generator_flip.compute_coeficient(
-            [contraction_coordinates],
+            [coordinates],
             model_name,
             "vv",
             power_spectrum_dict["vv"],
             additional_parameters_values=additional_parameters_values,
             number_worker=number_worker,
             hankel=hankel,
-        )[:, 1:]
+        )[:, 1:].reshape(-1, len(r_perpendicular), len(r_parallel))
 
     if model_type == "full":
         contraction_covariance_dict["gv"] = generator_flip.compute_coeficient(
-            [contraction_coordinates],
+            [coordinates],
             model_name,
             "gv",
             power_spectrum_dict["gv"],
             additional_parameters_values=additional_parameters_values,
             number_worker=number_worker,
             hankel=hankel,
-        )[:, 1:]
+        )[:, 1:].reshape(-1, len(r_perpendicular), len(r_parallel))
 
-    return contraction_covariance_dict, contraction_coordinates
+    contraction_coordinates_dict = {
+        "r_perpendicular": coord_rper_rpar[0].reshape(
+            len(r_perpendicular), len(r_parallel)
+        ),
+        "r_parallel": coord_rper_rpar[1].reshape(len(r_perpendicular), len(r_parallel)),
+        "r": coordinates[0].reshape(len(r_perpendicular), len(r_parallel)),
+        "theta": coordinates[1].reshape(len(r_perpendicular), len(r_parallel)),
+        "phi": coordinates[2].reshape(len(r_perpendicular), len(r_parallel)),
+    }
+    return contraction_covariance_dict, contraction_coordinates_dict
 
 
 class CovMatrix:
@@ -391,7 +395,7 @@ class CovMatrix:
         number_densities=None,
         number_velocities=None,
         contraction_covariance_dict=None,
-        contraction_coordinates=None,
+        contraction_coordinates_dict=None,
     ):
         """
         The __init__ function is called when the class is instantiated.
@@ -419,7 +423,7 @@ class CovMatrix:
         self.number_densities = number_densities
         self.number_velocities = number_velocities
         self.contraction_covariance_dict = contraction_covariance_dict
-        self.contraction_coordinates = contraction_coordinates
+        self.contraction_coordinates_dict = contraction_coordinates_dict
 
     @classmethod
     def init_from_flip(
@@ -573,7 +577,7 @@ class CovMatrix:
     ):
         """
         The init_contraction_from_flip function is a class method that initializes the contraction_covariance_dict and
-        contraction_coordinates attributes of the Contraction object. The init_contraction function calls this function, which
+        contraction_coordinates_dict attributes of the Contraction object. The init_contraction function calls this function, which
         in turn calls contract_flip to generate these attributes. This allows us to use the same code for both initialization
         and contraction.
 
@@ -592,7 +596,7 @@ class CovMatrix:
         Returns:
             An instance of the contraction class
         """
-        contraction_covariance_dict, contraction_coordinates = contract_flip(
+        contraction_covariance_dict, contraction_coordinates_dict = contract_flip(
             model_name,
             model_type,
             power_spectrum_dict,
@@ -607,7 +611,7 @@ class CovMatrix:
             model_name=model_name,
             model_type=model_type,
             contraction_covariance_dict=contraction_covariance_dict,
-            contraction_coordinates=contraction_coordinates,
+            contraction_coordinates_dict=contraction_coordinates_dict,
         )
 
     @property

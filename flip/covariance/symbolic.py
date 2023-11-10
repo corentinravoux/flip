@@ -1,12 +1,14 @@
-import sympy as sy
-from sympy.printing import pycode
-from sympy.physics import wigner
-from sympy.simplify.fu import TR8
-from sympy.polys.orthopolys import legendre_poly
-import multiprocessing as mp
-from flip.utils import create_log
-import numpy as np
 import itertools
+import multiprocessing as mp
+
+import numpy as np
+import sympy as sy
+from sympy.physics import wigner
+from sympy.polys.orthopolys import legendre_poly
+from sympy.printing import pycode
+from sympy.simplify.fu import TR8
+
+from flip.utils import create_log
 
 log = create_log()
 
@@ -368,9 +370,8 @@ def generate_generalized_adamsblake20_functions(
     type_list = ["gg", "gg", "gg"] + ["gv", "gv"] + ["vv"]
     type_list = ["gg", "gv", "vv"]
     term_index_list = [["0", "1", "2"], ["0", "1"], ["0"]]
-    # lmax_list = [[4, 4, 4], [3, 3], [2]] # lmax list to stick to AD20
-    # lmax_list = [[6, 6, 6], [5, 5], [2]] # lmax list to generate lmax + 1
-    lmax_list = [[4, 4, 4], [3, 3], [2]]
+    lmax_list = [[4, 4, 4], [3, 3], [2]]  # lmax list to stick to AD20
+    # lmax_list = [[6, 6, 6], [5, 5], [2]]  # lmax list to generate lmax + 1
     dict_B = {
         "B_gg_0": sy.exp(-((k * sig_g * mu) ** 2)),
         "B_gg_1": 2 * mu**2 * sy.exp(-((k * sig_g * mu) ** 2)),
@@ -578,15 +579,12 @@ def generate_generalized_ravouxcarreres_functions(
     sig_g = sy.symbols("sig_g", positive=True, finite=True, real=True)
     type_list = ["gg", "gv", "vv"]
     term_index_list = [["0", "1", "2"], ["0", "1"], ["0"]]
-    # lmax_list = [[4, 4, 4], [3, 3], [2]] # Lists to follow the logic of AD20
-    # l1max_list = [[2, 2, 2] , [2, 2] , [1]]
-    # l2max_list = [[2, 2, 2] , [1, 1] , [1]]
+    lmax_list = [[4, 4, 4], [3, 3], [2]]  # Lists to follow the logic of AD20
+    l1max_list = [[2, 2, 2], [2, 2], [1]]
+    l2max_list = [[2, 2, 2], [1, 1], [1]]
     # lmax_list = [[6, 6, 6] , [5, 5] , [2]] # Lists to generate the model lmax + 1
     # l1max_list = [[4, 4, 4] , [4, 4] , [1]]
     # l2max_list = [[4, 4, 4] , [1, 1] , [1]]
-    lmax_list = [[6, 6, 6], [5, 5], [2]]
-    l1max_list = [[4, 4, 4], [4, 4], [1]]
-    l2max_list = [[4, 4, 4], [1, 1], [1]]
     dict_B = {
         "B_gg_0": sy.exp(-((k * sig_g) ** 2) * (mu1**2 + mu2**2) / 2),
         "B_gg_1": (mu1**2 + mu2**2)

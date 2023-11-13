@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+from flip import utils
+
 
 def plot_2d_contraction(
     covariance,
@@ -50,7 +52,7 @@ def plot_2d_contraction(
             )
             ax_plot.set_title(r"$r^2 C_{gg}(r)$", fontsize=15)
         else:
-            ax_plot.imshow(
+            image = ax_plot.imshow(
                 xi_gg_plot,
                 extent=extent,
             )
@@ -86,3 +88,24 @@ def plot_2d_contraction(
         ax_plot.set_xlabel(r"$r_{\bot}$")
         ax_plot.set_ylabel(r"$r_{\parallel}$")
         ax_plot.set_title(r"$C_{gv}(r)$", fontsize=15)
+
+
+def plot_correlation_from_likelihood(
+    likelihood,
+    parameter_dict,
+    **kwargs,
+):
+    vmin = utils.return_key(kwargs, "vmin", -0.1)
+    vmax = utils.return_key(kwargs, "vmax", 0.1)
+
+    parameter_names = likelihood.parameter_names
+    parameter_values = [
+        parameter_dict[parameters]["value"] for parameters in parameter_names
+    ]
+    parameter_values_dict = dict(zip(parameter_names, parameter_values))
+    covariance_sum = likelihood.covariance.compute_covariance_sum(
+        parameter_values_dict, likelihood.vector_err
+    )
+
+    correlation_sum = utils.return_correlation_matrix(covariance_sum)
+    plt.imshow(correlation_sum, vmin=vmin, vmax=vmax)

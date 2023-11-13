@@ -1,4 +1,9 @@
-import logging, time
+import logging
+import time
+
+
+def return_key(dictionary, string, default_value):
+    return dictionary[string] if string in dictionary.keys() else default_value
 
 
 def create_log(log_level="info"):

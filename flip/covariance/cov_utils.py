@@ -161,7 +161,7 @@ def return_full_cov_cross(cov, number_objects_g, number_objects_v):
         The full covariance matrix
 
     """
-    full_cov = cov.reshape((number_objects_g, number_objects_v))
+    full_cov = cov[1:].reshape((number_objects_g, number_objects_v))
     return full_cov
 
 

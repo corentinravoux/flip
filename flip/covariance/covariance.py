@@ -689,6 +689,7 @@ class CovMatrix:
     def compute_covariance_sum(
         self,
         parameter_values_dict,
+        vector_err,
     ):
         """
         The compute_covariance_sum function computes the sum of all covariance matrices
@@ -723,7 +724,7 @@ class CovMatrix:
                 axis=0,
             )
             covariance_sum += np.diag(
-                coefficients_dict_diagonal["gg"] + self.vector_err**2
+                coefficients_dict_diagonal["gg"] + vector_err**2
             )
 
         elif self.model_type == "velocity":
@@ -736,14 +737,14 @@ class CovMatrix:
             )
 
             covariance_sum += np.diag(
-                coefficients_dict_diagonal["vv"] + self.vector_err**2
+                coefficients_dict_diagonal["vv"] + vector_err**2
             )
 
         elif self.model_type in ["density_velocity", "full"]:
             number_densities = self.number_densities
             number_velocities = self.number_velocities
-            density_err = self.vector_err[:number_densities]
-            velocity_err = self.vector_err[
+            density_err = vector_err[:number_densities]
+            velocity_err = vector_err[
                 number_densities : number_densities + number_velocities
             ]
 
@@ -875,19 +876,38 @@ class CovMatrix:
         if self.full_matrix is False:
             for key in ["gg", "vv", "gv"]:
                 if key in self.covariance_dict.keys():
+                    if key == "gg":
+                        new_shape = (
+                            self.covariance_dict[key].shape[0],
+                            self.number_densities,
+                            self.number_densities,
+                        )
+                    elif key == "gv":
+                        new_shape = (
+                            self.covariance_dict[key].shape[0],
+                            self.number_densities,
+                            self.number_velocities,
+                        )
+                    elif key == "vv":
+                        new_shape = (
+                            self.covariance_dict[key].shape[0],
+                            self.number_velocities,
+                            self.number_velocities,
+                        )
+                    new_cov = np.zeros(new_shape)
                     for i, _ in enumerate(self.covariance_dict[key]):
                         if key == "gv":
-                            self.covariance_dict[key][
-                                i
-                            ] = cov_utils.return_full_cov_cross(
+                            new_cov[i] = cov_utils.return_full_cov_cross(
                                 self.covariance_dict[key][i],
-                                self.covariance_dict["gg"][0].shape[0],
-                                self.covariance_dict["vv"][0].shape[0],
+                                self.number_densities,
+                                self.number_velocities,
                             )
                         else:
-                            self.covariance_dict[key][i] = cov_utils.return_full_cov(
+                            new_cov[i] = cov_utils.return_full_cov(
                                 self.covariance_dict[key][i]
                             )
+                    self.covariance_dict[key] = new_cov
+
             self.full_matrix = True
 
     def write(

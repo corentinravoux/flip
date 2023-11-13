@@ -1,13 +1,15 @@
 import itertools
-import numpy as np
-from scipy.special import spherical_jn, factorial
-from flip.covariance.lai22 import h_terms
-from flip.covariance import cov_utils
 import multiprocessing as mp
 from functools import partial
+
+import cosmoprimo
+import numpy as np
 from scipy import integrate
 from scipy.interpolate import interp1d
-import cosmoprimo
+from scipy.special import factorial, spherical_jn
+
+from flip.covariance import cov_utils
+from flip.covariance.lai22 import h_terms
 
 
 def compute_correlation_coefficient_simple_integration(p, q, l, r, k, pk):
@@ -624,11 +626,6 @@ def return_full_cov(cov):
     return full_cov
 
 
-def return_full_cov_cross(cov, number_objects_g, number_objects_v):
-    full_cov = cov.reshape((number_objects_g, number_objects_v))
-    return full_cov
-
-
 def return_correlation_matrix(cov):
     sigma = np.sqrt(np.diag(cov))
     corr_matrix = cov / np.outer(sigma, sigma)
@@ -714,12 +711,12 @@ def compute_all_matrices(
         hankel=hankel,
     )
     cov_gv_bf_m = [
-        return_full_cov_cross(cov_gv_bf[i], ra_density.size, ra_vel.size)
-        for i, m in enumerate(m_index_gv)
+        cov_gv_bf[i].reshape((ra_density.size, ra_vel.size))
+        for i, _ in enumerate(m_index_gv)
     ]
     cov_gv_f2_m = [
-        return_full_cov_cross(cov_gv_f2[i], ra_density.size, ra_vel.size)
-        for i, m in enumerate(m_index_gv)
+        cov_gv_f2[i].reshape((ra_density.size, ra_vel.size))
+        for i, _ in enumerate(m_index_gv)
     ]
 
     cov_vv = return_full_cov(

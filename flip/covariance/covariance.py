@@ -4,6 +4,7 @@ import numpy as np
 
 from flip.covariance import cov_utils
 from flip.covariance import generator as generator_flip
+from flip.covariance.adamsblake17 import coefficients as coefficients_adamsblake17
 from flip.covariance.adamsblake20 import coefficients as coefficients_adamsblake20
 from flip.covariance.carreres23 import coefficients as coefficients_carreres23
 from flip.covariance.carreres23 import generator as generator_carreres23

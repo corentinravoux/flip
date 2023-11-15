@@ -8,6 +8,7 @@ from scipy.interpolate import interp1d
 from scipy.special import spherical_jn
 
 from flip.covariance import cov_utils
+from flip.covariance.adamsblake17 import flip_terms as flip_terms_adamsblake17
 from flip.covariance.adamsblake20 import flip_terms as flip_terms_adamsblake20
 from flip.covariance.carreres23 import flip_terms as flip_terms_carreres23
 from flip.covariance.lai22 import flip_terms as flip_terms_lai22

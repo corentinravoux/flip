@@ -350,6 +350,31 @@ def write_M_N_functions(
     )
 
 
+def generate_generalized_adamsblake17_functions(
+    filename="./adamsblake17/flip_terms.py", number_worker=8
+):
+    mu = sy.symbols("mu")
+    k = sy.symbols("k", positive=True, finite=True, real=True)
+    type_list = ["gg", "gv", "vv"]
+    term_index_list = [["0"], ["0"], ["0"]]
+    lmax_list = [[0], [1], [2]]
+    dict_B = {
+        "B_gg_0": 1,
+        "B_gv_0": 100 * (mu / k),
+        "B_vv_0": 100**2 * mu**2 / k**2,
+    }
+
+    write_M_N_functions(
+        filename,
+        type_list,
+        term_index_list,
+        lmax_list,
+        dict_B,
+        number_worker=number_worker,
+        wide_angle=False,
+    )
+
+
 def generate_generalized_adamsblake20_functions(
     filename="./adamsblake20/flip_terms.py", number_worker=8
 ):
@@ -367,7 +392,6 @@ def generate_generalized_adamsblake20_functions(
     mu = sy.symbols("mu")
     k = sy.symbols("k", positive=True, finite=True, real=True)
     sig_g = sy.symbols("sig_g", positive=True, finite=True, real=True)
-    type_list = ["gg", "gg", "gg"] + ["gv", "gv"] + ["vv"]
     type_list = ["gg", "gv", "vv"]
     term_index_list = [["0", "1", "2"], ["0", "1"], ["0"]]
     lmax_list = [[4, 4, 4], [3, 3], [2]]  # lmax list to stick to AD20

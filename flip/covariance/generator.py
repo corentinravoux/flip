@@ -16,7 +16,13 @@ from flip.covariance.ravouxcarreres import flip_terms as flip_terms_ravouxcarrer
 from flip.utils import create_log
 
 log = create_log()
-_avail_models = ["adamsblake20", "lai22", "carreres23", "ravouxcarreres"]
+_avail_models = [
+    "adamsblake17",
+    "adamsblake20",
+    "lai22",
+    "carreres23",
+    "ravouxcarreres",
+]
 
 
 def correlation_integration(l, r, k, integrand):

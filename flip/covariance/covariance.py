@@ -4,7 +4,10 @@ import numpy as np
 
 from flip.covariance import cov_utils
 from flip.covariance import generator as generator_flip
-from flip.covariance.adamsblake17 import coefficients as coefficients_adamsblake17
+from flip.covariance.adamsblake17plane import (
+    coefficients as coefficients_adamsblake17plane,
+)
+from flip.covariance.adamsblake17plane import generator as generator_adamsblake17plane
 from flip.covariance.adamsblake20 import coefficients as coefficients_adamsblake20
 from flip.covariance.carreres23 import coefficients as coefficients_carreres23
 from flip.covariance.carreres23 import generator as generator_carreres23
@@ -118,7 +121,74 @@ def generate_carreres23(
         power_spectrum_dict["vv"][0][1],
         **kwargs,
     )
-    return {"vv": [cov_vv]}, number_densities, number_velocities
+    return {"vv": np.array([cov_vv])}, number_densities, number_velocities
+
+
+def generate_adamsblake17plane(
+    model_type,
+    power_spectrum_dict,
+    coordinates_velocity=None,
+    coordinates_density=None,
+    **kwargs,
+):
+    check_generator_need(
+        model_type,
+        coordinates_density,
+        coordinates_velocity,
+    )
+    covariance_dict = {}
+
+    if model_type in ["density", "full", "density_velocity"]:
+        covariance_dict["gg"] = np.array(
+            [
+                generator_adamsblake17plane.covariance_gg(
+                    coordinates_density[0],
+                    coordinates_density[1],
+                    coordinates_density[2],
+                    power_spectrum_dict["gg"][0][0],
+                    power_spectrum_dict["gg"][0][1],
+                    **kwargs,
+                )
+            ]
+        )
+        number_densities = len(coordinates_density[0])
+    else:
+        number_densities = None
+
+    if model_type in ["velocity", "full", "density_velocity"]:
+        covariance_dict["vv"] = np.array(
+            [
+                generator_adamsblake17plane.covariance_vv(
+                    coordinates_velocity[0],
+                    coordinates_velocity[1],
+                    coordinates_velocity[2],
+                    power_spectrum_dict["vv"][0][0],
+                    power_spectrum_dict["vv"][0][1],
+                    **kwargs,
+                )
+            ]
+        )
+        number_velocities = len(coordinates_velocity[0])
+    else:
+        number_velocities = None
+
+    if model_type == "full":
+        covariance_dict["gv"] = np.array(
+            [
+                generator_adamsblake17plane.covariance_gv(
+                    coordinates_density[0],
+                    coordinates_density[1],
+                    coordinates_density[2],
+                    coordinates_velocity[0],
+                    coordinates_velocity[1],
+                    coordinates_velocity[2],
+                    power_spectrum_dict["gv"][0][0],
+                    power_spectrum_dict["gv"][0][1],
+                    **kwargs,
+                )
+            ]
+        )
+    return covariance_dict, number_densities, number_velocities
 
 
 def generate_lai22(
@@ -295,50 +365,51 @@ def contract_flip(
     r_parallel,
     r_reference,
     additional_parameters_values=None,
+    contract_wrt_bisector=True,
     number_worker=8,
     hankel=True,
 ):
-    """
-    The contract_flip function computes the covariance matrix for a given model.
-
-    Args:
-        model_name: Select the model to be used
-        model_type: Determine which type of model we are using
-        power_spectrum_dict: Pass the power spectrum of the model
-        r_perpendicular: Define the perpendicular separation between two points
-        r_parallel: Define the parallel separation between two points
-        r_reference: Define the reference point for the flip
-        additional_parameters_values: Pass additional parameters to the model
-        number_worker: Specify the number of cores to use for computation
-        hankel: Switch between the hankel transform and the direct integration
-
-    Returns:
-        A dictionary with the covariance matrices
-
-    """
     coord_rper_rpar = np.array(
         np.meshgrid(r_perpendicular, r_parallel, indexing="ij")
     ).reshape((2, len(r_perpendicular) * len(r_parallel)))
 
-    coordinates = np.zeros((3, len(r_perpendicular) * len(r_parallel)))
-    coordinates[0, :] = np.sqrt(coord_rper_rpar[0, :] ** 2 + coord_rper_rpar[1, :] ** 2)
-    coordinates[1, :] = np.arctan2(
-        coord_rper_rpar[0, :], r_reference + coord_rper_rpar[1, :]
-    )
-    coordinates[2, :] = np.arcsin(
-        np.clip(
-            (
-                (r_reference / coordinates[0, :])
-                + (
-                    coord_rper_rpar[0, :]
-                    / (coordinates[0, :] * np.sin(coordinates[1, :]))
-                )
-            )
-            * np.sqrt((1 - np.cos(coordinates[1, :])) / 2),
-            -1,
-            1,
+    if contract_wrt_bisector:
+        # r_perp and r_par defined with respect to the bisector between the rwo points.
+        coordinates = np.zeros((3, len(r_perpendicular) * len(r_parallel)))
+        coordinates[0, :] = np.sqrt(
+            coord_rper_rpar[0, :] ** 2 + coord_rper_rpar[1, :] ** 2
         )
-    )
+        coordinates[1, :] = 2 * np.arcsin(
+            np.clip(coord_rper_rpar[0, :] / (2 * r_reference), -1, 1)
+        )
+        coordinates[2, :] = np.arccos(
+            np.clip(coord_rper_rpar[1, :] / coordinates[0, :], -1, 1)
+        )
+
+    else:
+        # r_perp and r_par defined with respect to r_reference direction.
+
+        coordinates = np.zeros((3, len(r_perpendicular) * len(r_parallel)))
+        coordinates[0, :] = np.sqrt(
+            coord_rper_rpar[0, :] ** 2 + coord_rper_rpar[1, :] ** 2
+        )
+        coordinates[1, :] = np.arctan2(
+            coord_rper_rpar[0, :], r_reference + coord_rper_rpar[1, :]
+        )
+        coordinates[2, :] = np.arcsin(
+            np.clip(
+                (
+                    (r_reference / coordinates[0, :])
+                    + (
+                        coord_rper_rpar[0, :]
+                        / (coordinates[0, :] * np.sin(coordinates[1, :]))
+                    )
+                )
+                * np.sqrt((1 - np.cos(coordinates[1, :])) / 2),
+                -1,
+                1,
+            )
+        )
 
     contraction_covariance_dict = {}
     if model_type in ["density", "full", "density_velocity"]:
@@ -574,6 +645,7 @@ class CovMatrix:
         r_parallel,
         r_reference,
         additional_parameters_values=None,
+        contract_wrt_bisector=True,
         **kwargs,
     ):
         """
@@ -605,6 +677,7 @@ class CovMatrix:
             r_parallel,
             r_reference,
             additional_parameters_values=additional_parameters_values,
+            contract_wrt_bisector=contract_wrt_bisector,
             **kwargs,
         )
 

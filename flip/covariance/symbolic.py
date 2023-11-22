@@ -350,8 +350,8 @@ def write_M_N_functions(
     )
 
 
-def generate_generalized_adamsblake17_functions(
-    filename="./adamsblake17/flip_terms.py", number_worker=8
+def generate_generalized_adamsblake17plane_functions(
+    filename="./adamsblake17plane/flip_terms.py", number_worker=8
 ):
     mu = sy.symbols("mu")
     k = sy.symbols("k", positive=True, finite=True, real=True)

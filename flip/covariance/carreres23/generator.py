@@ -120,11 +120,11 @@ def generate_covariance(
         **kwargs,
     )
 
-    angle_definition = "bisector"
+    los_definition = "bisector"
 
     return (
         {"vv": np.array([cov_vv])},
         number_densities,
         number_velocities,
-        angle_definition,
+        los_definition,
     )

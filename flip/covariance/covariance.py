@@ -25,14 +25,14 @@ class CovMatrix:
         self,
         model_name=None,
         model_type=None,
-        angle_definition=None,
+        los_definition=None,
         covariance_dict=None,
         full_matrix=False,
         number_densities=None,
         number_velocities=None,
         contraction_covariance_dict=None,
         contraction_coordinates_dict=None,
-        contraction_angle_definition=None,
+        contraction_los_definition=None,
     ):
         """
         The __init__ function is called when the class is instantiated.
@@ -43,7 +43,7 @@ class CovMatrix:
             self: Represent the instance of the class
             model_name: Identify the model
             model_type: Define the type of model that is being used
-            angle_definition: Define the angle between two vectors
+            los_definition: Define the angle between two vectors
             covariance_dict: Store the covariance matrix
             full_matrix: Determine whether the covariance matrix is stored as a full matrix or in sparse form
             number_densities: Set the number of density variables in the model
@@ -58,14 +58,14 @@ class CovMatrix:
 
         self.model_name = model_name
         self.model_type = model_type
-        self.angle_definition = angle_definition
+        self.los_definition = los_definition
         self.covariance_dict = covariance_dict
         self.full_matrix = full_matrix
         self.number_densities = number_densities
         self.number_velocities = number_velocities
         self.contraction_covariance_dict = contraction_covariance_dict
         self.contraction_coordinates_dict = contraction_coordinates_dict
-        self.contraction_angle_definition = contraction_angle_definition
+        self.contraction_los_definition = contraction_los_definition
 
     @classmethod
     def init_from_flip(
@@ -76,7 +76,7 @@ class CovMatrix:
         coordinates_density=None,
         coordinates_velocity=None,
         additional_parameters_values=None,
-        angle_definition="bisector",
+        los_definition="bisector",
         **kwargs,
     ):
         """
@@ -114,7 +114,7 @@ class CovMatrix:
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
             additional_parameters_values=additional_parameters_values,
-            angle_definition=angle_definition,
+            los_definition=los_definition,
             **kwargs,
         )
         end = time.time()
@@ -128,7 +128,7 @@ class CovMatrix:
             number_densities=number_densities,
             number_velocities=number_velocities,
             full_matrix=False,
-            angle_definition=angle_definition,
+            los_definition=los_definition,
         )
 
     @classmethod
@@ -167,7 +167,7 @@ class CovMatrix:
 
         """
         begin = time.time()
-        covariance_dict, number_densities, number_velocities, angle_definition = eval(
+        covariance_dict, number_densities, number_velocities, los_definition = eval(
             f"generator_{model_name}.generate_covariance"
         )(
             model_type,
@@ -187,7 +187,7 @@ class CovMatrix:
             number_densities=number_densities,
             number_velocities=number_velocities,
             full_matrix=False,
-            angle_definition=angle_definition,
+            los_definition=los_definition,
         )
 
     @classmethod
@@ -223,7 +223,7 @@ class CovMatrix:
         r_parallel,
         r_reference,
         additional_parameters_values=None,
-        angle_definition="bisector",
+        los_definition="bisector",
         **kwargs,
     ):
         """
@@ -258,7 +258,7 @@ class CovMatrix:
             r_parallel,
             r_reference,
             additional_parameters_values=additional_parameters_values,
-            angle_definition=angle_definition,
+            los_definition=los_definition,
             **kwargs,
         )
 
@@ -267,7 +267,7 @@ class CovMatrix:
             model_type=model_type,
             contraction_covariance_dict=contraction_covariance_dict,
             contraction_coordinates_dict=contraction_coordinates_dict,
-            contraction_angle_definition=angle_definition,
+            contraction_los_definition=los_definition,
         )
 
     @property

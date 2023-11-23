@@ -11,7 +11,7 @@ from scipy.special import factorial, spherical_jn
 from flip.covariance import cov_utils
 from flip.covariance.lai22 import h_terms
 
-# Note: Lai used the midpoint definition for phi
+# CR - to check: Lai used the mean definition for phi
 
 
 def compute_correlation_coefficient_simple_integration(p, q, l, r, k, pk):
@@ -55,7 +55,7 @@ def compute_cov_vv(
     size_batch=10_000,
     number_worker=8,
     hankel=True,
-    angle_definition="midpoint",
+    los_definition="mean",
 ):
     if grid_window_v_tt is not None:
         power_spectrum_tt = power_spectrum_tt * grid_window_v_tt**2
@@ -70,7 +70,7 @@ def compute_cov_vv(
         r_i, ra_i, dec_i = comoving_distance[i_list], ra[i_list], dec[i_list]
         r_j, ra_j, dec_j = comoving_distance[j_list], ra[j_list], dec[j_list]
         r, theta, phi = cov_utils.angle_separation(
-            ra_i, ra_j, dec_i, dec_j, r_i, r_j, angle_definition=angle_definition
+            ra_i, ra_j, dec_i, dec_j, r_i, r_j, los_definition=los_definition
         )
         parameters.append([r, theta, phi])
 
@@ -131,7 +131,7 @@ def compute_cov_gg(
     number_worker=8,
     sig_damp_mm_gg_m=None,
     hankel=True,
-    angle_definition="midpoint",
+    los_definition="mean",
 ):
     if grid_window_m_mm is not None:
         power_spectrum_mm = power_spectrum_mm * grid_window_m_mm**2
@@ -154,7 +154,7 @@ def compute_cov_gg(
         r_i, ra_i, dec_i = comoving_distance[i_list], ra[i_list], dec[i_list]
         r_j, ra_j, dec_j = comoving_distance[j_list], ra[j_list], dec[j_list]
         r, theta, phi = cov_utils.angle_separation(
-            ra_i, ra_j, dec_i, dec_j, r_i, r_j, angle_definition=angle_definition
+            ra_i, ra_j, dec_i, dec_j, r_i, r_j, los_definition=los_definition
         )
         parameters.append([r, theta, phi])
 
@@ -292,7 +292,7 @@ def compute_cov_gg_add(
     number_worker=8,
     sig_damp_mm_gg_m=None,
     hankel=True,
-    angle_definition="midpoint",
+    los_definition="mean",
 ):
     if grid_window_m_mm is not None:
         power_spectrum_mm = power_spectrum_mm * grid_window_m_mm**2
@@ -306,7 +306,7 @@ def compute_cov_gg_add(
         r_i, ra_i, dec_i = comoving_distance[i_list], ra[i_list], dec[i_list]
         r_j, ra_j, dec_j = comoving_distance[j_list], ra[j_list], dec[j_list]
         r, theta, phi = cov_utils.angle_separation(
-            ra_i, ra_j, dec_i, dec_j, r_i, r_j, angle_definition=angle_definition
+            ra_i, ra_j, dec_i, dec_j, r_i, r_j, los_definition=los_definition
         )
         parameters.append([r, theta, phi])
 
@@ -491,7 +491,7 @@ def compute_cov_gv(
     size_batch=10_000,
     number_worker=8,
     hankel=True,
-    angle_definition="midpoint",
+    los_definition="mean",
 ):
     if grid_window_m_mt is not None:
         power_spectrum_mt = power_spectrum_mt * grid_window_m_mt
@@ -513,7 +513,7 @@ def compute_cov_gv(
         r_i, ra_i, dec_i = comoving_distance_g[i_list], ra_g[i_list], dec_g[i_list]
         r_j, ra_j, dec_j = comoving_distance_v[j_list], ra_v[j_list], dec_v[j_list]
         r, theta, phi = cov_utils.angle_separation(
-            ra_i, ra_j, dec_i, dec_j, r_i, r_j, angle_definition=angle_definition
+            ra_i, ra_j, dec_i, dec_j, r_i, r_j, los_definition=los_definition
         )
         parameters.append([r, theta, phi])
 
@@ -757,7 +757,7 @@ def generate_covariance(
     coordinates_density=None,
     pmax=3,
     qmax=3,
-    angle_definition="midpoint",
+    los_definition="mean",
     **kwargs,
 ):
     """
@@ -770,7 +770,7 @@ def generate_covariance(
         coordinates_density: Define the coordinates of the density field
         pmax: Set the maximum order of legendre polynomials used to compute the covariance matrix
         qmax: Set the maximum order of legendre polynomials used in the expansion
-        angle_definition: Define the wide angle. Can be changed, but Lai et al. 2022 uses the midpoint.
+        los_definition: Define the wide angle. Can be changed, but Lai et al. 2022 uses the mean.
         **kwargs: Pass keyword arguments to the function
         : Define the model type
 
@@ -798,7 +798,7 @@ def generate_covariance(
             power_spectrum_dict["gg"][0][1],
             power_spectrum_dict["gg"][1][1],
             power_spectrum_dict["gg"][2][1],
-            angle_definition=angle_definition,
+            los_definition=los_definition,
             **kwargs,
         )
         number_densities = len(coordinates_density[0])
@@ -812,7 +812,7 @@ def generate_covariance(
             coordinates_velocity[2],
             power_spectrum_dict["vv"][0][0],
             power_spectrum_dict["vv"][1][0],
-            angle_definition=angle_definition,
+            los_definition=los_definition,
             **kwargs,
         )
         number_velocities = len(coordinates_velocity[0])
@@ -832,7 +832,7 @@ def generate_covariance(
             power_spectrum_dict["gv"][1][0],
             power_spectrum_dict["gv"][0][1],
             power_spectrum_dict["gv"][1][1],
-            angle_definition=angle_definition,
+            los_definition=los_definition,
             **kwargs,
         )
-    return covariance_dict, number_densities, number_velocities, angle_definition
+    return covariance_dict, number_densities, number_velocities, los_definition

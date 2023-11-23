@@ -9,7 +9,7 @@ def compute_contraction_coordinates(
     r_reference_perpendicular,
     r_reference_parallel,
     basis_definition,
-    angle_definition,
+    los_definition,
 ):
     coord_rper_rpar = np.array(
         np.meshgrid(r_perpendicular, r_parallel, indexing="ij")
@@ -28,8 +28,8 @@ def compute_contraction_coordinates(
         phi = np.arccos(np.clip(coord_rper_rpar[1, :] / r, -1.0, 1.0))
         theta = 2 * np.arcsin(np.clip(r * np.sin(phi) / (r_reference + r_1), -1.0, 1.0))
 
-    elif basis_definition == "midpoint":
-        # r_perp, r_par and phi are defined with respect to the midpoint between the two points.
+    elif basis_definition == "mean":
+        # r_perp, r_par and phi are defined with respect to the mean between the two points.
         r_1 = np.sqrt(
             (r_reference_perpendicular + coord_rper_rpar[0, :]) ** 2
             + (r_reference_parallel + coord_rper_rpar[1, :]) ** 2
@@ -42,7 +42,7 @@ def compute_contraction_coordinates(
     elif basis_definition == "reference":
         # r_perp, r_par and phi are defined with respect to r_reference.
         theta = np.arctan2(coord_rper_rpar[0, :], r_reference + coord_rper_rpar[1, :])
-        if angle_definition == "bisector":
+        if los_definition == "bisector":
             phi = np.arcsin(
                 np.clip(
                     ((r_reference / r) + (coord_rper_rpar[0, :] / (r * np.sin(theta))))
@@ -51,7 +51,7 @@ def compute_contraction_coordinates(
                     1.0,
                 )
             )
-        elif angle_definition == "midpoint":
+        elif los_definition == "mean":
             phi = np.arccos(np.clip(r**2 / 2 + r_parallel * r_reference, -1.0, 1.0))
 
     coordinates = np.zeros((3, len(r_perpendicular) * len(r_parallel)))
@@ -72,7 +72,7 @@ def contract_covariance(
     r_reference_parallel,
     additional_parameters_values=None,
     basis_definition="middle",
-    angle_definition="bisector",
+    los_definition="bisector",
     number_worker=8,
     hankel=True,
 ):
@@ -82,7 +82,7 @@ def contract_covariance(
         r_reference_perpendicular,
         r_reference_parallel,
         basis_definition,
-        angle_definition,
+        los_definition,
     )
     contraction_covariance_dict = {}
     if model_type in ["density", "full", "density_velocity"]:

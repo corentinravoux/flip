@@ -9,7 +9,7 @@ def compute_sep(
     ra,
     dec,
     comoving_distance,
-    angle_definition="bisector",
+    los_definition="bisector",
     size_batch=10_000,
 ):
     """
@@ -38,7 +38,7 @@ def compute_sep(
         r_i, ra_i, dec_i = comoving_distance[i_list], ra[i_list], dec[i_list]
         r_j, ra_j, dec_j = comoving_distance[j_list], ra[j_list], dec[j_list]
         r, theta, _ = angle_separation(
-            ra_i, ra_j, dec_i, dec_j, r_i, r_j, angle_definition=angle_definition
+            ra_i, ra_j, dec_i, dec_j, r_i, r_j, los_definition=los_definition
         )
         sep.append(r)
         sep_perp.append(r * np.sin(theta))
@@ -97,7 +97,7 @@ def compute_i_j_cross_matrix(Nv, seq):
     return i, j
 
 
-def compute_phi_midpoint(ra_0, ra_1, dec_0, dec_1, r_0, r_1):
+def compute_phi_mean(ra_0, ra_1, dec_0, dec_1, r_0, r_1):
     x_0, y_0, z_0 = utils.radec2cart(r_0, ra_0, dec_0)
     x_1, y_1, z_1 = utils.radec2cart(r_1, ra_1, dec_1)
 
@@ -141,7 +141,7 @@ def angle_separation(
     dec_1,
     r_0,
     r_1,
-    angle_definition="bisector",
+    los_definition="bisector",
 ):
     """
     The angle_separation function computes the angle separation between two points on a sphere.
@@ -153,7 +153,7 @@ def angle_separation(
         dec_1: Calculate theta
         r_0: Calculate the distance between two points
         r_1: Compute the distance between two points
-        angle_definition: Define the angle phi
+        los_definition: Define the angle phi
 
     Returns:
         The distance between two points, the angle between them and the angle of rotation
@@ -166,14 +166,12 @@ def angle_separation(
 
     r = np.sqrt(r_0**2 + r_1**2 - 2 * r_0 * r_1 * cos_theta)
 
-    if angle_definition == "bisector":
+    if los_definition == "bisector":
         phi = compute_phi_bisector(r, theta, r_0, r_1)
-    elif angle_definition == "midpoint":
-        phi = compute_phi_midpoint(ra_0, ra_1, dec_0, dec_1, r_0, r_1)
+    elif los_definition == "mean":
+        phi = compute_phi_mean(ra_0, ra_1, dec_0, dec_1, r_0, r_1)
     else:
-        raise ValueError(
-            "Please choose a correlation_method between bisector or midpoint"
-        )
+        raise ValueError("Please choose a correlation_method between bisector or mean")
 
     return r, theta, phi
 

@@ -193,7 +193,7 @@ def compute_coordinates(
     coordinates_density=None,
     coordinates_velocity=None,
     size_batch=10_000,
-    angle_definition="bisector",
+    los_definition="bisector",
 ):
     """
     The compute_coordinates function computes the spherical coordinates of all pairs of objects in a given catalog.
@@ -249,7 +249,7 @@ def compute_coordinates(
             ra_i, dec_i, r_i = ra[i_list], dec[i_list], comoving_distance[i_list]
             ra_j, dec_j, r_j = ra[j_list], dec[j_list], comoving_distance[j_list]
         r, theta, phi = cov_utils.angle_separation(
-            ra_i, ra_j, dec_i, dec_j, r_i, r_j, angle_definition=angle_definition
+            ra_i, ra_j, dec_i, dec_j, r_i, r_j, los_definition=los_definition
         )
         parameters.append([r, theta, phi])
     return parameters
@@ -417,7 +417,7 @@ def generate_covariance(
     size_batch=10_000,
     number_worker=8,
     hankel=True,
-    angle_definition="bisector",
+    los_definition="bisector",
 ):
     """
     The generate_flip function computes the covariance matrix for a given model.
@@ -455,7 +455,7 @@ def generate_covariance(
             size_batch=size_batch,
             number_worker=number_worker,
             hankel=hankel,
-            angle_definition=angle_definition,
+            los_definition=los_definition,
         )
         number_densities = len(coordinates_density[0])
     else:
@@ -472,7 +472,7 @@ def generate_covariance(
             size_batch=size_batch,
             number_worker=number_worker,
             hankel=hankel,
-            angle_definition=angle_definition,
+            los_definition=los_definition,
         )
         number_velocities = len(coordinates_velocity[0])
     else:
@@ -489,6 +489,6 @@ def generate_covariance(
             size_batch=size_batch,
             number_worker=number_worker,
             hankel=hankel,
-            angle_definition=angle_definition,
+            los_definition=los_definition,
         )
     return covariance_dict, number_densities, number_velocities

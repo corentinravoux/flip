@@ -252,6 +252,6 @@ def generate_covariance(
             ]
         )
 
-    angle_definition = "bisector"
+    los_definition = "bisector"
 
-    return covariance_dict, number_densities, number_velocities, angle_definition
+    return covariance_dict, number_densities, number_velocities, los_definition

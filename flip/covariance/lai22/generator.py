@@ -11,8 +11,6 @@ from scipy.special import factorial, spherical_jn
 from flip.covariance import cov_utils
 from flip.covariance.lai22 import h_terms
 
-# CR - to check: Lai used the mean definition for phi
-
 
 def compute_correlation_coefficient_simple_integration(p, q, l, r, k, pk):
     """ " Here the sigma_u is added to pk later.
@@ -55,7 +53,7 @@ def compute_cov_vv(
     size_batch=10_000,
     number_worker=8,
     hankel=True,
-    los_definition="mean",
+    los_definition="bisector",
 ):
     if grid_window_v_tt is not None:
         power_spectrum_tt = power_spectrum_tt * grid_window_v_tt**2
@@ -131,7 +129,7 @@ def compute_cov_gg(
     number_worker=8,
     sig_damp_mm_gg_m=None,
     hankel=True,
-    los_definition="mean",
+    los_definition="bisector",
 ):
     if grid_window_m_mm is not None:
         power_spectrum_mm = power_spectrum_mm * grid_window_m_mm**2
@@ -292,7 +290,7 @@ def compute_cov_gg_add(
     number_worker=8,
     sig_damp_mm_gg_m=None,
     hankel=True,
-    los_definition="mean",
+    los_definition="bisector",
 ):
     if grid_window_m_mm is not None:
         power_spectrum_mm = power_spectrum_mm * grid_window_m_mm**2
@@ -491,7 +489,7 @@ def compute_cov_gv(
     size_batch=10_000,
     number_worker=8,
     hankel=True,
-    los_definition="mean",
+    los_definition="bisector",
 ):
     if grid_window_m_mt is not None:
         power_spectrum_mt = power_spectrum_mt * grid_window_m_mt
@@ -757,7 +755,6 @@ def generate_covariance(
     coordinates_density=None,
     pmax=3,
     qmax=3,
-    los_definition="mean",
     **kwargs,
 ):
     """
@@ -770,13 +767,15 @@ def generate_covariance(
         coordinates_density: Define the coordinates of the density field
         pmax: Set the maximum order of legendre polynomials used to compute the covariance matrix
         qmax: Set the maximum order of legendre polynomials used in the expansion
-        los_definition: Define the wide angle. Can be changed, but Lai et al. 2022 uses the mean.
+        Wide angle defined in Lai et al. 2022 by the bisector.
         **kwargs: Pass keyword arguments to the function
         : Define the model type
 
     Returns:
         A dictionary of covariance matrices, the number of density points and the number of velocity points
     """
+
+    los_definition = "bisector"
 
     cov_utils.check_generator_need(
         model_type,

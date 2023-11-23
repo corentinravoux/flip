@@ -39,8 +39,8 @@ def compute_contraction_coordinates(
         theta = np.arcsin(
             np.clip(r * np.sin(phi) / (2 * r_reference), -1.0, 1.0)
         ) + np.arcsin(np.clip(r * np.sin(phi) / (2 * r_1), -1.0, 1.0))
-    elif basis_definition == "reference":
-        # r_perp, r_par and phi are defined with respect to r_reference.
+    elif basis_definition == "endpoint":
+        # r_perp, r_par are defined with respect to r_reference. phi can be defined by mean or bisector.
         theta = np.arctan2(coord_rper_rpar[0, :], r_reference + coord_rper_rpar[1, :])
         if los_definition == "bisector":
             phi = np.arcsin(
@@ -71,7 +71,7 @@ def contract_covariance(
     r_reference_perpendicular,
     r_reference_parallel,
     additional_parameters_values=None,
-    basis_definition="middle",
+    basis_definition="bisector",
     los_definition="bisector",
     number_worker=8,
     hankel=True,

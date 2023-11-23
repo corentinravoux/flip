@@ -32,6 +32,7 @@ class CovMatrix:
         number_velocities=None,
         contraction_covariance_dict=None,
         contraction_coordinates_dict=None,
+        contraction_basis_definition=None,
         contraction_los_definition=None,
     ):
         """
@@ -65,6 +66,7 @@ class CovMatrix:
         self.number_velocities = number_velocities
         self.contraction_covariance_dict = contraction_covariance_dict
         self.contraction_coordinates_dict = contraction_coordinates_dict
+        self.contraction_basis_definition = contraction_basis_definition
         self.contraction_los_definition = contraction_los_definition
 
     @classmethod
@@ -223,6 +225,7 @@ class CovMatrix:
         r_parallel,
         r_reference,
         additional_parameters_values=None,
+        basis_definition="bisector",
         los_definition="bisector",
         **kwargs,
     ):
@@ -258,6 +261,7 @@ class CovMatrix:
             r_parallel,
             r_reference,
             additional_parameters_values=additional_parameters_values,
+            basis_definition=basis_definition,
             los_definition=los_definition,
             **kwargs,
         )
@@ -267,6 +271,7 @@ class CovMatrix:
             model_type=model_type,
             contraction_covariance_dict=contraction_covariance_dict,
             contraction_coordinates_dict=contraction_coordinates_dict,
+            contraction_basis_definition=basis_definition,
             contraction_los_definition=los_definition,
         )
 

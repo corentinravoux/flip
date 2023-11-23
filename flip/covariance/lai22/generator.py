@@ -11,6 +11,8 @@ from scipy.special import factorial, spherical_jn
 from flip.covariance import cov_utils
 from flip.covariance.lai22 import h_terms
 
+# Note: Lai used the midpoint definition for phi
+
 
 def compute_correlation_coefficient_simple_integration(p, q, l, r, k, pk):
     """ " Here the sigma_u is added to pk later.
@@ -53,6 +55,7 @@ def compute_cov_vv(
     size_batch=10_000,
     number_worker=8,
     hankel=True,
+    angle_definition="midpoint",
 ):
     if grid_window_v_tt is not None:
         power_spectrum_tt = power_spectrum_tt * grid_window_v_tt**2
@@ -66,7 +69,9 @@ def compute_cov_vv(
         i_list, j_list = cov_utils.compute_i_j(number_objects, batches)
         r_i, ra_i, dec_i = comoving_distance[i_list], ra[i_list], dec[i_list]
         r_j, ra_j, dec_j = comoving_distance[j_list], ra[j_list], dec[j_list]
-        r, theta, phi = cov_utils.angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
+        r, theta, phi = cov_utils.angle_separation(
+            ra_i, ra_j, dec_i, dec_j, r_i, r_j, angle_definition=angle_definition
+        )
         parameters.append([r, theta, phi])
 
     func = partial(coefficient_vv, wavenumber_tt, power_spectrum_tt, hankel=hankel)
@@ -126,6 +131,7 @@ def compute_cov_gg(
     number_worker=8,
     sig_damp_mm_gg_m=None,
     hankel=True,
+    angle_definition="midpoint",
 ):
     if grid_window_m_mm is not None:
         power_spectrum_mm = power_spectrum_mm * grid_window_m_mm**2
@@ -147,7 +153,9 @@ def compute_cov_gg(
         i_list, j_list = cov_utils.compute_i_j(number_objects, batches)
         r_i, ra_i, dec_i = comoving_distance[i_list], ra[i_list], dec[i_list]
         r_j, ra_j, dec_j = comoving_distance[j_list], ra[j_list], dec[j_list]
-        r, theta, phi = cov_utils.angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
+        r, theta, phi = cov_utils.angle_separation(
+            ra_i, ra_j, dec_i, dec_j, r_i, r_j, angle_definition=angle_definition
+        )
         parameters.append([r, theta, phi])
 
     p_index = np.arange(pmax + 1)
@@ -284,6 +292,7 @@ def compute_cov_gg_add(
     number_worker=8,
     sig_damp_mm_gg_m=None,
     hankel=True,
+    angle_definition="midpoint",
 ):
     if grid_window_m_mm is not None:
         power_spectrum_mm = power_spectrum_mm * grid_window_m_mm**2
@@ -296,7 +305,9 @@ def compute_cov_gg_add(
         i_list, j_list = cov_utils.compute_i_j(number_objects, batches)
         r_i, ra_i, dec_i = comoving_distance[i_list], ra[i_list], dec[i_list]
         r_j, ra_j, dec_j = comoving_distance[j_list], ra[j_list], dec[j_list]
-        r, theta, phi = cov_utils.angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
+        r, theta, phi = cov_utils.angle_separation(
+            ra_i, ra_j, dec_i, dec_j, r_i, r_j, angle_definition=angle_definition
+        )
         parameters.append([r, theta, phi])
 
     p_index = np.arange(pmax + 1)
@@ -480,6 +491,7 @@ def compute_cov_gv(
     size_batch=10_000,
     number_worker=8,
     hankel=True,
+    angle_definition="midpoint",
 ):
     if grid_window_m_mt is not None:
         power_spectrum_mt = power_spectrum_mt * grid_window_m_mt
@@ -500,7 +512,9 @@ def compute_cov_gv(
         i_list, j_list = cov_utils.compute_i_j_cross_matrix(number_objects_v, batches)
         r_i, ra_i, dec_i = comoving_distance_g[i_list], ra_g[i_list], dec_g[i_list]
         r_j, ra_j, dec_j = comoving_distance_v[j_list], ra_v[j_list], dec_v[j_list]
-        r, theta, phi = cov_utils.angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
+        r, theta, phi = cov_utils.angle_separation(
+            ra_i, ra_j, dec_i, dec_j, r_i, r_j, angle_definition=angle_definition
+        )
         parameters.append([r, theta, phi])
 
     cov_gv_f2 = []

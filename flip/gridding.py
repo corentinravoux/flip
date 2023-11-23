@@ -1,8 +1,8 @@
 import numpy as np
 
-from flip.utils import create_log
+from flip import utils
 
-log = create_log()
+log = utils.create_log()
 try:
     from pypower import CatalogMesh
 except:
@@ -79,27 +79,6 @@ def compute_grid_window(grid_size, kh, kind="ngp", n=1000):
     if grid_size == 0:
         return None
     return _compute_grid_window(grid_size, kh, _order_dic[kind], n)
-
-
-def radec2cart(rcom, ra, dec):
-    """
-    The radec2cart function takes in the comoving distance to a galaxy,
-        its right ascension and declination, and returns the x, y, z coordinates
-        of that galaxy.
-
-    Args:
-        rcom: Convert the ra and dec to cartesian coordinates
-        ra: Calculate the x-coordinate of a point in space
-        dec: Calculate the z coordinate
-
-    Returns:
-        The x, y and z coordinates of each galaxy
-
-    """
-    x = rcom * np.cos(ra) * np.cos(dec)
-    y = rcom * np.sin(ra) * np.cos(dec)
-    z = rcom * np.sin(dec)
-    return x, y, z
 
 
 def construct_grid_regular_sphere(grid_size, rcom_max):
@@ -329,8 +308,8 @@ def grid_data_density(
             "INVALID GRID TYPE ! \n Grid allowed : " + f"{k}" for k in _GRID_KIND
         )
 
-    xobj, yobj, zobj = radec2cart(rcom, ra, dec)
-    xgrid, ygrid, zgrid = radec2cart(grid["rcom"], grid["ra"], grid["dec"])
+    xobj, yobj, zobj = utils.radec2cart(rcom, ra, dec)
+    xgrid, ygrid, zgrid = utils.radec2cart(grid["rcom"], grid["ra"], grid["dec"])
 
     # Compute weight
     weight_fun = globals()[kind + "_weight"]
@@ -365,7 +344,7 @@ def grid_data_density(
                 size=Nrandom * N,
             )
 
-            xobj_random, yobj_random, zobj_random = radec2cart(
+            xobj_random, yobj_random, zobj_random = utils.radec2cart(
                 rcom_random, ra_random, dec_random
             )
 
@@ -384,7 +363,7 @@ def grid_data_density(
                 size=Nrandom * N,
             )
 
-            xobj_random, yobj_random, zobj_random = radec2cart(
+            xobj_random, yobj_random, zobj_random = utils.radec2cart(
                 rcom_random, ra_random, dec_random
             )
 
@@ -445,26 +424,26 @@ def cut_grid(
     xmax=None,
     ymax=None,
     zmax=None,
+    remove_origin=False,
 ):
     """
-    The cut_grid function is used to cut out low quality cells from the grid.
+    The cut_grid function is used to remove grid cells from the catalog.
 
     Args:
-        grid: Cut the grid
-        remove_nan_density: Remove cells with nan density
-        n_cut: Remove voxels that have less than n_cut objects in them
-        weight_min: Remove cells with a weight below the specified value
-        rcom_max: Cut out cells that are too far away from the center of the grid
-        xmax: Cut the grid in x direction
-        ymax: Cut the grid in the y direction
+        grid: Pass the grid data to the function
+        remove_nan_density: Remove any cells that have a density of nan
+        n_cut: Remove grid cells with less than n_cut stars
+        weight_min: Remove cells with too few stars
+        rcom_max: Cut the grid by a maximum comoving distance
+        xmax: Remove the cells that are too far away from the center of mass
+        ymax: Cut the grid in y direction
         zmax: Cut the grid in z direction
-        : Remove the nan values in the density and density_err fields
+        remove_origin: Remove the origin of the grid
 
     Returns:
-        A mask, which is then used to cut the grid
+        A dictionary with the same keys as grid, but where
 
     """
-
     mask = np.full(grid["ra"].shape, True)
     if n_cut is not None:
         mask &= grid["nincell"] > n_cut
@@ -483,7 +462,8 @@ def cut_grid(
             mask &= ~(np.isnan(grid["density"]))
         if "density_err" in grid:
             mask &= ~(np.isnan(grid["density_err"]))
-
+    if remove_origin:
+        mask = mask & ((grid["x"] != 0.0) | (grid["y"] != 0.0) | (grid["z"] != 0.0))
     for field in grid:
         grid[field] = grid[field][mask]
 
@@ -525,7 +505,7 @@ def grid_data_density_pypower(
         A dictionary with the grid coordinates and density contrast values
 
     """
-    xobj, yobj, zobj = radec2cart(rcomobj, raobj, decobj)
+    xobj, yobj, zobj = utils.radec2cart(rcomobj, raobj, decobj)
     mask = np.abs(xobj) < rcom_max
     mask &= np.abs(yobj) < rcom_max
     mask &= np.abs(zobj) < rcom_max
@@ -554,7 +534,7 @@ def grid_data_density_pypower(
             size=Nrandom * N,
         )
 
-        xobj_random, yobj_random, zobj_random = radec2cart(
+        xobj_random, yobj_random, zobj_random = utils.radec2cart(
             rcom_random, ra_random, dec_random
         )
 
@@ -573,7 +553,7 @@ def grid_data_density_pypower(
             size=Nrandom * N,
         )
 
-        xobj_random, yobj_random, zobj_random = radec2cart(
+        xobj_random, yobj_random, zobj_random = utils.radec2cart(
             rcom_random, ra_random, dec_random
         )
 
@@ -662,10 +642,181 @@ def grid_data_density_pypower(
 
     if grid_type == "rect":
         cut_grid(
-            grid, remove_nan_density=True, xmax=rcom_max, ymax=rcom_max, zmax=rcom_max
+            grid,
+            remove_nan_density=True,
+            xmax=rcom_max,
+            ymax=rcom_max,
+            zmax=rcom_max,
+            remove_origin=True,
         )
 
     if grid_type == "sphere":
-        cut_grid(grid, remove_nan_density=True, rcom_max=rcom_max)
+        cut_grid(
+            grid,
+            remove_nan_density=True,
+            rcom_max=rcom_max,
+            remove_origin=True,
+        )
 
     return grid
+
+
+# CR - first try unconnecting pypower:
+
+
+# def _get_compensation_window(resampler="cic", shotnoise=False):
+#     r"""
+#     Return the compensation function, which corrects for the particle-mesh assignment (resampler) kernel.
+
+#     Taken from https://github.com/bccp/nbodykit/blob/master/nbodykit/source/mesh/catalog.py,
+#     following https://arxiv.org/abs/astro-ph/0409240.
+#     ("shotnoise" formula for pcs has been checked with WolframAlpha).
+
+#     Parameters
+#     ----------
+#     resampler : string, default='cic'
+#         Resampler used to assign particles to the mesh.
+#         Choices are ['ngp', 'cic', 'tcs', 'pcs'].
+
+#     shotnoise : bool, default=False
+#         If ``False``, return expression for eq. 18 in https://arxiv.org/abs/astro-ph/0409240.
+#         This the correct choice when applying interlacing, as aliased images (:math:`\mathbf{n} \neq (0,0,0)`) are suppressed in eq. 17.
+#         If ``True``, return expression for eq. 19.
+
+#     Returns
+#     -------
+#     window : callable
+#         Window function, taking as input :math:`\pi k_{i} / k_{N} = k / c`
+#         where :math:`k_{N}` is the Nyquist wavenumber and :math:`c` is the cell size,
+#         for each :math:`x`, :math:`y`, :math:`z`, axis.
+#     """
+#     resampler = resampler.lower()
+
+#     if shotnoise:
+#         if resampler == "ngp":
+
+#             def window(*x):
+#                 return 1.0
+
+#         elif resampler == "cic":
+
+#             def window(*x):
+#                 toret = 1.0
+#                 for xi in x:
+#                     toret = toret * (1 - 2.0 / 3 * np.sin(0.5 * xi) ** 2) ** 0.5
+#                 return toret
+
+#         elif resampler == "tsc":
+
+#             def window(*x):
+#                 toret = 1.0
+#                 for xi in x:
+#                     s = np.sin(0.5 * xi) ** 2
+#                     toret = toret * (1 - s + 2.0 / 15 * s**2) ** 0.5
+#                 return toret
+
+#         elif resampler == "pcs":
+
+#             def window(*x):
+#                 toret = 1.0
+#                 for xi in x:
+#                     s = np.sin(0.5 * xi) ** 2
+#                     toret = (
+#                         toret
+#                         * (
+#                             1
+#                             - 4.0 / 3.0 * s
+#                             + 2.0 / 5.0 * s**2
+#                             - 4.0 / 315.0 * s**3
+#                         )
+#                         ** 0.5
+#                     )
+#                 return toret
+
+#     else:
+#         p = {"ngp": 1, "cic": 2, "tsc": 3, "pcs": 4}[resampler]
+
+#         def window(*x):
+#             toret = 1.0
+#             for xi in x:
+#                 toret = toret * np.sinc(0.5 / np.pi * xi) ** p
+#             return toret
+
+#     return window
+
+
+# def _get_resampler(resampler):
+#     conversions = {"ngp": "nnb", "cic": "cic", "tsc": "tsc", "pcs": "pcs"}
+#     resampler = conversions[resampler]
+#     from pmesh.window import FindResampler
+
+#     return FindResampler(resampler)
+
+
+# def paint(
+#     positions, weights, out, resampler, scaling=None, transform=None, offset=None
+# ):
+#     from pmesh.pm import ParticleMesh
+
+#     pm = ParticleMesh(BoxSize=2 * rcom_max, Nmesh=(10, 10, 10))
+
+#     positions = positions - offset
+#     factor = bool(interlacing) + 0.5
+#     scalar_weights = weights is None
+
+#     if scaling is not None:
+#         if scalar_weights:
+#             weights = scaling
+#         else:
+#             weights = weights * scaling
+
+#     def paint_slab(sl):
+#         # Decompose positions such that they live in the same region as the mesh in the current process
+#         p = positions[sl]
+#         size = len(p)
+#         layout = pm.decompose(p, smoothing=factor * self.resampler.support)
+#         p = layout.exchange(p)
+#         w = weights if scalar_weights else layout.exchange(weights[sl])
+#         # hold = True means no zeroing of out
+#         pm.paint(
+#             p, mass=w, resampler=resampler, transform=transform, hold=True, out=out
+#         )
+#         return size
+
+#     islab = 0
+#     slab_npoints_max = int(1024 * 1024 * 4)
+#     slab_npoints = slab_npoints_max
+#     sizes = pm.comm.allgather(len(positions))
+#     local_size_max = max(sizes)
+#     painted_size = 0
+
+#     while islab < local_size_max:
+#         sl = slice(islab, islab + slab_npoints)
+#         painted_size_slab = paint_slab(sl)
+#         painted_size += painted_size_slab
+#         islab += slab_npoints
+#         slab_npoints = min(slab_npoints_max, int(slab_npoints * 1.2))
+
+
+# def compensate(self, cfield):
+#     if self.mpicomm.rank == 0:
+#         self.log_info("Applying compensation {}.".format(self.compensation))
+#     # Apply compensation window for particle-assignment scheme
+#     window = _get_compensation_window(**self.compensation)
+
+#     cellsize = self.boxsize / self.nmesh
+#     for k, slab in zip(cfield.slabs.x, cfield.slabs):
+#         kc = tuple(ki * ci for ki, ci in zip(k, cellsize))
+#         slab[...] /= window(*kc)
+
+
+# def compute_density(positions, weights):
+#     out = pm.create(type="real", value=0.0)
+#     for p, w in zip(positions, weights):
+#         paint(p, *w, out)
+
+#     if compensate:
+#         out = out.r2c()
+#         compensate(out)
+#         out = out.c2r()
+#     return out

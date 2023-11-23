@@ -1,10 +1,13 @@
 import numpy as np
 
+from flip import utils
+
 
 def compute_sep(
     ra,
     dec,
     comoving_distance,
+    angle_definition="bisector",
     size_batch=10_000,
 ):
     """
@@ -32,7 +35,9 @@ def compute_sep(
         i_list, j_list = compute_i_j(number_objects, batches)
         r_i, ra_i, dec_i = comoving_distance[i_list], ra[i_list], dec[i_list]
         r_j, ra_j, dec_j = comoving_distance[j_list], ra[j_list], dec[j_list]
-        r, theta, _ = angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
+        r, theta, _ = angle_separation(
+            ra_i, ra_j, dec_i, dec_j, r_i, r_j, angle_definition=angle_definition
+        )
         sep.append(r)
         sep_perp.append(r * np.sin(theta))
         sep_par.append(r * np.cos(theta))
@@ -90,30 +95,80 @@ def compute_i_j_cross_matrix(Nv, seq):
     return i, j
 
 
-def angle_separation(ra_0, ra_1, dec_0, dec_1, r_0, r_1):
+def compute_phi_midpoint(ra_0, ra_1, dec_0, dec_1, r_0, r_1):
+    x_0, y_0, z_0 = utils.radec2cart(r_0, ra_0, dec_0)
+    x_1, y_1, z_1 = utils.radec2cart(r_1, ra_1, dec_1)
+
+    r_x = x_0 - x_1
+    r_y = y_0 - y_1
+    r_z = z_0 - z_1
+    r = np.sqrt(r_x**2 + r_y**2 + r_z**2)
+
+    d_x = x_0 / r_0 + x_1 / r_1
+    d_y = y_0 / r_0 + y_1 / r_1
+    d_z = z_0 / r_0 + z_1 / r_1
+    d = np.sqrt(d_x**2 + d_y**2 + d_z**2)
+
+    mask = d * r == 0.0
+    cos_phi = np.zeros_like(r)
+    cos_phi[~mask] = (
+        d_x[~mask] * r_x[~mask] + d_y[~mask] * r_y[~mask] + d_z[~mask] * r_z[~mask]
+    ) / (d[~mask] * r[~mask])
+
+    phi = np.arccos(np.clip(cos_phi, -1, 1))
+
+    return phi
+
+
+def compute_phi_bisector(r, theta, r_0, r_1):
+    sin_phi = ((r_0 + r_1) / r) * np.sin(theta / 2)
+    phi = np.arcsin(np.clip(sin_phi, -1, 1))
+
+    return phi
+
+
+def angle_separation(
+    ra_0,
+    ra_1,
+    dec_0,
+    dec_1,
+    r_0,
+    r_1,
+    angle_definition="bisector",
+):
     """
-    The angle_separation function calculates the angle between two points on a sphere.
+    The angle_separation function computes the angle separation between two points on a sphere.
 
     Args:
-        ra_0: Calculate the cosine of the angle between two points in spherical coordinates
-        ra_1: Calculate the cosine of the angle between two points
-        dec_0: Calculate the cosine of the angle between two points
-        dec_1: Calculate the cos_theta parameter
+        ra_0: Define the right ascension of the first galaxy
+        ra_1: Calculate the cosine of theta
+        dec_0: Compute the cosine of theta
+        dec_1: Calculate theta
         r_0: Calculate the distance between two points
-        r_1: Calculate the distance between two objects
+        r_1: Compute the distance between two points
+        angle_definition: Define the angle phi
 
     Returns:
-        The separation angle between two points
-
+        The distance between two points, the angle between them and the angle of rotation
     """
+
     cos_theta = np.cos(ra_1 - ra_0) * np.cos(dec_0) * np.cos(dec_1) + np.sin(
         dec_0
     ) * np.sin(dec_1)
+    theta = np.arccos(np.clip(cos_theta, -1, 1))
+
     r = np.sqrt(r_0**2 + r_1**2 - 2 * r_0 * r_1 * cos_theta)
-    sin_phi = ((r_0 + r_1) / r) * np.sqrt((1 - cos_theta) / 2)
-    sin_phi = np.clip(sin_phi, -1, 1)
-    cos_theta = np.clip(cos_theta, -1, 1)
-    return r, np.arccos(cos_theta), np.arcsin(sin_phi)
+
+    if angle_definition == "bisector":
+        phi = compute_phi_bisector(r, theta, r_0, r_1)
+    elif angle_definition == "midpoint":
+        phi = compute_phi_midpoint(ra_0, ra_1, dec_0, dec_1, r_0, r_1)
+    else:
+        raise ValueError(
+            "Please choose a correlation_method between bisector or midpoint"
+        )
+
+    return r, theta, phi
 
 
 def return_full_cov(cov):

@@ -21,8 +21,19 @@ def separation(r_0, r_1, cos_alpha):
 
 
 def window_vv(r_0, r_1, cos_alpha, sep, j0kr, j2kr):
-    win = 1 / 3 * (j0kr - 2 * j2kr)
-    win += (1 / 2) * j2kr * ((r_0 + r_1) / sep) ** 2 * (1 - cos_alpha)
+    """Note: here, the bisector angle definition is used to compute"""
+    win = 1 / 3 * (j0kr + j2kr)
+    alpha = np.arccos(np.clip(cos_alpha, -1.0, 1.0))
+    phi = cov_utils.compute_phi_bisector(sep, alpha, r_0, r_1)
+    win += -j2kr * np.cos(phi) ** 2
+    return win
+
+
+def window_vg(r_0, r_1, cos_alpha, sep, j1kr):
+    """Note: here, the bisector angle definition is used to compute"""
+    alpha = np.arccos(np.clip(cos_alpha, -1.0, 1.0))
+    phi = cov_utils.compute_phi_bisector(sep, alpha, r_0, r_1)
+    win = j1kr * np.cos(phi)
     return win
 
 
@@ -45,7 +56,8 @@ def compute_coef_gv(k, pk, coord):
     sep = separation(coord[4], coord[5], cos)
     ksep = np.outer(k, sep)
     j1 = spherical_jn(1, ksep)
-    res = intp(j1, k, pk * k)
+    res = window_vg(coord[4], coord[5], cos, sep, j1)
+    res = intp(res, k, pk)
     return res
 
 
@@ -118,9 +130,11 @@ def covariance_gv(
         func = partial(compute_coef_gv, wavenumber, power_spectrum)
         pool_results = pool.map(func, batches)
     values = np.concatenate(pool_results)
-    var_val = np.trapz(power_spectrum / 3, x=wavenumber)
+    var_val = compute_coef_gv(
+        wavenumber, power_spectrum, [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    )
     cov = np.insert(values, 0, var_val)
-    cov = 1 / (2 * np.pi**2) * cov
+    cov = 100 / (2 * np.pi**2) * cov
     return cov
 
 
@@ -147,8 +161,9 @@ def covariance_gg(
         func = partial(compute_coef_gg, wavenumber, power_spectrum)
         pool_results = pool.map(func, batches)
     values = np.concatenate(pool_results)
-
-    var_val = np.trapz(power_spectrum / 3, x=wavenumber)
+    var_val = compute_coef_gg(
+        wavenumber, power_spectrum, [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    )
     cov = np.insert(values, 0, var_val)
     cov = 1 / (2 * np.pi**2) * cov
     return cov

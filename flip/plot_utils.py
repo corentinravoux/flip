@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from flip import utils
+from flip.covariance import cov_utils
 
 
 def plot_2d_contraction(
@@ -107,5 +108,5 @@ def plot_correlation_from_likelihood(
         parameter_values_dict, likelihood.vector_err
     )
 
-    correlation_sum = utils.return_correlation_matrix(covariance_sum)
+    correlation_sum = cov_utils.return_correlation_matrix(covariance_sum)
     plt.imshow(correlation_sum, vmin=vmin, vmax=vmax)

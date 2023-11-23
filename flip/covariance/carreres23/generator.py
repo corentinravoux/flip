@@ -1,7 +1,9 @@
-import numpy as np
-from scipy.special import spherical_jn
 import multiprocessing as mp
 from functools import partial
+
+import numpy as np
+from scipy.special import spherical_jn
+
 from flip.covariance import cov_utils
 
 
@@ -19,6 +21,7 @@ def separation(r_0, r_1, cos_alpha):
 
 
 def window(r_0, r_1, cos_alpha, sep, j0kr, j2kr):
+    """Note: here, the bisector angle definition is used in wide-angle"""
     win = 1 / 3 * (j0kr - 2 * j2kr) * cos_alpha
     win += j2kr * r_0 * r_1 / sep**2 * (1 - cos_alpha**2)
     return win

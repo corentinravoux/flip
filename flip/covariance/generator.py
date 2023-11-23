@@ -193,6 +193,7 @@ def compute_coordinates(
     coordinates_density=None,
     coordinates_velocity=None,
     size_batch=10_000,
+    angle_definition="bisector",
 ):
     """
     The compute_coordinates function computes the spherical coordinates of all pairs of objects in a given catalog.
@@ -247,7 +248,9 @@ def compute_coordinates(
             i_list, j_list = cov_utils.compute_i_j(number_objects, batches)
             ra_i, dec_i, r_i = ra[i_list], dec[i_list], comoving_distance[i_list]
             ra_j, dec_j, r_j = ra[j_list], dec[j_list], comoving_distance[j_list]
-        r, theta, phi = cov_utils.angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
+        r, theta, phi = cov_utils.angle_separation(
+            ra_i, ra_j, dec_i, dec_j, r_i, r_j, angle_definition=angle_definition
+        )
         parameters.append([r, theta, phi])
     return parameters
 
@@ -344,6 +347,9 @@ def compute_coeficient(
     return np.array(
         [eval(f"cov_{index}", loc) for _, index in enumerate(term_index_list)]
     )
+
+
+# CR - remove variance for vg --> make no sense.
 
 
 def compute_cov(

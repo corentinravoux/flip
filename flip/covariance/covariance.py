@@ -100,7 +100,7 @@ def generate_carreres23(
         coordinates_velocity: Generate the covariance matrix
         **kwargs: Pass additional parameters to the function
         : Generate the covariance matrix for the velocity field
-
+        The wide angle used is the bisector.
     Returns:
         A dictionary with a single key &quot;vv&quot;
 
@@ -131,6 +131,24 @@ def generate_adamsblake17plane(
     coordinates_density=None,
     **kwargs,
 ):
+    """
+    The generate_adamsblake17plane function generates the covariance matrix for a given model type, power spectrum, and coordinates.
+
+    Args:
+        model_type: Determine which covariance matrices are generated, and the coordinates_density and coordinates_velocity parameters are used to generate the covariance matrices
+        power_spectrum_dict: Pass the power spectrum to the function
+        coordinates_velocity: Define the coordinates of the velocity field
+        coordinates_density: Define the coordinates of the density field
+        **kwargs: Pass keyword arguments to the function
+        : Generate the covariance matrix for a given model
+        The wide angle definition is bisector.
+
+    Returns:
+        A dictionary of covariance matrices
+
+    Doc Author:
+        Trelent
+    """
     check_generator_need(
         model_type,
         coordinates_density,
@@ -198,25 +216,27 @@ def generate_lai22(
     coordinates_density=None,
     pmax=3,
     qmax=3,
+    angle_definition="midpoint",
     **kwargs,
 ):
     """
     The generate_lai22 function generates the covariance matrix for a given model type.
 
     Args:
-        model_type: Determine which covariance matrices to generate
+        model_type: Determine which covariance matrices are computed
         power_spectrum_dict: Pass the power spectrum of the density and velocity fields
-        coordinates_velocity: Generate the velocity field
-        coordinates_density: Pass the coordinates of the density field
-        pmax: Determine the maximum order of the legendre polynomial used in the computation of
-        qmax: Determine the maximum order of the legendre polynomials used to compute the covariance matrix
-        **kwargs: Pass keyworded, variable-length argument list
-        : Define the type of model to be generated
+        coordinates_velocity: Pass the coordinates of the velocity field
+        coordinates_density: Define the coordinates of the density field
+        pmax: Set the maximum order of legendre polynomials used to compute the covariance matrix
+        qmax: Set the maximum order of legendre polynomials used in the expansion
+        angle_definition: Define the wide angle. Can be changed, but Lai et al. 2022 uses the midpoint.
+        **kwargs: Pass keyword arguments to the function
+        : Define the model type
 
     Returns:
-        A dictionary of covariance matrices,
-
+        A dictionary of covariance matrices, the number of density points and the number of velocity points
     """
+
     check_generator_need(
         model_type,
         coordinates_density,
@@ -237,6 +257,7 @@ def generate_lai22(
             power_spectrum_dict["gg"][0][1],
             power_spectrum_dict["gg"][1][1],
             power_spectrum_dict["gg"][2][1],
+            angle_definition=angle_definition,
             **kwargs,
         )
         number_densities = len(coordinates_density[0])
@@ -250,6 +271,7 @@ def generate_lai22(
             coordinates_velocity[2],
             power_spectrum_dict["vv"][0][0],
             power_spectrum_dict["vv"][1][0],
+            angle_definition=angle_definition,
             **kwargs,
         )
         number_velocities = len(coordinates_velocity[0])
@@ -269,6 +291,7 @@ def generate_lai22(
             power_spectrum_dict["gv"][1][0],
             power_spectrum_dict["gv"][0][1],
             power_spectrum_dict["gv"][1][1],
+            angle_definition=angle_definition,
             **kwargs,
         )
     return covariance_dict, number_densities, number_velocities
@@ -284,6 +307,7 @@ def generate_flip(
     size_batch=10_000,
     number_worker=8,
     hankel=True,
+    angle_definition="bisector",
 ):
     """
     The generate_flip function computes the covariance matrix for a given model.
@@ -321,6 +345,7 @@ def generate_flip(
             size_batch=size_batch,
             number_worker=number_worker,
             hankel=hankel,
+            angle_definition=angle_definition,
         )
         number_densities = len(coordinates_density[0])
     else:
@@ -337,6 +362,7 @@ def generate_flip(
             size_batch=size_batch,
             number_worker=number_worker,
             hankel=hankel,
+            angle_definition=angle_definition,
         )
         number_velocities = len(coordinates_velocity[0])
     else:
@@ -353,6 +379,7 @@ def generate_flip(
             size_batch=size_batch,
             number_worker=number_worker,
             hankel=hankel,
+            angle_definition=angle_definition,
         )
     return covariance_dict, number_densities, number_velocities
 
@@ -462,6 +489,7 @@ class CovMatrix:
         self,
         model_name=None,
         model_type=None,
+        angle_definition=None,
         covariance_dict=None,
         full_matrix=False,
         number_densities=None,
@@ -476,20 +504,24 @@ class CovMatrix:
 
         Args:
             self: Represent the instance of the class
-            model_name: Set the name of the model
-            model_type: Determine which covariance matrix to use
+            model_name: Identify the model
+            model_type: Define the type of model that is being used
+            angle_definition: Define the angle between two vectors
             covariance_dict: Store the covariance matrix
-            full_matrix: Determine whether the covariance matrix is stored as a full matrix or in compressed form
-            number_densities: Store the number of density fields that are used in the covariance matrix
-            number_velocities: Determine the number of velocity bins in the covariance matrix
-            : Initialize the class
+            full_matrix: Determine whether the covariance matrix is stored as a full matrix or in sparse form
+            number_densities: Set the number of density variables in the model
+            number_velocities: Set the number of velocities in the model
+            contraction_covariance_dict: Store the contraction
+            contraction_coordinates_dict: Define the coordinates of the contraction
+            : Define the model name
 
         Returns:
-            The instance of the class
-
+            An object of the class
         """
+
         self.model_name = model_name
         self.model_type = model_type
+        self.angle_definition = angle_definition
         self.covariance_dict = covariance_dict
         self.full_matrix = full_matrix
         self.number_densities = number_densities
@@ -506,6 +538,7 @@ class CovMatrix:
         coordinates_density=None,
         coordinates_velocity=None,
         additional_parameters_values=None,
+        angle_definition="bisector",
         **kwargs,
     ):
         """
@@ -539,6 +572,7 @@ class CovMatrix:
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
             additional_parameters_values=additional_parameters_values,
+            angle_definition=angle_definition,
             **kwargs,
         )
         end = time.time()
@@ -552,6 +586,7 @@ class CovMatrix:
             number_densities=number_densities,
             number_velocities=number_velocities,
             full_matrix=False,
+            angle_definition=angle_definition,
         )
 
     @classmethod
@@ -933,6 +968,17 @@ class CovMatrix:
             log.add(f"Wrong model type in the loaded covariance.")
 
         return contraction_covariance_sum_dict
+
+    def compute_covariance_sum_eigenvalues(
+        self,
+        parameter_values_dict,
+        vector_err,
+    ):
+        covariance_sum = self.compute_covariance_sum(
+            parameter_values_dict,
+            vector_err,
+        )
+        return np.linalg.eigvals(covariance_sum)
 
     def compute_full_matrix(self):
         """

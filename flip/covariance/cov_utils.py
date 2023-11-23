@@ -2,6 +2,8 @@ import numpy as np
 
 from flip import utils
 
+log = utils.create_log()
+
 
 def compute_sep(
     ra,
@@ -116,6 +118,11 @@ def compute_phi_midpoint(ra_0, ra_1, dec_0, dec_1, r_0, r_1):
     ) / (d[~mask] * r[~mask])
 
     phi = np.arccos(np.clip(cos_phi, -1, 1))
+
+    cos_phi2 = np.zeros_like(r)
+    cos_phi2[~mask] = (r_1**2 - r_0**2) / (d[~mask] * r[~mask])
+    phi2 = np.arccos(np.clip(cos_phi2, -1, 1))
+    print(phi, phi2)
 
     return phi
 
@@ -265,3 +272,67 @@ def open_matrix(name):
     """
     matrix = np.load(f"{name}.npy")
     return matrix
+
+
+def generator_need(
+    coordinates_density=None,
+    coordinates_velocity=None,
+):
+    """
+    The generator_need function checks if the coordinates_density and coordinates_velocity inputs are provided.
+    If they are not, it raises a ValueError exception.
+
+
+    Args:
+        coordinates_density: Generate the density covariance matrix
+        coordinates_velocity: Generate the covariance matrix of the velocity field
+        : Check if the coordinates are provided or not
+
+    Returns:
+        A list of the coordinates that are needed to proceed with covariance generation
+
+    """
+    if coordinates_density is not False:
+        if coordinates_density is None:
+            log.add(
+                f"The coordinates_density input is needed to proceed covariance generation, please provide it"
+            )
+            raise ValueError("Density coordinates not provided")
+    if coordinates_velocity is not False:
+        if coordinates_velocity is None:
+            log.add(
+                f"The coordinates_velocity input is needed to proceed covariance generation, please provide it"
+            )
+            raise ValueError("Velocity coordinates not provided")
+
+
+def check_generator_need(model_type, coordinates_density, coordinates_velocity):
+    """
+    The check_generator_need function is used to check if the generator_need function
+    is called with the correct arguments. The model type determines which coordinates are needed,
+    and these are passed as arguments to generator_need.
+
+    Args:
+        model_type: Determine if the density, velocity or full model is being used
+        coordinates_density: Check if the density coordinates are needed
+        coordinates_velocity: Determine whether the velocity model is needed
+
+    Returns:
+        A boolean
+
+    """
+    if model_type == "density":
+        generator_need(
+            coordinates_density=coordinates_density,
+            coordinates_velocity=False,
+        )
+    if model_type == "velocity":
+        generator_need(
+            coordinates_density=False,
+            coordinates_velocity=coordinates_velocity,
+        )
+    if model_type in ["full", "density_velocity"]:
+        generator_need(
+            coordinates_density=coordinates_density,
+            coordinates_velocity=coordinates_velocity,
+        )

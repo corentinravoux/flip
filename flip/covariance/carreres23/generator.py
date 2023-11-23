@@ -79,3 +79,52 @@ def compute_coef(k, pk, coord):
     res = window(coord[4], coord[5], cos, sep, j0, j2)
     res = intp(res, k, pk)
     return res
+
+
+def generate_covariance(
+    model_type,
+    power_spectrum_dict,
+    coordinates_density=False,
+    coordinates_velocity=None,
+    **kwargs,
+):
+    """
+    The generate_covariance function generates a covariance matrix for the velocity field.
+
+    Args:
+        model_type: Specify the type of model to generate
+        power_spectrum_dict: Pass the power spectrum to the function
+        coordinates_density: Specify the coordinates of the density field
+        coordinates_velocity: Generate the covariance matrix
+        **kwargs: Pass additional parameters to the function
+        : Generate the covariance matrix for the velocity field
+        The wide angle used is the bisector.
+    Returns:
+        A dictionary with a single key &quot;vv&quot;
+
+    """
+    assert model_type == "velocity"
+    cov_utils.check_generator_need(
+        model_type,
+        coordinates_density,
+        coordinates_velocity,
+    )
+    number_densities = None
+    number_velocities = len(coordinates_velocity[0])
+    cov_vv = covariance_vv(
+        coordinates_velocity[0],
+        coordinates_velocity[1],
+        coordinates_velocity[2],
+        power_spectrum_dict["vv"][0][0],
+        power_spectrum_dict["vv"][0][1],
+        **kwargs,
+    )
+
+    angle_definition = "bisector"
+
+    return (
+        {"vv": np.array([cov_vv])},
+        number_densities,
+        number_velocities,
+        angle_definition,
+    )

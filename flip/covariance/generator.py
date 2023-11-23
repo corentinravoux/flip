@@ -405,3 +405,90 @@ def compute_cov(
     )
 
     return covariance
+
+
+def generate_covariance(
+    model_name,
+    model_type,
+    power_spectrum_dict,
+    coordinates_velocity=None,
+    coordinates_density=None,
+    additional_parameters_values=None,
+    size_batch=10_000,
+    number_worker=8,
+    hankel=True,
+    angle_definition="bisector",
+):
+    """
+    The generate_flip function computes the covariance matrix for a given model.
+
+    Args:
+        model_name: Select the model to use
+        model_type: Determine the type of model to generate
+        power_spectrum_dict: Store the power spectra of the different fields
+        coordinates_velocity: Specify the coordinates of the velocity field
+        coordinates_density: Specify the coordinates of the density field
+        additional_parameters_values: Pass the values of the additional parameters to be used in the computation of covariance matrices
+        size_batch: Split the computation of the covariance matrix into smaller batches
+        number_worker: Specify the number of cores to use for computing the covariance matrix
+        hankel: Decide whether to use the hankel transform or not
+        : Define the number of workers to use for the computation
+
+    Returns:
+        A dictionary with the covariance matrices and their dimensions
+
+    """
+    cov_utils.check_generator_need(
+        model_type,
+        coordinates_density,
+        coordinates_velocity,
+    )
+    covariance_dict = {}
+    if model_type in ["density", "full", "density_velocity"]:
+        covariance_dict["gg"] = compute_cov(
+            model_name,
+            "gg",
+            power_spectrum_dict["gg"],
+            coordinates_density=coordinates_density,
+            coordinates_velocity=coordinates_velocity,
+            additional_parameters_values=additional_parameters_values,
+            size_batch=size_batch,
+            number_worker=number_worker,
+            hankel=hankel,
+            angle_definition=angle_definition,
+        )
+        number_densities = len(coordinates_density[0])
+    else:
+        number_densities = None
+
+    if model_type in ["velocity", "full", "density_velocity"]:
+        covariance_dict["vv"] = compute_cov(
+            model_name,
+            "vv",
+            power_spectrum_dict["vv"],
+            coordinates_density=coordinates_density,
+            coordinates_velocity=coordinates_velocity,
+            additional_parameters_values=additional_parameters_values,
+            size_batch=size_batch,
+            number_worker=number_worker,
+            hankel=hankel,
+            angle_definition=angle_definition,
+        )
+        number_velocities = len(coordinates_velocity[0])
+    else:
+        number_velocities = None
+
+    if model_type == "full":
+        covariance_dict["gv"] = compute_cov(
+            model_name,
+            "gv",
+            power_spectrum_dict["gv"],
+            coordinates_density=coordinates_density,
+            coordinates_velocity=coordinates_velocity,
+            additional_parameters_values=additional_parameters_values,
+            size_batch=size_batch,
+            number_worker=number_worker,
+            hankel=hankel,
+            angle_definition=angle_definition,
+        )
+    return covariance_dict, number_densities, number_velocities

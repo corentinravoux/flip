@@ -646,15 +646,6 @@ def return_correlation_matrix(cov):
     return corr_matrix
 
 
-def save_matrix(matrix, name):
-    np.save(f"{name}.npy", matrix)
-
-
-def open_matrix(name):
-    matrix = np.load(f"{name}.npy")
-    return matrix
-
-
 def compute_all_matrices(
     ra_density,
     dec_density,
@@ -757,3 +748,91 @@ def compute_all_matrices(
         m_index_gv,
         cov_vv,
     )
+
+
+def generate_covariance(
+    model_type,
+    power_spectrum_dict,
+    coordinates_velocity=None,
+    coordinates_density=None,
+    pmax=3,
+    qmax=3,
+    angle_definition="midpoint",
+    **kwargs,
+):
+    """
+    The generate_covariance function generates the covariance matrix for a given model type.
+
+    Args:
+        model_type: Determine which covariance matrices are computed
+        power_spectrum_dict: Pass the power spectrum of the density and velocity fields
+        coordinates_velocity: Pass the coordinates of the velocity field
+        coordinates_density: Define the coordinates of the density field
+        pmax: Set the maximum order of legendre polynomials used to compute the covariance matrix
+        qmax: Set the maximum order of legendre polynomials used in the expansion
+        angle_definition: Define the wide angle. Can be changed, but Lai et al. 2022 uses the midpoint.
+        **kwargs: Pass keyword arguments to the function
+        : Define the model type
+
+    Returns:
+        A dictionary of covariance matrices, the number of density points and the number of velocity points
+    """
+
+    cov_utils.check_generator_need(
+        model_type,
+        coordinates_density,
+        coordinates_velocity,
+    )
+    covariance_dict = {}
+
+    if model_type in ["density", "full", "density_velocity"]:
+        covariance_dict["gg"] = compute_cov_gg(
+            pmax,
+            qmax,
+            coordinates_density[0],
+            coordinates_density[1],
+            coordinates_density[2],
+            power_spectrum_dict["gg"][0][0],
+            power_spectrum_dict["gg"][1][0],
+            power_spectrum_dict["gg"][2][0],
+            power_spectrum_dict["gg"][0][1],
+            power_spectrum_dict["gg"][1][1],
+            power_spectrum_dict["gg"][2][1],
+            angle_definition=angle_definition,
+            **kwargs,
+        )
+        number_densities = len(coordinates_density[0])
+    else:
+        number_densities = None
+
+    if model_type in ["velocity", "full", "density_velocity"]:
+        covariance_dict["vv"] = compute_cov_vv(
+            coordinates_velocity[0],
+            coordinates_velocity[1],
+            coordinates_velocity[2],
+            power_spectrum_dict["vv"][0][0],
+            power_spectrum_dict["vv"][1][0],
+            angle_definition=angle_definition,
+            **kwargs,
+        )
+        number_velocities = len(coordinates_velocity[0])
+    else:
+        number_velocities = None
+
+    if model_type == "full":
+        covariance_dict["gv"] = compute_cov_gv(
+            pmax,
+            coordinates_density[0],
+            coordinates_density[1],
+            coordinates_density[2],
+            coordinates_velocity[0],
+            coordinates_velocity[1],
+            coordinates_velocity[2],
+            power_spectrum_dict["gv"][0][0],
+            power_spectrum_dict["gv"][1][0],
+            power_spectrum_dict["gv"][0][1],
+            power_spectrum_dict["gv"][1][1],
+            angle_definition=angle_definition,
+            **kwargs,
+        )
+    return covariance_dict, number_densities, number_velocities, angle_definition

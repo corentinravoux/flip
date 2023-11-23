@@ -167,3 +167,91 @@ def covariance_gg(
     cov = np.insert(values, 0, var_val)
     cov = 1 / (2 * np.pi**2) * cov
     return cov
+
+
+def generate_covariance(
+    model_type,
+    power_spectrum_dict,
+    coordinates_velocity=None,
+    coordinates_density=None,
+    **kwargs,
+):
+    """
+    The generate_covariance function generates the covariance matrix for a given model type, power spectrum, and coordinates.
+
+    Args:
+        model_type: Determine which covariance matrices are generated, and the coordinates_density and coordinates_velocity parameters are used to generate the covariance matrices
+        power_spectrum_dict: Pass the power spectrum to the function
+        coordinates_velocity: Define the coordinates of the velocity field
+        coordinates_density: Define the coordinates of the density field
+        **kwargs: Pass keyword arguments to the function
+        : Generate the covariance matrix for a given model
+        The wide angle definition is bisector.
+
+    Returns:
+        A dictionary of covariance matrices
+
+    Doc Author:
+        Trelent
+    """
+    cov_utils.check_generator_need(
+        model_type,
+        coordinates_density,
+        coordinates_velocity,
+    )
+    covariance_dict = {}
+
+    if model_type in ["density", "full", "density_velocity"]:
+        covariance_dict["gg"] = np.array(
+            [
+                covariance_gg(
+                    coordinates_density[0],
+                    coordinates_density[1],
+                    coordinates_density[2],
+                    power_spectrum_dict["gg"][0][0],
+                    power_spectrum_dict["gg"][0][1],
+                    **kwargs,
+                )
+            ]
+        )
+        number_densities = len(coordinates_density[0])
+    else:
+        number_densities = None
+
+    if model_type in ["velocity", "full", "density_velocity"]:
+        covariance_dict["vv"] = np.array(
+            [
+                covariance_vv(
+                    coordinates_velocity[0],
+                    coordinates_velocity[1],
+                    coordinates_velocity[2],
+                    power_spectrum_dict["vv"][0][0],
+                    power_spectrum_dict["vv"][0][1],
+                    **kwargs,
+                )
+            ]
+        )
+        number_velocities = len(coordinates_velocity[0])
+    else:
+        number_velocities = None
+
+    if model_type == "full":
+        covariance_dict["gv"] = np.array(
+            [
+                covariance_gv(
+                    coordinates_density[0],
+                    coordinates_density[1],
+                    coordinates_density[2],
+                    coordinates_velocity[0],
+                    coordinates_velocity[1],
+                    coordinates_velocity[2],
+                    power_spectrum_dict["gv"][0][0],
+                    power_spectrum_dict["gv"][0][1],
+                    **kwargs,
+                )
+            ]
+        )
+
+    angle_definition = "bisector"
+
+    return covariance_dict, number_densities, number_velocities, angle_definition

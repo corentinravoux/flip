@@ -362,6 +362,7 @@ def compute_cov(
     size_batch=10_000,
     number_worker=8,
     hankel=True,
+    los_definition="bisector",
 ):
     """
     The compute_cov function computes the covariance matrix for a given model.
@@ -393,6 +394,7 @@ def compute_cov(
         coordinates_density=coordinates_density,
         coordinates_velocity=coordinates_velocity,
         size_batch=size_batch,
+        los_definition=los_definition,
     )
     covariance = compute_coeficient(
         parameters,

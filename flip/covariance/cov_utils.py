@@ -190,16 +190,9 @@ def angle_separation(
     return r, theta, phi
 
 
-def angle_separation_bisector_theorem(ra_0, ra_1, dec_0, dec_1, r_0, r_1):
-    cos_theta = np.cos(ra_1 - ra_0) * np.cos(dec_0) * np.cos(dec_1) + np.sin(
-        dec_0
-    ) * np.sin(dec_1)
-    r = np.sqrt(r_0**2 + r_1**2 - 2 * r_0 * r_1 * cos_theta)
-    theta = np.arccos(np.clip(cos_theta, -1, 1))
+def compute_phi_bisector_theorem(r, theta, r_0, r_1):
     sin_phi = ((r_0 + r_1) / r) * np.sin(theta / 2)
-    phi = np.arcsin(np.clip(sin_phi, -1, 1))
-
-    return phi
+    return np.arcsin(np.clip(sin_phi, -1, 1))
 
 
 def return_full_cov(cov):

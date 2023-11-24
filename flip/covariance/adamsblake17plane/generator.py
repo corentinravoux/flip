@@ -24,7 +24,7 @@ def window_vv(r_0, r_1, cos_alpha, sep, j0kr, j2kr):
     """Note: here, the bisector angle definition is used to compute"""
     win = 1 / 3 * (j0kr + j2kr)
     alpha = np.arccos(np.clip(cos_alpha, -1.0, 1.0))
-    phi = cov_utils.compute_phi_bisector(sep, alpha, r_0, r_1)
+    phi = cov_utils.compute_phi_bisector_theorem(sep, alpha, r_0, r_1)
     win += -j2kr * np.cos(phi) ** 2
     return win
 
@@ -32,7 +32,7 @@ def window_vv(r_0, r_1, cos_alpha, sep, j0kr, j2kr):
 def window_vg(r_0, r_1, cos_alpha, sep, j1kr):
     """Note: here, the bisector angle definition is used to compute"""
     alpha = np.arccos(np.clip(cos_alpha, -1.0, 1.0))
-    phi = cov_utils.compute_phi_bisector(sep, alpha, r_0, r_1)
+    phi = cov_utils.compute_phi_bisector_theorem(sep, alpha, r_0, r_1)
     win = j1kr * np.cos(phi)
     return win
 

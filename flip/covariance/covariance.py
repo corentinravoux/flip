@@ -223,29 +223,33 @@ class CovMatrix:
         power_spectrum_dict,
         r_perpendicular,
         r_parallel,
-        r_reference,
+        r_reference_perpendicular,
+        r_reference_parallel,
         additional_parameters_values=None,
         basis_definition="bisector",
         los_definition="bisector",
         **kwargs,
     ):
         """
-        The init_contraction_from_flip function is a class method that initializes the contraction_covariance_dict and
-        contraction_coordinates_dict attributes of the Contraction object. The init_contraction function calls this function, which
-        in turn calls contract_flip to generate these attributes. This allows us to use the same code for both initialization
-        and contraction.
+        The init_contraction_from_flip function is a helper function that allows the user to initialize
+        a Contraction object from an existing FLIP object. This is useful for when you want to use the same
+        FLIP object multiple times, but with different contraction parameters. For example, if you wanted to
+        contract a covariance matrix at two different values of r_perpendicular and r_parallel (e.g., one set of values for calculating the power spectrum and another set of values for calculating correlation functions), then this function would be helpful.
 
         Args:
-            cls: Refer to the class that is being instantiated
-            model_name: Name the model
-            model_type: Determine the type of model to be used
-            power_spectrum_dict: Pass the power spectrum of the model
-            r_perpendicular: Define the perpendicular distance from the observer to a point in space
-            r_parallel: Define the parallel direction of the contraction
-            r_reference: Set the reference scale for the contraction
-            additional_parameters_values: Pass in the values of additional parameters
-            **kwargs: Pass keyworded, variable-length argument list
-            : Create a new instance of the class
+            cls: Create an instance of the class that called this function
+            model_name: Define the model name
+            model_type: Determine the type of model,
+            power_spectrum_dict: Pass the power spectrum to the contraction_flip function
+            r_perpendicular: Define the perpendicular distance from the reference point
+            r_parallel: Define the parallel distance at which to evaluate the correlation function
+            r_reference_perpendicular: Define the reference point for the perpendicular distance
+            r_reference_parallel: Set the reference parallel coordinate
+            additional_parameters_values: Pass in the values of the additional parameters
+            basis_definition: Define the basis of the contraction
+            los_definition: Define the line of sight
+            **kwargs: Pass keyword arguments to the function
+            : Define the model type
 
         Returns:
             An instance of the contraction class
@@ -259,7 +263,8 @@ class CovMatrix:
             power_spectrum_dict,
             r_perpendicular,
             r_parallel,
-            r_reference,
+            r_reference_perpendicular,
+            r_reference_parallel,
             additional_parameters_values=additional_parameters_values,
             basis_definition=basis_definition,
             los_definition=los_definition,

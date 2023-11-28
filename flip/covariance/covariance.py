@@ -447,10 +447,12 @@ class CovMatrix:
                 coefficients_dict_diagonal["vv"] + velocity_err**2
             )
 
+            covariance_sum_vg = -covariance_sum_gv.T
+
             covariance_sum = np.block(
                 [
                     [covariance_sum_gg, covariance_sum_gv],
-                    [covariance_sum_gv.T, covariance_sum_vv],
+                    [covariance_sum_vg, covariance_sum_vv],
                 ]
             )
         else:

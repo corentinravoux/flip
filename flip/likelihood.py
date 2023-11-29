@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.linalg import cho_factor, cho_solve
-from flip.utils import create_log
 
+from flip.utils import create_log
 
 log = create_log()
 
@@ -186,7 +186,7 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
 
         covariance_sum = self.covariance.compute_covariance_sum(
-            parameter_values_dict,
+            parameter_values_dict, self.vector_err
         )
         cholesky = cho_factor(covariance_sum)
         logdet = 2 * np.sum(np.log(np.diag(cholesky[0])))

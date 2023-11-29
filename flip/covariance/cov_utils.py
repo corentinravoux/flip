@@ -1,10 +1,15 @@
 import numpy as np
 
+from flip import utils
+
+log = utils.create_log()
+
 
 def compute_sep(
     ra,
     dec,
     comoving_distance,
+    los_definition="bisector",
     size_batch=10_000,
 ):
     """
@@ -32,7 +37,9 @@ def compute_sep(
         i_list, j_list = compute_i_j(number_objects, batches)
         r_i, ra_i, dec_i = comoving_distance[i_list], ra[i_list], dec[i_list]
         r_j, ra_j, dec_j = comoving_distance[j_list], ra[j_list], dec[j_list]
-        r, theta, _ = angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
+        r, theta, _ = angle_separation(
+            ra_i, ra_j, dec_i, dec_j, r_i, r_j, los_definition=los_definition
+        )
         sep.append(r)
         sep_perp.append(r * np.sin(theta))
         sep_par.append(r * np.cos(theta))
@@ -90,30 +97,102 @@ def compute_i_j_cross_matrix(Nv, seq):
     return i, j
 
 
-def angle_separation(ra_0, ra_1, dec_0, dec_1, r_0, r_1):
+def compute_phi(ra_0, ra_1, dec_0, dec_1, r_0, r_1, los_definition):
     """
-    The angle_separation function calculates the angle between two points on a sphere.
+    The compute_phi function computes the angle between the line of sight and
+    the separation vector. The line of sight is defined as either:
+        - mean: (r_0 + r_2) / 2, where r_0 and r_2 are the radial coordinates at each end of a pair.
+        - bisector: (r_0 / |r| + r_2 / |r|), where |r| is the distance between two points in a pair.
+        - endpoint: only use one point in a pair to define the line-of-sight direction, i.e., use only one galaxy
 
     Args:
-        ra_0: Calculate the cosine of the angle between two points in spherical coordinates
-        ra_1: Calculate the cosine of the angle between two points
-        dec_0: Calculate the cosine of the angle between two points
-        dec_1: Calculate the cos_theta parameter
-        r_0: Calculate the distance between two points
-        r_1: Calculate the distance between two objects
+        ra_0: Compute the x_0, y_0 and z_0 coordinates of a galaxy
+        ra_1: Compute the phi angle
+        dec_0: Compute the z_0 parameter in radec2cart function
+        dec_1: Compute the phi angle
+        r_0: Compute the distance between two points
+        r_1: Compute the distance between two points in the sky
+        los_definition: Define the line of sight
 
     Returns:
-        The separation angle between two points
-
+        The angle between the line of sight and the separation vector
     """
+    x_0, y_0, z_0 = utils.radec2cart(r_0, ra_0, dec_0)
+    x_1, y_1, z_1 = utils.radec2cart(r_1, ra_1, dec_1)
+
+    r_x = x_1 - x_0
+    r_y = y_1 - y_0
+    r_z = z_1 - z_0
+    r = np.sqrt(r_x**2 + r_y**2 + r_z**2)
+    if los_definition == "mean":
+        d_x = x_0 + x_1
+        d_y = y_0 + y_1
+        d_z = z_0 + z_1
+    elif los_definition == "bisector":
+        d_x = x_0 / r_0 + x_1 / r_1
+        d_y = y_0 / r_0 + y_1 / r_1
+        d_z = z_0 / r_0 + z_1 / r_1
+    elif los_definition == "endpoint":
+        d_x = x_0
+        d_y = y_0
+        d_z = z_0
+    else:
+        raise ValueError(
+            "Please choose a correlation_method between bisector, mean or endpoint"
+            "Bisector method advised, endpoint not recommended"
+        )
+    d = np.sqrt(d_x**2 + d_y**2 + d_z**2)
+
+    mask = d * r == 0.0
+    cos_phi = np.zeros_like(r)
+    cos_phi[~mask] = (
+        d_x[~mask] * r_x[~mask] + d_y[~mask] * r_y[~mask] + d_z[~mask] * r_z[~mask]
+    ) / (d[~mask] * r[~mask])
+
+    phi = np.arccos(np.clip(cos_phi, -1, 1))
+
+    return phi
+
+
+def angle_separation(
+    ra_0,
+    ra_1,
+    dec_0,
+    dec_1,
+    r_0,
+    r_1,
+    los_definition="bisector",
+):
+    """
+    The angle_separation function computes the angle between two points on a sphere.
+
+    Args:
+        ra_0: Set the right ascension of the first galaxy
+        ra_1: Calculate the angle between two points in the sky
+        dec_0: Define the declination of the first galaxy
+        dec_1: Calculate the cosine of theta
+        r_0: Compute the distance between two points
+        r_1: Compute the distance between two points in space
+        los_definition: Define the line of sight
+        : Define the line of sight
+
+    Returns:
+        The separation between two points in
+    """
+
     cos_theta = np.cos(ra_1 - ra_0) * np.cos(dec_0) * np.cos(dec_1) + np.sin(
         dec_0
     ) * np.sin(dec_1)
+    theta = np.arccos(np.clip(cos_theta, -1, 1))
+
     r = np.sqrt(r_0**2 + r_1**2 - 2 * r_0 * r_1 * cos_theta)
-    sin_phi = ((r_0 + r_1) / r) * np.sqrt((1 - cos_theta) / 2)
-    sin_phi = np.clip(sin_phi, -1, 1)
-    cos_theta = np.clip(cos_theta, -1, 1)
-    return r, np.arccos(cos_theta), np.arcsin(sin_phi)
+    phi = compute_phi(ra_0, ra_1, dec_0, dec_1, r_0, r_1, los_definition)
+    return r, theta, phi
+
+
+def compute_phi_bisector_theorem(r, theta, r_0, r_1):
+    sin_phi = ((r_0 + r_1) / r) * np.sin(theta / 2)
+    return np.arcsin(np.clip(sin_phi, -1, 1))
 
 
 def return_full_cov(cov):
@@ -161,7 +240,7 @@ def return_full_cov_cross(cov, number_objects_g, number_objects_v):
         The full covariance matrix
 
     """
-    full_cov = cov.reshape((number_objects_g, number_objects_v))
+    full_cov = cov[1:].reshape((number_objects_g, number_objects_v))
     return full_cov
 
 
@@ -210,3 +289,67 @@ def open_matrix(name):
     """
     matrix = np.load(f"{name}.npy")
     return matrix
+
+
+def generator_need(
+    coordinates_density=None,
+    coordinates_velocity=None,
+):
+    """
+    The generator_need function checks if the coordinates_density and coordinates_velocity inputs are provided.
+    If they are not, it raises a ValueError exception.
+
+
+    Args:
+        coordinates_density: Generate the density covariance matrix
+        coordinates_velocity: Generate the covariance matrix of the velocity field
+        : Check if the coordinates are provided or not
+
+    Returns:
+        A list of the coordinates that are needed to proceed with covariance generation
+
+    """
+    if coordinates_density is not False:
+        if coordinates_density is None:
+            log.add(
+                f"The coordinates_density input is needed to proceed covariance generation, please provide it"
+            )
+            raise ValueError("Density coordinates not provided")
+    if coordinates_velocity is not False:
+        if coordinates_velocity is None:
+            log.add(
+                f"The coordinates_velocity input is needed to proceed covariance generation, please provide it"
+            )
+            raise ValueError("Velocity coordinates not provided")
+
+
+def check_generator_need(model_type, coordinates_density, coordinates_velocity):
+    """
+    The check_generator_need function is used to check if the generator_need function
+    is called with the correct arguments. The model type determines which coordinates are needed,
+    and these are passed as arguments to generator_need.
+
+    Args:
+        model_type: Determine if the density, velocity or full model is being used
+        coordinates_density: Check if the density coordinates are needed
+        coordinates_velocity: Determine whether the velocity model is needed
+
+    Returns:
+        A boolean
+
+    """
+    if model_type == "density":
+        generator_need(
+            coordinates_density=coordinates_density,
+            coordinates_velocity=False,
+        )
+    if model_type == "velocity":
+        generator_need(
+            coordinates_density=False,
+            coordinates_velocity=coordinates_velocity,
+        )
+    if model_type in ["full", "density_velocity"]:
+        generator_need(
+            coordinates_density=coordinates_density,
+            coordinates_velocity=coordinates_velocity,
+        )

@@ -1,390 +1,23 @@
-import numpy as np
 import time
-from flip.utils import create_log
-from flip.covariance.lai22 import generator as generator_lai22
-from flip.covariance.carreres23 import generator as generator_carreres23
 
-from flip.covariance.adamsblake20 import coefficients as coefficients_adamsblake20
-from flip.covariance.lai22 import coefficients as coefficients_lai22
-from flip.covariance.carreres23 import coefficients as coefficients_carreres23
-from flip.covariance.ravouxcarreres import coefficients as coefficients_ravouxcarreres
+import numpy as np
 
-
-from flip.covariance import generator as generator_flip
+from flip.covariance import contraction as contraction_flip
 from flip.covariance import cov_utils
-
+from flip.covariance import generator as generator_flip
+from flip.covariance.adamsblake17plane import (
+    coefficients as coefficients_adamsblake17plane,
+)
+from flip.covariance.adamsblake17plane import generator as generator_adamsblake17plane
+from flip.covariance.adamsblake20 import coefficients as coefficients_adamsblake20
+from flip.covariance.carreres23 import coefficients as coefficients_carreres23
+from flip.covariance.carreres23 import generator as generator_carreres23
+from flip.covariance.lai22 import coefficients as coefficients_lai22
+from flip.covariance.lai22 import generator as generator_lai22
+from flip.covariance.ravouxcarreres import coefficients as coefficients_ravouxcarreres
+from flip.utils import create_log
 
 log = create_log()
-
-
-def generator_need(
-    coordinates_density=None,
-    coordinates_velocity=None,
-):
-    """
-    The generator_need function checks if the coordinates_density and coordinates_velocity inputs are provided.
-    If they are not, it raises a ValueError exception.
-
-
-    Args:
-        coordinates_density: Generate the density covariance matrix
-        coordinates_velocity: Generate the covariance matrix of the velocity field
-        : Check if the coordinates are provided or not
-
-    Returns:
-        A list of the coordinates that are needed to proceed with covariance generation
-
-    """
-    if coordinates_density is not False:
-        if coordinates_density is None:
-            log.add(
-                f"The coordinates_density input is needed to proceed covariance generation, please provide it"
-            )
-            raise ValueError("Density coordinates not provided")
-    if coordinates_velocity is not False:
-        if coordinates_velocity is None:
-            log.add(
-                f"The coordinates_velocity input is needed to proceed covariance generation, please provide it"
-            )
-            raise ValueError("Velocity coordinates not provided")
-
-
-def check_generator_need(model_type, coordinates_density, coordinates_velocity):
-    """
-    The check_generator_need function is used to check if the generator_need function
-    is called with the correct arguments. The model type determines which coordinates are needed,
-    and these are passed as arguments to generator_need.
-
-    Args:
-        model_type: Determine if the density, velocity or full model is being used
-        coordinates_density: Check if the density coordinates are needed
-        coordinates_velocity: Determine whether the velocity model is needed
-
-    Returns:
-        A boolean
-
-    """
-    if model_type == "density":
-        generator_need(
-            coordinates_density=coordinates_density,
-            coordinates_velocity=False,
-        )
-    if model_type == "velocity":
-        generator_need(
-            coordinates_density=False,
-            coordinates_velocity=coordinates_velocity,
-        )
-    if model_type in ["full", "density_velocity"]:
-        generator_need(
-            coordinates_density=coordinates_density,
-            coordinates_velocity=coordinates_velocity,
-        )
-
-
-def generate_carreres23(
-    model_type,
-    power_spectrum_dict,
-    coordinates_density=False,
-    coordinates_velocity=None,
-    **kwargs,
-):
-    """
-    The generate_carreres23 function generates a covariance matrix for the velocity field.
-
-    Args:
-        model_type: Specify the type of model to generate
-        power_spectrum_dict: Pass the power spectrum to the function
-        coordinates_density: Specify the coordinates of the density field
-        coordinates_velocity: Generate the covariance matrix
-        **kwargs: Pass additional parameters to the function
-        : Generate the covariance matrix for the velocity field
-
-    Returns:
-        A dictionary with a single key &quot;vv&quot;
-
-    """
-    assert model_type == "velocity"
-    check_generator_need(
-        model_type,
-        coordinates_density,
-        coordinates_velocity,
-    )
-    number_densities = None
-    number_velocities = len(coordinates_velocity[0])
-    cov_vv = generator_carreres23.covariance_vv(
-        coordinates_velocity[0],
-        coordinates_velocity[1],
-        coordinates_velocity[2],
-        power_spectrum_dict["vv"][0][0],
-        power_spectrum_dict["vv"][0][1],
-        **kwargs,
-    )
-    return {"vv": [cov_vv]}, number_densities, number_velocities
-
-
-def generate_lai22(
-    model_type,
-    power_spectrum_dict,
-    coordinates_velocity=None,
-    coordinates_density=None,
-    pmax=3,
-    qmax=3,
-    **kwargs,
-):
-    """
-    The generate_lai22 function generates the covariance matrix for a given model type.
-
-    Args:
-        model_type: Determine which covariance matrices to generate
-        power_spectrum_dict: Pass the power spectrum of the density and velocity fields
-        coordinates_velocity: Generate the velocity field
-        coordinates_density: Pass the coordinates of the density field
-        pmax: Determine the maximum order of the legendre polynomial used in the computation of
-        qmax: Determine the maximum order of the legendre polynomials used to compute the covariance matrix
-        **kwargs: Pass keyworded, variable-length argument list
-        : Define the type of model to be generated
-
-    Returns:
-        A dictionary of covariance matrices,
-
-    """
-    check_generator_need(
-        model_type,
-        coordinates_density,
-        coordinates_velocity,
-    )
-    covariance_dict = {}
-
-    if model_type in ["density", "full", "density_velocity"]:
-        covariance_dict["gg"] = generator_lai22.compute_cov_gg(
-            pmax,
-            qmax,
-            coordinates_density[0],
-            coordinates_density[1],
-            coordinates_density[2],
-            power_spectrum_dict["gg"][0][0],
-            power_spectrum_dict["gg"][1][0],
-            power_spectrum_dict["gg"][2][0],
-            power_spectrum_dict["gg"][0][1],
-            power_spectrum_dict["gg"][1][1],
-            power_spectrum_dict["gg"][2][1],
-            **kwargs,
-        )
-        number_densities = len(coordinates_density[0])
-    else:
-        number_densities = None
-
-    if model_type in ["velocity", "full", "density_velocity"]:
-        covariance_dict["vv"] = generator_lai22.compute_cov_vv(
-            coordinates_velocity[0],
-            coordinates_velocity[1],
-            coordinates_velocity[2],
-            power_spectrum_dict["vv"][0][0],
-            power_spectrum_dict["vv"][1][0],
-            **kwargs,
-        )
-        number_velocities = len(coordinates_velocity[0])
-    else:
-        number_velocities = None
-
-    if model_type == "full":
-        covariance_dict["gv"] = generator_lai22.compute_cov_gv(
-            pmax,
-            coordinates_density[0],
-            coordinates_density[1],
-            coordinates_density[2],
-            coordinates_velocity[0],
-            coordinates_velocity[1],
-            coordinates_velocity[2],
-            power_spectrum_dict["gv"][0][0],
-            power_spectrum_dict["gv"][1][0],
-            power_spectrum_dict["gv"][0][1],
-            power_spectrum_dict["gv"][1][1],
-            **kwargs,
-        )
-    return covariance_dict, number_densities, number_velocities
-
-
-def generate_flip(
-    model_name,
-    model_type,
-    power_spectrum_dict,
-    coordinates_velocity=None,
-    coordinates_density=None,
-    additional_parameters_values=None,
-    size_batch=10_000,
-    number_worker=8,
-    hankel=True,
-):
-    """
-    The generate_flip function computes the covariance matrix for a given model.
-
-    Args:
-        model_name: Select the model to use
-        model_type: Determine the type of model to generate
-        power_spectrum_dict: Store the power spectra of the different fields
-        coordinates_velocity: Specify the coordinates of the velocity field
-        coordinates_density: Specify the coordinates of the density field
-        additional_parameters_values: Pass the values of the additional parameters to be used in the computation of covariance matrices
-        size_batch: Split the computation of the covariance matrix into smaller batches
-        number_worker: Specify the number of cores to use for computing the covariance matrix
-        hankel: Decide whether to use the hankel transform or not
-        : Define the number of workers to use for the computation
-
-    Returns:
-        A dictionary with the covariance matrices and their dimensions
-
-    """
-    check_generator_need(
-        model_type,
-        coordinates_density,
-        coordinates_velocity,
-    )
-    covariance_dict = {}
-    if model_type in ["density", "full", "density_velocity"]:
-        covariance_dict["gg"] = generator_flip.compute_cov(
-            model_name,
-            "gg",
-            power_spectrum_dict["gg"],
-            coordinates_density=coordinates_density,
-            coordinates_velocity=coordinates_velocity,
-            additional_parameters_values=additional_parameters_values,
-            size_batch=size_batch,
-            number_worker=number_worker,
-            hankel=hankel,
-        )
-        number_densities = len(coordinates_density[0])
-    else:
-        number_densities = None
-
-    if model_type in ["velocity", "full", "density_velocity"]:
-        covariance_dict["vv"] = generator_flip.compute_cov(
-            model_name,
-            "vv",
-            power_spectrum_dict["vv"],
-            coordinates_density=coordinates_density,
-            coordinates_velocity=coordinates_velocity,
-            additional_parameters_values=additional_parameters_values,
-            size_batch=size_batch,
-            number_worker=number_worker,
-            hankel=hankel,
-        )
-        number_velocities = len(coordinates_velocity[0])
-    else:
-        number_velocities = None
-
-    if model_type == "full":
-        covariance_dict["gv"] = generator_flip.compute_cov(
-            model_name,
-            "gv",
-            power_spectrum_dict["gv"],
-            coordinates_density=coordinates_density,
-            coordinates_velocity=coordinates_velocity,
-            additional_parameters_values=additional_parameters_values,
-            size_batch=size_batch,
-            number_worker=number_worker,
-            hankel=hankel,
-        )
-    return covariance_dict, number_densities, number_velocities
-
-
-def contract_with_flip(
-    model_name,
-    model_type,
-    power_spectrum_dict,
-    bin_centers_2d,
-    r0,
-    additional_parameters_values=None,
-    number_worker=8,
-    hankel=True,
-):
-    """
-    The contract_with_flip function is used to contract the covariance matrix for a given model.
-    The function takes as input:
-        - model_name: name of the model (e.g., &quot;adamsblake20&quot;)
-        - model_type: type of the covariance matrix (&quot;density&quot;, &quot;velocity&quot;, or &quot;full&quot;)
-        - power_spectrum_dict: dictionary containing all relevant power spectra (gg, gv, vv) for this contraction; each entry in this dictionary is an array with shape [nk] where nk is the number of k bins in which we have computed these power
-
-    Args:
-        model_name: Specify the model to be used
-        model_type: Select the type of model to be used in the contraction
-        power_spectrum_dict: Compute the covariance matrix
-        bin_centers_2d: Compute the contraction coordinates
-        r0: Define the radial binning
-        additional_parameters_values: Pass the values of the parameters that are not in the model
-        number_worker: Set the number of workers used to compute the covariance matrix
-        hankel: Switch between the hankel transform and the direct integration
-        : Compute the covariance matrix
-
-    Returns:
-        A dictionary of covariance matrices (contraction_covariance_dict) and a set of coordinates in 3d space (contraction_coordinates)
-    """
-    # CR - make it more general, not only one binning.
-
-    coord_rper_rpar = np.array(
-        np.meshgrid(bin_centers_2d, bin_centers_2d, indexing="ij")
-    ).reshape((2, len(bin_centers_2d) * len(bin_centers_2d)))
-
-    contraction_coordinates = np.zeros((3, len(bin_centers_2d) * len(bin_centers_2d)))
-    contraction_coordinates[0, :] = np.sqrt(
-        coord_rper_rpar[0, :] ** 2 + coord_rper_rpar[1, :] ** 2
-    )
-    contraction_coordinates[1, :] = np.arctan2(
-        coord_rper_rpar[0, :], r0 + coord_rper_rpar[1, :]
-    )
-    contraction_coordinates[2, :] = np.arcsin(
-        np.clip(
-            (
-                (r0 / contraction_coordinates[0, :])
-                + (
-                    coord_rper_rpar[0, :]
-                    / (
-                        contraction_coordinates[0, :]
-                        * np.sin(contraction_coordinates[1, :])
-                    )
-                )
-            )
-            * np.sqrt((1 - np.cos(contraction_coordinates[1, :])) / 2),
-            -1,
-            1,
-        )
-    )
-
-    contraction_covariance_dict = {}
-    if model_type in ["density", "full", "density_velocity"]:
-        contraction_covariance_dict["gg"] = generator_flip.compute_coeficient(
-            [contraction_coordinates],
-            model_name,
-            "gg",
-            power_spectrum_dict["gg"],
-            additional_parameters_values=additional_parameters_values,
-            number_worker=number_worker,
-            hankel=hankel,
-        )[:, 1:]
-
-    if model_type in ["velocity", "full", "density_velocity"]:
-        contraction_covariance_dict["vv"] = generator_flip.compute_coeficient(
-            [contraction_coordinates],
-            model_name,
-            "vv",
-            power_spectrum_dict["vv"],
-            additional_parameters_values=additional_parameters_values,
-            number_worker=number_worker,
-            hankel=hankel,
-        )[:, 1:]
-
-    if model_type == "full":
-        contraction_covariance_dict["gv"] = generator_flip.compute_coeficient(
-            [contraction_coordinates],
-            model_name,
-            "gv",
-            power_spectrum_dict["gv"],
-            additional_parameters_values=additional_parameters_values,
-            number_worker=number_worker,
-            hankel=hankel,
-        )[:, 1:]
-
-    return contraction_covariance_dict, contraction_coordinates
 
 
 class CovMatrix:
@@ -392,12 +25,15 @@ class CovMatrix:
         self,
         model_name=None,
         model_type=None,
+        los_definition=None,
         covariance_dict=None,
         full_matrix=False,
         number_densities=None,
         number_velocities=None,
         contraction_covariance_dict=None,
-        contraction_coordinates=None,
+        contraction_coordinates_dict=None,
+        contraction_basis_definition=None,
+        contraction_los_definition=None,
     ):
         """
         The __init__ function is called when the class is instantiated.
@@ -406,26 +42,32 @@ class CovMatrix:
 
         Args:
             self: Represent the instance of the class
-            model_name: Set the name of the model
-            model_type: Determine which covariance matrix to use
+            model_name: Identify the model
+            model_type: Define the type of model that is being used
+            los_definition: Define the angle between two vectors
             covariance_dict: Store the covariance matrix
-            full_matrix: Determine whether the covariance matrix is stored as a full matrix or in compressed form
-            number_densities: Store the number of density fields that are used in the covariance matrix
-            number_velocities: Determine the number of velocity bins in the covariance matrix
-            : Initialize the class
+            full_matrix: Determine whether the covariance matrix is stored as a full matrix or in sparse form
+            number_densities: Set the number of density variables in the model
+            number_velocities: Set the number of velocities in the model
+            contraction_covariance_dict: Store the contraction
+            contraction_coordinates_dict: Define the coordinates of the contraction
+            : Define the model name
 
         Returns:
-            The instance of the class
-
+            An object of the class
         """
+
         self.model_name = model_name
         self.model_type = model_type
+        self.los_definition = los_definition
         self.covariance_dict = covariance_dict
         self.full_matrix = full_matrix
         self.number_densities = number_densities
         self.number_velocities = number_velocities
         self.contraction_covariance_dict = contraction_covariance_dict
-        self.contraction_coordinates = contraction_coordinates
+        self.contraction_coordinates_dict = contraction_coordinates_dict
+        self.contraction_basis_definition = contraction_basis_definition
+        self.contraction_los_definition = contraction_los_definition
 
     @classmethod
     def init_from_flip(
@@ -436,6 +78,7 @@ class CovMatrix:
         coordinates_density=None,
         coordinates_velocity=None,
         additional_parameters_values=None,
+        los_definition="bisector",
         **kwargs,
     ):
         """
@@ -462,13 +105,18 @@ class CovMatrix:
 
         """
         begin = time.time()
-        covariance_dict, number_densities, number_velocities = generate_flip(
+        (
+            covariance_dict,
+            number_densities,
+            number_velocities,
+        ) = generator_flip.generate_covariance(
             model_name,
             model_type,
             power_spectrum_dict,
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
             additional_parameters_values=additional_parameters_values,
+            los_definition=los_definition,
             **kwargs,
         )
         end = time.time()
@@ -482,6 +130,7 @@ class CovMatrix:
             number_densities=number_densities,
             number_velocities=number_velocities,
             full_matrix=False,
+            los_definition=los_definition,
         )
 
     @classmethod
@@ -520,8 +169,8 @@ class CovMatrix:
 
         """
         begin = time.time()
-        covariance_dict, number_densities, number_velocities = eval(
-            f"generate_{model_name}"
+        covariance_dict, number_densities, number_velocities, los_definition = eval(
+            f"generator_{model_name}.generate_covariance"
         )(
             model_type,
             power_spectrum_dict,
@@ -540,6 +189,7 @@ class CovMatrix:
             number_densities=number_densities,
             number_velocities=number_velocities,
             full_matrix=False,
+            los_definition=los_definition,
         )
 
     @classmethod
@@ -571,46 +221,63 @@ class CovMatrix:
         model_name,
         model_type,
         power_spectrum_dict,
-        bin_centers_2d,
-        r0,
+        r_perpendicular,
+        r_parallel,
+        r_reference_perpendicular,
+        r_reference_parallel,
         additional_parameters_values=None,
+        basis_definition="bisector",
+        los_definition="bisector",
         **kwargs,
     ):
         """
         The init_contraction_from_flip function is a helper function that allows the user to initialize
-        a Contraction object from a FLIP model. The contraction_covariance_dict and contraction_coordinates
-        are calculated by contracting with the FLIP model, which is done in contract_with_flip. This function
-        is called in __init__ of Contraction.
+        a Contraction object from an existing FLIP object. This is useful for when you want to use the same
+        FLIP object multiple times, but with different contraction parameters. For example, if you wanted to
+        contract a covariance matrix at two different values of r_perpendicular and r_parallel (e.g., one set of values for calculating the power spectrum and another set of values for calculating correlation functions), then this function would be helpful.
 
         Args:
-            cls: Create a new instance of the class
-            model_name: Determine which model to use for the contraction
-            model_type: Determine the type of model to be used
-            power_spectrum_dict: Store the power spectrum of the model
-            bin_centers_2d: Pass the bin centers of the 2d correlation function
-            r0: Define the size of the grid
-            additional_parameters_values: Pass in the values of the additional parameters that are
-            **kwargs: Pass keyworded, variable-length argument list
-            : Set the model type
+            cls: Create an instance of the class that called this function
+            model_name: Define the model name
+            model_type: Determine the type of model,
+            power_spectrum_dict: Pass the power spectrum to the contraction_flip function
+            r_perpendicular: Define the perpendicular distance from the reference point
+            r_parallel: Define the parallel distance at which to evaluate the correlation function
+            r_reference_perpendicular: Define the reference point for the perpendicular distance
+            r_reference_parallel: Set the reference parallel coordinate
+            additional_parameters_values: Pass in the values of the additional parameters
+            basis_definition: Define the basis of the contraction
+            los_definition: Define the line of sight
+            **kwargs: Pass keyword arguments to the function
+            : Define the model type
 
         Returns:
             An instance of the contraction class
         """
-
-        contraction_covariance_dict, contraction_coordinates = contract_with_flip(
+        (
+            contraction_covariance_dict,
+            contraction_coordinates_dict,
+        ) = contraction_flip.contract_covariance(
             model_name,
             model_type,
             power_spectrum_dict,
-            bin_centers_2d,
-            r0,
+            r_perpendicular,
+            r_parallel,
+            r_reference_perpendicular,
+            r_reference_parallel,
             additional_parameters_values=additional_parameters_values,
+            basis_definition=basis_definition,
+            los_definition=los_definition,
             **kwargs,
         )
+
         return cls(
             model_name=model_name,
             model_type=model_type,
             contraction_covariance_dict=contraction_covariance_dict,
-            contraction_coordinates=contraction_coordinates,
+            contraction_coordinates_dict=contraction_coordinates_dict,
+            contraction_basis_definition=basis_definition,
+            contraction_los_definition=los_definition,
         )
 
     @property
@@ -688,6 +355,7 @@ class CovMatrix:
     def compute_covariance_sum(
         self,
         parameter_values_dict,
+        vector_err,
     ):
         """
         The compute_covariance_sum function computes the sum of all covariance matrices
@@ -722,7 +390,7 @@ class CovMatrix:
                 axis=0,
             )
             covariance_sum += np.diag(
-                coefficients_dict_diagonal["gg"] + self.vector_err**2
+                coefficients_dict_diagonal["gg"] + vector_err**2
             )
 
         elif self.model_type == "velocity":
@@ -735,14 +403,14 @@ class CovMatrix:
             )
 
             covariance_sum += np.diag(
-                coefficients_dict_diagonal["vv"] + self.vector_err**2
+                coefficients_dict_diagonal["vv"] + vector_err**2
             )
 
         elif self.model_type in ["density_velocity", "full"]:
             number_densities = self.number_densities
             number_velocities = self.number_velocities
-            density_err = self.vector_err[:number_densities]
-            velocity_err = self.vector_err[
+            density_err = vector_err[:number_densities]
+            velocity_err = vector_err[
                 number_densities : number_densities + number_velocities
             ]
 
@@ -779,10 +447,12 @@ class CovMatrix:
                 coefficients_dict_diagonal["vv"] + velocity_err**2
             )
 
+            covariance_sum_vg = -covariance_sum_gv.T
+
             covariance_sum = np.block(
                 [
                     [covariance_sum_gg, covariance_sum_gv],
-                    [covariance_sum_gv.T, covariance_sum_vv],
+                    [covariance_sum_vg, covariance_sum_vv],
                 ]
             )
         else:
@@ -794,6 +464,18 @@ class CovMatrix:
         self,
         parameter_values_dict,
     ):
+        """
+        The compute_contraction_sum function computes the sum of all the contractions
+            for a given model type and parameter values.
+
+        Args:
+            self: Make the function a method of the class
+            parameter_values_dict: Get the coefficients for each of the covariances
+            : Get the coefficients of the model
+
+        Returns:
+            A dictionary of contraction_covariance_sum
+        """
         coefficients_dict = eval(f"coefficients_{self.model_name}.get_coefficients")(
             self.model_type,
             parameter_values_dict,
@@ -846,35 +528,65 @@ class CovMatrix:
 
         return contraction_covariance_sum_dict
 
+    def compute_covariance_sum_eigenvalues(
+        self,
+        parameter_values_dict,
+        vector_err,
+    ):
+        covariance_sum = self.compute_covariance_sum(
+            parameter_values_dict,
+            vector_err,
+        )
+        return np.linalg.eigvals(covariance_sum)
+
     def compute_full_matrix(self):
         """
-        The compute_full_matrix function is used to convert the covariance matrices from sparse to full.
-        This function is called in the compute_covariance_matrix function, which is called by all of the
-        generator functions (e.g., generator_lai22). The compute_full_matrix function checks if a matrix has already been converted from sparse to full and skips it if so. If not, then it converts each matrix into a full one.
+        The compute_full_matrix function takes the covariance matrix and fills in all of the missing values.
 
         Args:
-            self: Bind the method to an object
+            self: Bind the method to the object
 
         Returns:
-            The full covariance matrix
+            A dictionary with the full covariance matrices for each redshift bin
 
+        Doc Author:
+            Trelent
         """
         if self.full_matrix is False:
             for key in ["gg", "vv", "gv"]:
                 if key in self.covariance_dict.keys():
+                    if key == "gg":
+                        new_shape = (
+                            self.covariance_dict[key].shape[0],
+                            self.number_densities,
+                            self.number_densities,
+                        )
+                    elif key == "gv":
+                        new_shape = (
+                            self.covariance_dict[key].shape[0],
+                            self.number_densities,
+                            self.number_velocities,
+                        )
+                    elif key == "vv":
+                        new_shape = (
+                            self.covariance_dict[key].shape[0],
+                            self.number_velocities,
+                            self.number_velocities,
+                        )
+                    new_cov = np.zeros(new_shape)
                     for i, _ in enumerate(self.covariance_dict[key]):
                         if key == "gv":
-                            self.covariance_dict[key][
-                                i
-                            ] = cov_utils.return_full_cov_cross(
+                            new_cov[i] = cov_utils.return_full_cov_cross(
                                 self.covariance_dict[key][i],
-                                self.covariance_dict["gg"][0].shape[0],
-                                self.covariance_dict["vv"][0].shape[0],
+                                self.number_densities,
+                                self.number_velocities,
                             )
                         else:
-                            self.covariance_dict[key][i] = cov_utils.return_full_cov(
+                            new_cov[i] = cov_utils.return_full_cov(
                                 self.covariance_dict[key][i]
                             )
+                    self.covariance_dict[key] = new_cov
+
             self.full_matrix = True
 
     def write(

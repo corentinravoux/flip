@@ -1,4 +1,67 @@
-import logging, time
+import logging
+import time
+
+import numpy as np
+
+
+def radec2cart(rcom, ra, dec):
+    """
+    The radec2cart function takes in the comoving distance to a galaxy,
+        its right ascension and declination, and returns the x, y, z coordinates
+        of that galaxy.
+
+    Args:
+        rcom: Convert the ra and dec to cartesian coordinates
+        ra: Calculate the x-coordinate of a point in space
+        dec: Calculate the z coordinate
+
+    Returns:
+        The x, y and z coordinates of each galaxy
+
+    """
+    x = rcom * np.cos(ra) * np.cos(dec)
+    y = rcom * np.sin(ra) * np.cos(dec)
+    z = rcom * np.sin(dec)
+    return x, y, z
+
+
+def cart2radec(x, y, z):
+    """
+    The cart2radec function converts cartesian coordinates to spherical
+    coordinates.  The input is a set of x, y, and z values.  The output is the
+    radius (rcom), right ascension (ra), and declination (dec).
+
+    Args:
+        x: Represent the x-coordinate of a point in space
+        y: Calculate the right ascension
+        z: Calculate the declination
+
+    Returns:
+        The radius, right ascension and declination of a point in cartesian coordinates
+    """
+    rcom = np.sqrt(x**2 + y**2 + z**2)
+    ra = np.arctan2(y, x)
+    mask = rcom != 0
+    dec = np.zeros(x.shape)
+    dec[mask] = np.arcsin(z[mask] / rcom[mask])
+    return rcom, ra, dec
+
+
+def return_key(dictionary, string, default_value):
+    """
+    The return_key function takes a dictionary, a string, and a default value.
+    It returns the value of the key in the dictionary that matches the string if it exists.
+    If not, it returns the default_value.
+
+    Args:
+        dictionary: Pass in a dictionary to the function
+        string: Specify the key to look up in the dictionary
+        default_value: Return a default value if the key is not in the dictionary
+
+    Returns:
+        A value from a dictionary
+    """
+    return dictionary[string] if string in dictionary.keys() else default_value
 
 
 def create_log(log_level="info"):

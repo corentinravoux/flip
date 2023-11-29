@@ -1,21 +1,28 @@
-import numpy as np
-from flip.covariance import cov_utils
 import multiprocessing as mp
 from functools import partial
-from scipy.special import spherical_jn
+
+import cosmoprimo
+import numpy as np
 from scipy import integrate
 from scipy.interpolate import interp1d
-import cosmoprimo
+from scipy.special import spherical_jn
 
+from flip.covariance import cov_utils
+from flip.covariance.adamsblake17plane import flip_terms as flip_terms_adamsblake17plane
 from flip.covariance.adamsblake20 import flip_terms as flip_terms_adamsblake20
-from flip.covariance.lai22 import flip_terms as flip_terms_lai22
 from flip.covariance.carreres23 import flip_terms as flip_terms_carreres23
+from flip.covariance.lai22 import flip_terms as flip_terms_lai22
 from flip.covariance.ravouxcarreres import flip_terms as flip_terms_ravouxcarreres
-
 from flip.utils import create_log
 
 log = create_log()
-_avail_models = ["adamsblake20", "lai22", "carreres23", "ravouxcarreres"]
+_avail_models = [
+    "adamsblake17plane",
+    "adamsblake20",
+    "lai22",
+    "carreres23",
+    "ravouxcarreres",
+]
 
 
 def correlation_integration(l, r, k, integrand):
@@ -186,6 +193,7 @@ def compute_coordinates(
     coordinates_density=None,
     coordinates_velocity=None,
     size_batch=10_000,
+    los_definition="bisector",
 ):
     """
     The compute_coordinates function computes the spherical coordinates of all pairs of objects in a given catalog.
@@ -240,7 +248,9 @@ def compute_coordinates(
             i_list, j_list = cov_utils.compute_i_j(number_objects, batches)
             ra_i, dec_i, r_i = ra[i_list], dec[i_list], comoving_distance[i_list]
             ra_j, dec_j, r_j = ra[j_list], dec[j_list], comoving_distance[j_list]
-        r, theta, phi = cov_utils.angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
+        r, theta, phi = cov_utils.angle_separation(
+            ra_i, ra_j, dec_i, dec_j, r_i, r_j, los_definition=los_definition
+        )
         parameters.append([r, theta, phi])
     return parameters
 
@@ -335,8 +345,11 @@ def compute_coeficient(
 
     loc = locals()
     return np.array(
-        [eval(f"cov_{index}", loc) for i, index in enumerate(term_index_list)]
+        [eval(f"cov_{index}", loc) for _, index in enumerate(term_index_list)]
     )
+
+
+# CR - remove variance for vg --> make no sense.
 
 
 def compute_cov(
@@ -349,6 +362,7 @@ def compute_cov(
     size_batch=10_000,
     number_worker=8,
     hankel=True,
+    los_definition="bisector",
 ):
     """
     The compute_cov function computes the covariance matrix for a given model.
@@ -380,6 +394,7 @@ def compute_cov(
         coordinates_density=coordinates_density,
         coordinates_velocity=coordinates_velocity,
         size_batch=size_batch,
+        los_definition=los_definition,
     )
     covariance = compute_coeficient(
         parameters,
@@ -392,3 +407,90 @@ def compute_cov(
     )
 
     return covariance
+
+
+def generate_covariance(
+    model_name,
+    model_type,
+    power_spectrum_dict,
+    coordinates_velocity=None,
+    coordinates_density=None,
+    additional_parameters_values=None,
+    size_batch=10_000,
+    number_worker=8,
+    hankel=True,
+    los_definition="bisector",
+):
+    """
+    The generate_flip function computes the covariance matrix for a given model.
+
+    Args:
+        model_name: Select the model to use
+        model_type: Determine the type of model to generate
+        power_spectrum_dict: Store the power spectra of the different fields
+        coordinates_velocity: Specify the coordinates of the velocity field
+        coordinates_density: Specify the coordinates of the density field
+        additional_parameters_values: Pass the values of the additional parameters to be used in the computation of covariance matrices
+        size_batch: Split the computation of the covariance matrix into smaller batches
+        number_worker: Specify the number of cores to use for computing the covariance matrix
+        hankel: Decide whether to use the hankel transform or not
+        : Define the number of workers to use for the computation
+
+    Returns:
+        A dictionary with the covariance matrices and their dimensions
+
+    """
+    cov_utils.check_generator_need(
+        model_type,
+        coordinates_density,
+        coordinates_velocity,
+    )
+    covariance_dict = {}
+    if model_type in ["density", "full", "density_velocity"]:
+        covariance_dict["gg"] = compute_cov(
+            model_name,
+            "gg",
+            power_spectrum_dict["gg"],
+            coordinates_density=coordinates_density,
+            coordinates_velocity=coordinates_velocity,
+            additional_parameters_values=additional_parameters_values,
+            size_batch=size_batch,
+            number_worker=number_worker,
+            hankel=hankel,
+            los_definition=los_definition,
+        )
+        number_densities = len(coordinates_density[0])
+    else:
+        number_densities = None
+
+    if model_type in ["velocity", "full", "density_velocity"]:
+        covariance_dict["vv"] = compute_cov(
+            model_name,
+            "vv",
+            power_spectrum_dict["vv"],
+            coordinates_density=coordinates_density,
+            coordinates_velocity=coordinates_velocity,
+            additional_parameters_values=additional_parameters_values,
+            size_batch=size_batch,
+            number_worker=number_worker,
+            hankel=hankel,
+            los_definition=los_definition,
+        )
+        number_velocities = len(coordinates_velocity[0])
+    else:
+        number_velocities = None
+
+    if model_type == "full":
+        covariance_dict["gv"] = compute_cov(
+            model_name,
+            "gv",
+            power_spectrum_dict["gv"],
+            coordinates_density=coordinates_density,
+            coordinates_velocity=coordinates_velocity,
+            additional_parameters_values=additional_parameters_values,
+            size_batch=size_batch,
+            number_worker=number_worker,
+            hankel=hankel,
+            los_definition=los_definition,
+        )
+    return covariance_dict, number_densities, number_velocities

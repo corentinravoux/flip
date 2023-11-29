@@ -1,13 +1,15 @@
 import itertools
-import numpy as np
-from scipy.special import spherical_jn, factorial
-from flip.covariance.lai22 import h_terms
-from flip.covariance import cov_utils
 import multiprocessing as mp
 from functools import partial
+
+import cosmoprimo
+import numpy as np
 from scipy import integrate
 from scipy.interpolate import interp1d
-import cosmoprimo
+from scipy.special import factorial, spherical_jn
+
+from flip.covariance import cov_utils
+from flip.covariance.lai22 import h_terms
 
 
 def compute_correlation_coefficient_simple_integration(p, q, l, r, k, pk):
@@ -51,6 +53,7 @@ def compute_cov_vv(
     size_batch=10_000,
     number_worker=8,
     hankel=True,
+    los_definition="bisector",
 ):
     if grid_window_v_tt is not None:
         power_spectrum_tt = power_spectrum_tt * grid_window_v_tt**2
@@ -64,7 +67,9 @@ def compute_cov_vv(
         i_list, j_list = cov_utils.compute_i_j(number_objects, batches)
         r_i, ra_i, dec_i = comoving_distance[i_list], ra[i_list], dec[i_list]
         r_j, ra_j, dec_j = comoving_distance[j_list], ra[j_list], dec[j_list]
-        r, theta, phi = cov_utils.angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
+        r, theta, phi = cov_utils.angle_separation(
+            ra_i, ra_j, dec_i, dec_j, r_i, r_j, los_definition=los_definition
+        )
         parameters.append([r, theta, phi])
 
     func = partial(coefficient_vv, wavenumber_tt, power_spectrum_tt, hankel=hankel)
@@ -124,6 +129,7 @@ def compute_cov_gg(
     number_worker=8,
     sig_damp_mm_gg_m=None,
     hankel=True,
+    los_definition="bisector",
 ):
     if grid_window_m_mm is not None:
         power_spectrum_mm = power_spectrum_mm * grid_window_m_mm**2
@@ -145,7 +151,9 @@ def compute_cov_gg(
         i_list, j_list = cov_utils.compute_i_j(number_objects, batches)
         r_i, ra_i, dec_i = comoving_distance[i_list], ra[i_list], dec[i_list]
         r_j, ra_j, dec_j = comoving_distance[j_list], ra[j_list], dec[j_list]
-        r, theta, phi = cov_utils.angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
+        r, theta, phi = cov_utils.angle_separation(
+            ra_i, ra_j, dec_i, dec_j, r_i, r_j, los_definition=los_definition
+        )
         parameters.append([r, theta, phi])
 
     p_index = np.arange(pmax + 1)
@@ -282,6 +290,7 @@ def compute_cov_gg_add(
     number_worker=8,
     sig_damp_mm_gg_m=None,
     hankel=True,
+    los_definition="bisector",
 ):
     if grid_window_m_mm is not None:
         power_spectrum_mm = power_spectrum_mm * grid_window_m_mm**2
@@ -294,7 +303,9 @@ def compute_cov_gg_add(
         i_list, j_list = cov_utils.compute_i_j(number_objects, batches)
         r_i, ra_i, dec_i = comoving_distance[i_list], ra[i_list], dec[i_list]
         r_j, ra_j, dec_j = comoving_distance[j_list], ra[j_list], dec[j_list]
-        r, theta, phi = cov_utils.angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
+        r, theta, phi = cov_utils.angle_separation(
+            ra_i, ra_j, dec_i, dec_j, r_i, r_j, los_definition=los_definition
+        )
         parameters.append([r, theta, phi])
 
     p_index = np.arange(pmax + 1)
@@ -478,6 +489,7 @@ def compute_cov_gv(
     size_batch=10_000,
     number_worker=8,
     hankel=True,
+    los_definition="bisector",
 ):
     if grid_window_m_mt is not None:
         power_spectrum_mt = power_spectrum_mt * grid_window_m_mt
@@ -498,7 +510,9 @@ def compute_cov_gv(
         i_list, j_list = cov_utils.compute_i_j_cross_matrix(number_objects_v, batches)
         r_i, ra_i, dec_i = comoving_distance_g[i_list], ra_g[i_list], dec_g[i_list]
         r_j, ra_j, dec_j = comoving_distance_v[j_list], ra_v[j_list], dec_v[j_list]
-        r, theta, phi = cov_utils.angle_separation(ra_i, ra_j, dec_i, dec_j, r_i, r_j)
+        r, theta, phi = cov_utils.angle_separation(
+            ra_i, ra_j, dec_i, dec_j, r_i, r_j, los_definition=los_definition
+        )
         parameters.append([r, theta, phi])
 
     cov_gv_f2 = []
@@ -624,24 +638,10 @@ def return_full_cov(cov):
     return full_cov
 
 
-def return_full_cov_cross(cov, number_objects_g, number_objects_v):
-    full_cov = cov.reshape((number_objects_g, number_objects_v))
-    return full_cov
-
-
 def return_correlation_matrix(cov):
     sigma = np.sqrt(np.diag(cov))
     corr_matrix = cov / np.outer(sigma, sigma)
     return corr_matrix
-
-
-def save_matrix(matrix, name):
-    np.save(f"{name}.npy", matrix)
-
-
-def open_matrix(name):
-    matrix = np.load(f"{name}.npy")
-    return matrix
 
 
 def compute_all_matrices(
@@ -714,12 +714,12 @@ def compute_all_matrices(
         hankel=hankel,
     )
     cov_gv_bf_m = [
-        return_full_cov_cross(cov_gv_bf[i], ra_density.size, ra_vel.size)
-        for i, m in enumerate(m_index_gv)
+        cov_gv_bf[i].reshape((ra_density.size, ra_vel.size))
+        for i, _ in enumerate(m_index_gv)
     ]
     cov_gv_f2_m = [
-        return_full_cov_cross(cov_gv_f2[i], ra_density.size, ra_vel.size)
-        for i, m in enumerate(m_index_gv)
+        cov_gv_f2[i].reshape((ra_density.size, ra_vel.size))
+        for i, _ in enumerate(m_index_gv)
     ]
 
     cov_vv = return_full_cov(
@@ -746,3 +746,92 @@ def compute_all_matrices(
         m_index_gv,
         cov_vv,
     )
+
+
+def generate_covariance(
+    model_type,
+    power_spectrum_dict,
+    coordinates_velocity=None,
+    coordinates_density=None,
+    pmax=3,
+    qmax=3,
+    **kwargs,
+):
+    """
+    The generate_covariance function generates the covariance matrix for a given model type.
+
+    Args:
+        model_type: Determine which covariance matrices are computed
+        power_spectrum_dict: Pass the power spectrum of the density and velocity fields
+        coordinates_velocity: Pass the coordinates of the velocity field
+        coordinates_density: Define the coordinates of the density field
+        pmax: Set the maximum order of legendre polynomials used to compute the covariance matrix
+        qmax: Set the maximum order of legendre polynomials used in the expansion
+        Wide angle defined in Lai et al. 2022 by the bisector.
+        **kwargs: Pass keyword arguments to the function
+        : Define the model type
+
+    Returns:
+        A dictionary of covariance matrices, the number of density points and the number of velocity points
+    """
+
+    los_definition = "bisector"
+
+    cov_utils.check_generator_need(
+        model_type,
+        coordinates_density,
+        coordinates_velocity,
+    )
+    covariance_dict = {}
+
+    if model_type in ["density", "full", "density_velocity"]:
+        covariance_dict["gg"] = compute_cov_gg(
+            pmax,
+            qmax,
+            coordinates_density[0],
+            coordinates_density[1],
+            coordinates_density[2],
+            power_spectrum_dict["gg"][0][0],
+            power_spectrum_dict["gg"][1][0],
+            power_spectrum_dict["gg"][2][0],
+            power_spectrum_dict["gg"][0][1],
+            power_spectrum_dict["gg"][1][1],
+            power_spectrum_dict["gg"][2][1],
+            los_definition=los_definition,
+            **kwargs,
+        )
+        number_densities = len(coordinates_density[0])
+    else:
+        number_densities = None
+
+    if model_type in ["velocity", "full", "density_velocity"]:
+        covariance_dict["vv"] = compute_cov_vv(
+            coordinates_velocity[0],
+            coordinates_velocity[1],
+            coordinates_velocity[2],
+            power_spectrum_dict["vv"][0][0],
+            power_spectrum_dict["vv"][1][0],
+            los_definition=los_definition,
+            **kwargs,
+        )
+        number_velocities = len(coordinates_velocity[0])
+    else:
+        number_velocities = None
+
+    if model_type == "full":
+        covariance_dict["gv"] = compute_cov_gv(
+            pmax,
+            coordinates_density[0],
+            coordinates_density[1],
+            coordinates_density[2],
+            coordinates_velocity[0],
+            coordinates_velocity[1],
+            coordinates_velocity[2],
+            power_spectrum_dict["gv"][0][0],
+            power_spectrum_dict["gv"][1][0],
+            power_spectrum_dict["gv"][0][1],
+            power_spectrum_dict["gv"][1][1],
+            los_definition=los_definition,
+            **kwargs,
+        )
+    return covariance_dict, number_densities, number_velocities, los_definition

@@ -304,15 +304,14 @@ class FitMinuit(BaseFitter):
             log.add(self.minuit.minos())
 
 
-class FitMcmc:
+class FitMCMC:
     """Class to create and run a MCMC sampler with emcee package."""
 
     def __init__(
         self,
         covariance=None,
         data=None,
-        likelihood=None,
-        sampler=None,
+        likelihood=None
     ):
         """
         The __init__ function is called when the class is instantiated.
@@ -338,6 +337,52 @@ class FitMcmc:
         )
         self.sampler = sampler
 
+    def run_chains(self, file='', nwalkers=None, init=None, sig_init=None, 
+                   number_worker=1, nstep=100, tau_conv=None, progress=False):
+        
+        if os.path.exists(file):
+            log.add("File already exist"
+                    "Initial size: {0}".format(backend.iteration))
+            # Init walkers
+            p0 = None
+        elif (nwalkers is not None & 
+              init is not None & 
+              sig_init is not None):
+            
+            p0 = np.random.normal(loc=init, 
+                                 scale=sig_init,
+                                 size=(nwalkers, self.ndim))
+            if file != '':
+                backend = emcee.backends.HDFBackend(filename)
+                log.add("Create new file to store chains")
+                nwalkers = backend.shape[0]
+            else:
+                backend = None
+        else:
+            raise ValueError("Need to set either a file or nwalkers, init & sig_init")
+        
+        # Run chains
+        tau = np.inf
+        with Pool(number_worker) as pool:
+            sampler = emcee.EnsembleSampler(nwalkers, 
+                                            self.ndim, 
+                                            self.likelihood,
+                                            pool=pool,
+                                            backend=backend)         
+            for sample in sampler.sample(start, 
+                                         iterations=nstep, 
+                                         progress=progress):   
+                if (tau_conv is not None) & (sampler.iteration % 500 == 0):
+                    # Compute tau
+                    tau = sampler.get_autocorr_time(tol=0)
+                    # Check convergence
+                    converged = np.all(tau * 100 < sampler.iteration)
+                    converged &= np.all(np.abs(old_tau - tau) / tau < tau_conv)
+                    if converged:
+                        break
+                    old_tau = tau
+        return sampler
+                     
     @classmethod
     def init_from_covariance(
         cls,
@@ -374,3 +419,7 @@ class FitMcmc:
         # CR - need to add the sampler here.
 
         return mcmc_fitter
+    
+    @property
+    def ndim(self):
+        return len(self.likelihood.parameter_names)

@@ -57,7 +57,7 @@ def compute_coef_gv(k, pk, coord):
     ksep = np.outer(k, sep)
     j1 = spherical_jn(1, ksep)
     res = window_vg(coord[4], coord[5], cos, sep, j1)
-    res = intp(res, k, pk)
+    res = intp(res, k, pk * k)
     return res
 
 

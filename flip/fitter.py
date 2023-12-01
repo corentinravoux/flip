@@ -280,6 +280,7 @@ class FitMinuit(BaseFitter):
         migrad=True,
         hesse=False,
         minos=False,
+        n_iter=1
     ):
         """
         The run function is the main function of the class. It takes in a number of
@@ -297,7 +298,9 @@ class FitMinuit(BaseFitter):
 
         """
         if migrad:
-            log.add(self.minuit.migrad())
+            for i in range(n_iter):
+                log.add(f'Iteration {i}/{n_iter}\n')
+                log.add(self.minuit.migrad())
         if hesse:
             log.add(self.minuit.hesse())
         if minos:

@@ -1,9 +1,34 @@
 import numpy as np
-from scipy.linalg import cho_factor, cho_solve
+import scipy as sc
 
 from flip.utils import create_log
 
 log = create_log()
+
+
+def log_likelihood_gaussian(
+    vector,
+    covariance_sum,
+    inversion_method="inverse",
+):
+    if inversion_method == "inverse":
+        return log_likelihood_gaussian_inverse(vector, covariance_sum)
+    elif inversion_method == "cholesky":
+        return log_likelihood_gaussian_cholesky(vector, covariance_sum)
+
+
+def log_likelihood_gaussian_inverse(vector, covariance_sum):
+    _, logdet = np.linalg.slogdet(covariance_sum)
+    inverse_covariance_sum = np.linalg.inv(covariance_sum)
+    chi2 = np.dot(vector, np.dot(inverse_covariance_sum, vector))
+    return 0.5 * (vector.size * np.log(2 * np.pi) + logdet + chi2)
+
+
+def log_likelihood_gaussian_cholesky(vector, covariance_sum):
+    cholesky = sc.linalg.cho_factor(covariance_sum)
+    logdet = 2 * np.sum(np.log(np.diag(cholesky[0])))
+    chi2 = np.dot(vector, sc.linalg.cho_solve(cholesky, vector))
+    return 0.5 * (vector.size * np.log(2 * np.pi) + logdet + chi2)
 
 
 class BaseLikelihood(object):
@@ -167,7 +192,66 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
             vector_err=vector_err,
         )
 
-    def __call__(self, parameter_values):
+    def __call__(self, parameter_values, inversion_method="inverse"):
+        """
+        The __call__ function is the function that will be called when you call an instance of a class.
+
+        Args:
+            self: Make the function a method of the class
+            parameter_values: Compute the covariance sum
+            inversion_method: Specify the method used to invert the covariance matrix
+
+        Returns:
+            The log likelihood of the gaussian
+        """
+
+        parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
+        covariance_sum = self.covariance.compute_covariance_sum(
+            parameter_values_dict, self.vector_err
+        )
+        return log_likelihood_gaussian(
+            self.vector, covariance_sum, inversion_method=inversion_method
+        )
+
+
+class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
+    def __init__(
+        self,
+        covariance_list=None,
+        parameter_names=None,
+        vector=None,
+        vector_err=None,
+        interpolation_value_range=None,
+    ):
+        """
+        The __init__ function is called when the class is instantiated.
+        It sets up the instance of the class, and defines all its attributes.
+        The __init__ function should always accept at least one argument, self, which refers to the instance of the object being created.
+
+        Args:
+            self: Represent the instance of the class
+            covariance_list: Store the covariance matrix
+            parameter_names: Set the names of the parameters
+            vector: Store the mean of the multivariate gaussian
+            vector_err: Set the error on each of the data points
+            interpolation_value_range: Set the value of the parameter
+            : Define the interpolation value
+
+        Returns:
+            An instance of the class
+        """
+
+        super(MultivariateGaussianLikelihoodInterpolate1D, self).__init__(
+            covariance_list=covariance_list,
+            parameter_names=parameter_names,
+            vector=vector,
+            vector_err=vector_err,
+            interpolation_value_range=interpolation_value_range,
+        )
+
+    def __call__(
+        self, parameter_values, interpolation_value, inversion_method="inverse"
+    ):
         """
         The __call__ function is the function that will be called when you call
         the class instance. It takes a list of parameter values as input and returns
@@ -185,10 +269,106 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         """
         parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
 
-        covariance_sum = self.covariance.compute_covariance_sum(
-            parameter_values_dict, self.vector_err
+        covariance_sum_list = []
+        for i in range(len(self.covariance_list)):
+            covariance_sum_list.append(
+                self.covariance_list[i].compute_covariance_sum(
+                    parameter_values_dict, self.vector_err
+                )
+            )
+        covariance_sum_interpolated = sc.interpolate.interp1d(
+            self.interpolation_value_range, covariance_sum_list, copy=False, axis=0
         )
-        cholesky = cho_factor(covariance_sum)
-        logdet = 2 * np.sum(np.log(np.diag(cholesky[0])))
-        chi2 = np.dot(self.vector, cho_solve(cholesky, self.vector))
-        return 0.5 * (self.vector.size * np.log(2 * np.pi) + logdet + chi2)
+        covariance_sum = covariance_sum_interpolated(interpolation_value)
+
+        return log_likelihood_gaussian(
+            self.vector, covariance_sum, inversion_method=inversion_method
+        )
+
+
+class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
+    def __init__(
+        self,
+        covariance_matrix=None,
+        parameter_names=None,
+        vector=None,
+        vector_err=None,
+        interpolation_value_range_0=None,
+        interpolation_value_range_1=None,
+    ):
+        """
+        The __init__ function is called when the class is instantiated.
+        It sets up the instance of the class, and defines all its attributes.
+        The __init__ function should always accept at least one argument, self, which refers to the instance of the object being created.
+
+        Args:
+            self: Represent the instance of the class
+            covariance_matrix: Store the covariance matrix
+            parameter_names: Set the names of the parameters
+            vector: Store the mean of the multivariate gaussian
+            vector_err: Set the error on each of the data points
+            interpolation_value_range: Set the value of the parameter
+            : Define the interpolation value
+
+        Returns:
+            An instance of the class
+        """
+
+        super(MultivariateGaussianLikelihoodInterpolate1D, self).__init__(
+            covariance_matrix=covariance_matrix,
+            parameter_names=parameter_names,
+            vector=vector,
+            vector_err=vector_err,
+            interpolation_value_range_0=interpolation_value_range_0,
+            interpolation_value_range_1=interpolation_value_range_1,
+        )
+
+    def __call__(
+        self,
+        parameter_values,
+        interpolation_value_0,
+        interpolation_value_1,
+        inversion_method="inverse",
+    ):
+        """
+        The __call__ function is the function that will be called when you call
+        the class instance. It takes a list of parameter values as input and returns
+        the log likelihood value for those parameters. The __call__ function should
+        be written in such a way that it can take any number of parameters, but we'll
+        only ever pass it the number of parameters specified by self.parameter_names.
+
+        Args:
+            self: Access the attributes of the class
+            parameter_values: Create a dictionary of parameter names and values
+
+        Returns:
+            The log-likelihood of the data given a set of parameter values
+
+        """
+        parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
+
+        covariance_sum_matrix = []
+
+        for i in range(len(self.covariance_matrix)):
+            covariance_sum_matrix_i = []
+            for j in range(len(self.covariance_matrix[i])):
+                covariance_sum_matrix_i.append(
+                    self.covariance_matrix[i][j].compute_covariance_sum(
+                        parameter_values_dict, self.vector_err
+                    )
+                )
+            covariance_sum_matrix.append(covariance_sum_matrix_i)
+
+        value_00, value_11 = np.meshgrid(
+            self.interpolation_value_range_0, self.interpolation_value_range_1
+        )
+        covariance_sum_interpolated = sc.interpolate.interp2d(
+            value_00, value_11, covariance_sum_matrix, copy=False
+        )
+        covariance_sum = covariance_sum_interpolated(
+            interpolation_value_0, interpolation_value_1
+        )
+
+        return log_likelihood_gaussian(
+            self.vector, covariance_sum, inversion_method=inversion_method
+        )

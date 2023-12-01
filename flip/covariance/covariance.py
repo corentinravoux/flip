@@ -2,7 +2,6 @@ import time
 
 import numpy as np
 
-from flip.covariance import contraction as contraction_flip
 from flip.covariance import cov_utils
 from flip.covariance import generator as generator_flip
 from flip.covariance.adamsblake17plane import (
@@ -30,10 +29,6 @@ class CovMatrix:
         full_matrix=False,
         number_densities=None,
         number_velocities=None,
-        contraction_covariance_dict=None,
-        contraction_coordinates_dict=None,
-        contraction_basis_definition=None,
-        contraction_los_definition=None,
     ):
         """
         The __init__ function is called when the class is instantiated.
@@ -49,9 +44,6 @@ class CovMatrix:
             full_matrix: Determine whether the covariance matrix is stored as a full matrix or in sparse form
             number_densities: Set the number of density variables in the model
             number_velocities: Set the number of velocities in the model
-            contraction_covariance_dict: Store the contraction
-            contraction_coordinates_dict: Define the coordinates of the contraction
-            : Define the model name
 
         Returns:
             An object of the class
@@ -64,10 +56,6 @@ class CovMatrix:
         self.full_matrix = full_matrix
         self.number_densities = number_densities
         self.number_velocities = number_velocities
-        self.contraction_covariance_dict = contraction_covariance_dict
-        self.contraction_coordinates_dict = contraction_coordinates_dict
-        self.contraction_basis_definition = contraction_basis_definition
-        self.contraction_los_definition = contraction_los_definition
 
     @classmethod
     def init_from_flip(
@@ -214,71 +202,6 @@ class CovMatrix:
 
         """
         log.add(f"Reading from filename not implemented yet")
-
-    @classmethod
-    def init_contraction_from_flip(
-        cls,
-        model_name,
-        model_type,
-        power_spectrum_dict,
-        r_perpendicular,
-        r_parallel,
-        r_reference_perpendicular,
-        r_reference_parallel,
-        additional_parameters_values=None,
-        basis_definition="bisector",
-        los_definition="bisector",
-        **kwargs,
-    ):
-        """
-        The init_contraction_from_flip function is a helper function that allows the user to initialize
-        a Contraction object from an existing FLIP object. This is useful for when you want to use the same
-        FLIP object multiple times, but with different contraction parameters. For example, if you wanted to
-        contract a covariance matrix at two different values of r_perpendicular and r_parallel (e.g., one set of values for calculating the power spectrum and another set of values for calculating correlation functions), then this function would be helpful.
-
-        Args:
-            cls: Create an instance of the class that called this function
-            model_name: Define the model name
-            model_type: Determine the type of model,
-            power_spectrum_dict: Pass the power spectrum to the contraction_flip function
-            r_perpendicular: Define the perpendicular distance from the reference point
-            r_parallel: Define the parallel distance at which to evaluate the correlation function
-            r_reference_perpendicular: Define the reference point for the perpendicular distance
-            r_reference_parallel: Set the reference parallel coordinate
-            additional_parameters_values: Pass in the values of the additional parameters
-            basis_definition: Define the basis of the contraction
-            los_definition: Define the line of sight
-            **kwargs: Pass keyword arguments to the function
-            : Define the model type
-
-        Returns:
-            An instance of the contraction class
-        """
-        (
-            contraction_covariance_dict,
-            contraction_coordinates_dict,
-        ) = contraction_flip.contract_covariance(
-            model_name,
-            model_type,
-            power_spectrum_dict,
-            r_perpendicular,
-            r_parallel,
-            r_reference_perpendicular,
-            r_reference_parallel,
-            additional_parameters_values=additional_parameters_values,
-            basis_definition=basis_definition,
-            los_definition=los_definition,
-            **kwargs,
-        )
-
-        return cls(
-            model_name=model_name,
-            model_type=model_type,
-            contraction_covariance_dict=contraction_covariance_dict,
-            contraction_coordinates_dict=contraction_coordinates_dict,
-            contraction_basis_definition=basis_definition,
-            contraction_los_definition=los_definition,
-        )
 
     @property
     def type(self):
@@ -459,74 +382,6 @@ class CovMatrix:
             log.add(f"Wrong model type in the loaded covariance.")
 
         return covariance_sum
-
-    def compute_contraction_sum(
-        self,
-        parameter_values_dict,
-    ):
-        """
-        The compute_contraction_sum function computes the sum of all the contractions
-            for a given model type and parameter values.
-
-        Args:
-            self: Make the function a method of the class
-            parameter_values_dict: Get the coefficients for each of the covariances
-            : Get the coefficients of the model
-
-        Returns:
-            A dictionary of contraction_covariance_sum
-        """
-        coefficients_dict = eval(f"coefficients_{self.model_name}.get_coefficients")(
-            self.model_type,
-            parameter_values_dict,
-        )
-        contraction_covariance_sum_dict = {}
-        if self.model_type == "density":
-            contraction_covariance_sum_dict["gg"] = np.sum(
-                [
-                    coefficients_dict["gg"][i] * cov
-                    for i, cov in enumerate(self.contraction_covariance_dict["gg"])
-                ],
-                axis=0,
-            )
-
-        elif self.model_type == "velocity":
-            contraction_covariance_sum_dict["vv"] = np.sum(
-                [
-                    coefficients_dict["vv"][i] * cov
-                    for i, cov in enumerate(self.contraction_covariance_dict["vv"])
-                ],
-                axis=0,
-            )
-
-        elif self.model_type in ["density_velocity", "full"]:
-            if self.model_type == "full":
-                contraction_covariance_sum_dict["gv"] = np.sum(
-                    [
-                        coefficients_dict["gv"][i] * cov
-                        for i, cov in enumerate(self.contraction_covariance_dict["gv"])
-                    ],
-                    axis=0,
-                )
-            contraction_covariance_sum_dict["gg"] = np.sum(
-                [
-                    coefficients_dict["gg"][i] * cov
-                    for i, cov in enumerate(self.contraction_covariance_dict["gg"])
-                ],
-                axis=0,
-            )
-
-            contraction_covariance_sum_dict["vv"] = np.sum(
-                [
-                    coefficients_dict["vv"][i] * cov
-                    for i, cov in enumerate(self.contraction_covariance_dict["vv"])
-                ],
-                axis=0,
-            )
-        else:
-            log.add(f"Wrong model type in the loaded covariance.")
-
-        return contraction_covariance_sum_dict
 
     def compute_covariance_sum_eigenvalues(
         self,

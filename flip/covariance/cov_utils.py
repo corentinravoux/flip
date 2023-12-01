@@ -123,6 +123,10 @@ def compute_phi(ra_0, ra_1, dec_0, dec_1, r_0, r_1, los_definition):
     r_x = x_1 - x_0
     r_y = y_1 - y_0
     r_z = z_1 - z_0
+
+    # CR - we chose here r = r1 - r0, this could be the other way.
+    # It should not change the maximum likelihood minimization
+
     r = np.sqrt(r_x**2 + r_y**2 + r_z**2)
     if los_definition == "mean":
         d_x = x_0 + x_1

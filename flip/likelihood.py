@@ -253,15 +253,16 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         self, parameter_values, interpolation_value, inversion_method="inverse"
     ):
         """
-        The __call__ function is the function that will be called when you call
-        the class instance. It takes a list of parameter values as input and returns
-        the log likelihood value for those parameters. The __call__ function should
-        be written in such a way that it can take any number of parameters, but we'll
-        only ever pass it the number of parameters specified by self.parameter_names.
+        The __call__ function is the function that will be called when you call an instance of a class.
+        For example, if you have a class named MyClass and create an instance of it like this:
+        my_instance = MyClass()
+        then calling my_instance(arguments) will execute the __call__ method in your class with arguments as its input.
 
         Args:
-            self: Access the attributes of the class
-            parameter_values: Create a dictionary of parameter names and values
+            self: Refer to the object itself
+            parameter_values: Pass the parameter values to the covariance functions
+            interpolation_value: Interpolate the covariance sum
+            inversion_method: Choose the method used to invert the covariance matrix
 
         Returns:
             The log-likelihood of the data given a set of parameter values
@@ -331,19 +332,18 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
         inversion_method="inverse",
     ):
         """
-        The __call__ function is the function that will be called when you call
-        the class instance. It takes a list of parameter values as input and returns
-        the log likelihood value for those parameters. The __call__ function should
-        be written in such a way that it can take any number of parameters, but we'll
-        only ever pass it the number of parameters specified by self.parameter_names.
+        The __call__ function is the function that will be called when you call an instance of a class.
 
         Args:
-            self: Access the attributes of the class
-            parameter_values: Create a dictionary of parameter names and values
+            self: Refer to the object itself
+            parameter_values: Pass the values of the parameters that we want to compute the likelihood for
+            interpolation_value_0: Interpolate the covariance matrix
+            interpolation_value_1: Interpolate the covariance matrix
+            inversion_method: Determine how the covariance matrix is inverted
+            : Define the range of interpolation values
 
         Returns:
-            The log-likelihood of the data given a set of parameter values
-
+            A value
         """
         parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
 

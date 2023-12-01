@@ -1,19 +1,9 @@
+import importlib
 import time
 
 import numpy as np
 
 from flip.covariance import cov_utils
-from flip.covariance import generator as generator_flip
-from flip.covariance.adamsblake17plane import (
-    coefficients as coefficients_adamsblake17plane,
-)
-from flip.covariance.adamsblake17plane import generator as generator_adamsblake17plane
-from flip.covariance.adamsblake20 import coefficients as coefficients_adamsblake20
-from flip.covariance.carreres23 import coefficients as coefficients_carreres23
-from flip.covariance.carreres23 import generator as generator_carreres23
-from flip.covariance.lai22 import coefficients as coefficients_lai22
-from flip.covariance.lai22 import generator as generator_lai22
-from flip.covariance.ravouxcarreres import coefficients as coefficients_ravouxcarreres
 from flip.utils import create_log
 
 log = create_log()
@@ -93,6 +83,8 @@ class CovMatrix:
 
         """
         begin = time.time()
+        from flip.covariance import generator as generator_flip
+
         (
             covariance_dict,
             number_densities,
@@ -157,9 +149,14 @@ class CovMatrix:
 
         """
         begin = time.time()
-        covariance_dict, number_densities, number_velocities, los_definition = eval(
-            f"generator_{model_name}.generate_covariance"
-        )(
+        generator = importlib.import_module(f"flip.covariance.{model_name}.generator")
+
+        (
+            covariance_dict,
+            number_densities,
+            number_velocities,
+            los_definition,
+        ) = generator.generate_covariance(
             model_type,
             power_spectrum_dict,
             coordinates_density=coordinates_density,
@@ -293,13 +290,15 @@ class CovMatrix:
             The sum of the covariance matrices with their respective coefficients
 
         """
-        coefficients_dict = eval(f"coefficients_{self.model_name}.get_coefficients")(
+        coefficients = importlib.import_module(
+            f"flip.covariance.{self.model_name}.coefficients"
+        )
+
+        coefficients_dict = coefficients.get_coefficients(
             self.model_type,
             parameter_values_dict,
         )
-        coefficients_dict_diagonal = eval(
-            f"coefficients_{self.model_name}.get_diagonal_coefficients"
-        )(
+        coefficients_dict_diagonal = coefficients.get_diagonal_coefficients(
             self.model_type,
             parameter_values_dict,
         )

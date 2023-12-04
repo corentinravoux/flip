@@ -299,7 +299,7 @@ class FitMinuit(BaseFitter):
         """
         if migrad:
             for i in range(n_iter):
-                log.add(f'Iteration {i}/{n_iter}\n')
+                log.add(f'Iteration {i+1}/{n_iter}\n')
                 log.add(self.minuit.migrad())
         if hesse:
             log.add(self.minuit.hesse())

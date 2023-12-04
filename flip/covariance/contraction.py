@@ -1,3 +1,5 @@
+import importlib
+
 import numpy as np
 
 from flip.covariance import generator as generator_flip
@@ -63,8 +65,8 @@ class Contraction:
             An instance of the contraction class
         """
         (
-            contraction_covariance_dict,
-            contraction_coordinates_dict,
+            contraction_dict,
+            coordinates_dict,
         ) = contract_covariance(
             model_name,
             model_type,
@@ -82,10 +84,10 @@ class Contraction:
         return cls(
             model_name=model_name,
             model_type=model_type,
-            contraction_covariance_dict=contraction_covariance_dict,
-            contraction_coordinates_dict=contraction_coordinates_dict,
-            contraction_basis_definition=basis_definition,
-            contraction_los_definition=los_definition,
+            contraction_dict=contraction_dict,
+            coordinates_dict=coordinates_dict,
+            basis_definition=basis_definition,
+            los_definition=los_definition,
         )
 
     @property
@@ -134,7 +136,11 @@ class Contraction:
         Returns:
             A dictionary of contraction_covariance_sum
         """
-        coefficients_dict = eval(f"coefficients_{self.model_name}.get_coefficients")(
+        coefficients = importlib.import_module(
+            f"flip.covariance.{self.model_name}.coefficients"
+        )
+
+        coefficients_dict = coefficients.get_coefficients(
             self.model_type,
             parameter_values_dict,
         )
@@ -143,7 +149,7 @@ class Contraction:
             contraction_covariance_sum_dict["gg"] = np.sum(
                 [
                     coefficients_dict["gg"][i] * cov
-                    for i, cov in enumerate(self.contraction_covariance_dict["gg"])
+                    for i, cov in enumerate(self.contraction_dict["gg"])
                 ],
                 axis=0,
             )
@@ -152,7 +158,7 @@ class Contraction:
             contraction_covariance_sum_dict["vv"] = np.sum(
                 [
                     coefficients_dict["vv"][i] * cov
-                    for i, cov in enumerate(self.contraction_covariance_dict["vv"])
+                    for i, cov in enumerate(self.contraction_dict["vv"])
                 ],
                 axis=0,
             )
@@ -162,14 +168,14 @@ class Contraction:
                 contraction_covariance_sum_dict["gv"] = np.sum(
                     [
                         coefficients_dict["gv"][i] * cov
-                        for i, cov in enumerate(self.contraction_covariance_dict["gv"])
+                        for i, cov in enumerate(self.contraction_dict["gv"])
                     ],
                     axis=0,
                 )
             contraction_covariance_sum_dict["gg"] = np.sum(
                 [
                     coefficients_dict["gg"][i] * cov
-                    for i, cov in enumerate(self.contraction_covariance_dict["gg"])
+                    for i, cov in enumerate(self.contraction_dict["gg"])
                 ],
                 axis=0,
             )
@@ -177,7 +183,7 @@ class Contraction:
             contraction_covariance_sum_dict["vv"] = np.sum(
                 [
                     coefficients_dict["vv"][i] * cov
-                    for i, cov in enumerate(self.contraction_covariance_dict["vv"])
+                    for i, cov in enumerate(self.contraction_dict["vv"])
                 ],
                 axis=0,
             )
@@ -268,9 +274,9 @@ def contract_covariance(
         basis_definition,
         los_definition,
     )
-    contraction_covariance_dict = {}
+    contraction_dict = {}
     if model_type in ["density", "full", "density_velocity"]:
-        contraction_covariance_dict["gg"] = generator_flip.compute_coeficient(
+        contraction_dict["gg"] = generator_flip.compute_coeficient(
             [coordinates],
             model_name,
             "gg",
@@ -281,7 +287,7 @@ def contract_covariance(
         )[:, 1:].reshape(-1, len(r_perpendicular), len(r_parallel))
 
     if model_type in ["velocity", "full", "density_velocity"]:
-        contraction_covariance_dict["vv"] = generator_flip.compute_coeficient(
+        contraction_dict["vv"] = generator_flip.compute_coeficient(
             [coordinates],
             model_name,
             "vv",
@@ -292,7 +298,7 @@ def contract_covariance(
         )[:, 1:].reshape(-1, len(r_perpendicular), len(r_parallel))
 
     if model_type == "full":
-        contraction_covariance_dict["gv"] = generator_flip.compute_coeficient(
+        contraction_dict["gv"] = generator_flip.compute_coeficient(
             [coordinates],
             model_name,
             "gv",
@@ -302,7 +308,7 @@ def contract_covariance(
             hankel=hankel,
         )[:, 1:].reshape(-1, len(r_perpendicular), len(r_parallel))
 
-    contraction_coordinates_dict = {
+    coordinates_dict = {
         "r_perpendicular": coord_rper_rpar[0].reshape(
             len(r_perpendicular), len(r_parallel)
         ),
@@ -311,4 +317,4 @@ def contract_covariance(
         "theta": coordinates[1].reshape(len(r_perpendicular), len(r_parallel)),
         "phi": coordinates[2].reshape(len(r_perpendicular), len(r_parallel)),
     }
-    return contraction_covariance_dict, contraction_coordinates_dict
+    return contraction_dict, coordinates_dict

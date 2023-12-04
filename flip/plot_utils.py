@@ -15,7 +15,6 @@ def plot_1d_contraction(
 
     index_min_perpendicular = np.argmin(np.abs(coord["r_perpendicular"][:, 0]))
     index_min_parallel = np.argmin(np.abs(coord["r_parallel"][0, :]))
-    print(index_min_perpendicular, index_min_parallel)
 
     _, ax = plt.subplots(1, 3, figsize=(17, 5))
 
@@ -102,20 +101,17 @@ def plot_2d_contraction(
 
     if contraction.model_type in ["density", "density_velocity", "full"]:
         xi_gg = contraction_sum["gg"]
-        mask_rmin = np.where(coord["r"] > rmin)
-        xi_gg_plot = np.full(xi_gg.shape, np.nan)
-        xi_gg_plot[mask_rmin] = xi_gg[mask_rmin]
 
         ax_plot = ax[0]
         if rs_multiplied:
             image = ax_plot.imshow(
-                np.transpose(coord["r"] ** 2 * xi_gg_plot),
+                np.transpose(coord["r"] ** 2 * xi_gg),
                 extent=extent,
             )
             ax_plot.set_title(r"$r^2 C_{gg}(r)$", fontsize=15)
         else:
             image = ax_plot.imshow(
-                np.transpose(xi_gg_plot),
+                np.transpose(xi_gg),
                 extent=extent,
             )
             ax_plot.set_title(r"$C_{gg}(r)$", fontsize=15)

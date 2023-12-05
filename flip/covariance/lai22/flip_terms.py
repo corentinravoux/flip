@@ -32,7 +32,7 @@ def M_gg_0_1_2_0():
 
 
 def N_gg_0_1_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_0_1_2_1():
@@ -43,7 +43,7 @@ def M_gg_0_1_2_1():
 
 
 def N_gg_0_1_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_0_2_0_0():
@@ -76,7 +76,7 @@ def M_gg_0_2_2_0():
 
 
 def N_gg_0_2_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_0_2_2_1():
@@ -87,7 +87,7 @@ def M_gg_0_2_2_1():
 
 
 def N_gg_0_2_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_0_2_2_2():
@@ -115,8 +115,8 @@ def M_gg_0_2_4_0():
 
 def N_gg_0_2_4_0(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi - theta)
-        + (315 / 64) * np.cos(4 * phi - 2 * theta)
+        (45 / 16) * np.cos(2 * phi + theta)
+        + (315 / 64) * np.cos(4 * phi + 2 * theta)
         + 81 / 64
     )
 
@@ -147,8 +147,8 @@ def M_gg_0_2_4_2():
 
 def N_gg_0_2_4_2(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi + theta)
-        + (315 / 64) * np.cos(4 * phi + 2 * theta)
+        (45 / 16) * np.cos(2 * phi - theta)
+        + (315 / 64) * np.cos(4 * phi - 2 * theta)
         + 81 / 64
     )
 
@@ -183,7 +183,7 @@ def M_gg_0_3_2_0():
 
 
 def N_gg_0_3_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_0_3_2_1():
@@ -194,7 +194,7 @@ def M_gg_0_3_2_1():
 
 
 def N_gg_0_3_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_0_3_2_2():
@@ -223,9 +223,9 @@ def M_gg_0_3_2_3():
 def N_gg_0_3_2_3(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (225 / 32) * np.cos(2 * phi - 3 * theta)
-        + (225 / 112) * np.cos(2 * phi - theta)
-        + (135 / 224) * np.cos(2 * phi + theta)
+        + (135 / 224) * np.cos(2 * phi - theta)
+        + (225 / 112) * np.cos(2 * phi + theta)
+        + (225 / 32) * np.cos(2 * phi + 3 * theta)
         + 135 / 112
     )
 
@@ -240,9 +240,9 @@ def M_gg_0_3_2_4():
 def N_gg_0_3_2_4(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (135 / 224) * np.cos(2 * phi - theta)
-        + (225 / 112) * np.cos(2 * phi + theta)
-        + (225 / 32) * np.cos(2 * phi + 3 * theta)
+        + (225 / 32) * np.cos(2 * phi - 3 * theta)
+        + (225 / 112) * np.cos(2 * phi - theta)
+        + (135 / 224) * np.cos(2 * phi + theta)
         + 135 / 112
     )
 
@@ -256,8 +256,8 @@ def M_gg_0_3_4_0():
 
 def N_gg_0_3_4_0(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi - theta)
-        + (315 / 64) * np.cos(4 * phi - 2 * theta)
+        (45 / 16) * np.cos(2 * phi + theta)
+        + (315 / 64) * np.cos(4 * phi + 2 * theta)
         + 81 / 64
     )
 
@@ -290,10 +290,10 @@ def N_gg_0_3_4_2(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (675 / 352) * np.cos(2 * phi - 3 * theta)
-        - 225 / 308 * np.cos(2 * phi - theta)
-        + (6075 / 2464) * np.cos(2 * phi + theta)
-        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
+        + (6075 / 2464) * np.cos(2 * phi - theta)
+        - 225 / 308 * np.cos(2 * phi + theta)
+        + (675 / 352) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2464
     )
 
@@ -307,8 +307,8 @@ def M_gg_0_3_4_3():
 
 def N_gg_0_3_4_3(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi + theta)
-        + (315 / 64) * np.cos(4 * phi + 2 * theta)
+        (45 / 16) * np.cos(2 * phi - theta)
+        + (315 / 64) * np.cos(4 * phi - 2 * theta)
         + 81 / 64
     )
 
@@ -324,10 +324,10 @@ def N_gg_0_3_4_4(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (6075 / 2464) * np.cos(2 * phi - theta)
-        - 225 / 308 * np.cos(2 * phi + theta)
-        + (675 / 352) * np.cos(2 * phi + 3 * theta)
-        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
+        + (675 / 352) * np.cos(2 * phi - 3 * theta)
+        - 225 / 308 * np.cos(2 * phi - theta)
+        + (6075 / 2464) * np.cos(2 * phi + theta)
+        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
         - 2025 / 2464
     )
 
@@ -341,9 +341,9 @@ def M_gg_0_3_6_0():
 
 def N_gg_0_3_6_0(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi - theta)
-        + (819 / 256) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        (1365 / 512) * np.cos(2 * phi + theta)
+        + (819 / 256) * np.cos(4 * phi + 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         + 325 / 256
     )
 
@@ -359,11 +359,11 @@ def N_gg_0_3_6_1(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi + theta)
         + 3375 / 2816
     )
 
@@ -379,11 +379,11 @@ def N_gg_0_3_6_2(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi - theta)
         + 3375 / 2816
     )
 
@@ -397,9 +397,9 @@ def M_gg_0_3_6_3():
 
 def N_gg_0_3_6_3(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi + theta)
-        + (819 / 256) * np.cos(4 * phi + 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        (1365 / 512) * np.cos(2 * phi - theta)
+        + (819 / 256) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
         + 325 / 256
     )
 
@@ -445,7 +445,7 @@ def M_gg_0_4_2_0():
 
 
 def N_gg_0_4_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_0_4_2_1():
@@ -456,7 +456,7 @@ def M_gg_0_4_2_1():
 
 
 def N_gg_0_4_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_0_4_2_2():
@@ -485,9 +485,9 @@ def M_gg_0_4_2_3():
 def N_gg_0_4_2_3(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (225 / 32) * np.cos(2 * phi - 3 * theta)
-        + (225 / 112) * np.cos(2 * phi - theta)
-        + (135 / 224) * np.cos(2 * phi + theta)
+        + (135 / 224) * np.cos(2 * phi - theta)
+        + (225 / 112) * np.cos(2 * phi + theta)
+        + (225 / 32) * np.cos(2 * phi + 3 * theta)
         + 135 / 112
     )
 
@@ -502,9 +502,9 @@ def M_gg_0_4_2_4():
 def N_gg_0_4_2_4(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (135 / 224) * np.cos(2 * phi - theta)
-        + (225 / 112) * np.cos(2 * phi + theta)
-        + (225 / 32) * np.cos(2 * phi + 3 * theta)
+        + (225 / 32) * np.cos(2 * phi - 3 * theta)
+        + (225 / 112) * np.cos(2 * phi - theta)
+        + (135 / 224) * np.cos(2 * phi + theta)
         + 135 / 112
     )
 
@@ -537,8 +537,8 @@ def M_gg_0_4_4_0():
 
 def N_gg_0_4_4_0(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi - theta)
-        + (315 / 64) * np.cos(4 * phi - 2 * theta)
+        (45 / 16) * np.cos(2 * phi + theta)
+        + (315 / 64) * np.cos(4 * phi + 2 * theta)
         + 81 / 64
     )
 
@@ -571,10 +571,10 @@ def N_gg_0_4_4_2(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (675 / 352) * np.cos(2 * phi - 3 * theta)
-        - 225 / 308 * np.cos(2 * phi - theta)
-        + (6075 / 2464) * np.cos(2 * phi + theta)
-        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
+        + (6075 / 2464) * np.cos(2 * phi - theta)
+        - 225 / 308 * np.cos(2 * phi + theta)
+        + (675 / 352) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2464
     )
 
@@ -590,11 +590,11 @@ def N_gg_0_4_4_3(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
         + 3375 / 2816
     )
 
@@ -608,8 +608,8 @@ def M_gg_0_4_4_4():
 
 def N_gg_0_4_4_4(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi + theta)
-        + (315 / 64) * np.cos(4 * phi + 2 * theta)
+        (45 / 16) * np.cos(2 * phi - theta)
+        + (315 / 64) * np.cos(4 * phi - 2 * theta)
         + 81 / 64
     )
 
@@ -625,10 +625,10 @@ def N_gg_0_4_4_5(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (6075 / 2464) * np.cos(2 * phi - theta)
-        - 225 / 308 * np.cos(2 * phi + theta)
-        + (675 / 352) * np.cos(2 * phi + 3 * theta)
-        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
+        + (675 / 352) * np.cos(2 * phi - 3 * theta)
+        - 225 / 308 * np.cos(2 * phi - theta)
+        + (6075 / 2464) * np.cos(2 * phi + theta)
+        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
         - 2025 / 2464
     )
 
@@ -666,11 +666,11 @@ def N_gg_0_4_4_7(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
         + 3375 / 2816
     )
 
@@ -684,9 +684,9 @@ def M_gg_0_4_6_0():
 
 def N_gg_0_4_6_0(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi - theta)
-        + (819 / 256) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        (1365 / 512) * np.cos(2 * phi + theta)
+        + (819 / 256) * np.cos(4 * phi + 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         + 325 / 256
     )
 
@@ -702,11 +702,11 @@ def N_gg_0_4_6_1(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi + theta)
         + 3375 / 2816
     )
 
@@ -722,13 +722,13 @@ def N_gg_0_4_6_2(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
-        - 6825 / 5632 * np.cos(2 * phi - theta)
-        + (6825 / 2816) * np.cos(2 * phi + theta)
-        + (819 / 512) * np.cos(4 * phi - 4 * theta)
-        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
-        + (819 / 512) * np.cos(6 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi - theta)
+        - 6825 / 5632 * np.cos(2 * phi + theta)
+        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (819 / 512) * np.cos(4 * phi + 4 * theta)
+        + (819 / 512) * np.cos(6 * phi + theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         - 2275 / 2816
     )
 
@@ -744,11 +744,11 @@ def N_gg_0_4_6_3(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi - theta)
         + 3375 / 2816
     )
 
@@ -784,9 +784,9 @@ def M_gg_0_4_6_5():
 
 def N_gg_0_4_6_5(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi + theta)
-        + (819 / 256) * np.cos(4 * phi + 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        (1365 / 512) * np.cos(2 * phi - theta)
+        + (819 / 256) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
         + 325 / 256
     )
 
@@ -802,13 +802,13 @@ def N_gg_0_4_6_6(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (6825 / 2816) * np.cos(2 * phi - theta)
-        - 6825 / 5632 * np.cos(2 * phi + theta)
-        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (819 / 512) * np.cos(4 * phi + 4 * theta)
-        + (819 / 512) * np.cos(6 * phi + theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
+        - 6825 / 5632 * np.cos(2 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi + theta)
+        + (819 / 512) * np.cos(4 * phi - 4 * theta)
+        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        + (819 / 512) * np.cos(6 * phi - theta)
         - 2275 / 2816
     )
 
@@ -824,14 +824,14 @@ def N_gg_0_4_8_0(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2048) * np.cos(2 * phi - theta)
-        + (1575 / 1024) * np.cos(2 * phi + theta)
-        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
-        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (9009 / 2048) * np.cos(6 * phi - theta)
-        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
+        + (1575 / 1024) * np.cos(2 * phi - theta)
+        + (4725 / 2048) * np.cos(2 * phi + theta)
+        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
+        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
+        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
+        + (9009 / 2048) * np.cos(6 * phi + theta)
+        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
         + 1225 / 1024
     )
 
@@ -872,14 +872,14 @@ def N_gg_0_4_8_2(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (1575 / 1024) * np.cos(2 * phi - theta)
-        + (4725 / 2048) * np.cos(2 * phi + theta)
-        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
-        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
-        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
-        + (9009 / 2048) * np.cos(6 * phi + theta)
-        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
+        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2048) * np.cos(2 * phi - theta)
+        + (1575 / 1024) * np.cos(2 * phi + theta)
+        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
+        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (9009 / 2048) * np.cos(6 * phi - theta)
+        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
         + 1225 / 1024
     )
 
@@ -925,7 +925,7 @@ def M_gg_0_5_2_0():
 
 
 def N_gg_0_5_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_0_5_2_1():
@@ -936,7 +936,7 @@ def M_gg_0_5_2_1():
 
 
 def N_gg_0_5_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_0_5_2_2():
@@ -965,9 +965,9 @@ def M_gg_0_5_2_3():
 def N_gg_0_5_2_3(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (225 / 32) * np.cos(2 * phi - 3 * theta)
-        + (225 / 112) * np.cos(2 * phi - theta)
-        + (135 / 224) * np.cos(2 * phi + theta)
+        + (135 / 224) * np.cos(2 * phi - theta)
+        + (225 / 112) * np.cos(2 * phi + theta)
+        + (225 / 32) * np.cos(2 * phi + 3 * theta)
         + 135 / 112
     )
 
@@ -982,9 +982,9 @@ def M_gg_0_5_2_4():
 def N_gg_0_5_2_4(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (135 / 224) * np.cos(2 * phi - theta)
-        + (225 / 112) * np.cos(2 * phi + theta)
-        + (225 / 32) * np.cos(2 * phi + 3 * theta)
+        + (225 / 32) * np.cos(2 * phi - 3 * theta)
+        + (225 / 112) * np.cos(2 * phi - theta)
+        + (135 / 224) * np.cos(2 * phi + theta)
         + 135 / 112
     )
 
@@ -1019,11 +1019,11 @@ def N_gg_0_5_2_6(theta, phi):
     return (
         (1575 / 704) * np.cos(2 * theta)
         + (4725 / 2816) * np.cos(4 * theta)
-        + (4725 / 512) * np.cos(2 * phi - 5 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 512) * np.cos(2 * phi + 5 * theta)
         + 3375 / 2816
     )
 
@@ -1039,11 +1039,11 @@ def N_gg_0_5_2_7(theta, phi):
     return (
         (1575 / 704) * np.cos(2 * theta)
         + (4725 / 2816) * np.cos(4 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 512) * np.cos(2 * phi + 5 * theta)
+        + (4725 / 512) * np.cos(2 * phi - 5 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
         + 3375 / 2816
     )
 
@@ -1057,8 +1057,8 @@ def M_gg_0_5_4_0():
 
 def N_gg_0_5_4_0(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi - theta)
-        + (315 / 64) * np.cos(4 * phi - 2 * theta)
+        (45 / 16) * np.cos(2 * phi + theta)
+        + (315 / 64) * np.cos(4 * phi + 2 * theta)
         + 81 / 64
     )
 
@@ -1091,10 +1091,10 @@ def N_gg_0_5_4_2(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (675 / 352) * np.cos(2 * phi - 3 * theta)
-        - 225 / 308 * np.cos(2 * phi - theta)
-        + (6075 / 2464) * np.cos(2 * phi + theta)
-        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
+        + (6075 / 2464) * np.cos(2 * phi - theta)
+        - 225 / 308 * np.cos(2 * phi + theta)
+        + (675 / 352) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2464
     )
 
@@ -1110,11 +1110,11 @@ def N_gg_0_5_4_3(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
         + 3375 / 2816
     )
 
@@ -1128,8 +1128,8 @@ def M_gg_0_5_4_4():
 
 def N_gg_0_5_4_4(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi + theta)
-        + (315 / 64) * np.cos(4 * phi + 2 * theta)
+        (45 / 16) * np.cos(2 * phi - theta)
+        + (315 / 64) * np.cos(4 * phi - 2 * theta)
         + 81 / 64
     )
 
@@ -1145,10 +1145,10 @@ def N_gg_0_5_4_5(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (6075 / 2464) * np.cos(2 * phi - theta)
-        - 225 / 308 * np.cos(2 * phi + theta)
-        + (675 / 352) * np.cos(2 * phi + 3 * theta)
-        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
+        + (675 / 352) * np.cos(2 * phi - 3 * theta)
+        - 225 / 308 * np.cos(2 * phi - theta)
+        + (6075 / 2464) * np.cos(2 * phi + theta)
+        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
         - 2025 / 2464
     )
 
@@ -1186,13 +1186,13 @@ def N_gg_0_5_4_7(theta, phi):
     return (
         (4725 / 2816) * np.cos(4 * phi)
         + (8505 / 2816) * np.cos(4 * theta)
-        + (945 / 256) * np.cos(2 * phi - 5 * theta)
-        - 2835 / 1408 * np.cos(2 * phi - 3 * theta)
-        + (225 / 128) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(2 * phi + 3 * theta)
-        + (945 / 256) * np.cos(4 * phi - 4 * theta)
-        + (8505 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (1575 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 2816) * np.cos(2 * phi - 3 * theta)
+        + (225 / 128) * np.cos(2 * phi - theta)
+        - 2835 / 1408 * np.cos(2 * phi + 3 * theta)
+        + (945 / 256) * np.cos(2 * phi + 5 * theta)
+        + (1575 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (8505 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (945 / 256) * np.cos(4 * phi + 4 * theta)
         - 2025 / 2816
     )
 
@@ -1208,11 +1208,11 @@ def N_gg_0_5_4_8(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
         + 3375 / 2816
     )
 
@@ -1228,13 +1228,13 @@ def N_gg_0_5_4_9(theta, phi):
     return (
         (4725 / 2816) * np.cos(4 * phi)
         + (8505 / 2816) * np.cos(4 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - 3 * theta)
-        + (225 / 128) * np.cos(2 * phi - theta)
-        - 2835 / 1408 * np.cos(2 * phi + 3 * theta)
-        + (945 / 256) * np.cos(2 * phi + 5 * theta)
-        + (1575 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (8505 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (945 / 256) * np.cos(4 * phi + 4 * theta)
+        + (945 / 256) * np.cos(2 * phi - 5 * theta)
+        - 2835 / 1408 * np.cos(2 * phi - 3 * theta)
+        + (225 / 128) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(2 * phi + 3 * theta)
+        + (945 / 256) * np.cos(4 * phi - 4 * theta)
+        + (8505 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1575 / 2816) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2816
     )
 
@@ -1248,9 +1248,9 @@ def M_gg_0_5_6_0():
 
 def N_gg_0_5_6_0(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi - theta)
-        + (819 / 256) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        (1365 / 512) * np.cos(2 * phi + theta)
+        + (819 / 256) * np.cos(4 * phi + 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         + 325 / 256
     )
 
@@ -1266,11 +1266,11 @@ def N_gg_0_5_6_1(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi + theta)
         + 3375 / 2816
     )
 
@@ -1286,13 +1286,13 @@ def N_gg_0_5_6_2(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
-        - 6825 / 5632 * np.cos(2 * phi - theta)
-        + (6825 / 2816) * np.cos(2 * phi + theta)
-        + (819 / 512) * np.cos(4 * phi - 4 * theta)
-        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
-        + (819 / 512) * np.cos(6 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi - theta)
+        - 6825 / 5632 * np.cos(2 * phi + theta)
+        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (819 / 512) * np.cos(4 * phi + 4 * theta)
+        + (819 / 512) * np.cos(6 * phi + theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         - 2275 / 2816
     )
 
@@ -1308,11 +1308,11 @@ def N_gg_0_5_6_3(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi - theta)
         + 3375 / 2816
     )
 
@@ -1351,17 +1351,17 @@ def N_gg_0_5_6_5(theta, phi):
         (282555 / 382976) * np.cos(4 * phi)
         - 20475 / 17408 * np.cos(2 * theta)
         + (429975 / 191488) * np.cos(4 * theta)
-        + (85995 / 69632) * np.cos(2 * phi - 5 * theta)
-        + (282555 / 382976) * np.cos(2 * phi - 3 * theta)
-        + (12285 / 69632) * np.cos(2 * phi - theta)
-        - 20475 / 17408 * np.cos(2 * phi + theta)
-        + (1003275 / 382976) * np.cos(2 * phi + 3 * theta)
-        + (110565 / 34816) * np.cos(4 * phi - 4 * theta)
-        - 22113 / 11968 * np.cos(4 * phi - 2 * theta)
-        + (429975 / 191488) * np.cos(4 * phi + 2 * theta)
-        + (243243 / 69632) * np.cos(6 * phi - 3 * theta)
-        + (110565 / 34816) * np.cos(6 * phi - theta)
-        + (85995 / 69632) * np.cos(6 * phi + theta)
+        + (1003275 / 382976) * np.cos(2 * phi - 3 * theta)
+        - 20475 / 17408 * np.cos(2 * phi - theta)
+        + (12285 / 69632) * np.cos(2 * phi + theta)
+        + (282555 / 382976) * np.cos(2 * phi + 3 * theta)
+        + (85995 / 69632) * np.cos(2 * phi + 5 * theta)
+        + (429975 / 191488) * np.cos(4 * phi - 2 * theta)
+        - 22113 / 11968 * np.cos(4 * phi + 2 * theta)
+        + (110565 / 34816) * np.cos(4 * phi + 4 * theta)
+        + (85995 / 69632) * np.cos(6 * phi - theta)
+        + (110565 / 34816) * np.cos(6 * phi + theta)
+        + (243243 / 69632) * np.cos(6 * phi + 3 * theta)
         + 61425 / 95744
     )
 
@@ -1375,9 +1375,9 @@ def M_gg_0_5_6_6():
 
 def N_gg_0_5_6_6(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi + theta)
-        + (819 / 256) * np.cos(4 * phi + 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        (1365 / 512) * np.cos(2 * phi - theta)
+        + (819 / 256) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
         + 325 / 256
     )
 
@@ -1393,13 +1393,13 @@ def N_gg_0_5_6_7(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (6825 / 2816) * np.cos(2 * phi - theta)
-        - 6825 / 5632 * np.cos(2 * phi + theta)
-        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (819 / 512) * np.cos(4 * phi + 4 * theta)
-        + (819 / 512) * np.cos(6 * phi + theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
+        - 6825 / 5632 * np.cos(2 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi + theta)
+        + (819 / 512) * np.cos(4 * phi - 4 * theta)
+        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        + (819 / 512) * np.cos(6 * phi - theta)
         - 2275 / 2816
     )
 
@@ -1416,17 +1416,17 @@ def N_gg_0_5_6_8(theta, phi):
         (282555 / 382976) * np.cos(4 * phi)
         - 20475 / 17408 * np.cos(2 * theta)
         + (429975 / 191488) * np.cos(4 * theta)
-        + (1003275 / 382976) * np.cos(2 * phi - 3 * theta)
-        - 20475 / 17408 * np.cos(2 * phi - theta)
-        + (12285 / 69632) * np.cos(2 * phi + theta)
-        + (282555 / 382976) * np.cos(2 * phi + 3 * theta)
-        + (85995 / 69632) * np.cos(2 * phi + 5 * theta)
-        + (429975 / 191488) * np.cos(4 * phi - 2 * theta)
-        - 22113 / 11968 * np.cos(4 * phi + 2 * theta)
-        + (110565 / 34816) * np.cos(4 * phi + 4 * theta)
-        + (85995 / 69632) * np.cos(6 * phi - theta)
-        + (110565 / 34816) * np.cos(6 * phi + theta)
-        + (243243 / 69632) * np.cos(6 * phi + 3 * theta)
+        + (85995 / 69632) * np.cos(2 * phi - 5 * theta)
+        + (282555 / 382976) * np.cos(2 * phi - 3 * theta)
+        + (12285 / 69632) * np.cos(2 * phi - theta)
+        - 20475 / 17408 * np.cos(2 * phi + theta)
+        + (1003275 / 382976) * np.cos(2 * phi + 3 * theta)
+        + (110565 / 34816) * np.cos(4 * phi - 4 * theta)
+        - 22113 / 11968 * np.cos(4 * phi - 2 * theta)
+        + (429975 / 191488) * np.cos(4 * phi + 2 * theta)
+        + (243243 / 69632) * np.cos(6 * phi - 3 * theta)
+        + (110565 / 34816) * np.cos(6 * phi - theta)
+        + (85995 / 69632) * np.cos(6 * phi + theta)
         + 61425 / 95744
     )
 
@@ -1442,14 +1442,14 @@ def N_gg_0_5_8_0(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2048) * np.cos(2 * phi - theta)
-        + (1575 / 1024) * np.cos(2 * phi + theta)
-        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
-        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (9009 / 2048) * np.cos(6 * phi - theta)
-        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
+        + (1575 / 1024) * np.cos(2 * phi - theta)
+        + (4725 / 2048) * np.cos(2 * phi + theta)
+        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
+        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
+        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
+        + (9009 / 2048) * np.cos(6 * phi + theta)
+        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
         + 1225 / 1024
     )
 
@@ -1492,18 +1492,18 @@ def N_gg_0_5_8_2(theta, phi):
         + (257985 / 77824) * np.cos(8 * phi)
         + (1289925 / 856064) * np.cos(2 * theta)
         + (694575 / 856064) * np.cos(4 * theta)
-        + (19845 / 77824) * np.cos(2 * phi - 5 * theta)
-        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
-        - 552825 / 856064 * np.cos(2 * phi - theta)
-        + (14175 / 53504) * np.cos(2 * phi + theta)
-        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
-        + (93555 / 77824) * np.cos(4 * phi - 4 * theta)
-        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
-        - 36855 / 19456 * np.cos(6 * phi - theta)
-        + (257985 / 77824) * np.cos(6 * phi + theta)
-        + (405405 / 77824) * np.cos(8 * phi - 2 * theta)
+        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
+        + (14175 / 53504) * np.cos(2 * phi - theta)
+        - 552825 / 856064 * np.cos(2 * phi + theta)
+        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
+        + (19845 / 77824) * np.cos(2 * phi + 5 * theta)
+        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (93555 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (257985 / 77824) * np.cos(6 * phi - theta)
+        - 36855 / 19456 * np.cos(6 * phi + theta)
+        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
+        + (405405 / 77824) * np.cos(8 * phi + 2 * theta)
         - 297675 / 428032
     )
 
@@ -1519,14 +1519,14 @@ def N_gg_0_5_8_3(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (1575 / 1024) * np.cos(2 * phi - theta)
-        + (4725 / 2048) * np.cos(2 * phi + theta)
-        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
-        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
-        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
-        + (9009 / 2048) * np.cos(6 * phi + theta)
-        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
+        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2048) * np.cos(2 * phi - theta)
+        + (1575 / 1024) * np.cos(2 * phi + theta)
+        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
+        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (9009 / 2048) * np.cos(6 * phi - theta)
+        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
         + 1225 / 1024
     )
 
@@ -1544,18 +1544,18 @@ def N_gg_0_5_8_4(theta, phi):
         + (257985 / 77824) * np.cos(8 * phi)
         + (1289925 / 856064) * np.cos(2 * theta)
         + (694575 / 856064) * np.cos(4 * theta)
-        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
-        + (14175 / 53504) * np.cos(2 * phi - theta)
-        - 552825 / 856064 * np.cos(2 * phi + theta)
-        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
-        + (19845 / 77824) * np.cos(2 * phi + 5 * theta)
-        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (93555 / 77824) * np.cos(4 * phi + 4 * theta)
-        + (257985 / 77824) * np.cos(6 * phi - theta)
-        - 36855 / 19456 * np.cos(6 * phi + theta)
-        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
-        + (405405 / 77824) * np.cos(8 * phi + 2 * theta)
+        + (19845 / 77824) * np.cos(2 * phi - 5 * theta)
+        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
+        - 552825 / 856064 * np.cos(2 * phi - theta)
+        + (14175 / 53504) * np.cos(2 * phi + theta)
+        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
+        + (93555 / 77824) * np.cos(4 * phi - 4 * theta)
+        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
+        - 36855 / 19456 * np.cos(6 * phi - theta)
+        + (257985 / 77824) * np.cos(6 * phi + theta)
+        + (405405 / 77824) * np.cos(8 * phi - 2 * theta)
         - 297675 / 428032
     )
 
@@ -1568,36 +1568,6 @@ def M_gg_0_5_10_0():
 
 
 def N_gg_0_5_10_0(theta, phi):
-    return (
-        (14189175 / 5292032) * np.cos(4 * phi)
-        + (2837835 / 622592) * np.cos(8 * phi)
-        + (6251175 / 5292032) * np.cos(2 * theta)
-        + (1250235 / 10584064) * np.cos(4 * theta)
-        + (509355 / 21168128) * np.cos(2 * phi - 5 * theta)
-        + (1528065 / 2646016) * np.cos(2 * phi - 3 * theta)
-        + (22920975 / 10584064) * np.cos(2 * phi - theta)
-        + (2546775 / 1323008) * np.cos(2 * phi + theta)
-        + (7640325 / 21168128) * np.cos(2 * phi + 3 * theta)
-        + (945945 / 5292032) * np.cos(4 * phi - 4 * theta)
-        + (8513505 / 5292032) * np.cos(4 * phi - 2 * theta)
-        + (4729725 / 5292032) * np.cos(4 * phi + 2 * theta)
-        + (8513505 / 10584064) * np.cos(6 * phi - 3 * theta)
-        + (8513505 / 2646016) * np.cos(6 * phi - theta)
-        + (42567525 / 21168128) * np.cos(6 * phi + theta)
-        + (945945 / 311296) * np.cos(8 * phi - 2 * theta)
-        + (945945 / 65536) * np.cos(10 * phi - theta)
-        + 6251175 / 5292032
-    )
-
-
-def M_gg_0_5_10_1():
-    def func(k):
-        return -1 / 2837835 * k**10
-
-    return func
-
-
-def N_gg_0_5_10_1(theta, phi):
     return (
         (14189175 / 5292032) * np.cos(4 * phi)
         + (2837835 / 622592) * np.cos(8 * phi)
@@ -1616,6 +1586,36 @@ def N_gg_0_5_10_1(theta, phi):
         + (8513505 / 10584064) * np.cos(6 * phi + 3 * theta)
         + (945945 / 311296) * np.cos(8 * phi + 2 * theta)
         + (945945 / 65536) * np.cos(10 * phi + theta)
+        + 6251175 / 5292032
+    )
+
+
+def M_gg_0_5_10_1():
+    def func(k):
+        return -1 / 2837835 * k**10
+
+    return func
+
+
+def N_gg_0_5_10_1(theta, phi):
+    return (
+        (14189175 / 5292032) * np.cos(4 * phi)
+        + (2837835 / 622592) * np.cos(8 * phi)
+        + (6251175 / 5292032) * np.cos(2 * theta)
+        + (1250235 / 10584064) * np.cos(4 * theta)
+        + (509355 / 21168128) * np.cos(2 * phi - 5 * theta)
+        + (1528065 / 2646016) * np.cos(2 * phi - 3 * theta)
+        + (22920975 / 10584064) * np.cos(2 * phi - theta)
+        + (2546775 / 1323008) * np.cos(2 * phi + theta)
+        + (7640325 / 21168128) * np.cos(2 * phi + 3 * theta)
+        + (945945 / 5292032) * np.cos(4 * phi - 4 * theta)
+        + (8513505 / 5292032) * np.cos(4 * phi - 2 * theta)
+        + (4729725 / 5292032) * np.cos(4 * phi + 2 * theta)
+        + (8513505 / 10584064) * np.cos(6 * phi - 3 * theta)
+        + (8513505 / 2646016) * np.cos(6 * phi - theta)
+        + (42567525 / 21168128) * np.cos(6 * phi + theta)
+        + (945945 / 311296) * np.cos(8 * phi - 2 * theta)
+        + (945945 / 65536) * np.cos(10 * phi - theta)
         + 6251175 / 5292032
     )
 
@@ -1677,7 +1677,7 @@ def M_gg_0_6_2_0():
 
 
 def N_gg_0_6_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_0_6_2_1():
@@ -1688,7 +1688,7 @@ def M_gg_0_6_2_1():
 
 
 def N_gg_0_6_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_0_6_2_2():
@@ -1717,9 +1717,9 @@ def M_gg_0_6_2_3():
 def N_gg_0_6_2_3(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (225 / 32) * np.cos(2 * phi - 3 * theta)
-        + (225 / 112) * np.cos(2 * phi - theta)
-        + (135 / 224) * np.cos(2 * phi + theta)
+        + (135 / 224) * np.cos(2 * phi - theta)
+        + (225 / 112) * np.cos(2 * phi + theta)
+        + (225 / 32) * np.cos(2 * phi + 3 * theta)
         + 135 / 112
     )
 
@@ -1734,9 +1734,9 @@ def M_gg_0_6_2_4():
 def N_gg_0_6_2_4(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (135 / 224) * np.cos(2 * phi - theta)
-        + (225 / 112) * np.cos(2 * phi + theta)
-        + (225 / 32) * np.cos(2 * phi + 3 * theta)
+        + (225 / 32) * np.cos(2 * phi - 3 * theta)
+        + (225 / 112) * np.cos(2 * phi - theta)
+        + (135 / 224) * np.cos(2 * phi + theta)
         + 135 / 112
     )
 
@@ -1771,11 +1771,11 @@ def N_gg_0_6_2_6(theta, phi):
     return (
         (1575 / 704) * np.cos(2 * theta)
         + (4725 / 2816) * np.cos(4 * theta)
-        + (4725 / 512) * np.cos(2 * phi - 5 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 512) * np.cos(2 * phi + 5 * theta)
         + 3375 / 2816
     )
 
@@ -1791,11 +1791,11 @@ def N_gg_0_6_2_7(theta, phi):
     return (
         (1575 / 704) * np.cos(2 * theta)
         + (4725 / 2816) * np.cos(4 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 512) * np.cos(2 * phi + 5 * theta)
+        + (4725 / 512) * np.cos(2 * phi - 5 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
         + 3375 / 2816
     )
 
@@ -1831,8 +1831,8 @@ def M_gg_0_6_4_0():
 
 def N_gg_0_6_4_0(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi - theta)
-        + (315 / 64) * np.cos(4 * phi - 2 * theta)
+        (45 / 16) * np.cos(2 * phi + theta)
+        + (315 / 64) * np.cos(4 * phi + 2 * theta)
         + 81 / 64
     )
 
@@ -1865,10 +1865,10 @@ def N_gg_0_6_4_2(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (675 / 352) * np.cos(2 * phi - 3 * theta)
-        - 225 / 308 * np.cos(2 * phi - theta)
-        + (6075 / 2464) * np.cos(2 * phi + theta)
-        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
+        + (6075 / 2464) * np.cos(2 * phi - theta)
+        - 225 / 308 * np.cos(2 * phi + theta)
+        + (675 / 352) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2464
     )
 
@@ -1884,11 +1884,11 @@ def N_gg_0_6_4_3(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
         + 3375 / 2816
     )
 
@@ -1902,8 +1902,8 @@ def M_gg_0_6_4_4():
 
 def N_gg_0_6_4_4(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi + theta)
-        + (315 / 64) * np.cos(4 * phi + 2 * theta)
+        (45 / 16) * np.cos(2 * phi - theta)
+        + (315 / 64) * np.cos(4 * phi - 2 * theta)
         + 81 / 64
     )
 
@@ -1919,10 +1919,10 @@ def N_gg_0_6_4_5(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (6075 / 2464) * np.cos(2 * phi - theta)
-        - 225 / 308 * np.cos(2 * phi + theta)
-        + (675 / 352) * np.cos(2 * phi + 3 * theta)
-        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
+        + (675 / 352) * np.cos(2 * phi - 3 * theta)
+        - 225 / 308 * np.cos(2 * phi - theta)
+        + (6075 / 2464) * np.cos(2 * phi + theta)
+        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
         - 2025 / 2464
     )
 
@@ -1960,13 +1960,13 @@ def N_gg_0_6_4_7(theta, phi):
     return (
         (4725 / 2816) * np.cos(4 * phi)
         + (8505 / 2816) * np.cos(4 * theta)
-        + (945 / 256) * np.cos(2 * phi - 5 * theta)
-        - 2835 / 1408 * np.cos(2 * phi - 3 * theta)
-        + (225 / 128) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(2 * phi + 3 * theta)
-        + (945 / 256) * np.cos(4 * phi - 4 * theta)
-        + (8505 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (1575 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 2816) * np.cos(2 * phi - 3 * theta)
+        + (225 / 128) * np.cos(2 * phi - theta)
+        - 2835 / 1408 * np.cos(2 * phi + 3 * theta)
+        + (945 / 256) * np.cos(2 * phi + 5 * theta)
+        + (1575 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (8505 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (945 / 256) * np.cos(4 * phi + 4 * theta)
         - 2025 / 2816
     )
 
@@ -1982,11 +1982,11 @@ def N_gg_0_6_4_8(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
         + 3375 / 2816
     )
 
@@ -2002,13 +2002,13 @@ def N_gg_0_6_4_9(theta, phi):
     return (
         (4725 / 2816) * np.cos(4 * phi)
         + (8505 / 2816) * np.cos(4 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - 3 * theta)
-        + (225 / 128) * np.cos(2 * phi - theta)
-        - 2835 / 1408 * np.cos(2 * phi + 3 * theta)
-        + (945 / 256) * np.cos(2 * phi + 5 * theta)
-        + (1575 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (8505 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (945 / 256) * np.cos(4 * phi + 4 * theta)
+        + (945 / 256) * np.cos(2 * phi - 5 * theta)
+        - 2835 / 1408 * np.cos(2 * phi - 3 * theta)
+        + (225 / 128) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(2 * phi + 3 * theta)
+        + (945 / 256) * np.cos(4 * phi - 4 * theta)
+        + (8505 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1575 / 2816) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2816
     )
 
@@ -2049,9 +2049,9 @@ def M_gg_0_6_6_0():
 
 def N_gg_0_6_6_0(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi - theta)
-        + (819 / 256) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        (1365 / 512) * np.cos(2 * phi + theta)
+        + (819 / 256) * np.cos(4 * phi + 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         + 325 / 256
     )
 
@@ -2067,11 +2067,11 @@ def N_gg_0_6_6_1(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi + theta)
         + 3375 / 2816
     )
 
@@ -2087,13 +2087,13 @@ def N_gg_0_6_6_2(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
-        - 6825 / 5632 * np.cos(2 * phi - theta)
-        + (6825 / 2816) * np.cos(2 * phi + theta)
-        + (819 / 512) * np.cos(4 * phi - 4 * theta)
-        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
-        + (819 / 512) * np.cos(6 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi - theta)
+        - 6825 / 5632 * np.cos(2 * phi + theta)
+        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (819 / 512) * np.cos(4 * phi + 4 * theta)
+        + (819 / 512) * np.cos(6 * phi + theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         - 2275 / 2816
     )
 
@@ -2109,11 +2109,11 @@ def N_gg_0_6_6_3(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi - theta)
         + 3375 / 2816
     )
 
@@ -2152,17 +2152,17 @@ def N_gg_0_6_6_5(theta, phi):
         (282555 / 382976) * np.cos(4 * phi)
         - 20475 / 17408 * np.cos(2 * theta)
         + (429975 / 191488) * np.cos(4 * theta)
-        + (85995 / 69632) * np.cos(2 * phi - 5 * theta)
-        + (282555 / 382976) * np.cos(2 * phi - 3 * theta)
-        + (12285 / 69632) * np.cos(2 * phi - theta)
-        - 20475 / 17408 * np.cos(2 * phi + theta)
-        + (1003275 / 382976) * np.cos(2 * phi + 3 * theta)
-        + (110565 / 34816) * np.cos(4 * phi - 4 * theta)
-        - 22113 / 11968 * np.cos(4 * phi - 2 * theta)
-        + (429975 / 191488) * np.cos(4 * phi + 2 * theta)
-        + (243243 / 69632) * np.cos(6 * phi - 3 * theta)
-        + (110565 / 34816) * np.cos(6 * phi - theta)
-        + (85995 / 69632) * np.cos(6 * phi + theta)
+        + (1003275 / 382976) * np.cos(2 * phi - 3 * theta)
+        - 20475 / 17408 * np.cos(2 * phi - theta)
+        + (12285 / 69632) * np.cos(2 * phi + theta)
+        + (282555 / 382976) * np.cos(2 * phi + 3 * theta)
+        + (85995 / 69632) * np.cos(2 * phi + 5 * theta)
+        + (429975 / 191488) * np.cos(4 * phi - 2 * theta)
+        - 22113 / 11968 * np.cos(4 * phi + 2 * theta)
+        + (110565 / 34816) * np.cos(4 * phi + 4 * theta)
+        + (85995 / 69632) * np.cos(6 * phi - theta)
+        + (110565 / 34816) * np.cos(6 * phi + theta)
+        + (243243 / 69632) * np.cos(6 * phi + 3 * theta)
         + 61425 / 95744
     )
 
@@ -2176,9 +2176,9 @@ def M_gg_0_6_6_6():
 
 def N_gg_0_6_6_6(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi + theta)
-        + (819 / 256) * np.cos(4 * phi + 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        (1365 / 512) * np.cos(2 * phi - theta)
+        + (819 / 256) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
         + 325 / 256
     )
 
@@ -2194,13 +2194,13 @@ def N_gg_0_6_6_7(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (6825 / 2816) * np.cos(2 * phi - theta)
-        - 6825 / 5632 * np.cos(2 * phi + theta)
-        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (819 / 512) * np.cos(4 * phi + 4 * theta)
-        + (819 / 512) * np.cos(6 * phi + theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
+        - 6825 / 5632 * np.cos(2 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi + theta)
+        + (819 / 512) * np.cos(4 * phi - 4 * theta)
+        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        + (819 / 512) * np.cos(6 * phi - theta)
         - 2275 / 2816
     )
 
@@ -2217,17 +2217,17 @@ def N_gg_0_6_6_8(theta, phi):
         (282555 / 382976) * np.cos(4 * phi)
         - 20475 / 17408 * np.cos(2 * theta)
         + (429975 / 191488) * np.cos(4 * theta)
-        + (1003275 / 382976) * np.cos(2 * phi - 3 * theta)
-        - 20475 / 17408 * np.cos(2 * phi - theta)
-        + (12285 / 69632) * np.cos(2 * phi + theta)
-        + (282555 / 382976) * np.cos(2 * phi + 3 * theta)
-        + (85995 / 69632) * np.cos(2 * phi + 5 * theta)
-        + (429975 / 191488) * np.cos(4 * phi - 2 * theta)
-        - 22113 / 11968 * np.cos(4 * phi + 2 * theta)
-        + (110565 / 34816) * np.cos(4 * phi + 4 * theta)
-        + (85995 / 69632) * np.cos(6 * phi - theta)
-        + (110565 / 34816) * np.cos(6 * phi + theta)
-        + (243243 / 69632) * np.cos(6 * phi + 3 * theta)
+        + (85995 / 69632) * np.cos(2 * phi - 5 * theta)
+        + (282555 / 382976) * np.cos(2 * phi - 3 * theta)
+        + (12285 / 69632) * np.cos(2 * phi - theta)
+        - 20475 / 17408 * np.cos(2 * phi + theta)
+        + (1003275 / 382976) * np.cos(2 * phi + 3 * theta)
+        + (110565 / 34816) * np.cos(4 * phi - 4 * theta)
+        - 22113 / 11968 * np.cos(4 * phi - 2 * theta)
+        + (429975 / 191488) * np.cos(4 * phi + 2 * theta)
+        + (243243 / 69632) * np.cos(6 * phi - 3 * theta)
+        + (110565 / 34816) * np.cos(6 * phi - theta)
+        + (85995 / 69632) * np.cos(6 * phi + theta)
         + 61425 / 95744
     )
 
@@ -2274,14 +2274,14 @@ def N_gg_0_6_8_0(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2048) * np.cos(2 * phi - theta)
-        + (1575 / 1024) * np.cos(2 * phi + theta)
-        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
-        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (9009 / 2048) * np.cos(6 * phi - theta)
-        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
+        + (1575 / 1024) * np.cos(2 * phi - theta)
+        + (4725 / 2048) * np.cos(2 * phi + theta)
+        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
+        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
+        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
+        + (9009 / 2048) * np.cos(6 * phi + theta)
+        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
         + 1225 / 1024
     )
 
@@ -2324,18 +2324,18 @@ def N_gg_0_6_8_2(theta, phi):
         + (257985 / 77824) * np.cos(8 * phi)
         + (1289925 / 856064) * np.cos(2 * theta)
         + (694575 / 856064) * np.cos(4 * theta)
-        + (19845 / 77824) * np.cos(2 * phi - 5 * theta)
-        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
-        - 552825 / 856064 * np.cos(2 * phi - theta)
-        + (14175 / 53504) * np.cos(2 * phi + theta)
-        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
-        + (93555 / 77824) * np.cos(4 * phi - 4 * theta)
-        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
-        - 36855 / 19456 * np.cos(6 * phi - theta)
-        + (257985 / 77824) * np.cos(6 * phi + theta)
-        + (405405 / 77824) * np.cos(8 * phi - 2 * theta)
+        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
+        + (14175 / 53504) * np.cos(2 * phi - theta)
+        - 552825 / 856064 * np.cos(2 * phi + theta)
+        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
+        + (19845 / 77824) * np.cos(2 * phi + 5 * theta)
+        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (93555 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (257985 / 77824) * np.cos(6 * phi - theta)
+        - 36855 / 19456 * np.cos(6 * phi + theta)
+        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
+        + (405405 / 77824) * np.cos(8 * phi + 2 * theta)
         - 297675 / 428032
     )
 
@@ -2351,14 +2351,14 @@ def N_gg_0_6_8_3(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (1575 / 1024) * np.cos(2 * phi - theta)
-        + (4725 / 2048) * np.cos(2 * phi + theta)
-        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
-        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
-        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
-        + (9009 / 2048) * np.cos(6 * phi + theta)
-        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
+        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2048) * np.cos(2 * phi - theta)
+        + (1575 / 1024) * np.cos(2 * phi + theta)
+        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
+        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (9009 / 2048) * np.cos(6 * phi - theta)
+        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
         + 1225 / 1024
     )
 
@@ -2376,18 +2376,18 @@ def N_gg_0_6_8_4(theta, phi):
         + (257985 / 77824) * np.cos(8 * phi)
         + (1289925 / 856064) * np.cos(2 * theta)
         + (694575 / 856064) * np.cos(4 * theta)
-        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
-        + (14175 / 53504) * np.cos(2 * phi - theta)
-        - 552825 / 856064 * np.cos(2 * phi + theta)
-        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
-        + (19845 / 77824) * np.cos(2 * phi + 5 * theta)
-        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (93555 / 77824) * np.cos(4 * phi + 4 * theta)
-        + (257985 / 77824) * np.cos(6 * phi - theta)
-        - 36855 / 19456 * np.cos(6 * phi + theta)
-        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
-        + (405405 / 77824) * np.cos(8 * phi + 2 * theta)
+        + (19845 / 77824) * np.cos(2 * phi - 5 * theta)
+        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
+        - 552825 / 856064 * np.cos(2 * phi - theta)
+        + (14175 / 53504) * np.cos(2 * phi + theta)
+        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
+        + (93555 / 77824) * np.cos(4 * phi - 4 * theta)
+        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
+        - 36855 / 19456 * np.cos(6 * phi - theta)
+        + (257985 / 77824) * np.cos(6 * phi + theta)
+        + (405405 / 77824) * np.cos(8 * phi - 2 * theta)
         - 297675 / 428032
     )
 
@@ -2439,19 +2439,19 @@ def N_gg_0_6_10_0(theta, phi):
         + (2837835 / 622592) * np.cos(8 * phi)
         + (6251175 / 5292032) * np.cos(2 * theta)
         + (1250235 / 10584064) * np.cos(4 * theta)
-        + (509355 / 21168128) * np.cos(2 * phi - 5 * theta)
-        + (1528065 / 2646016) * np.cos(2 * phi - 3 * theta)
-        + (22920975 / 10584064) * np.cos(2 * phi - theta)
-        + (2546775 / 1323008) * np.cos(2 * phi + theta)
-        + (7640325 / 21168128) * np.cos(2 * phi + 3 * theta)
-        + (945945 / 5292032) * np.cos(4 * phi - 4 * theta)
-        + (8513505 / 5292032) * np.cos(4 * phi - 2 * theta)
-        + (4729725 / 5292032) * np.cos(4 * phi + 2 * theta)
-        + (8513505 / 10584064) * np.cos(6 * phi - 3 * theta)
-        + (8513505 / 2646016) * np.cos(6 * phi - theta)
-        + (42567525 / 21168128) * np.cos(6 * phi + theta)
-        + (945945 / 311296) * np.cos(8 * phi - 2 * theta)
-        + (945945 / 65536) * np.cos(10 * phi - theta)
+        + (7640325 / 21168128) * np.cos(2 * phi - 3 * theta)
+        + (2546775 / 1323008) * np.cos(2 * phi - theta)
+        + (22920975 / 10584064) * np.cos(2 * phi + theta)
+        + (1528065 / 2646016) * np.cos(2 * phi + 3 * theta)
+        + (509355 / 21168128) * np.cos(2 * phi + 5 * theta)
+        + (4729725 / 5292032) * np.cos(4 * phi - 2 * theta)
+        + (8513505 / 5292032) * np.cos(4 * phi + 2 * theta)
+        + (945945 / 5292032) * np.cos(4 * phi + 4 * theta)
+        + (42567525 / 21168128) * np.cos(6 * phi - theta)
+        + (8513505 / 2646016) * np.cos(6 * phi + theta)
+        + (8513505 / 10584064) * np.cos(6 * phi + 3 * theta)
+        + (945945 / 311296) * np.cos(8 * phi + 2 * theta)
+        + (945945 / 65536) * np.cos(10 * phi + theta)
         + 6251175 / 5292032
     )
 
@@ -2469,19 +2469,19 @@ def N_gg_0_6_10_1(theta, phi):
         + (2837835 / 622592) * np.cos(8 * phi)
         + (6251175 / 5292032) * np.cos(2 * theta)
         + (1250235 / 10584064) * np.cos(4 * theta)
-        + (7640325 / 21168128) * np.cos(2 * phi - 3 * theta)
-        + (2546775 / 1323008) * np.cos(2 * phi - theta)
-        + (22920975 / 10584064) * np.cos(2 * phi + theta)
-        + (1528065 / 2646016) * np.cos(2 * phi + 3 * theta)
-        + (509355 / 21168128) * np.cos(2 * phi + 5 * theta)
-        + (4729725 / 5292032) * np.cos(4 * phi - 2 * theta)
-        + (8513505 / 5292032) * np.cos(4 * phi + 2 * theta)
-        + (945945 / 5292032) * np.cos(4 * phi + 4 * theta)
-        + (42567525 / 21168128) * np.cos(6 * phi - theta)
-        + (8513505 / 2646016) * np.cos(6 * phi + theta)
-        + (8513505 / 10584064) * np.cos(6 * phi + 3 * theta)
-        + (945945 / 311296) * np.cos(8 * phi + 2 * theta)
-        + (945945 / 65536) * np.cos(10 * phi + theta)
+        + (509355 / 21168128) * np.cos(2 * phi - 5 * theta)
+        + (1528065 / 2646016) * np.cos(2 * phi - 3 * theta)
+        + (22920975 / 10584064) * np.cos(2 * phi - theta)
+        + (2546775 / 1323008) * np.cos(2 * phi + theta)
+        + (7640325 / 21168128) * np.cos(2 * phi + 3 * theta)
+        + (945945 / 5292032) * np.cos(4 * phi - 4 * theta)
+        + (8513505 / 5292032) * np.cos(4 * phi - 2 * theta)
+        + (4729725 / 5292032) * np.cos(4 * phi + 2 * theta)
+        + (8513505 / 10584064) * np.cos(6 * phi - 3 * theta)
+        + (8513505 / 2646016) * np.cos(6 * phi - theta)
+        + (42567525 / 21168128) * np.cos(6 * phi + theta)
+        + (945945 / 311296) * np.cos(8 * phi - 2 * theta)
+        + (945945 / 65536) * np.cos(10 * phi - theta)
         + 6251175 / 5292032
     )
 
@@ -2578,7 +2578,7 @@ def M_gg_1_0_2_0():
 
 
 def N_gg_1_0_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_1_0_2_1():
@@ -2589,7 +2589,7 @@ def M_gg_1_0_2_1():
 
 
 def N_gg_1_0_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_1_1_0_0():
@@ -2622,7 +2622,7 @@ def M_gg_1_1_2_0():
 
 
 def N_gg_1_1_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_1_1_2_1():
@@ -2633,7 +2633,7 @@ def M_gg_1_1_2_1():
 
 
 def N_gg_1_1_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_1_1_2_2():
@@ -2661,8 +2661,8 @@ def M_gg_1_1_4_0():
 
 def N_gg_1_1_4_0(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi - theta)
-        + (315 / 64) * np.cos(4 * phi - 2 * theta)
+        (45 / 16) * np.cos(2 * phi + theta)
+        + (315 / 64) * np.cos(4 * phi + 2 * theta)
         + 81 / 64
     )
 
@@ -2693,8 +2693,8 @@ def M_gg_1_1_4_2():
 
 def N_gg_1_1_4_2(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi + theta)
-        + (315 / 64) * np.cos(4 * phi + 2 * theta)
+        (45 / 16) * np.cos(2 * phi - theta)
+        + (315 / 64) * np.cos(4 * phi - 2 * theta)
         + 81 / 64
     )
 
@@ -2729,7 +2729,7 @@ def M_gg_1_2_2_0():
 
 
 def N_gg_1_2_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_1_2_2_1():
@@ -2740,7 +2740,7 @@ def M_gg_1_2_2_1():
 
 
 def N_gg_1_2_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_1_2_2_2():
@@ -2769,9 +2769,9 @@ def M_gg_1_2_2_3():
 def N_gg_1_2_2_3(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (225 / 32) * np.cos(2 * phi - 3 * theta)
-        + (225 / 112) * np.cos(2 * phi - theta)
-        + (135 / 224) * np.cos(2 * phi + theta)
+        + (135 / 224) * np.cos(2 * phi - theta)
+        + (225 / 112) * np.cos(2 * phi + theta)
+        + (225 / 32) * np.cos(2 * phi + 3 * theta)
         + 135 / 112
     )
 
@@ -2786,9 +2786,9 @@ def M_gg_1_2_2_4():
 def N_gg_1_2_2_4(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (135 / 224) * np.cos(2 * phi - theta)
-        + (225 / 112) * np.cos(2 * phi + theta)
-        + (225 / 32) * np.cos(2 * phi + 3 * theta)
+        + (225 / 32) * np.cos(2 * phi - 3 * theta)
+        + (225 / 112) * np.cos(2 * phi - theta)
+        + (135 / 224) * np.cos(2 * phi + theta)
         + 135 / 112
     )
 
@@ -2802,8 +2802,8 @@ def M_gg_1_2_4_0():
 
 def N_gg_1_2_4_0(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi - theta)
-        + (315 / 64) * np.cos(4 * phi - 2 * theta)
+        (45 / 16) * np.cos(2 * phi + theta)
+        + (315 / 64) * np.cos(4 * phi + 2 * theta)
         + 81 / 64
     )
 
@@ -2836,10 +2836,10 @@ def N_gg_1_2_4_2(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (675 / 352) * np.cos(2 * phi - 3 * theta)
-        - 225 / 308 * np.cos(2 * phi - theta)
-        + (6075 / 2464) * np.cos(2 * phi + theta)
-        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
+        + (6075 / 2464) * np.cos(2 * phi - theta)
+        - 225 / 308 * np.cos(2 * phi + theta)
+        + (675 / 352) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2464
     )
 
@@ -2853,8 +2853,8 @@ def M_gg_1_2_4_3():
 
 def N_gg_1_2_4_3(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi + theta)
-        + (315 / 64) * np.cos(4 * phi + 2 * theta)
+        (45 / 16) * np.cos(2 * phi - theta)
+        + (315 / 64) * np.cos(4 * phi - 2 * theta)
         + 81 / 64
     )
 
@@ -2870,10 +2870,10 @@ def N_gg_1_2_4_4(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (6075 / 2464) * np.cos(2 * phi - theta)
-        - 225 / 308 * np.cos(2 * phi + theta)
-        + (675 / 352) * np.cos(2 * phi + 3 * theta)
-        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
+        + (675 / 352) * np.cos(2 * phi - 3 * theta)
+        - 225 / 308 * np.cos(2 * phi - theta)
+        + (6075 / 2464) * np.cos(2 * phi + theta)
+        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
         - 2025 / 2464
     )
 
@@ -2887,9 +2887,9 @@ def M_gg_1_2_6_0():
 
 def N_gg_1_2_6_0(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi - theta)
-        + (819 / 256) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        (1365 / 512) * np.cos(2 * phi + theta)
+        + (819 / 256) * np.cos(4 * phi + 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         + 325 / 256
     )
 
@@ -2905,11 +2905,11 @@ def N_gg_1_2_6_1(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi + theta)
         + 3375 / 2816
     )
 
@@ -2925,11 +2925,11 @@ def N_gg_1_2_6_2(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi - theta)
         + 3375 / 2816
     )
 
@@ -2943,9 +2943,9 @@ def M_gg_1_2_6_3():
 
 def N_gg_1_2_6_3(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi + theta)
-        + (819 / 256) * np.cos(4 * phi + 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        (1365 / 512) * np.cos(2 * phi - theta)
+        + (819 / 256) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
         + 325 / 256
     )
 
@@ -2991,7 +2991,7 @@ def M_gg_1_3_2_0():
 
 
 def N_gg_1_3_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_1_3_2_1():
@@ -3002,7 +3002,7 @@ def M_gg_1_3_2_1():
 
 
 def N_gg_1_3_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_1_3_2_2():
@@ -3031,9 +3031,9 @@ def M_gg_1_3_2_3():
 def N_gg_1_3_2_3(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (225 / 32) * np.cos(2 * phi - 3 * theta)
-        + (225 / 112) * np.cos(2 * phi - theta)
-        + (135 / 224) * np.cos(2 * phi + theta)
+        + (135 / 224) * np.cos(2 * phi - theta)
+        + (225 / 112) * np.cos(2 * phi + theta)
+        + (225 / 32) * np.cos(2 * phi + 3 * theta)
         + 135 / 112
     )
 
@@ -3048,9 +3048,9 @@ def M_gg_1_3_2_4():
 def N_gg_1_3_2_4(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (135 / 224) * np.cos(2 * phi - theta)
-        + (225 / 112) * np.cos(2 * phi + theta)
-        + (225 / 32) * np.cos(2 * phi + 3 * theta)
+        + (225 / 32) * np.cos(2 * phi - 3 * theta)
+        + (225 / 112) * np.cos(2 * phi - theta)
+        + (135 / 224) * np.cos(2 * phi + theta)
         + 135 / 112
     )
 
@@ -3083,8 +3083,8 @@ def M_gg_1_3_4_0():
 
 def N_gg_1_3_4_0(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi - theta)
-        + (315 / 64) * np.cos(4 * phi - 2 * theta)
+        (45 / 16) * np.cos(2 * phi + theta)
+        + (315 / 64) * np.cos(4 * phi + 2 * theta)
         + 81 / 64
     )
 
@@ -3117,10 +3117,10 @@ def N_gg_1_3_4_2(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (675 / 352) * np.cos(2 * phi - 3 * theta)
-        - 225 / 308 * np.cos(2 * phi - theta)
-        + (6075 / 2464) * np.cos(2 * phi + theta)
-        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
+        + (6075 / 2464) * np.cos(2 * phi - theta)
+        - 225 / 308 * np.cos(2 * phi + theta)
+        + (675 / 352) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2464
     )
 
@@ -3136,11 +3136,11 @@ def N_gg_1_3_4_3(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
         + 3375 / 2816
     )
 
@@ -3154,8 +3154,8 @@ def M_gg_1_3_4_4():
 
 def N_gg_1_3_4_4(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi + theta)
-        + (315 / 64) * np.cos(4 * phi + 2 * theta)
+        (45 / 16) * np.cos(2 * phi - theta)
+        + (315 / 64) * np.cos(4 * phi - 2 * theta)
         + 81 / 64
     )
 
@@ -3171,10 +3171,10 @@ def N_gg_1_3_4_5(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (6075 / 2464) * np.cos(2 * phi - theta)
-        - 225 / 308 * np.cos(2 * phi + theta)
-        + (675 / 352) * np.cos(2 * phi + 3 * theta)
-        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
+        + (675 / 352) * np.cos(2 * phi - 3 * theta)
+        - 225 / 308 * np.cos(2 * phi - theta)
+        + (6075 / 2464) * np.cos(2 * phi + theta)
+        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
         - 2025 / 2464
     )
 
@@ -3212,11 +3212,11 @@ def N_gg_1_3_4_7(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
         + 3375 / 2816
     )
 
@@ -3230,9 +3230,9 @@ def M_gg_1_3_6_0():
 
 def N_gg_1_3_6_0(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi - theta)
-        + (819 / 256) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        (1365 / 512) * np.cos(2 * phi + theta)
+        + (819 / 256) * np.cos(4 * phi + 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         + 325 / 256
     )
 
@@ -3248,11 +3248,11 @@ def N_gg_1_3_6_1(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi + theta)
         + 3375 / 2816
     )
 
@@ -3268,13 +3268,13 @@ def N_gg_1_3_6_2(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
-        - 6825 / 5632 * np.cos(2 * phi - theta)
-        + (6825 / 2816) * np.cos(2 * phi + theta)
-        + (819 / 512) * np.cos(4 * phi - 4 * theta)
-        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
-        + (819 / 512) * np.cos(6 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi - theta)
+        - 6825 / 5632 * np.cos(2 * phi + theta)
+        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (819 / 512) * np.cos(4 * phi + 4 * theta)
+        + (819 / 512) * np.cos(6 * phi + theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         - 2275 / 2816
     )
 
@@ -3290,11 +3290,11 @@ def N_gg_1_3_6_3(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi - theta)
         + 3375 / 2816
     )
 
@@ -3330,9 +3330,9 @@ def M_gg_1_3_6_5():
 
 def N_gg_1_3_6_5(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi + theta)
-        + (819 / 256) * np.cos(4 * phi + 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        (1365 / 512) * np.cos(2 * phi - theta)
+        + (819 / 256) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
         + 325 / 256
     )
 
@@ -3348,13 +3348,13 @@ def N_gg_1_3_6_6(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (6825 / 2816) * np.cos(2 * phi - theta)
-        - 6825 / 5632 * np.cos(2 * phi + theta)
-        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (819 / 512) * np.cos(4 * phi + 4 * theta)
-        + (819 / 512) * np.cos(6 * phi + theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
+        - 6825 / 5632 * np.cos(2 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi + theta)
+        + (819 / 512) * np.cos(4 * phi - 4 * theta)
+        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        + (819 / 512) * np.cos(6 * phi - theta)
         - 2275 / 2816
     )
 
@@ -3368,10 +3368,10 @@ def M_gg_1_3_8_0():
 
 def N_gg_1_3_8_0(theta, phi):
     return (
-        (5355 / 2048) * np.cos(2 * phi - theta)
-        + (11781 / 4096) * np.cos(4 * phi - 2 * theta)
-        + (7293 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (109395 / 16384) * np.cos(8 * phi - 4 * theta)
+        (5355 / 2048) * np.cos(2 * phi + theta)
+        + (11781 / 4096) * np.cos(4 * phi + 2 * theta)
+        + (7293 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (109395 / 16384) * np.cos(8 * phi + 4 * theta)
         + 20825 / 16384
     )
 
@@ -3387,14 +3387,14 @@ def N_gg_1_3_8_1(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2048) * np.cos(2 * phi - theta)
-        + (1575 / 1024) * np.cos(2 * phi + theta)
-        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
-        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (9009 / 2048) * np.cos(6 * phi - theta)
-        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
+        + (1575 / 1024) * np.cos(2 * phi - theta)
+        + (4725 / 2048) * np.cos(2 * phi + theta)
+        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
+        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
+        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
+        + (9009 / 2048) * np.cos(6 * phi + theta)
+        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
         + 1225 / 1024
     )
 
@@ -3435,14 +3435,14 @@ def N_gg_1_3_8_3(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (1575 / 1024) * np.cos(2 * phi - theta)
-        + (4725 / 2048) * np.cos(2 * phi + theta)
-        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
-        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
-        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
-        + (9009 / 2048) * np.cos(6 * phi + theta)
-        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
+        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2048) * np.cos(2 * phi - theta)
+        + (1575 / 1024) * np.cos(2 * phi + theta)
+        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
+        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (9009 / 2048) * np.cos(6 * phi - theta)
+        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
         + 1225 / 1024
     )
 
@@ -3456,10 +3456,10 @@ def M_gg_1_3_8_4():
 
 def N_gg_1_3_8_4(theta, phi):
     return (
-        (5355 / 2048) * np.cos(2 * phi + theta)
-        + (11781 / 4096) * np.cos(4 * phi + 2 * theta)
-        + (7293 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (109395 / 16384) * np.cos(8 * phi + 4 * theta)
+        (5355 / 2048) * np.cos(2 * phi - theta)
+        + (11781 / 4096) * np.cos(4 * phi - 2 * theta)
+        + (7293 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (109395 / 16384) * np.cos(8 * phi - 4 * theta)
         + 20825 / 16384
     )
 
@@ -3505,7 +3505,7 @@ def M_gg_1_4_2_0():
 
 
 def N_gg_1_4_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_1_4_2_1():
@@ -3516,7 +3516,7 @@ def M_gg_1_4_2_1():
 
 
 def N_gg_1_4_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_1_4_2_2():
@@ -3545,9 +3545,9 @@ def M_gg_1_4_2_3():
 def N_gg_1_4_2_3(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (225 / 32) * np.cos(2 * phi - 3 * theta)
-        + (225 / 112) * np.cos(2 * phi - theta)
-        + (135 / 224) * np.cos(2 * phi + theta)
+        + (135 / 224) * np.cos(2 * phi - theta)
+        + (225 / 112) * np.cos(2 * phi + theta)
+        + (225 / 32) * np.cos(2 * phi + 3 * theta)
         + 135 / 112
     )
 
@@ -3562,9 +3562,9 @@ def M_gg_1_4_2_4():
 def N_gg_1_4_2_4(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (135 / 224) * np.cos(2 * phi - theta)
-        + (225 / 112) * np.cos(2 * phi + theta)
-        + (225 / 32) * np.cos(2 * phi + 3 * theta)
+        + (225 / 32) * np.cos(2 * phi - 3 * theta)
+        + (225 / 112) * np.cos(2 * phi - theta)
+        + (135 / 224) * np.cos(2 * phi + theta)
         + 135 / 112
     )
 
@@ -3599,11 +3599,11 @@ def N_gg_1_4_2_6(theta, phi):
     return (
         (1575 / 704) * np.cos(2 * theta)
         + (4725 / 2816) * np.cos(4 * theta)
-        + (4725 / 512) * np.cos(2 * phi - 5 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 512) * np.cos(2 * phi + 5 * theta)
         + 3375 / 2816
     )
 
@@ -3619,11 +3619,11 @@ def N_gg_1_4_2_7(theta, phi):
     return (
         (1575 / 704) * np.cos(2 * theta)
         + (4725 / 2816) * np.cos(4 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 512) * np.cos(2 * phi + 5 * theta)
+        + (4725 / 512) * np.cos(2 * phi - 5 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
         + 3375 / 2816
     )
 
@@ -3637,8 +3637,8 @@ def M_gg_1_4_4_0():
 
 def N_gg_1_4_4_0(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi - theta)
-        + (315 / 64) * np.cos(4 * phi - 2 * theta)
+        (45 / 16) * np.cos(2 * phi + theta)
+        + (315 / 64) * np.cos(4 * phi + 2 * theta)
         + 81 / 64
     )
 
@@ -3671,10 +3671,10 @@ def N_gg_1_4_4_2(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (675 / 352) * np.cos(2 * phi - 3 * theta)
-        - 225 / 308 * np.cos(2 * phi - theta)
-        + (6075 / 2464) * np.cos(2 * phi + theta)
-        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
+        + (6075 / 2464) * np.cos(2 * phi - theta)
+        - 225 / 308 * np.cos(2 * phi + theta)
+        + (675 / 352) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2464
     )
 
@@ -3690,11 +3690,11 @@ def N_gg_1_4_4_3(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
         + 3375 / 2816
     )
 
@@ -3708,8 +3708,8 @@ def M_gg_1_4_4_4():
 
 def N_gg_1_4_4_4(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi + theta)
-        + (315 / 64) * np.cos(4 * phi + 2 * theta)
+        (45 / 16) * np.cos(2 * phi - theta)
+        + (315 / 64) * np.cos(4 * phi - 2 * theta)
         + 81 / 64
     )
 
@@ -3725,10 +3725,10 @@ def N_gg_1_4_4_5(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (6075 / 2464) * np.cos(2 * phi - theta)
-        - 225 / 308 * np.cos(2 * phi + theta)
-        + (675 / 352) * np.cos(2 * phi + 3 * theta)
-        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
+        + (675 / 352) * np.cos(2 * phi - 3 * theta)
+        - 225 / 308 * np.cos(2 * phi - theta)
+        + (6075 / 2464) * np.cos(2 * phi + theta)
+        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
         - 2025 / 2464
     )
 
@@ -3766,13 +3766,13 @@ def N_gg_1_4_4_7(theta, phi):
     return (
         (4725 / 2816) * np.cos(4 * phi)
         + (8505 / 2816) * np.cos(4 * theta)
-        + (945 / 256) * np.cos(2 * phi - 5 * theta)
-        - 2835 / 1408 * np.cos(2 * phi - 3 * theta)
-        + (225 / 128) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(2 * phi + 3 * theta)
-        + (945 / 256) * np.cos(4 * phi - 4 * theta)
-        + (8505 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (1575 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 2816) * np.cos(2 * phi - 3 * theta)
+        + (225 / 128) * np.cos(2 * phi - theta)
+        - 2835 / 1408 * np.cos(2 * phi + 3 * theta)
+        + (945 / 256) * np.cos(2 * phi + 5 * theta)
+        + (1575 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (8505 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (945 / 256) * np.cos(4 * phi + 4 * theta)
         - 2025 / 2816
     )
 
@@ -3788,11 +3788,11 @@ def N_gg_1_4_4_8(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
         + 3375 / 2816
     )
 
@@ -3808,13 +3808,13 @@ def N_gg_1_4_4_9(theta, phi):
     return (
         (4725 / 2816) * np.cos(4 * phi)
         + (8505 / 2816) * np.cos(4 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - 3 * theta)
-        + (225 / 128) * np.cos(2 * phi - theta)
-        - 2835 / 1408 * np.cos(2 * phi + 3 * theta)
-        + (945 / 256) * np.cos(2 * phi + 5 * theta)
-        + (1575 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (8505 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (945 / 256) * np.cos(4 * phi + 4 * theta)
+        + (945 / 256) * np.cos(2 * phi - 5 * theta)
+        - 2835 / 1408 * np.cos(2 * phi - 3 * theta)
+        + (225 / 128) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(2 * phi + 3 * theta)
+        + (945 / 256) * np.cos(4 * phi - 4 * theta)
+        + (8505 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1575 / 2816) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2816
     )
 
@@ -3828,9 +3828,9 @@ def M_gg_1_4_6_0():
 
 def N_gg_1_4_6_0(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi - theta)
-        + (819 / 256) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        (1365 / 512) * np.cos(2 * phi + theta)
+        + (819 / 256) * np.cos(4 * phi + 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         + 325 / 256
     )
 
@@ -3846,11 +3846,11 @@ def N_gg_1_4_6_1(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi + theta)
         + 3375 / 2816
     )
 
@@ -3866,13 +3866,13 @@ def N_gg_1_4_6_2(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
-        - 6825 / 5632 * np.cos(2 * phi - theta)
-        + (6825 / 2816) * np.cos(2 * phi + theta)
-        + (819 / 512) * np.cos(4 * phi - 4 * theta)
-        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
-        + (819 / 512) * np.cos(6 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi - theta)
+        - 6825 / 5632 * np.cos(2 * phi + theta)
+        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (819 / 512) * np.cos(4 * phi + 4 * theta)
+        + (819 / 512) * np.cos(6 * phi + theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         - 2275 / 2816
     )
 
@@ -3888,14 +3888,14 @@ def N_gg_1_4_6_3(theta, phi):
     return (
         (945 / 2048) * np.cos(4 * phi)
         + (1575 / 1024) * np.cos(2 * theta)
-        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2048) * np.cos(2 * phi - theta)
-        + (3675 / 4096) * np.cos(2 * phi + theta)
-        + (9009 / 2048) * np.cos(4 * phi - 4 * theta)
-        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
-        + (45045 / 4096) * np.cos(6 * phi - 5 * theta)
-        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (693 / 4096) * np.cos(6 * phi - theta)
+        + (3675 / 4096) * np.cos(2 * phi - theta)
+        + (4725 / 2048) * np.cos(2 * phi + theta)
+        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
+        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
+        + (9009 / 2048) * np.cos(4 * phi + 4 * theta)
+        + (693 / 4096) * np.cos(6 * phi + theta)
+        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (45045 / 4096) * np.cos(6 * phi + 5 * theta)
         + 1225 / 1024
     )
 
@@ -3911,11 +3911,11 @@ def N_gg_1_4_6_4(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi - theta)
         + 3375 / 2816
     )
 
@@ -3954,17 +3954,17 @@ def N_gg_1_4_6_6(theta, phi):
         (282555 / 382976) * np.cos(4 * phi)
         - 20475 / 17408 * np.cos(2 * theta)
         + (429975 / 191488) * np.cos(4 * theta)
-        + (85995 / 69632) * np.cos(2 * phi - 5 * theta)
-        + (282555 / 382976) * np.cos(2 * phi - 3 * theta)
-        + (12285 / 69632) * np.cos(2 * phi - theta)
-        - 20475 / 17408 * np.cos(2 * phi + theta)
-        + (1003275 / 382976) * np.cos(2 * phi + 3 * theta)
-        + (110565 / 34816) * np.cos(4 * phi - 4 * theta)
-        - 22113 / 11968 * np.cos(4 * phi - 2 * theta)
-        + (429975 / 191488) * np.cos(4 * phi + 2 * theta)
-        + (243243 / 69632) * np.cos(6 * phi - 3 * theta)
-        + (110565 / 34816) * np.cos(6 * phi - theta)
-        + (85995 / 69632) * np.cos(6 * phi + theta)
+        + (1003275 / 382976) * np.cos(2 * phi - 3 * theta)
+        - 20475 / 17408 * np.cos(2 * phi - theta)
+        + (12285 / 69632) * np.cos(2 * phi + theta)
+        + (282555 / 382976) * np.cos(2 * phi + 3 * theta)
+        + (85995 / 69632) * np.cos(2 * phi + 5 * theta)
+        + (429975 / 191488) * np.cos(4 * phi - 2 * theta)
+        - 22113 / 11968 * np.cos(4 * phi + 2 * theta)
+        + (110565 / 34816) * np.cos(4 * phi + 4 * theta)
+        + (85995 / 69632) * np.cos(6 * phi - theta)
+        + (110565 / 34816) * np.cos(6 * phi + theta)
+        + (243243 / 69632) * np.cos(6 * phi + 3 * theta)
         + 61425 / 95744
     )
 
@@ -3978,9 +3978,9 @@ def M_gg_1_4_6_7():
 
 def N_gg_1_4_6_7(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi + theta)
-        + (819 / 256) * np.cos(4 * phi + 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        (1365 / 512) * np.cos(2 * phi - theta)
+        + (819 / 256) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
         + 325 / 256
     )
 
@@ -3996,13 +3996,13 @@ def N_gg_1_4_6_8(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (6825 / 2816) * np.cos(2 * phi - theta)
-        - 6825 / 5632 * np.cos(2 * phi + theta)
-        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (819 / 512) * np.cos(4 * phi + 4 * theta)
-        + (819 / 512) * np.cos(6 * phi + theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
+        - 6825 / 5632 * np.cos(2 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi + theta)
+        + (819 / 512) * np.cos(4 * phi - 4 * theta)
+        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        + (819 / 512) * np.cos(6 * phi - theta)
         - 2275 / 2816
     )
 
@@ -4019,17 +4019,17 @@ def N_gg_1_4_6_9(theta, phi):
         (282555 / 382976) * np.cos(4 * phi)
         - 20475 / 17408 * np.cos(2 * theta)
         + (429975 / 191488) * np.cos(4 * theta)
-        + (1003275 / 382976) * np.cos(2 * phi - 3 * theta)
-        - 20475 / 17408 * np.cos(2 * phi - theta)
-        + (12285 / 69632) * np.cos(2 * phi + theta)
-        + (282555 / 382976) * np.cos(2 * phi + 3 * theta)
-        + (85995 / 69632) * np.cos(2 * phi + 5 * theta)
-        + (429975 / 191488) * np.cos(4 * phi - 2 * theta)
-        - 22113 / 11968 * np.cos(4 * phi + 2 * theta)
-        + (110565 / 34816) * np.cos(4 * phi + 4 * theta)
-        + (85995 / 69632) * np.cos(6 * phi - theta)
-        + (110565 / 34816) * np.cos(6 * phi + theta)
-        + (243243 / 69632) * np.cos(6 * phi + 3 * theta)
+        + (85995 / 69632) * np.cos(2 * phi - 5 * theta)
+        + (282555 / 382976) * np.cos(2 * phi - 3 * theta)
+        + (12285 / 69632) * np.cos(2 * phi - theta)
+        - 20475 / 17408 * np.cos(2 * phi + theta)
+        + (1003275 / 382976) * np.cos(2 * phi + 3 * theta)
+        + (110565 / 34816) * np.cos(4 * phi - 4 * theta)
+        - 22113 / 11968 * np.cos(4 * phi - 2 * theta)
+        + (429975 / 191488) * np.cos(4 * phi + 2 * theta)
+        + (243243 / 69632) * np.cos(6 * phi - 3 * theta)
+        + (110565 / 34816) * np.cos(6 * phi - theta)
+        + (85995 / 69632) * np.cos(6 * phi + theta)
         + 61425 / 95744
     )
 
@@ -4045,14 +4045,14 @@ def N_gg_1_4_6_10(theta, phi):
     return (
         (945 / 2048) * np.cos(4 * phi)
         + (1575 / 1024) * np.cos(2 * theta)
-        + (3675 / 4096) * np.cos(2 * phi - theta)
-        + (4725 / 2048) * np.cos(2 * phi + theta)
-        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
-        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
-        + (9009 / 2048) * np.cos(4 * phi + 4 * theta)
-        + (693 / 4096) * np.cos(6 * phi + theta)
-        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (45045 / 4096) * np.cos(6 * phi + 5 * theta)
+        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2048) * np.cos(2 * phi - theta)
+        + (3675 / 4096) * np.cos(2 * phi + theta)
+        + (9009 / 2048) * np.cos(4 * phi - 4 * theta)
+        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
+        + (45045 / 4096) * np.cos(6 * phi - 5 * theta)
+        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (693 / 4096) * np.cos(6 * phi - theta)
         + 1225 / 1024
     )
 
@@ -4066,10 +4066,10 @@ def M_gg_1_4_8_0():
 
 def N_gg_1_4_8_0(theta, phi):
     return (
-        (5355 / 2048) * np.cos(2 * phi - theta)
-        + (11781 / 4096) * np.cos(4 * phi - 2 * theta)
-        + (7293 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (109395 / 16384) * np.cos(8 * phi - 4 * theta)
+        (5355 / 2048) * np.cos(2 * phi + theta)
+        + (11781 / 4096) * np.cos(4 * phi + 2 * theta)
+        + (7293 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (109395 / 16384) * np.cos(8 * phi + 4 * theta)
         + 20825 / 16384
     )
 
@@ -4085,14 +4085,14 @@ def N_gg_1_4_8_1(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2048) * np.cos(2 * phi - theta)
-        + (1575 / 1024) * np.cos(2 * phi + theta)
-        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
-        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (9009 / 2048) * np.cos(6 * phi - theta)
-        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
+        + (1575 / 1024) * np.cos(2 * phi - theta)
+        + (4725 / 2048) * np.cos(2 * phi + theta)
+        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
+        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
+        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
+        + (9009 / 2048) * np.cos(6 * phi + theta)
+        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
         + 1225 / 1024
     )
 
@@ -4108,16 +4108,16 @@ def N_gg_1_4_8_2(theta, phi):
     return (
         (176715 / 77824) * np.cos(4 * phi)
         + (187425 / 77824) * np.cos(2 * theta)
-        + (176715 / 77824) * np.cos(2 * phi - 3 * theta)
-        - 26775 / 19456 * np.cos(2 * phi - theta)
-        + (187425 / 77824) * np.cos(2 * phi + theta)
-        + (153153 / 77824) * np.cos(4 * phi - 4 * theta)
-        - 11781 / 19456 * np.cos(4 * phi - 2 * theta)
-        + (109395 / 77824) * np.cos(6 * phi - 5 * theta)
-        + (21879 / 19456) * np.cos(6 * phi - 3 * theta)
-        + (153153 / 77824) * np.cos(6 * phi - theta)
-        + (546975 / 77824) * np.cos(8 * phi - 4 * theta)
-        + (109395 / 77824) * np.cos(8 * phi - 2 * theta)
+        + (187425 / 77824) * np.cos(2 * phi - theta)
+        - 26775 / 19456 * np.cos(2 * phi + theta)
+        + (176715 / 77824) * np.cos(2 * phi + 3 * theta)
+        - 11781 / 19456 * np.cos(4 * phi + 2 * theta)
+        + (153153 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (153153 / 77824) * np.cos(6 * phi + theta)
+        + (21879 / 19456) * np.cos(6 * phi + 3 * theta)
+        + (109395 / 77824) * np.cos(6 * phi + 5 * theta)
+        + (109395 / 77824) * np.cos(8 * phi + 2 * theta)
+        + (546975 / 77824) * np.cos(8 * phi + 4 * theta)
         - 62475 / 77824
     )
 
@@ -4160,18 +4160,18 @@ def N_gg_1_4_8_4(theta, phi):
         + (257985 / 77824) * np.cos(8 * phi)
         + (1289925 / 856064) * np.cos(2 * theta)
         + (694575 / 856064) * np.cos(4 * theta)
-        + (19845 / 77824) * np.cos(2 * phi - 5 * theta)
-        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
-        - 552825 / 856064 * np.cos(2 * phi - theta)
-        + (14175 / 53504) * np.cos(2 * phi + theta)
-        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
-        + (93555 / 77824) * np.cos(4 * phi - 4 * theta)
-        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
-        - 36855 / 19456 * np.cos(6 * phi - theta)
-        + (257985 / 77824) * np.cos(6 * phi + theta)
-        + (405405 / 77824) * np.cos(8 * phi - 2 * theta)
+        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
+        + (14175 / 53504) * np.cos(2 * phi - theta)
+        - 552825 / 856064 * np.cos(2 * phi + theta)
+        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
+        + (19845 / 77824) * np.cos(2 * phi + 5 * theta)
+        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (93555 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (257985 / 77824) * np.cos(6 * phi - theta)
+        - 36855 / 19456 * np.cos(6 * phi + theta)
+        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
+        + (405405 / 77824) * np.cos(8 * phi + 2 * theta)
         - 297675 / 428032
     )
 
@@ -4187,14 +4187,14 @@ def N_gg_1_4_8_5(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (1575 / 1024) * np.cos(2 * phi - theta)
-        + (4725 / 2048) * np.cos(2 * phi + theta)
-        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
-        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
-        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
-        + (9009 / 2048) * np.cos(6 * phi + theta)
-        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
+        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2048) * np.cos(2 * phi - theta)
+        + (1575 / 1024) * np.cos(2 * phi + theta)
+        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
+        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (9009 / 2048) * np.cos(6 * phi - theta)
+        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
         + 1225 / 1024
     )
 
@@ -4212,18 +4212,18 @@ def N_gg_1_4_8_6(theta, phi):
         + (257985 / 77824) * np.cos(8 * phi)
         + (1289925 / 856064) * np.cos(2 * theta)
         + (694575 / 856064) * np.cos(4 * theta)
-        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
-        + (14175 / 53504) * np.cos(2 * phi - theta)
-        - 552825 / 856064 * np.cos(2 * phi + theta)
-        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
-        + (19845 / 77824) * np.cos(2 * phi + 5 * theta)
-        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (93555 / 77824) * np.cos(4 * phi + 4 * theta)
-        + (257985 / 77824) * np.cos(6 * phi - theta)
-        - 36855 / 19456 * np.cos(6 * phi + theta)
-        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
-        + (405405 / 77824) * np.cos(8 * phi + 2 * theta)
+        + (19845 / 77824) * np.cos(2 * phi - 5 * theta)
+        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
+        - 552825 / 856064 * np.cos(2 * phi - theta)
+        + (14175 / 53504) * np.cos(2 * phi + theta)
+        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
+        + (93555 / 77824) * np.cos(4 * phi - 4 * theta)
+        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
+        - 36855 / 19456 * np.cos(6 * phi - theta)
+        + (257985 / 77824) * np.cos(6 * phi + theta)
+        + (405405 / 77824) * np.cos(8 * phi - 2 * theta)
         - 297675 / 428032
     )
 
@@ -4237,10 +4237,10 @@ def M_gg_1_4_8_7():
 
 def N_gg_1_4_8_7(theta, phi):
     return (
-        (5355 / 2048) * np.cos(2 * phi + theta)
-        + (11781 / 4096) * np.cos(4 * phi + 2 * theta)
-        + (7293 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (109395 / 16384) * np.cos(8 * phi + 4 * theta)
+        (5355 / 2048) * np.cos(2 * phi - theta)
+        + (11781 / 4096) * np.cos(4 * phi - 2 * theta)
+        + (7293 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (109395 / 16384) * np.cos(8 * phi - 4 * theta)
         + 20825 / 16384
     )
 
@@ -4256,16 +4256,16 @@ def N_gg_1_4_8_8(theta, phi):
     return (
         (176715 / 77824) * np.cos(4 * phi)
         + (187425 / 77824) * np.cos(2 * theta)
-        + (187425 / 77824) * np.cos(2 * phi - theta)
-        - 26775 / 19456 * np.cos(2 * phi + theta)
-        + (176715 / 77824) * np.cos(2 * phi + 3 * theta)
-        - 11781 / 19456 * np.cos(4 * phi + 2 * theta)
-        + (153153 / 77824) * np.cos(4 * phi + 4 * theta)
-        + (153153 / 77824) * np.cos(6 * phi + theta)
-        + (21879 / 19456) * np.cos(6 * phi + 3 * theta)
-        + (109395 / 77824) * np.cos(6 * phi + 5 * theta)
-        + (109395 / 77824) * np.cos(8 * phi + 2 * theta)
-        + (546975 / 77824) * np.cos(8 * phi + 4 * theta)
+        + (176715 / 77824) * np.cos(2 * phi - 3 * theta)
+        - 26775 / 19456 * np.cos(2 * phi - theta)
+        + (187425 / 77824) * np.cos(2 * phi + theta)
+        + (153153 / 77824) * np.cos(4 * phi - 4 * theta)
+        - 11781 / 19456 * np.cos(4 * phi - 2 * theta)
+        + (109395 / 77824) * np.cos(6 * phi - 5 * theta)
+        + (21879 / 19456) * np.cos(6 * phi - 3 * theta)
+        + (153153 / 77824) * np.cos(6 * phi - theta)
+        + (546975 / 77824) * np.cos(8 * phi - 4 * theta)
+        + (109395 / 77824) * np.cos(8 * phi - 2 * theta)
         - 62475 / 77824
     )
 
@@ -4281,17 +4281,17 @@ def N_gg_1_4_10_0(theta, phi):
     return (
         (675675 / 311296) * np.cos(4 * phi)
         + (297675 / 311296) * np.cos(2 * theta)
-        + (363825 / 622592) * np.cos(2 * phi - 3 * theta)
-        + (363825 / 155648) * np.cos(2 * phi - theta)
-        + (1819125 / 1245184) * np.cos(2 * phi + theta)
-        + (96525 / 311296) * np.cos(4 * phi - 4 * theta)
-        + (675675 / 311296) * np.cos(4 * phi - 2 * theta)
-        + (289575 / 2490368) * np.cos(6 * phi - 5 * theta)
-        + (289575 / 155648) * np.cos(6 * phi - 3 * theta)
-        + (2027025 / 622592) * np.cos(6 * phi - theta)
-        + (1640925 / 1245184) * np.cos(8 * phi - 4 * theta)
-        + (1640925 / 311296) * np.cos(8 * phi - 2 * theta)
-        + (1640925 / 131072) * np.cos(10 * phi - 3 * theta)
+        + (1819125 / 1245184) * np.cos(2 * phi - theta)
+        + (363825 / 155648) * np.cos(2 * phi + theta)
+        + (363825 / 622592) * np.cos(2 * phi + 3 * theta)
+        + (675675 / 311296) * np.cos(4 * phi + 2 * theta)
+        + (96525 / 311296) * np.cos(4 * phi + 4 * theta)
+        + (2027025 / 622592) * np.cos(6 * phi + theta)
+        + (289575 / 155648) * np.cos(6 * phi + 3 * theta)
+        + (289575 / 2490368) * np.cos(6 * phi + 5 * theta)
+        + (1640925 / 311296) * np.cos(8 * phi + 2 * theta)
+        + (1640925 / 1245184) * np.cos(8 * phi + 4 * theta)
+        + (1640925 / 131072) * np.cos(10 * phi + 3 * theta)
         + 1488375 / 1245184
     )
 
@@ -4304,36 +4304,6 @@ def M_gg_1_4_10_1():
 
 
 def N_gg_1_4_10_1(theta, phi):
-    return (
-        (14189175 / 5292032) * np.cos(4 * phi)
-        + (2837835 / 622592) * np.cos(8 * phi)
-        + (6251175 / 5292032) * np.cos(2 * theta)
-        + (1250235 / 10584064) * np.cos(4 * theta)
-        + (509355 / 21168128) * np.cos(2 * phi - 5 * theta)
-        + (1528065 / 2646016) * np.cos(2 * phi - 3 * theta)
-        + (22920975 / 10584064) * np.cos(2 * phi - theta)
-        + (2546775 / 1323008) * np.cos(2 * phi + theta)
-        + (7640325 / 21168128) * np.cos(2 * phi + 3 * theta)
-        + (945945 / 5292032) * np.cos(4 * phi - 4 * theta)
-        + (8513505 / 5292032) * np.cos(4 * phi - 2 * theta)
-        + (4729725 / 5292032) * np.cos(4 * phi + 2 * theta)
-        + (8513505 / 10584064) * np.cos(6 * phi - 3 * theta)
-        + (8513505 / 2646016) * np.cos(6 * phi - theta)
-        + (42567525 / 21168128) * np.cos(6 * phi + theta)
-        + (945945 / 311296) * np.cos(8 * phi - 2 * theta)
-        + (945945 / 65536) * np.cos(10 * phi - theta)
-        + 6251175 / 5292032
-    )
-
-
-def M_gg_1_4_10_2():
-    def func(k):
-        return (2 / 567567) * k**8
-
-    return func
-
-
-def N_gg_1_4_10_2(theta, phi):
     return (
         (14189175 / 5292032) * np.cos(4 * phi)
         + (2837835 / 622592) * np.cos(8 * phi)
@@ -4356,6 +4326,36 @@ def N_gg_1_4_10_2(theta, phi):
     )
 
 
+def M_gg_1_4_10_2():
+    def func(k):
+        return (2 / 567567) * k**8
+
+    return func
+
+
+def N_gg_1_4_10_2(theta, phi):
+    return (
+        (14189175 / 5292032) * np.cos(4 * phi)
+        + (2837835 / 622592) * np.cos(8 * phi)
+        + (6251175 / 5292032) * np.cos(2 * theta)
+        + (1250235 / 10584064) * np.cos(4 * theta)
+        + (509355 / 21168128) * np.cos(2 * phi - 5 * theta)
+        + (1528065 / 2646016) * np.cos(2 * phi - 3 * theta)
+        + (22920975 / 10584064) * np.cos(2 * phi - theta)
+        + (2546775 / 1323008) * np.cos(2 * phi + theta)
+        + (7640325 / 21168128) * np.cos(2 * phi + 3 * theta)
+        + (945945 / 5292032) * np.cos(4 * phi - 4 * theta)
+        + (8513505 / 5292032) * np.cos(4 * phi - 2 * theta)
+        + (4729725 / 5292032) * np.cos(4 * phi + 2 * theta)
+        + (8513505 / 10584064) * np.cos(6 * phi - 3 * theta)
+        + (8513505 / 2646016) * np.cos(6 * phi - theta)
+        + (42567525 / 21168128) * np.cos(6 * phi + theta)
+        + (945945 / 311296) * np.cos(8 * phi - 2 * theta)
+        + (945945 / 65536) * np.cos(10 * phi - theta)
+        + 6251175 / 5292032
+    )
+
+
 def M_gg_1_4_10_3():
     def func(k):
         return (8 / 4922775) * k**8
@@ -4367,17 +4367,17 @@ def N_gg_1_4_10_3(theta, phi):
     return (
         (675675 / 311296) * np.cos(4 * phi)
         + (297675 / 311296) * np.cos(2 * theta)
-        + (1819125 / 1245184) * np.cos(2 * phi - theta)
-        + (363825 / 155648) * np.cos(2 * phi + theta)
-        + (363825 / 622592) * np.cos(2 * phi + 3 * theta)
-        + (675675 / 311296) * np.cos(4 * phi + 2 * theta)
-        + (96525 / 311296) * np.cos(4 * phi + 4 * theta)
-        + (2027025 / 622592) * np.cos(6 * phi + theta)
-        + (289575 / 155648) * np.cos(6 * phi + 3 * theta)
-        + (289575 / 2490368) * np.cos(6 * phi + 5 * theta)
-        + (1640925 / 311296) * np.cos(8 * phi + 2 * theta)
-        + (1640925 / 1245184) * np.cos(8 * phi + 4 * theta)
-        + (1640925 / 131072) * np.cos(10 * phi + 3 * theta)
+        + (363825 / 622592) * np.cos(2 * phi - 3 * theta)
+        + (363825 / 155648) * np.cos(2 * phi - theta)
+        + (1819125 / 1245184) * np.cos(2 * phi + theta)
+        + (96525 / 311296) * np.cos(4 * phi - 4 * theta)
+        + (675675 / 311296) * np.cos(4 * phi - 2 * theta)
+        + (289575 / 2490368) * np.cos(6 * phi - 5 * theta)
+        + (289575 / 155648) * np.cos(6 * phi - 3 * theta)
+        + (2027025 / 622592) * np.cos(6 * phi - theta)
+        + (1640925 / 1245184) * np.cos(8 * phi - 4 * theta)
+        + (1640925 / 311296) * np.cos(8 * phi - 2 * theta)
+        + (1640925 / 131072) * np.cos(10 * phi - 3 * theta)
         + 1488375 / 1245184
     )
 
@@ -4439,7 +4439,7 @@ def M_gg_1_5_2_0():
 
 
 def N_gg_1_5_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_1_5_2_1():
@@ -4450,7 +4450,7 @@ def M_gg_1_5_2_1():
 
 
 def N_gg_1_5_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_1_5_2_2():
@@ -4479,9 +4479,9 @@ def M_gg_1_5_2_3():
 def N_gg_1_5_2_3(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (225 / 32) * np.cos(2 * phi - 3 * theta)
-        + (225 / 112) * np.cos(2 * phi - theta)
-        + (135 / 224) * np.cos(2 * phi + theta)
+        + (135 / 224) * np.cos(2 * phi - theta)
+        + (225 / 112) * np.cos(2 * phi + theta)
+        + (225 / 32) * np.cos(2 * phi + 3 * theta)
         + 135 / 112
     )
 
@@ -4496,9 +4496,9 @@ def M_gg_1_5_2_4():
 def N_gg_1_5_2_4(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (135 / 224) * np.cos(2 * phi - theta)
-        + (225 / 112) * np.cos(2 * phi + theta)
-        + (225 / 32) * np.cos(2 * phi + 3 * theta)
+        + (225 / 32) * np.cos(2 * phi - 3 * theta)
+        + (225 / 112) * np.cos(2 * phi - theta)
+        + (135 / 224) * np.cos(2 * phi + theta)
         + 135 / 112
     )
 
@@ -4533,11 +4533,11 @@ def N_gg_1_5_2_6(theta, phi):
     return (
         (1575 / 704) * np.cos(2 * theta)
         + (4725 / 2816) * np.cos(4 * theta)
-        + (4725 / 512) * np.cos(2 * phi - 5 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 512) * np.cos(2 * phi + 5 * theta)
         + 3375 / 2816
     )
 
@@ -4553,11 +4553,11 @@ def N_gg_1_5_2_7(theta, phi):
     return (
         (1575 / 704) * np.cos(2 * theta)
         + (4725 / 2816) * np.cos(4 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 512) * np.cos(2 * phi + 5 * theta)
+        + (4725 / 512) * np.cos(2 * phi - 5 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
         + 3375 / 2816
     )
 
@@ -4593,8 +4593,8 @@ def M_gg_1_5_4_0():
 
 def N_gg_1_5_4_0(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi - theta)
-        + (315 / 64) * np.cos(4 * phi - 2 * theta)
+        (45 / 16) * np.cos(2 * phi + theta)
+        + (315 / 64) * np.cos(4 * phi + 2 * theta)
         + 81 / 64
     )
 
@@ -4627,10 +4627,10 @@ def N_gg_1_5_4_2(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (675 / 352) * np.cos(2 * phi - 3 * theta)
-        - 225 / 308 * np.cos(2 * phi - theta)
-        + (6075 / 2464) * np.cos(2 * phi + theta)
-        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
+        + (6075 / 2464) * np.cos(2 * phi - theta)
+        - 225 / 308 * np.cos(2 * phi + theta)
+        + (675 / 352) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2464
     )
 
@@ -4646,11 +4646,11 @@ def N_gg_1_5_4_3(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
         + 3375 / 2816
     )
 
@@ -4664,8 +4664,8 @@ def M_gg_1_5_4_4():
 
 def N_gg_1_5_4_4(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi + theta)
-        + (315 / 64) * np.cos(4 * phi + 2 * theta)
+        (45 / 16) * np.cos(2 * phi - theta)
+        + (315 / 64) * np.cos(4 * phi - 2 * theta)
         + 81 / 64
     )
 
@@ -4681,10 +4681,10 @@ def N_gg_1_5_4_5(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (6075 / 2464) * np.cos(2 * phi - theta)
-        - 225 / 308 * np.cos(2 * phi + theta)
-        + (675 / 352) * np.cos(2 * phi + 3 * theta)
-        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
+        + (675 / 352) * np.cos(2 * phi - 3 * theta)
+        - 225 / 308 * np.cos(2 * phi - theta)
+        + (6075 / 2464) * np.cos(2 * phi + theta)
+        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
         - 2025 / 2464
     )
 
@@ -4722,13 +4722,13 @@ def N_gg_1_5_4_7(theta, phi):
     return (
         (4725 / 2816) * np.cos(4 * phi)
         + (8505 / 2816) * np.cos(4 * theta)
-        + (945 / 256) * np.cos(2 * phi - 5 * theta)
-        - 2835 / 1408 * np.cos(2 * phi - 3 * theta)
-        + (225 / 128) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(2 * phi + 3 * theta)
-        + (945 / 256) * np.cos(4 * phi - 4 * theta)
-        + (8505 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (1575 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 2816) * np.cos(2 * phi - 3 * theta)
+        + (225 / 128) * np.cos(2 * phi - theta)
+        - 2835 / 1408 * np.cos(2 * phi + 3 * theta)
+        + (945 / 256) * np.cos(2 * phi + 5 * theta)
+        + (1575 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (8505 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (945 / 256) * np.cos(4 * phi + 4 * theta)
         - 2025 / 2816
     )
 
@@ -4745,15 +4745,15 @@ def N_gg_1_5_4_8(theta, phi):
         (99225 / 292864) * np.cos(4 * phi)
         + (297675 / 146432) * np.cos(2 * theta)
         + (59535 / 53248) * np.cos(4 * theta)
-        + (6615 / 2048) * np.cos(2 * phi - 5 * theta)
-        + (19845 / 6656) * np.cos(2 * phi - 3 * theta)
-        + (297675 / 146432) * np.cos(2 * phi - theta)
-        + (77175 / 73216) * np.cos(2 * phi + theta)
-        + (99225 / 292864) * np.cos(2 * phi + 3 * theta)
-        + (99225 / 8192) * np.cos(4 * phi - 6 * theta)
-        + (6615 / 2048) * np.cos(4 * phi - 4 * theta)
-        + (59535 / 53248) * np.cos(4 * phi - 2 * theta)
-        + (77175 / 1171456) * np.cos(4 * phi + 2 * theta)
+        + (99225 / 292864) * np.cos(2 * phi - 3 * theta)
+        + (77175 / 73216) * np.cos(2 * phi - theta)
+        + (297675 / 146432) * np.cos(2 * phi + theta)
+        + (19845 / 6656) * np.cos(2 * phi + 3 * theta)
+        + (6615 / 2048) * np.cos(2 * phi + 5 * theta)
+        + (77175 / 1171456) * np.cos(4 * phi - 2 * theta)
+        + (59535 / 53248) * np.cos(4 * phi + 2 * theta)
+        + (6615 / 2048) * np.cos(4 * phi + 4 * theta)
+        + (99225 / 8192) * np.cos(4 * phi + 6 * theta)
         + 694575 / 585728
     )
 
@@ -4769,11 +4769,11 @@ def N_gg_1_5_4_9(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
         + 3375 / 2816
     )
 
@@ -4789,13 +4789,13 @@ def N_gg_1_5_4_10(theta, phi):
     return (
         (4725 / 2816) * np.cos(4 * phi)
         + (8505 / 2816) * np.cos(4 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - 3 * theta)
-        + (225 / 128) * np.cos(2 * phi - theta)
-        - 2835 / 1408 * np.cos(2 * phi + 3 * theta)
-        + (945 / 256) * np.cos(2 * phi + 5 * theta)
-        + (1575 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (8505 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (945 / 256) * np.cos(4 * phi + 4 * theta)
+        + (945 / 256) * np.cos(2 * phi - 5 * theta)
+        - 2835 / 1408 * np.cos(2 * phi - 3 * theta)
+        + (225 / 128) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(2 * phi + 3 * theta)
+        + (945 / 256) * np.cos(4 * phi - 4 * theta)
+        + (8505 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1575 / 2816) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2816
     )
 
@@ -4839,15 +4839,15 @@ def N_gg_1_5_4_12(theta, phi):
         (99225 / 292864) * np.cos(4 * phi)
         + (297675 / 146432) * np.cos(2 * theta)
         + (59535 / 53248) * np.cos(4 * theta)
-        + (99225 / 292864) * np.cos(2 * phi - 3 * theta)
-        + (77175 / 73216) * np.cos(2 * phi - theta)
-        + (297675 / 146432) * np.cos(2 * phi + theta)
-        + (19845 / 6656) * np.cos(2 * phi + 3 * theta)
-        + (6615 / 2048) * np.cos(2 * phi + 5 * theta)
-        + (77175 / 1171456) * np.cos(4 * phi - 2 * theta)
-        + (59535 / 53248) * np.cos(4 * phi + 2 * theta)
-        + (6615 / 2048) * np.cos(4 * phi + 4 * theta)
-        + (99225 / 8192) * np.cos(4 * phi + 6 * theta)
+        + (6615 / 2048) * np.cos(2 * phi - 5 * theta)
+        + (19845 / 6656) * np.cos(2 * phi - 3 * theta)
+        + (297675 / 146432) * np.cos(2 * phi - theta)
+        + (77175 / 73216) * np.cos(2 * phi + theta)
+        + (99225 / 292864) * np.cos(2 * phi + 3 * theta)
+        + (99225 / 8192) * np.cos(4 * phi - 6 * theta)
+        + (6615 / 2048) * np.cos(4 * phi - 4 * theta)
+        + (59535 / 53248) * np.cos(4 * phi - 2 * theta)
+        + (77175 / 1171456) * np.cos(4 * phi + 2 * theta)
         + 694575 / 585728
     )
 
@@ -4861,9 +4861,9 @@ def M_gg_1_5_6_0():
 
 def N_gg_1_5_6_0(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi - theta)
-        + (819 / 256) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        (1365 / 512) * np.cos(2 * phi + theta)
+        + (819 / 256) * np.cos(4 * phi + 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         + 325 / 256
     )
 
@@ -4879,11 +4879,11 @@ def N_gg_1_5_6_1(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi + theta)
         + 3375 / 2816
     )
 
@@ -4899,13 +4899,13 @@ def N_gg_1_5_6_2(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
-        - 6825 / 5632 * np.cos(2 * phi - theta)
-        + (6825 / 2816) * np.cos(2 * phi + theta)
-        + (819 / 512) * np.cos(4 * phi - 4 * theta)
-        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
-        + (819 / 512) * np.cos(6 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi - theta)
+        - 6825 / 5632 * np.cos(2 * phi + theta)
+        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (819 / 512) * np.cos(4 * phi + 4 * theta)
+        + (819 / 512) * np.cos(6 * phi + theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         - 2275 / 2816
     )
 
@@ -4921,14 +4921,14 @@ def N_gg_1_5_6_3(theta, phi):
     return (
         (945 / 2048) * np.cos(4 * phi)
         + (1575 / 1024) * np.cos(2 * theta)
-        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2048) * np.cos(2 * phi - theta)
-        + (3675 / 4096) * np.cos(2 * phi + theta)
-        + (9009 / 2048) * np.cos(4 * phi - 4 * theta)
-        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
-        + (45045 / 4096) * np.cos(6 * phi - 5 * theta)
-        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (693 / 4096) * np.cos(6 * phi - theta)
+        + (3675 / 4096) * np.cos(2 * phi - theta)
+        + (4725 / 2048) * np.cos(2 * phi + theta)
+        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
+        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
+        + (9009 / 2048) * np.cos(4 * phi + 4 * theta)
+        + (693 / 4096) * np.cos(6 * phi + theta)
+        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (45045 / 4096) * np.cos(6 * phi + 5 * theta)
         + 1225 / 1024
     )
 
@@ -4944,11 +4944,11 @@ def N_gg_1_5_6_4(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi - theta)
         + 3375 / 2816
     )
 
@@ -4987,17 +4987,17 @@ def N_gg_1_5_6_6(theta, phi):
         (282555 / 382976) * np.cos(4 * phi)
         - 20475 / 17408 * np.cos(2 * theta)
         + (429975 / 191488) * np.cos(4 * theta)
-        + (85995 / 69632) * np.cos(2 * phi - 5 * theta)
-        + (282555 / 382976) * np.cos(2 * phi - 3 * theta)
-        + (12285 / 69632) * np.cos(2 * phi - theta)
-        - 20475 / 17408 * np.cos(2 * phi + theta)
-        + (1003275 / 382976) * np.cos(2 * phi + 3 * theta)
-        + (110565 / 34816) * np.cos(4 * phi - 4 * theta)
-        - 22113 / 11968 * np.cos(4 * phi - 2 * theta)
-        + (429975 / 191488) * np.cos(4 * phi + 2 * theta)
-        + (243243 / 69632) * np.cos(6 * phi - 3 * theta)
-        + (110565 / 34816) * np.cos(6 * phi - theta)
-        + (85995 / 69632) * np.cos(6 * phi + theta)
+        + (1003275 / 382976) * np.cos(2 * phi - 3 * theta)
+        - 20475 / 17408 * np.cos(2 * phi - theta)
+        + (12285 / 69632) * np.cos(2 * phi + theta)
+        + (282555 / 382976) * np.cos(2 * phi + 3 * theta)
+        + (85995 / 69632) * np.cos(2 * phi + 5 * theta)
+        + (429975 / 191488) * np.cos(4 * phi - 2 * theta)
+        - 22113 / 11968 * np.cos(4 * phi + 2 * theta)
+        + (110565 / 34816) * np.cos(4 * phi + 4 * theta)
+        + (85995 / 69632) * np.cos(6 * phi - theta)
+        + (110565 / 34816) * np.cos(6 * phi + theta)
+        + (243243 / 69632) * np.cos(6 * phi + 3 * theta)
         + 61425 / 95744
     )
 
@@ -5014,19 +5014,19 @@ def N_gg_1_5_6_7(theta, phi):
         (394065 / 214016) * np.cos(4 * phi)
         + (14175 / 53504) * np.cos(2 * theta)
         + (99225 / 38912) * np.cos(4 * theta)
-        + (257985 / 77824) * np.cos(2 * phi - 5 * theta)
-        - 104895 / 77824 * np.cos(2 * phi - 3 * theta)
-        - 552825 / 856064 * np.cos(2 * phi - theta)
-        + (1289925 / 856064) * np.cos(2 * phi + theta)
-        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
-        + (257985 / 77824) * np.cos(4 * phi - 6 * theta)
-        - 36855 / 19456 * np.cos(4 * phi - 4 * theta)
-        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (694575 / 856064) * np.cos(4 * phi + 2 * theta)
-        + (405405 / 77824) * np.cos(6 * phi - 5 * theta)
-        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
-        + (93555 / 77824) * np.cos(6 * phi - theta)
-        + (19845 / 77824) * np.cos(6 * phi + theta)
+        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
+        + (1289925 / 856064) * np.cos(2 * phi - theta)
+        - 552825 / 856064 * np.cos(2 * phi + theta)
+        - 104895 / 77824 * np.cos(2 * phi + 3 * theta)
+        + (257985 / 77824) * np.cos(2 * phi + 5 * theta)
+        + (694575 / 856064) * np.cos(4 * phi - 2 * theta)
+        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
+        - 36855 / 19456 * np.cos(4 * phi + 4 * theta)
+        + (257985 / 77824) * np.cos(4 * phi + 6 * theta)
+        + (19845 / 77824) * np.cos(6 * phi - theta)
+        + (93555 / 77824) * np.cos(6 * phi + theta)
+        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
+        + (405405 / 77824) * np.cos(6 * phi + 5 * theta)
         - 297675 / 428032
     )
 
@@ -5040,9 +5040,9 @@ def M_gg_1_5_6_8():
 
 def N_gg_1_5_6_8(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi + theta)
-        + (819 / 256) * np.cos(4 * phi + 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        (1365 / 512) * np.cos(2 * phi - theta)
+        + (819 / 256) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
         + 325 / 256
     )
 
@@ -5058,13 +5058,13 @@ def N_gg_1_5_6_9(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (6825 / 2816) * np.cos(2 * phi - theta)
-        - 6825 / 5632 * np.cos(2 * phi + theta)
-        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (819 / 512) * np.cos(4 * phi + 4 * theta)
-        + (819 / 512) * np.cos(6 * phi + theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
+        - 6825 / 5632 * np.cos(2 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi + theta)
+        + (819 / 512) * np.cos(4 * phi - 4 * theta)
+        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        + (819 / 512) * np.cos(6 * phi - theta)
         - 2275 / 2816
     )
 
@@ -5081,17 +5081,17 @@ def N_gg_1_5_6_10(theta, phi):
         (282555 / 382976) * np.cos(4 * phi)
         - 20475 / 17408 * np.cos(2 * theta)
         + (429975 / 191488) * np.cos(4 * theta)
-        + (1003275 / 382976) * np.cos(2 * phi - 3 * theta)
-        - 20475 / 17408 * np.cos(2 * phi - theta)
-        + (12285 / 69632) * np.cos(2 * phi + theta)
-        + (282555 / 382976) * np.cos(2 * phi + 3 * theta)
-        + (85995 / 69632) * np.cos(2 * phi + 5 * theta)
-        + (429975 / 191488) * np.cos(4 * phi - 2 * theta)
-        - 22113 / 11968 * np.cos(4 * phi + 2 * theta)
-        + (110565 / 34816) * np.cos(4 * phi + 4 * theta)
-        + (85995 / 69632) * np.cos(6 * phi - theta)
-        + (110565 / 34816) * np.cos(6 * phi + theta)
-        + (243243 / 69632) * np.cos(6 * phi + 3 * theta)
+        + (85995 / 69632) * np.cos(2 * phi - 5 * theta)
+        + (282555 / 382976) * np.cos(2 * phi - 3 * theta)
+        + (12285 / 69632) * np.cos(2 * phi - theta)
+        - 20475 / 17408 * np.cos(2 * phi + theta)
+        + (1003275 / 382976) * np.cos(2 * phi + 3 * theta)
+        + (110565 / 34816) * np.cos(4 * phi - 4 * theta)
+        - 22113 / 11968 * np.cos(4 * phi - 2 * theta)
+        + (429975 / 191488) * np.cos(4 * phi + 2 * theta)
+        + (243243 / 69632) * np.cos(6 * phi - 3 * theta)
+        + (110565 / 34816) * np.cos(6 * phi - theta)
+        + (85995 / 69632) * np.cos(6 * phi + theta)
         + 61425 / 95744
     )
 
@@ -5138,14 +5138,14 @@ def N_gg_1_5_6_12(theta, phi):
     return (
         (945 / 2048) * np.cos(4 * phi)
         + (1575 / 1024) * np.cos(2 * theta)
-        + (3675 / 4096) * np.cos(2 * phi - theta)
-        + (4725 / 2048) * np.cos(2 * phi + theta)
-        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
-        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
-        + (9009 / 2048) * np.cos(4 * phi + 4 * theta)
-        + (693 / 4096) * np.cos(6 * phi + theta)
-        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (45045 / 4096) * np.cos(6 * phi + 5 * theta)
+        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2048) * np.cos(2 * phi - theta)
+        + (3675 / 4096) * np.cos(2 * phi + theta)
+        + (9009 / 2048) * np.cos(4 * phi - 4 * theta)
+        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
+        + (45045 / 4096) * np.cos(6 * phi - 5 * theta)
+        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (693 / 4096) * np.cos(6 * phi - theta)
         + 1225 / 1024
     )
 
@@ -5162,19 +5162,19 @@ def N_gg_1_5_6_13(theta, phi):
         (394065 / 214016) * np.cos(4 * phi)
         + (14175 / 53504) * np.cos(2 * theta)
         + (99225 / 38912) * np.cos(4 * theta)
-        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
-        + (1289925 / 856064) * np.cos(2 * phi - theta)
-        - 552825 / 856064 * np.cos(2 * phi + theta)
-        - 104895 / 77824 * np.cos(2 * phi + 3 * theta)
-        + (257985 / 77824) * np.cos(2 * phi + 5 * theta)
-        + (694575 / 856064) * np.cos(4 * phi - 2 * theta)
-        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
-        - 36855 / 19456 * np.cos(4 * phi + 4 * theta)
-        + (257985 / 77824) * np.cos(4 * phi + 6 * theta)
-        + (19845 / 77824) * np.cos(6 * phi - theta)
-        + (93555 / 77824) * np.cos(6 * phi + theta)
-        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
-        + (405405 / 77824) * np.cos(6 * phi + 5 * theta)
+        + (257985 / 77824) * np.cos(2 * phi - 5 * theta)
+        - 104895 / 77824 * np.cos(2 * phi - 3 * theta)
+        - 552825 / 856064 * np.cos(2 * phi - theta)
+        + (1289925 / 856064) * np.cos(2 * phi + theta)
+        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
+        + (257985 / 77824) * np.cos(4 * phi - 6 * theta)
+        - 36855 / 19456 * np.cos(4 * phi - 4 * theta)
+        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (694575 / 856064) * np.cos(4 * phi + 2 * theta)
+        + (405405 / 77824) * np.cos(6 * phi - 5 * theta)
+        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
+        + (93555 / 77824) * np.cos(6 * phi - theta)
+        + (19845 / 77824) * np.cos(6 * phi + theta)
         - 297675 / 428032
     )
 
@@ -5188,10 +5188,10 @@ def M_gg_1_5_8_0():
 
 def N_gg_1_5_8_0(theta, phi):
     return (
-        (5355 / 2048) * np.cos(2 * phi - theta)
-        + (11781 / 4096) * np.cos(4 * phi - 2 * theta)
-        + (7293 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (109395 / 16384) * np.cos(8 * phi - 4 * theta)
+        (5355 / 2048) * np.cos(2 * phi + theta)
+        + (11781 / 4096) * np.cos(4 * phi + 2 * theta)
+        + (7293 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (109395 / 16384) * np.cos(8 * phi + 4 * theta)
         + 20825 / 16384
     )
 
@@ -5207,14 +5207,14 @@ def N_gg_1_5_8_1(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2048) * np.cos(2 * phi - theta)
-        + (1575 / 1024) * np.cos(2 * phi + theta)
-        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
-        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (9009 / 2048) * np.cos(6 * phi - theta)
-        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
+        + (1575 / 1024) * np.cos(2 * phi - theta)
+        + (4725 / 2048) * np.cos(2 * phi + theta)
+        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
+        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
+        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
+        + (9009 / 2048) * np.cos(6 * phi + theta)
+        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
         + 1225 / 1024
     )
 
@@ -5230,16 +5230,16 @@ def N_gg_1_5_8_2(theta, phi):
     return (
         (176715 / 77824) * np.cos(4 * phi)
         + (187425 / 77824) * np.cos(2 * theta)
-        + (176715 / 77824) * np.cos(2 * phi - 3 * theta)
-        - 26775 / 19456 * np.cos(2 * phi - theta)
-        + (187425 / 77824) * np.cos(2 * phi + theta)
-        + (153153 / 77824) * np.cos(4 * phi - 4 * theta)
-        - 11781 / 19456 * np.cos(4 * phi - 2 * theta)
-        + (109395 / 77824) * np.cos(6 * phi - 5 * theta)
-        + (21879 / 19456) * np.cos(6 * phi - 3 * theta)
-        + (153153 / 77824) * np.cos(6 * phi - theta)
-        + (546975 / 77824) * np.cos(8 * phi - 4 * theta)
-        + (109395 / 77824) * np.cos(8 * phi - 2 * theta)
+        + (187425 / 77824) * np.cos(2 * phi - theta)
+        - 26775 / 19456 * np.cos(2 * phi + theta)
+        + (176715 / 77824) * np.cos(2 * phi + 3 * theta)
+        - 11781 / 19456 * np.cos(4 * phi + 2 * theta)
+        + (153153 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (153153 / 77824) * np.cos(6 * phi + theta)
+        + (21879 / 19456) * np.cos(6 * phi + 3 * theta)
+        + (109395 / 77824) * np.cos(6 * phi + 5 * theta)
+        + (109395 / 77824) * np.cos(8 * phi + 2 * theta)
+        + (546975 / 77824) * np.cos(8 * phi + 4 * theta)
         - 62475 / 77824
     )
 
@@ -5282,18 +5282,18 @@ def N_gg_1_5_8_4(theta, phi):
         + (257985 / 77824) * np.cos(8 * phi)
         + (1289925 / 856064) * np.cos(2 * theta)
         + (694575 / 856064) * np.cos(4 * theta)
-        + (19845 / 77824) * np.cos(2 * phi - 5 * theta)
-        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
-        - 552825 / 856064 * np.cos(2 * phi - theta)
-        + (14175 / 53504) * np.cos(2 * phi + theta)
-        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
-        + (93555 / 77824) * np.cos(4 * phi - 4 * theta)
-        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
-        - 36855 / 19456 * np.cos(6 * phi - theta)
-        + (257985 / 77824) * np.cos(6 * phi + theta)
-        + (405405 / 77824) * np.cos(8 * phi - 2 * theta)
+        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
+        + (14175 / 53504) * np.cos(2 * phi - theta)
+        - 552825 / 856064 * np.cos(2 * phi + theta)
+        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
+        + (19845 / 77824) * np.cos(2 * phi + 5 * theta)
+        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (93555 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (257985 / 77824) * np.cos(6 * phi - theta)
+        - 36855 / 19456 * np.cos(6 * phi + theta)
+        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
+        + (405405 / 77824) * np.cos(8 * phi + 2 * theta)
         - 297675 / 428032
     )
 
@@ -5311,21 +5311,21 @@ def N_gg_1_5_8_5(theta, phi):
         + (530145 / 622592) * np.cos(8 * phi)
         - 5060475 / 4046848 * np.cos(2 * theta)
         + (18555075 / 8093696) * np.cos(4 * theta)
-        + (530145 / 311296) * np.cos(2 * phi - 5 * theta)
-        - 530145 / 4046848 * np.cos(2 * phi - 3 * theta)
-        + (2457945 / 4046848) * np.cos(2 * phi - theta)
-        - 5060475 / 4046848 * np.cos(2 * phi + theta)
-        + (5060475 / 2023424) * np.cos(2 * phi + 3 * theta)
-        + (530145 / 622592) * np.cos(4 * phi - 6 * theta)
-        + (530145 / 311296) * np.cos(4 * phi - 4 * theta)
-        - 954261 / 1011712 * np.cos(4 * phi - 2 * theta)
-        + (18555075 / 8093696) * np.cos(4 * phi + 2 * theta)
-        + (984555 / 311296) * np.cos(6 * phi - 5 * theta)
-        - 590733 / 311296 * np.cos(6 * phi - 3 * theta)
+        + (5060475 / 2023424) * np.cos(2 * phi - 3 * theta)
+        - 5060475 / 4046848 * np.cos(2 * phi - theta)
+        + (2457945 / 4046848) * np.cos(2 * phi + theta)
+        - 530145 / 4046848 * np.cos(2 * phi + 3 * theta)
+        + (530145 / 311296) * np.cos(2 * phi + 5 * theta)
+        + (18555075 / 8093696) * np.cos(4 * phi - 2 * theta)
+        - 954261 / 1011712 * np.cos(4 * phi + 2 * theta)
+        + (530145 / 311296) * np.cos(4 * phi + 4 * theta)
+        + (530145 / 622592) * np.cos(4 * phi + 6 * theta)
         + (530145 / 311296) * np.cos(6 * phi - theta)
         + (530145 / 311296) * np.cos(6 * phi + theta)
-        + (2953665 / 622592) * np.cos(8 * phi - 4 * theta)
-        + (984555 / 311296) * np.cos(8 * phi - 2 * theta)
+        - 590733 / 311296 * np.cos(6 * phi + 3 * theta)
+        + (984555 / 311296) * np.cos(6 * phi + 5 * theta)
+        + (984555 / 311296) * np.cos(8 * phi + 2 * theta)
+        + (2953665 / 622592) * np.cos(8 * phi + 4 * theta)
         + 5060475 / 8093696
     )
 
@@ -5341,14 +5341,14 @@ def N_gg_1_5_8_6(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (1575 / 1024) * np.cos(2 * phi - theta)
-        + (4725 / 2048) * np.cos(2 * phi + theta)
-        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
-        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
-        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
-        + (9009 / 2048) * np.cos(6 * phi + theta)
-        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
+        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2048) * np.cos(2 * phi - theta)
+        + (1575 / 1024) * np.cos(2 * phi + theta)
+        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
+        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (9009 / 2048) * np.cos(6 * phi - theta)
+        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
         + 1225 / 1024
     )
 
@@ -5366,18 +5366,18 @@ def N_gg_1_5_8_7(theta, phi):
         + (257985 / 77824) * np.cos(8 * phi)
         + (1289925 / 856064) * np.cos(2 * theta)
         + (694575 / 856064) * np.cos(4 * theta)
-        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
-        + (14175 / 53504) * np.cos(2 * phi - theta)
-        - 552825 / 856064 * np.cos(2 * phi + theta)
-        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
-        + (19845 / 77824) * np.cos(2 * phi + 5 * theta)
-        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (93555 / 77824) * np.cos(4 * phi + 4 * theta)
-        + (257985 / 77824) * np.cos(6 * phi - theta)
-        - 36855 / 19456 * np.cos(6 * phi + theta)
-        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
-        + (405405 / 77824) * np.cos(8 * phi + 2 * theta)
+        + (19845 / 77824) * np.cos(2 * phi - 5 * theta)
+        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
+        - 552825 / 856064 * np.cos(2 * phi - theta)
+        + (14175 / 53504) * np.cos(2 * phi + theta)
+        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
+        + (93555 / 77824) * np.cos(4 * phi - 4 * theta)
+        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
+        - 36855 / 19456 * np.cos(6 * phi - theta)
+        + (257985 / 77824) * np.cos(6 * phi + theta)
+        + (405405 / 77824) * np.cos(8 * phi - 2 * theta)
         - 297675 / 428032
     )
 
@@ -5425,10 +5425,10 @@ def M_gg_1_5_8_9():
 
 def N_gg_1_5_8_9(theta, phi):
     return (
-        (5355 / 2048) * np.cos(2 * phi + theta)
-        + (11781 / 4096) * np.cos(4 * phi + 2 * theta)
-        + (7293 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (109395 / 16384) * np.cos(8 * phi + 4 * theta)
+        (5355 / 2048) * np.cos(2 * phi - theta)
+        + (11781 / 4096) * np.cos(4 * phi - 2 * theta)
+        + (7293 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (109395 / 16384) * np.cos(8 * phi - 4 * theta)
         + 20825 / 16384
     )
 
@@ -5444,16 +5444,16 @@ def N_gg_1_5_8_10(theta, phi):
     return (
         (176715 / 77824) * np.cos(4 * phi)
         + (187425 / 77824) * np.cos(2 * theta)
-        + (187425 / 77824) * np.cos(2 * phi - theta)
-        - 26775 / 19456 * np.cos(2 * phi + theta)
-        + (176715 / 77824) * np.cos(2 * phi + 3 * theta)
-        - 11781 / 19456 * np.cos(4 * phi + 2 * theta)
-        + (153153 / 77824) * np.cos(4 * phi + 4 * theta)
-        + (153153 / 77824) * np.cos(6 * phi + theta)
-        + (21879 / 19456) * np.cos(6 * phi + 3 * theta)
-        + (109395 / 77824) * np.cos(6 * phi + 5 * theta)
-        + (109395 / 77824) * np.cos(8 * phi + 2 * theta)
-        + (546975 / 77824) * np.cos(8 * phi + 4 * theta)
+        + (176715 / 77824) * np.cos(2 * phi - 3 * theta)
+        - 26775 / 19456 * np.cos(2 * phi - theta)
+        + (187425 / 77824) * np.cos(2 * phi + theta)
+        + (153153 / 77824) * np.cos(4 * phi - 4 * theta)
+        - 11781 / 19456 * np.cos(4 * phi - 2 * theta)
+        + (109395 / 77824) * np.cos(6 * phi - 5 * theta)
+        + (21879 / 19456) * np.cos(6 * phi - 3 * theta)
+        + (153153 / 77824) * np.cos(6 * phi - theta)
+        + (546975 / 77824) * np.cos(8 * phi - 4 * theta)
+        + (109395 / 77824) * np.cos(8 * phi - 2 * theta)
         - 62475 / 77824
     )
 
@@ -5471,21 +5471,21 @@ def N_gg_1_5_8_11(theta, phi):
         + (530145 / 622592) * np.cos(8 * phi)
         - 5060475 / 4046848 * np.cos(2 * theta)
         + (18555075 / 8093696) * np.cos(4 * theta)
-        + (5060475 / 2023424) * np.cos(2 * phi - 3 * theta)
-        - 5060475 / 4046848 * np.cos(2 * phi - theta)
-        + (2457945 / 4046848) * np.cos(2 * phi + theta)
-        - 530145 / 4046848 * np.cos(2 * phi + 3 * theta)
-        + (530145 / 311296) * np.cos(2 * phi + 5 * theta)
-        + (18555075 / 8093696) * np.cos(4 * phi - 2 * theta)
-        - 954261 / 1011712 * np.cos(4 * phi + 2 * theta)
-        + (530145 / 311296) * np.cos(4 * phi + 4 * theta)
-        + (530145 / 622592) * np.cos(4 * phi + 6 * theta)
+        + (530145 / 311296) * np.cos(2 * phi - 5 * theta)
+        - 530145 / 4046848 * np.cos(2 * phi - 3 * theta)
+        + (2457945 / 4046848) * np.cos(2 * phi - theta)
+        - 5060475 / 4046848 * np.cos(2 * phi + theta)
+        + (5060475 / 2023424) * np.cos(2 * phi + 3 * theta)
+        + (530145 / 622592) * np.cos(4 * phi - 6 * theta)
+        + (530145 / 311296) * np.cos(4 * phi - 4 * theta)
+        - 954261 / 1011712 * np.cos(4 * phi - 2 * theta)
+        + (18555075 / 8093696) * np.cos(4 * phi + 2 * theta)
+        + (984555 / 311296) * np.cos(6 * phi - 5 * theta)
+        - 590733 / 311296 * np.cos(6 * phi - 3 * theta)
         + (530145 / 311296) * np.cos(6 * phi - theta)
         + (530145 / 311296) * np.cos(6 * phi + theta)
-        - 590733 / 311296 * np.cos(6 * phi + 3 * theta)
-        + (984555 / 311296) * np.cos(6 * phi + 5 * theta)
-        + (984555 / 311296) * np.cos(8 * phi + 2 * theta)
-        + (2953665 / 622592) * np.cos(8 * phi + 4 * theta)
+        + (2953665 / 622592) * np.cos(8 * phi - 4 * theta)
+        + (984555 / 311296) * np.cos(8 * phi - 2 * theta)
         + 5060475 / 8093696
     )
 
@@ -5501,17 +5501,17 @@ def N_gg_1_5_10_0(theta, phi):
     return (
         (675675 / 311296) * np.cos(4 * phi)
         + (297675 / 311296) * np.cos(2 * theta)
-        + (363825 / 622592) * np.cos(2 * phi - 3 * theta)
-        + (363825 / 155648) * np.cos(2 * phi - theta)
-        + (1819125 / 1245184) * np.cos(2 * phi + theta)
-        + (96525 / 311296) * np.cos(4 * phi - 4 * theta)
-        + (675675 / 311296) * np.cos(4 * phi - 2 * theta)
-        + (289575 / 2490368) * np.cos(6 * phi - 5 * theta)
-        + (289575 / 155648) * np.cos(6 * phi - 3 * theta)
-        + (2027025 / 622592) * np.cos(6 * phi - theta)
-        + (1640925 / 1245184) * np.cos(8 * phi - 4 * theta)
-        + (1640925 / 311296) * np.cos(8 * phi - 2 * theta)
-        + (1640925 / 131072) * np.cos(10 * phi - 3 * theta)
+        + (1819125 / 1245184) * np.cos(2 * phi - theta)
+        + (363825 / 155648) * np.cos(2 * phi + theta)
+        + (363825 / 622592) * np.cos(2 * phi + 3 * theta)
+        + (675675 / 311296) * np.cos(4 * phi + 2 * theta)
+        + (96525 / 311296) * np.cos(4 * phi + 4 * theta)
+        + (2027025 / 622592) * np.cos(6 * phi + theta)
+        + (289575 / 155648) * np.cos(6 * phi + 3 * theta)
+        + (289575 / 2490368) * np.cos(6 * phi + 5 * theta)
+        + (1640925 / 311296) * np.cos(8 * phi + 2 * theta)
+        + (1640925 / 1245184) * np.cos(8 * phi + 4 * theta)
+        + (1640925 / 131072) * np.cos(10 * phi + 3 * theta)
         + 1488375 / 1245184
     )
 
@@ -5524,70 +5524,6 @@ def M_gg_1_5_10_1():
 
 
 def N_gg_1_5_10_1(theta, phi):
-    return (
-        (14189175 / 5292032) * np.cos(4 * phi)
-        + (2837835 / 622592) * np.cos(8 * phi)
-        + (6251175 / 5292032) * np.cos(2 * theta)
-        + (1250235 / 10584064) * np.cos(4 * theta)
-        + (509355 / 21168128) * np.cos(2 * phi - 5 * theta)
-        + (1528065 / 2646016) * np.cos(2 * phi - 3 * theta)
-        + (22920975 / 10584064) * np.cos(2 * phi - theta)
-        + (2546775 / 1323008) * np.cos(2 * phi + theta)
-        + (7640325 / 21168128) * np.cos(2 * phi + 3 * theta)
-        + (945945 / 5292032) * np.cos(4 * phi - 4 * theta)
-        + (8513505 / 5292032) * np.cos(4 * phi - 2 * theta)
-        + (4729725 / 5292032) * np.cos(4 * phi + 2 * theta)
-        + (8513505 / 10584064) * np.cos(6 * phi - 3 * theta)
-        + (8513505 / 2646016) * np.cos(6 * phi - theta)
-        + (42567525 / 21168128) * np.cos(6 * phi + theta)
-        + (945945 / 311296) * np.cos(8 * phi - 2 * theta)
-        + (945945 / 65536) * np.cos(10 * phi - theta)
-        + 6251175 / 5292032
-    )
-
-
-def M_gg_1_5_10_2():
-    def func(k):
-        return -8 / 103378275 * k**10
-
-    return func
-
-
-def N_gg_1_5_10_2(theta, phi):
-    return (
-        -6081075 / 7159808 * np.cos(4 * phi)
-        + (48243195 / 14319616) * np.cos(8 * phi)
-        + (9823275 / 7159808) * np.cos(2 * theta)
-        + (13752585 / 14319616) * np.cos(4 * theta)
-        + (6621615 / 14319616) * np.cos(2 * phi - 5 * theta)
-        + (12879405 / 7159808) * np.cos(2 * phi - 3 * theta)
-        - 3274425 / 3579904 * np.cos(2 * phi - theta)
-        + (363825 / 894976) * np.cos(2 * phi + theta)
-        + (22920975 / 14319616) * np.cos(2 * phi + 3 * theta)
-        + (2027025 / 14319616) * np.cos(4 * phi - 6 * theta)
-        + (11563695 / 7159808) * np.cos(4 * phi - 4 * theta)
-        + (1216215 / 3579904) * np.cos(4 * phi - 2 * theta)
-        + (33108075 / 14319616) * np.cos(4 * phi + 2 * theta)
-        + (13030875 / 14319616) * np.cos(6 * phi - 5 * theta)
-        + (7123545 / 3579904) * np.cos(6 * phi - 3 * theta)
-        - 13378365 / 7159808 * np.cos(6 * phi - theta)
-        + (42567525 / 14319616) * np.cos(6 * phi + theta)
-        + (44304975 / 14319616) * np.cos(8 * phi - 4 * theta)
-        - 10173735 / 7159808 * np.cos(8 * phi - 2 * theta)
-        + (4922775 / 753664) * np.cos(10 * phi - 3 * theta)
-        + (2297295 / 753664) * np.cos(10 * phi - theta)
-        - 9823275 / 14319616
-    )
-
-
-def M_gg_1_5_10_3():
-    def func(k):
-        return -758 / 468242775 * k**10
-
-    return func
-
-
-def N_gg_1_5_10_3(theta, phi):
     return (
         (14189175 / 5292032) * np.cos(4 * phi)
         + (2837835 / 622592) * np.cos(8 * phi)
@@ -5606,6 +5542,70 @@ def N_gg_1_5_10_3(theta, phi):
         + (8513505 / 10584064) * np.cos(6 * phi + 3 * theta)
         + (945945 / 311296) * np.cos(8 * phi + 2 * theta)
         + (945945 / 65536) * np.cos(10 * phi + theta)
+        + 6251175 / 5292032
+    )
+
+
+def M_gg_1_5_10_2():
+    def func(k):
+        return -8 / 103378275 * k**10
+
+    return func
+
+
+def N_gg_1_5_10_2(theta, phi):
+    return (
+        -6081075 / 7159808 * np.cos(4 * phi)
+        + (48243195 / 14319616) * np.cos(8 * phi)
+        + (9823275 / 7159808) * np.cos(2 * theta)
+        + (13752585 / 14319616) * np.cos(4 * theta)
+        + (22920975 / 14319616) * np.cos(2 * phi - 3 * theta)
+        + (363825 / 894976) * np.cos(2 * phi - theta)
+        - 3274425 / 3579904 * np.cos(2 * phi + theta)
+        + (12879405 / 7159808) * np.cos(2 * phi + 3 * theta)
+        + (6621615 / 14319616) * np.cos(2 * phi + 5 * theta)
+        + (33108075 / 14319616) * np.cos(4 * phi - 2 * theta)
+        + (1216215 / 3579904) * np.cos(4 * phi + 2 * theta)
+        + (11563695 / 7159808) * np.cos(4 * phi + 4 * theta)
+        + (2027025 / 14319616) * np.cos(4 * phi + 6 * theta)
+        + (42567525 / 14319616) * np.cos(6 * phi - theta)
+        - 13378365 / 7159808 * np.cos(6 * phi + theta)
+        + (7123545 / 3579904) * np.cos(6 * phi + 3 * theta)
+        + (13030875 / 14319616) * np.cos(6 * phi + 5 * theta)
+        - 10173735 / 7159808 * np.cos(8 * phi + 2 * theta)
+        + (44304975 / 14319616) * np.cos(8 * phi + 4 * theta)
+        + (2297295 / 753664) * np.cos(10 * phi + theta)
+        + (4922775 / 753664) * np.cos(10 * phi + 3 * theta)
+        - 9823275 / 14319616
+    )
+
+
+def M_gg_1_5_10_3():
+    def func(k):
+        return -758 / 468242775 * k**10
+
+    return func
+
+
+def N_gg_1_5_10_3(theta, phi):
+    return (
+        (14189175 / 5292032) * np.cos(4 * phi)
+        + (2837835 / 622592) * np.cos(8 * phi)
+        + (6251175 / 5292032) * np.cos(2 * theta)
+        + (1250235 / 10584064) * np.cos(4 * theta)
+        + (509355 / 21168128) * np.cos(2 * phi - 5 * theta)
+        + (1528065 / 2646016) * np.cos(2 * phi - 3 * theta)
+        + (22920975 / 10584064) * np.cos(2 * phi - theta)
+        + (2546775 / 1323008) * np.cos(2 * phi + theta)
+        + (7640325 / 21168128) * np.cos(2 * phi + 3 * theta)
+        + (945945 / 5292032) * np.cos(4 * phi - 4 * theta)
+        + (8513505 / 5292032) * np.cos(4 * phi - 2 * theta)
+        + (4729725 / 5292032) * np.cos(4 * phi + 2 * theta)
+        + (8513505 / 10584064) * np.cos(6 * phi - 3 * theta)
+        + (8513505 / 2646016) * np.cos(6 * phi - theta)
+        + (42567525 / 21168128) * np.cos(6 * phi + theta)
+        + (945945 / 311296) * np.cos(8 * phi - 2 * theta)
+        + (945945 / 65536) * np.cos(10 * phi - theta)
         + 6251175 / 5292032
     )
 
@@ -5657,17 +5657,17 @@ def N_gg_1_5_10_5(theta, phi):
     return (
         (675675 / 311296) * np.cos(4 * phi)
         + (297675 / 311296) * np.cos(2 * theta)
-        + (1819125 / 1245184) * np.cos(2 * phi - theta)
-        + (363825 / 155648) * np.cos(2 * phi + theta)
-        + (363825 / 622592) * np.cos(2 * phi + 3 * theta)
-        + (675675 / 311296) * np.cos(4 * phi + 2 * theta)
-        + (96525 / 311296) * np.cos(4 * phi + 4 * theta)
-        + (2027025 / 622592) * np.cos(6 * phi + theta)
-        + (289575 / 155648) * np.cos(6 * phi + 3 * theta)
-        + (289575 / 2490368) * np.cos(6 * phi + 5 * theta)
-        + (1640925 / 311296) * np.cos(8 * phi + 2 * theta)
-        + (1640925 / 1245184) * np.cos(8 * phi + 4 * theta)
-        + (1640925 / 131072) * np.cos(10 * phi + 3 * theta)
+        + (363825 / 622592) * np.cos(2 * phi - 3 * theta)
+        + (363825 / 155648) * np.cos(2 * phi - theta)
+        + (1819125 / 1245184) * np.cos(2 * phi + theta)
+        + (96525 / 311296) * np.cos(4 * phi - 4 * theta)
+        + (675675 / 311296) * np.cos(4 * phi - 2 * theta)
+        + (289575 / 2490368) * np.cos(6 * phi - 5 * theta)
+        + (289575 / 155648) * np.cos(6 * phi - 3 * theta)
+        + (2027025 / 622592) * np.cos(6 * phi - theta)
+        + (1640925 / 1245184) * np.cos(8 * phi - 4 * theta)
+        + (1640925 / 311296) * np.cos(8 * phi - 2 * theta)
+        + (1640925 / 131072) * np.cos(10 * phi - 3 * theta)
         + 1488375 / 1245184
     )
 
@@ -5685,23 +5685,23 @@ def N_gg_1_5_10_6(theta, phi):
         + (48243195 / 14319616) * np.cos(8 * phi)
         + (9823275 / 7159808) * np.cos(2 * theta)
         + (13752585 / 14319616) * np.cos(4 * theta)
-        + (22920975 / 14319616) * np.cos(2 * phi - 3 * theta)
-        + (363825 / 894976) * np.cos(2 * phi - theta)
-        - 3274425 / 3579904 * np.cos(2 * phi + theta)
-        + (12879405 / 7159808) * np.cos(2 * phi + 3 * theta)
-        + (6621615 / 14319616) * np.cos(2 * phi + 5 * theta)
-        + (33108075 / 14319616) * np.cos(4 * phi - 2 * theta)
-        + (1216215 / 3579904) * np.cos(4 * phi + 2 * theta)
-        + (11563695 / 7159808) * np.cos(4 * phi + 4 * theta)
-        + (2027025 / 14319616) * np.cos(4 * phi + 6 * theta)
-        + (42567525 / 14319616) * np.cos(6 * phi - theta)
-        - 13378365 / 7159808 * np.cos(6 * phi + theta)
-        + (7123545 / 3579904) * np.cos(6 * phi + 3 * theta)
-        + (13030875 / 14319616) * np.cos(6 * phi + 5 * theta)
-        - 10173735 / 7159808 * np.cos(8 * phi + 2 * theta)
-        + (44304975 / 14319616) * np.cos(8 * phi + 4 * theta)
-        + (2297295 / 753664) * np.cos(10 * phi + theta)
-        + (4922775 / 753664) * np.cos(10 * phi + 3 * theta)
+        + (6621615 / 14319616) * np.cos(2 * phi - 5 * theta)
+        + (12879405 / 7159808) * np.cos(2 * phi - 3 * theta)
+        - 3274425 / 3579904 * np.cos(2 * phi - theta)
+        + (363825 / 894976) * np.cos(2 * phi + theta)
+        + (22920975 / 14319616) * np.cos(2 * phi + 3 * theta)
+        + (2027025 / 14319616) * np.cos(4 * phi - 6 * theta)
+        + (11563695 / 7159808) * np.cos(4 * phi - 4 * theta)
+        + (1216215 / 3579904) * np.cos(4 * phi - 2 * theta)
+        + (33108075 / 14319616) * np.cos(4 * phi + 2 * theta)
+        + (13030875 / 14319616) * np.cos(6 * phi - 5 * theta)
+        + (7123545 / 3579904) * np.cos(6 * phi - 3 * theta)
+        - 13378365 / 7159808 * np.cos(6 * phi - theta)
+        + (42567525 / 14319616) * np.cos(6 * phi + theta)
+        + (44304975 / 14319616) * np.cos(8 * phi - 4 * theta)
+        - 10173735 / 7159808 * np.cos(8 * phi - 2 * theta)
+        + (4922775 / 753664) * np.cos(10 * phi - 3 * theta)
+        + (2297295 / 753664) * np.cos(10 * phi - theta)
         - 9823275 / 14319616
     )
 
@@ -5719,24 +5719,24 @@ def N_gg_1_5_12_0(theta, phi):
         + (34459425 / 12058624) * np.cos(8 * phi)
         + (36018675 / 28639232) * np.cos(2 * theta)
         + (36018675 / 229113856) * np.cos(4 * theta)
-        + (6081075 / 114556928) * np.cos(2 * phi - 5 * theta)
-        + (42567525 / 57278464) * np.cos(2 * phi - 3 * theta)
-        + (127702575 / 57278464) * np.cos(2 * phi - theta)
-        + (212837625 / 114556928) * np.cos(2 * phi + theta)
-        + (42567525 / 114556928) * np.cos(2 * phi + 3 * theta)
-        + (10135125 / 916455424) * np.cos(4 * phi - 6 * theta)
-        + (10135125 / 28639232) * np.cos(4 * phi - 4 * theta)
-        + (212837625 / 114556928) * np.cos(4 * phi - 2 * theta)
-        + (354729375 / 458227712) * np.cos(4 * phi + 2 * theta)
-        + (24613875 / 229113856) * np.cos(6 * phi - 5 * theta)
-        + (73841625 / 57278464) * np.cos(6 * phi - 3 * theta)
-        + (172297125 / 57278464) * np.cos(6 * phi - theta)
-        + (172297125 / 114556928) * np.cos(6 * phi + theta)
-        + (14768325 / 24117248) * np.cos(8 * phi - 4 * theta)
-        + (4922775 / 1507328) * np.cos(8 * phi - 2 * theta)
-        + (34459425 / 12058624) * np.cos(10 * phi - 3 * theta)
-        + (34459425 / 6029312) * np.cos(10 * phi - theta)
-        + (34459425 / 2097152) * np.cos(12 * phi - 2 * theta)
+        + (42567525 / 114556928) * np.cos(2 * phi - 3 * theta)
+        + (212837625 / 114556928) * np.cos(2 * phi - theta)
+        + (127702575 / 57278464) * np.cos(2 * phi + theta)
+        + (42567525 / 57278464) * np.cos(2 * phi + 3 * theta)
+        + (6081075 / 114556928) * np.cos(2 * phi + 5 * theta)
+        + (354729375 / 458227712) * np.cos(4 * phi - 2 * theta)
+        + (212837625 / 114556928) * np.cos(4 * phi + 2 * theta)
+        + (10135125 / 28639232) * np.cos(4 * phi + 4 * theta)
+        + (10135125 / 916455424) * np.cos(4 * phi + 6 * theta)
+        + (172297125 / 114556928) * np.cos(6 * phi - theta)
+        + (172297125 / 57278464) * np.cos(6 * phi + theta)
+        + (73841625 / 57278464) * np.cos(6 * phi + 3 * theta)
+        + (24613875 / 229113856) * np.cos(6 * phi + 5 * theta)
+        + (4922775 / 1507328) * np.cos(8 * phi + 2 * theta)
+        + (14768325 / 24117248) * np.cos(8 * phi + 4 * theta)
+        + (34459425 / 6029312) * np.cos(10 * phi + theta)
+        + (34459425 / 12058624) * np.cos(10 * phi + 3 * theta)
+        + (34459425 / 2097152) * np.cos(12 * phi + 2 * theta)
         + 540280125 / 458227712
     )
 
@@ -5791,24 +5791,24 @@ def N_gg_1_5_12_2(theta, phi):
         + (34459425 / 12058624) * np.cos(8 * phi)
         + (36018675 / 28639232) * np.cos(2 * theta)
         + (36018675 / 229113856) * np.cos(4 * theta)
-        + (42567525 / 114556928) * np.cos(2 * phi - 3 * theta)
-        + (212837625 / 114556928) * np.cos(2 * phi - theta)
-        + (127702575 / 57278464) * np.cos(2 * phi + theta)
-        + (42567525 / 57278464) * np.cos(2 * phi + 3 * theta)
-        + (6081075 / 114556928) * np.cos(2 * phi + 5 * theta)
-        + (354729375 / 458227712) * np.cos(4 * phi - 2 * theta)
-        + (212837625 / 114556928) * np.cos(4 * phi + 2 * theta)
-        + (10135125 / 28639232) * np.cos(4 * phi + 4 * theta)
-        + (10135125 / 916455424) * np.cos(4 * phi + 6 * theta)
-        + (172297125 / 114556928) * np.cos(6 * phi - theta)
-        + (172297125 / 57278464) * np.cos(6 * phi + theta)
-        + (73841625 / 57278464) * np.cos(6 * phi + 3 * theta)
-        + (24613875 / 229113856) * np.cos(6 * phi + 5 * theta)
-        + (4922775 / 1507328) * np.cos(8 * phi + 2 * theta)
-        + (14768325 / 24117248) * np.cos(8 * phi + 4 * theta)
-        + (34459425 / 6029312) * np.cos(10 * phi + theta)
-        + (34459425 / 12058624) * np.cos(10 * phi + 3 * theta)
-        + (34459425 / 2097152) * np.cos(12 * phi + 2 * theta)
+        + (6081075 / 114556928) * np.cos(2 * phi - 5 * theta)
+        + (42567525 / 57278464) * np.cos(2 * phi - 3 * theta)
+        + (127702575 / 57278464) * np.cos(2 * phi - theta)
+        + (212837625 / 114556928) * np.cos(2 * phi + theta)
+        + (42567525 / 114556928) * np.cos(2 * phi + 3 * theta)
+        + (10135125 / 916455424) * np.cos(4 * phi - 6 * theta)
+        + (10135125 / 28639232) * np.cos(4 * phi - 4 * theta)
+        + (212837625 / 114556928) * np.cos(4 * phi - 2 * theta)
+        + (354729375 / 458227712) * np.cos(4 * phi + 2 * theta)
+        + (24613875 / 229113856) * np.cos(6 * phi - 5 * theta)
+        + (73841625 / 57278464) * np.cos(6 * phi - 3 * theta)
+        + (172297125 / 57278464) * np.cos(6 * phi - theta)
+        + (172297125 / 114556928) * np.cos(6 * phi + theta)
+        + (14768325 / 24117248) * np.cos(8 * phi - 4 * theta)
+        + (4922775 / 1507328) * np.cos(8 * phi - 2 * theta)
+        + (34459425 / 12058624) * np.cos(10 * phi - 3 * theta)
+        + (34459425 / 6029312) * np.cos(10 * phi - theta)
+        + (34459425 / 2097152) * np.cos(12 * phi - 2 * theta)
         + 540280125 / 458227712
     )
 
@@ -5870,7 +5870,7 @@ def M_gg_1_6_2_0():
 
 
 def N_gg_1_6_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_1_6_2_1():
@@ -5881,7 +5881,7 @@ def M_gg_1_6_2_1():
 
 
 def N_gg_1_6_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_1_6_2_2():
@@ -5910,9 +5910,9 @@ def M_gg_1_6_2_3():
 def N_gg_1_6_2_3(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (225 / 32) * np.cos(2 * phi - 3 * theta)
-        + (225 / 112) * np.cos(2 * phi - theta)
-        + (135 / 224) * np.cos(2 * phi + theta)
+        + (135 / 224) * np.cos(2 * phi - theta)
+        + (225 / 112) * np.cos(2 * phi + theta)
+        + (225 / 32) * np.cos(2 * phi + 3 * theta)
         + 135 / 112
     )
 
@@ -5927,9 +5927,9 @@ def M_gg_1_6_2_4():
 def N_gg_1_6_2_4(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (135 / 224) * np.cos(2 * phi - theta)
-        + (225 / 112) * np.cos(2 * phi + theta)
-        + (225 / 32) * np.cos(2 * phi + 3 * theta)
+        + (225 / 32) * np.cos(2 * phi - 3 * theta)
+        + (225 / 112) * np.cos(2 * phi - theta)
+        + (135 / 224) * np.cos(2 * phi + theta)
         + 135 / 112
     )
 
@@ -5964,11 +5964,11 @@ def N_gg_1_6_2_6(theta, phi):
     return (
         (1575 / 704) * np.cos(2 * theta)
         + (4725 / 2816) * np.cos(4 * theta)
-        + (4725 / 512) * np.cos(2 * phi - 5 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 512) * np.cos(2 * phi + 5 * theta)
         + 3375 / 2816
     )
 
@@ -5984,11 +5984,11 @@ def N_gg_1_6_2_7(theta, phi):
     return (
         (1575 / 704) * np.cos(2 * theta)
         + (4725 / 2816) * np.cos(4 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 512) * np.cos(2 * phi + 5 * theta)
+        + (4725 / 512) * np.cos(2 * phi - 5 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
         + 3375 / 2816
     )
 
@@ -6027,13 +6027,13 @@ def N_gg_1_6_2_9(theta, phi):
         (4725 / 2048) * np.cos(2 * theta)
         + (2079 / 1024) * np.cos(4 * theta)
         + (3003 / 2048) * np.cos(6 * theta)
-        + (45045 / 4096) * np.cos(2 * phi - 7 * theta)
-        + (9009 / 2048) * np.cos(2 * phi - 5 * theta)
-        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 1024) * np.cos(2 * phi - theta)
-        + (3675 / 4096) * np.cos(2 * phi + theta)
-        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
-        + (693 / 4096) * np.cos(2 * phi + 5 * theta)
+        + (693 / 4096) * np.cos(2 * phi - 5 * theta)
+        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
+        + (3675 / 4096) * np.cos(2 * phi - theta)
+        + (1575 / 1024) * np.cos(2 * phi + theta)
+        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
+        + (9009 / 2048) * np.cos(2 * phi + 5 * theta)
+        + (45045 / 4096) * np.cos(2 * phi + 7 * theta)
         + 1225 / 1024
     )
 
@@ -6050,13 +6050,13 @@ def N_gg_1_6_2_10(theta, phi):
         (4725 / 2048) * np.cos(2 * theta)
         + (2079 / 1024) * np.cos(4 * theta)
         + (3003 / 2048) * np.cos(6 * theta)
-        + (693 / 4096) * np.cos(2 * phi - 5 * theta)
-        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
-        + (3675 / 4096) * np.cos(2 * phi - theta)
-        + (1575 / 1024) * np.cos(2 * phi + theta)
-        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
-        + (9009 / 2048) * np.cos(2 * phi + 5 * theta)
-        + (45045 / 4096) * np.cos(2 * phi + 7 * theta)
+        + (45045 / 4096) * np.cos(2 * phi - 7 * theta)
+        + (9009 / 2048) * np.cos(2 * phi - 5 * theta)
+        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 1024) * np.cos(2 * phi - theta)
+        + (3675 / 4096) * np.cos(2 * phi + theta)
+        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
+        + (693 / 4096) * np.cos(2 * phi + 5 * theta)
         + 1225 / 1024
     )
 
@@ -6070,8 +6070,8 @@ def M_gg_1_6_4_0():
 
 def N_gg_1_6_4_0(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi - theta)
-        + (315 / 64) * np.cos(4 * phi - 2 * theta)
+        (45 / 16) * np.cos(2 * phi + theta)
+        + (315 / 64) * np.cos(4 * phi + 2 * theta)
         + 81 / 64
     )
 
@@ -6104,10 +6104,10 @@ def N_gg_1_6_4_2(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (675 / 352) * np.cos(2 * phi - 3 * theta)
-        - 225 / 308 * np.cos(2 * phi - theta)
-        + (6075 / 2464) * np.cos(2 * phi + theta)
-        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
+        + (6075 / 2464) * np.cos(2 * phi - theta)
+        - 225 / 308 * np.cos(2 * phi + theta)
+        + (675 / 352) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2464
     )
 
@@ -6123,11 +6123,11 @@ def N_gg_1_6_4_3(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
         + 3375 / 2816
     )
 
@@ -6141,8 +6141,8 @@ def M_gg_1_6_4_4():
 
 def N_gg_1_6_4_4(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi + theta)
-        + (315 / 64) * np.cos(4 * phi + 2 * theta)
+        (45 / 16) * np.cos(2 * phi - theta)
+        + (315 / 64) * np.cos(4 * phi - 2 * theta)
         + 81 / 64
     )
 
@@ -6158,10 +6158,10 @@ def N_gg_1_6_4_5(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (6075 / 2464) * np.cos(2 * phi - theta)
-        - 225 / 308 * np.cos(2 * phi + theta)
-        + (675 / 352) * np.cos(2 * phi + 3 * theta)
-        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
+        + (675 / 352) * np.cos(2 * phi - 3 * theta)
+        - 225 / 308 * np.cos(2 * phi - theta)
+        + (6075 / 2464) * np.cos(2 * phi + theta)
+        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
         - 2025 / 2464
     )
 
@@ -6199,13 +6199,13 @@ def N_gg_1_6_4_7(theta, phi):
     return (
         (4725 / 2816) * np.cos(4 * phi)
         + (8505 / 2816) * np.cos(4 * theta)
-        + (945 / 256) * np.cos(2 * phi - 5 * theta)
-        - 2835 / 1408 * np.cos(2 * phi - 3 * theta)
-        + (225 / 128) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(2 * phi + 3 * theta)
-        + (945 / 256) * np.cos(4 * phi - 4 * theta)
-        + (8505 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (1575 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 2816) * np.cos(2 * phi - 3 * theta)
+        + (225 / 128) * np.cos(2 * phi - theta)
+        - 2835 / 1408 * np.cos(2 * phi + 3 * theta)
+        + (945 / 256) * np.cos(2 * phi + 5 * theta)
+        + (1575 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (8505 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (945 / 256) * np.cos(4 * phi + 4 * theta)
         - 2025 / 2816
     )
 
@@ -6222,15 +6222,15 @@ def N_gg_1_6_4_8(theta, phi):
         (99225 / 292864) * np.cos(4 * phi)
         + (297675 / 146432) * np.cos(2 * theta)
         + (59535 / 53248) * np.cos(4 * theta)
-        + (6615 / 2048) * np.cos(2 * phi - 5 * theta)
-        + (19845 / 6656) * np.cos(2 * phi - 3 * theta)
-        + (297675 / 146432) * np.cos(2 * phi - theta)
-        + (77175 / 73216) * np.cos(2 * phi + theta)
-        + (99225 / 292864) * np.cos(2 * phi + 3 * theta)
-        + (99225 / 8192) * np.cos(4 * phi - 6 * theta)
-        + (6615 / 2048) * np.cos(4 * phi - 4 * theta)
-        + (59535 / 53248) * np.cos(4 * phi - 2 * theta)
-        + (77175 / 1171456) * np.cos(4 * phi + 2 * theta)
+        + (99225 / 292864) * np.cos(2 * phi - 3 * theta)
+        + (77175 / 73216) * np.cos(2 * phi - theta)
+        + (297675 / 146432) * np.cos(2 * phi + theta)
+        + (19845 / 6656) * np.cos(2 * phi + 3 * theta)
+        + (6615 / 2048) * np.cos(2 * phi + 5 * theta)
+        + (77175 / 1171456) * np.cos(4 * phi - 2 * theta)
+        + (59535 / 53248) * np.cos(4 * phi + 2 * theta)
+        + (6615 / 2048) * np.cos(4 * phi + 4 * theta)
+        + (99225 / 8192) * np.cos(4 * phi + 6 * theta)
         + 694575 / 585728
     )
 
@@ -6246,11 +6246,11 @@ def N_gg_1_6_4_9(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
         + 3375 / 2816
     )
 
@@ -6266,13 +6266,13 @@ def N_gg_1_6_4_10(theta, phi):
     return (
         (4725 / 2816) * np.cos(4 * phi)
         + (8505 / 2816) * np.cos(4 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - 3 * theta)
-        + (225 / 128) * np.cos(2 * phi - theta)
-        - 2835 / 1408 * np.cos(2 * phi + 3 * theta)
-        + (945 / 256) * np.cos(2 * phi + 5 * theta)
-        + (1575 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (8505 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (945 / 256) * np.cos(4 * phi + 4 * theta)
+        + (945 / 256) * np.cos(2 * phi - 5 * theta)
+        - 2835 / 1408 * np.cos(2 * phi - 3 * theta)
+        + (225 / 128) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(2 * phi + 3 * theta)
+        + (945 / 256) * np.cos(4 * phi - 4 * theta)
+        + (8505 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1575 / 2816) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2816
     )
 
@@ -6317,18 +6317,18 @@ def N_gg_1_6_4_12(theta, phi):
         - 552825 / 856064 * np.cos(2 * theta)
         + (49329 / 38912) * np.cos(4 * theta)
         + (243243 / 77824) * np.cos(6 * theta)
-        + (405405 / 77824) * np.cos(2 * phi - 7 * theta)
-        - 36855 / 19456 * np.cos(2 * phi - 5 * theta)
-        - 104895 / 77824 * np.cos(2 * phi - 3 * theta)
-        + (14175 / 53504) * np.cos(2 * phi - theta)
-        + (1289925 / 856064) * np.cos(2 * phi + theta)
-        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
-        + (93555 / 77824) * np.cos(2 * phi + 5 * theta)
-        + (257985 / 77824) * np.cos(4 * phi - 6 * theta)
-        + (257985 / 77824) * np.cos(4 * phi - 4 * theta)
-        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (694575 / 856064) * np.cos(4 * phi + 2 * theta)
-        + (19845 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (93555 / 77824) * np.cos(2 * phi - 5 * theta)
+        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
+        + (1289925 / 856064) * np.cos(2 * phi - theta)
+        + (14175 / 53504) * np.cos(2 * phi + theta)
+        - 104895 / 77824 * np.cos(2 * phi + 3 * theta)
+        - 36855 / 19456 * np.cos(2 * phi + 5 * theta)
+        + (405405 / 77824) * np.cos(2 * phi + 7 * theta)
+        + (19845 / 77824) * np.cos(4 * phi - 4 * theta)
+        + (694575 / 856064) * np.cos(4 * phi - 2 * theta)
+        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (257985 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (257985 / 77824) * np.cos(4 * phi + 6 * theta)
         - 297675 / 428032
     )
 
@@ -6345,15 +6345,15 @@ def N_gg_1_6_4_13(theta, phi):
         (99225 / 292864) * np.cos(4 * phi)
         + (297675 / 146432) * np.cos(2 * theta)
         + (59535 / 53248) * np.cos(4 * theta)
-        + (99225 / 292864) * np.cos(2 * phi - 3 * theta)
-        + (77175 / 73216) * np.cos(2 * phi - theta)
-        + (297675 / 146432) * np.cos(2 * phi + theta)
-        + (19845 / 6656) * np.cos(2 * phi + 3 * theta)
-        + (6615 / 2048) * np.cos(2 * phi + 5 * theta)
-        + (77175 / 1171456) * np.cos(4 * phi - 2 * theta)
-        + (59535 / 53248) * np.cos(4 * phi + 2 * theta)
-        + (6615 / 2048) * np.cos(4 * phi + 4 * theta)
-        + (99225 / 8192) * np.cos(4 * phi + 6 * theta)
+        + (6615 / 2048) * np.cos(2 * phi - 5 * theta)
+        + (19845 / 6656) * np.cos(2 * phi - 3 * theta)
+        + (297675 / 146432) * np.cos(2 * phi - theta)
+        + (77175 / 73216) * np.cos(2 * phi + theta)
+        + (99225 / 292864) * np.cos(2 * phi + 3 * theta)
+        + (99225 / 8192) * np.cos(4 * phi - 6 * theta)
+        + (6615 / 2048) * np.cos(4 * phi - 4 * theta)
+        + (59535 / 53248) * np.cos(4 * phi - 2 * theta)
+        + (77175 / 1171456) * np.cos(4 * phi + 2 * theta)
         + 694575 / 585728
     )
 
@@ -6371,18 +6371,18 @@ def N_gg_1_6_4_14(theta, phi):
         - 552825 / 856064 * np.cos(2 * theta)
         + (49329 / 38912) * np.cos(4 * theta)
         + (243243 / 77824) * np.cos(6 * theta)
-        + (93555 / 77824) * np.cos(2 * phi - 5 * theta)
-        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
-        + (1289925 / 856064) * np.cos(2 * phi - theta)
-        + (14175 / 53504) * np.cos(2 * phi + theta)
-        - 104895 / 77824 * np.cos(2 * phi + 3 * theta)
-        - 36855 / 19456 * np.cos(2 * phi + 5 * theta)
-        + (405405 / 77824) * np.cos(2 * phi + 7 * theta)
-        + (19845 / 77824) * np.cos(4 * phi - 4 * theta)
-        + (694575 / 856064) * np.cos(4 * phi - 2 * theta)
-        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (257985 / 77824) * np.cos(4 * phi + 4 * theta)
-        + (257985 / 77824) * np.cos(4 * phi + 6 * theta)
+        + (405405 / 77824) * np.cos(2 * phi - 7 * theta)
+        - 36855 / 19456 * np.cos(2 * phi - 5 * theta)
+        - 104895 / 77824 * np.cos(2 * phi - 3 * theta)
+        + (14175 / 53504) * np.cos(2 * phi - theta)
+        + (1289925 / 856064) * np.cos(2 * phi + theta)
+        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
+        + (93555 / 77824) * np.cos(2 * phi + 5 * theta)
+        + (257985 / 77824) * np.cos(4 * phi - 6 * theta)
+        + (257985 / 77824) * np.cos(4 * phi - 4 * theta)
+        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (694575 / 856064) * np.cos(4 * phi + 2 * theta)
+        + (19845 / 77824) * np.cos(4 * phi + 4 * theta)
         - 297675 / 428032
     )
 
@@ -6396,9 +6396,9 @@ def M_gg_1_6_6_0():
 
 def N_gg_1_6_6_0(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi - theta)
-        + (819 / 256) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        (1365 / 512) * np.cos(2 * phi + theta)
+        + (819 / 256) * np.cos(4 * phi + 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         + 325 / 256
     )
 
@@ -6414,11 +6414,11 @@ def N_gg_1_6_6_1(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi + theta)
         + 3375 / 2816
     )
 
@@ -6434,13 +6434,13 @@ def N_gg_1_6_6_2(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
-        - 6825 / 5632 * np.cos(2 * phi - theta)
-        + (6825 / 2816) * np.cos(2 * phi + theta)
-        + (819 / 512) * np.cos(4 * phi - 4 * theta)
-        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
-        + (819 / 512) * np.cos(6 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi - theta)
+        - 6825 / 5632 * np.cos(2 * phi + theta)
+        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (819 / 512) * np.cos(4 * phi + 4 * theta)
+        + (819 / 512) * np.cos(6 * phi + theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         - 2275 / 2816
     )
 
@@ -6456,14 +6456,14 @@ def N_gg_1_6_6_3(theta, phi):
     return (
         (945 / 2048) * np.cos(4 * phi)
         + (1575 / 1024) * np.cos(2 * theta)
-        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2048) * np.cos(2 * phi - theta)
-        + (3675 / 4096) * np.cos(2 * phi + theta)
-        + (9009 / 2048) * np.cos(4 * phi - 4 * theta)
-        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
-        + (45045 / 4096) * np.cos(6 * phi - 5 * theta)
-        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (693 / 4096) * np.cos(6 * phi - theta)
+        + (3675 / 4096) * np.cos(2 * phi - theta)
+        + (4725 / 2048) * np.cos(2 * phi + theta)
+        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
+        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
+        + (9009 / 2048) * np.cos(4 * phi + 4 * theta)
+        + (693 / 4096) * np.cos(6 * phi + theta)
+        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (45045 / 4096) * np.cos(6 * phi + 5 * theta)
         + 1225 / 1024
     )
 
@@ -6479,11 +6479,11 @@ def N_gg_1_6_6_4(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi - theta)
         + 3375 / 2816
     )
 
@@ -6522,17 +6522,17 @@ def N_gg_1_6_6_6(theta, phi):
         (282555 / 382976) * np.cos(4 * phi)
         - 20475 / 17408 * np.cos(2 * theta)
         + (429975 / 191488) * np.cos(4 * theta)
-        + (85995 / 69632) * np.cos(2 * phi - 5 * theta)
-        + (282555 / 382976) * np.cos(2 * phi - 3 * theta)
-        + (12285 / 69632) * np.cos(2 * phi - theta)
-        - 20475 / 17408 * np.cos(2 * phi + theta)
-        + (1003275 / 382976) * np.cos(2 * phi + 3 * theta)
-        + (110565 / 34816) * np.cos(4 * phi - 4 * theta)
-        - 22113 / 11968 * np.cos(4 * phi - 2 * theta)
-        + (429975 / 191488) * np.cos(4 * phi + 2 * theta)
-        + (243243 / 69632) * np.cos(6 * phi - 3 * theta)
-        + (110565 / 34816) * np.cos(6 * phi - theta)
-        + (85995 / 69632) * np.cos(6 * phi + theta)
+        + (1003275 / 382976) * np.cos(2 * phi - 3 * theta)
+        - 20475 / 17408 * np.cos(2 * phi - theta)
+        + (12285 / 69632) * np.cos(2 * phi + theta)
+        + (282555 / 382976) * np.cos(2 * phi + 3 * theta)
+        + (85995 / 69632) * np.cos(2 * phi + 5 * theta)
+        + (429975 / 191488) * np.cos(4 * phi - 2 * theta)
+        - 22113 / 11968 * np.cos(4 * phi + 2 * theta)
+        + (110565 / 34816) * np.cos(4 * phi + 4 * theta)
+        + (85995 / 69632) * np.cos(6 * phi - theta)
+        + (110565 / 34816) * np.cos(6 * phi + theta)
+        + (243243 / 69632) * np.cos(6 * phi + 3 * theta)
         + 61425 / 95744
     )
 
@@ -6549,19 +6549,19 @@ def N_gg_1_6_6_7(theta, phi):
         (394065 / 214016) * np.cos(4 * phi)
         + (14175 / 53504) * np.cos(2 * theta)
         + (99225 / 38912) * np.cos(4 * theta)
-        + (257985 / 77824) * np.cos(2 * phi - 5 * theta)
-        - 104895 / 77824 * np.cos(2 * phi - 3 * theta)
-        - 552825 / 856064 * np.cos(2 * phi - theta)
-        + (1289925 / 856064) * np.cos(2 * phi + theta)
-        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
-        + (257985 / 77824) * np.cos(4 * phi - 6 * theta)
-        - 36855 / 19456 * np.cos(4 * phi - 4 * theta)
-        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (694575 / 856064) * np.cos(4 * phi + 2 * theta)
-        + (405405 / 77824) * np.cos(6 * phi - 5 * theta)
-        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
-        + (93555 / 77824) * np.cos(6 * phi - theta)
-        + (19845 / 77824) * np.cos(6 * phi + theta)
+        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
+        + (1289925 / 856064) * np.cos(2 * phi - theta)
+        - 552825 / 856064 * np.cos(2 * phi + theta)
+        - 104895 / 77824 * np.cos(2 * phi + 3 * theta)
+        + (257985 / 77824) * np.cos(2 * phi + 5 * theta)
+        + (694575 / 856064) * np.cos(4 * phi - 2 * theta)
+        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
+        - 36855 / 19456 * np.cos(4 * phi + 4 * theta)
+        + (257985 / 77824) * np.cos(4 * phi + 6 * theta)
+        + (19845 / 77824) * np.cos(6 * phi - theta)
+        + (93555 / 77824) * np.cos(6 * phi + theta)
+        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
+        + (405405 / 77824) * np.cos(6 * phi + 5 * theta)
         - 297675 / 428032
     )
 
@@ -6575,9 +6575,9 @@ def M_gg_1_6_6_8():
 
 def N_gg_1_6_6_8(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi + theta)
-        + (819 / 256) * np.cos(4 * phi + 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        (1365 / 512) * np.cos(2 * phi - theta)
+        + (819 / 256) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
         + 325 / 256
     )
 
@@ -6593,13 +6593,13 @@ def N_gg_1_6_6_9(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (6825 / 2816) * np.cos(2 * phi - theta)
-        - 6825 / 5632 * np.cos(2 * phi + theta)
-        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (819 / 512) * np.cos(4 * phi + 4 * theta)
-        + (819 / 512) * np.cos(6 * phi + theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
+        - 6825 / 5632 * np.cos(2 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi + theta)
+        + (819 / 512) * np.cos(4 * phi - 4 * theta)
+        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        + (819 / 512) * np.cos(6 * phi - theta)
         - 2275 / 2816
     )
 
@@ -6616,17 +6616,17 @@ def N_gg_1_6_6_10(theta, phi):
         (282555 / 382976) * np.cos(4 * phi)
         - 20475 / 17408 * np.cos(2 * theta)
         + (429975 / 191488) * np.cos(4 * theta)
-        + (1003275 / 382976) * np.cos(2 * phi - 3 * theta)
-        - 20475 / 17408 * np.cos(2 * phi - theta)
-        + (12285 / 69632) * np.cos(2 * phi + theta)
-        + (282555 / 382976) * np.cos(2 * phi + 3 * theta)
-        + (85995 / 69632) * np.cos(2 * phi + 5 * theta)
-        + (429975 / 191488) * np.cos(4 * phi - 2 * theta)
-        - 22113 / 11968 * np.cos(4 * phi + 2 * theta)
-        + (110565 / 34816) * np.cos(4 * phi + 4 * theta)
-        + (85995 / 69632) * np.cos(6 * phi - theta)
-        + (110565 / 34816) * np.cos(6 * phi + theta)
-        + (243243 / 69632) * np.cos(6 * phi + 3 * theta)
+        + (85995 / 69632) * np.cos(2 * phi - 5 * theta)
+        + (282555 / 382976) * np.cos(2 * phi - 3 * theta)
+        + (12285 / 69632) * np.cos(2 * phi - theta)
+        - 20475 / 17408 * np.cos(2 * phi + theta)
+        + (1003275 / 382976) * np.cos(2 * phi + 3 * theta)
+        + (110565 / 34816) * np.cos(4 * phi - 4 * theta)
+        - 22113 / 11968 * np.cos(4 * phi - 2 * theta)
+        + (429975 / 191488) * np.cos(4 * phi + 2 * theta)
+        + (243243 / 69632) * np.cos(6 * phi - 3 * theta)
+        + (110565 / 34816) * np.cos(6 * phi - theta)
+        + (85995 / 69632) * np.cos(6 * phi + theta)
         + 61425 / 95744
     )
 
@@ -6675,92 +6675,6 @@ def N_gg_1_6_6_12(theta, phi):
         - 716625 / 3424256 * np.cos(2 * theta)
         - 429975 / 311296 * np.cos(4 * theta)
         + (975975 / 311296) * np.cos(6 * theta)
-        + (2927925 / 1245184) * np.cos(2 * phi - 7 * theta)
-        - 266175 / 311296 * np.cos(2 * phi - 5 * theta)
-        + (429975 / 311296) * np.cos(2 * phi - 3 * theta)
-        - 716625 / 3424256 * np.cos(2 * phi - theta)
-        - 16960125 / 13697024 * np.cos(2 * phi + theta)
-        + (429975 / 856064) * np.cos(2 * phi + 3 * theta)
-        + (1576575 / 622592) * np.cos(2 * phi + 5 * theta)
-        + (2395575 / 622592) * np.cos(4 * phi - 6 * theta)
-        - 266175 / 311296 * np.cos(4 * phi - 4 * theta)
-        - 429975 / 311296 * np.cos(4 * phi - 2 * theta)
-        + (12755925 / 6848512) * np.cos(4 * phi + 2 * theta)
-        + (429975 / 311296) * np.cos(4 * phi + 4 * theta)
-        + (2927925 / 1245184) * np.cos(6 * phi - 5 * theta)
-        + (975975 / 311296) * np.cos(6 * phi - 3 * theta)
-        + (1576575 / 622592) * np.cos(6 * phi - theta)
-        + (429975 / 311296) * np.cos(6 * phi + theta)
-        + (525525 / 1245184) * np.cos(6 * phi + 3 * theta)
-        + 1990625 / 3424256
-    )
-
-
-def M_gg_1_6_6_13():
-    def func(k):
-        return (1 / 20675655) * k**12
-
-    return func
-
-
-def N_gg_1_6_6_13(theta, phi):
-    return (
-        (945 / 2048) * np.cos(4 * phi)
-        + (1575 / 1024) * np.cos(2 * theta)
-        + (3675 / 4096) * np.cos(2 * phi - theta)
-        + (4725 / 2048) * np.cos(2 * phi + theta)
-        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
-        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
-        + (9009 / 2048) * np.cos(4 * phi + 4 * theta)
-        + (693 / 4096) * np.cos(6 * phi + theta)
-        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (45045 / 4096) * np.cos(6 * phi + 5 * theta)
-        + 1225 / 1024
-    )
-
-
-def M_gg_1_6_6_14():
-    def func(k):
-        return (4 / 227432205) * k**12
-
-    return func
-
-
-def N_gg_1_6_6_14(theta, phi):
-    return (
-        (394065 / 214016) * np.cos(4 * phi)
-        + (14175 / 53504) * np.cos(2 * theta)
-        + (99225 / 38912) * np.cos(4 * theta)
-        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
-        + (1289925 / 856064) * np.cos(2 * phi - theta)
-        - 552825 / 856064 * np.cos(2 * phi + theta)
-        - 104895 / 77824 * np.cos(2 * phi + 3 * theta)
-        + (257985 / 77824) * np.cos(2 * phi + 5 * theta)
-        + (694575 / 856064) * np.cos(4 * phi - 2 * theta)
-        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
-        - 36855 / 19456 * np.cos(4 * phi + 4 * theta)
-        + (257985 / 77824) * np.cos(4 * phi + 6 * theta)
-        + (19845 / 77824) * np.cos(6 * phi - theta)
-        + (93555 / 77824) * np.cos(6 * phi + theta)
-        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
-        + (405405 / 77824) * np.cos(6 * phi + 5 * theta)
-        - 297675 / 428032
-    )
-
-
-def M_gg_1_6_6_15():
-    def func(k):
-        return (8 / 2956618665) * k**12
-
-    return func
-
-
-def N_gg_1_6_6_15(theta, phi):
-    return (
-        (429975 / 856064) * np.cos(4 * phi)
-        - 716625 / 3424256 * np.cos(2 * theta)
-        - 429975 / 311296 * np.cos(4 * theta)
-        + (975975 / 311296) * np.cos(6 * theta)
         + (1576575 / 622592) * np.cos(2 * phi - 5 * theta)
         + (429975 / 856064) * np.cos(2 * phi - 3 * theta)
         - 16960125 / 13697024 * np.cos(2 * phi - theta)
@@ -6782,6 +6696,92 @@ def N_gg_1_6_6_15(theta, phi):
     )
 
 
+def M_gg_1_6_6_13():
+    def func(k):
+        return (1 / 20675655) * k**12
+
+    return func
+
+
+def N_gg_1_6_6_13(theta, phi):
+    return (
+        (945 / 2048) * np.cos(4 * phi)
+        + (1575 / 1024) * np.cos(2 * theta)
+        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2048) * np.cos(2 * phi - theta)
+        + (3675 / 4096) * np.cos(2 * phi + theta)
+        + (9009 / 2048) * np.cos(4 * phi - 4 * theta)
+        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
+        + (45045 / 4096) * np.cos(6 * phi - 5 * theta)
+        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (693 / 4096) * np.cos(6 * phi - theta)
+        + 1225 / 1024
+    )
+
+
+def M_gg_1_6_6_14():
+    def func(k):
+        return (4 / 227432205) * k**12
+
+    return func
+
+
+def N_gg_1_6_6_14(theta, phi):
+    return (
+        (394065 / 214016) * np.cos(4 * phi)
+        + (14175 / 53504) * np.cos(2 * theta)
+        + (99225 / 38912) * np.cos(4 * theta)
+        + (257985 / 77824) * np.cos(2 * phi - 5 * theta)
+        - 104895 / 77824 * np.cos(2 * phi - 3 * theta)
+        - 552825 / 856064 * np.cos(2 * phi - theta)
+        + (1289925 / 856064) * np.cos(2 * phi + theta)
+        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
+        + (257985 / 77824) * np.cos(4 * phi - 6 * theta)
+        - 36855 / 19456 * np.cos(4 * phi - 4 * theta)
+        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (694575 / 856064) * np.cos(4 * phi + 2 * theta)
+        + (405405 / 77824) * np.cos(6 * phi - 5 * theta)
+        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
+        + (93555 / 77824) * np.cos(6 * phi - theta)
+        + (19845 / 77824) * np.cos(6 * phi + theta)
+        - 297675 / 428032
+    )
+
+
+def M_gg_1_6_6_15():
+    def func(k):
+        return (8 / 2956618665) * k**12
+
+    return func
+
+
+def N_gg_1_6_6_15(theta, phi):
+    return (
+        (429975 / 856064) * np.cos(4 * phi)
+        - 716625 / 3424256 * np.cos(2 * theta)
+        - 429975 / 311296 * np.cos(4 * theta)
+        + (975975 / 311296) * np.cos(6 * theta)
+        + (2927925 / 1245184) * np.cos(2 * phi - 7 * theta)
+        - 266175 / 311296 * np.cos(2 * phi - 5 * theta)
+        + (429975 / 311296) * np.cos(2 * phi - 3 * theta)
+        - 716625 / 3424256 * np.cos(2 * phi - theta)
+        - 16960125 / 13697024 * np.cos(2 * phi + theta)
+        + (429975 / 856064) * np.cos(2 * phi + 3 * theta)
+        + (1576575 / 622592) * np.cos(2 * phi + 5 * theta)
+        + (2395575 / 622592) * np.cos(4 * phi - 6 * theta)
+        - 266175 / 311296 * np.cos(4 * phi - 4 * theta)
+        - 429975 / 311296 * np.cos(4 * phi - 2 * theta)
+        + (12755925 / 6848512) * np.cos(4 * phi + 2 * theta)
+        + (429975 / 311296) * np.cos(4 * phi + 4 * theta)
+        + (2927925 / 1245184) * np.cos(6 * phi - 5 * theta)
+        + (975975 / 311296) * np.cos(6 * phi - 3 * theta)
+        + (1576575 / 622592) * np.cos(6 * phi - theta)
+        + (429975 / 311296) * np.cos(6 * phi + theta)
+        + (525525 / 1245184) * np.cos(6 * phi + 3 * theta)
+        + 1990625 / 3424256
+    )
+
+
 def M_gg_1_6_8_0():
     def func(k):
         return (1 / 13783770) * k**12
@@ -6791,10 +6791,10 @@ def M_gg_1_6_8_0():
 
 def N_gg_1_6_8_0(theta, phi):
     return (
-        (5355 / 2048) * np.cos(2 * phi - theta)
-        + (11781 / 4096) * np.cos(4 * phi - 2 * theta)
-        + (7293 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (109395 / 16384) * np.cos(8 * phi - 4 * theta)
+        (5355 / 2048) * np.cos(2 * phi + theta)
+        + (11781 / 4096) * np.cos(4 * phi + 2 * theta)
+        + (7293 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (109395 / 16384) * np.cos(8 * phi + 4 * theta)
         + 20825 / 16384
     )
 
@@ -6810,14 +6810,14 @@ def N_gg_1_6_8_1(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2048) * np.cos(2 * phi - theta)
-        + (1575 / 1024) * np.cos(2 * phi + theta)
-        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
-        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (9009 / 2048) * np.cos(6 * phi - theta)
-        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
+        + (1575 / 1024) * np.cos(2 * phi - theta)
+        + (4725 / 2048) * np.cos(2 * phi + theta)
+        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
+        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
+        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
+        + (9009 / 2048) * np.cos(6 * phi + theta)
+        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
         + 1225 / 1024
     )
 
@@ -6833,16 +6833,16 @@ def N_gg_1_6_8_2(theta, phi):
     return (
         (176715 / 77824) * np.cos(4 * phi)
         + (187425 / 77824) * np.cos(2 * theta)
-        + (176715 / 77824) * np.cos(2 * phi - 3 * theta)
-        - 26775 / 19456 * np.cos(2 * phi - theta)
-        + (187425 / 77824) * np.cos(2 * phi + theta)
-        + (153153 / 77824) * np.cos(4 * phi - 4 * theta)
-        - 11781 / 19456 * np.cos(4 * phi - 2 * theta)
-        + (109395 / 77824) * np.cos(6 * phi - 5 * theta)
-        + (21879 / 19456) * np.cos(6 * phi - 3 * theta)
-        + (153153 / 77824) * np.cos(6 * phi - theta)
-        + (546975 / 77824) * np.cos(8 * phi - 4 * theta)
-        + (109395 / 77824) * np.cos(8 * phi - 2 * theta)
+        + (187425 / 77824) * np.cos(2 * phi - theta)
+        - 26775 / 19456 * np.cos(2 * phi + theta)
+        + (176715 / 77824) * np.cos(2 * phi + 3 * theta)
+        - 11781 / 19456 * np.cos(4 * phi + 2 * theta)
+        + (153153 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (153153 / 77824) * np.cos(6 * phi + theta)
+        + (21879 / 19456) * np.cos(6 * phi + 3 * theta)
+        + (109395 / 77824) * np.cos(6 * phi + 5 * theta)
+        + (109395 / 77824) * np.cos(8 * phi + 2 * theta)
+        + (546975 / 77824) * np.cos(8 * phi + 4 * theta)
         - 62475 / 77824
     )
 
@@ -6885,18 +6885,18 @@ def N_gg_1_6_8_4(theta, phi):
         + (257985 / 77824) * np.cos(8 * phi)
         + (1289925 / 856064) * np.cos(2 * theta)
         + (694575 / 856064) * np.cos(4 * theta)
-        + (19845 / 77824) * np.cos(2 * phi - 5 * theta)
-        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
-        - 552825 / 856064 * np.cos(2 * phi - theta)
-        + (14175 / 53504) * np.cos(2 * phi + theta)
-        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
-        + (93555 / 77824) * np.cos(4 * phi - 4 * theta)
-        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
-        - 36855 / 19456 * np.cos(6 * phi - theta)
-        + (257985 / 77824) * np.cos(6 * phi + theta)
-        + (405405 / 77824) * np.cos(8 * phi - 2 * theta)
+        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
+        + (14175 / 53504) * np.cos(2 * phi - theta)
+        - 552825 / 856064 * np.cos(2 * phi + theta)
+        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
+        + (19845 / 77824) * np.cos(2 * phi + 5 * theta)
+        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (93555 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (257985 / 77824) * np.cos(6 * phi - theta)
+        - 36855 / 19456 * np.cos(6 * phi + theta)
+        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
+        + (405405 / 77824) * np.cos(8 * phi + 2 * theta)
         - 297675 / 428032
     )
 
@@ -6914,21 +6914,21 @@ def N_gg_1_6_8_5(theta, phi):
         + (530145 / 622592) * np.cos(8 * phi)
         - 5060475 / 4046848 * np.cos(2 * theta)
         + (18555075 / 8093696) * np.cos(4 * theta)
-        + (530145 / 311296) * np.cos(2 * phi - 5 * theta)
-        - 530145 / 4046848 * np.cos(2 * phi - 3 * theta)
-        + (2457945 / 4046848) * np.cos(2 * phi - theta)
-        - 5060475 / 4046848 * np.cos(2 * phi + theta)
-        + (5060475 / 2023424) * np.cos(2 * phi + 3 * theta)
-        + (530145 / 622592) * np.cos(4 * phi - 6 * theta)
-        + (530145 / 311296) * np.cos(4 * phi - 4 * theta)
-        - 954261 / 1011712 * np.cos(4 * phi - 2 * theta)
-        + (18555075 / 8093696) * np.cos(4 * phi + 2 * theta)
-        + (984555 / 311296) * np.cos(6 * phi - 5 * theta)
-        - 590733 / 311296 * np.cos(6 * phi - 3 * theta)
+        + (5060475 / 2023424) * np.cos(2 * phi - 3 * theta)
+        - 5060475 / 4046848 * np.cos(2 * phi - theta)
+        + (2457945 / 4046848) * np.cos(2 * phi + theta)
+        - 530145 / 4046848 * np.cos(2 * phi + 3 * theta)
+        + (530145 / 311296) * np.cos(2 * phi + 5 * theta)
+        + (18555075 / 8093696) * np.cos(4 * phi - 2 * theta)
+        - 954261 / 1011712 * np.cos(4 * phi + 2 * theta)
+        + (530145 / 311296) * np.cos(4 * phi + 4 * theta)
+        + (530145 / 622592) * np.cos(4 * phi + 6 * theta)
         + (530145 / 311296) * np.cos(6 * phi - theta)
         + (530145 / 311296) * np.cos(6 * phi + theta)
-        + (2953665 / 622592) * np.cos(8 * phi - 4 * theta)
-        + (984555 / 311296) * np.cos(8 * phi - 2 * theta)
+        - 590733 / 311296 * np.cos(6 * phi + 3 * theta)
+        + (984555 / 311296) * np.cos(6 * phi + 5 * theta)
+        + (984555 / 311296) * np.cos(8 * phi + 2 * theta)
+        + (2953665 / 622592) * np.cos(8 * phi + 4 * theta)
         + 5060475 / 8093696
     )
 
@@ -6944,14 +6944,14 @@ def N_gg_1_6_8_6(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (1575 / 1024) * np.cos(2 * phi - theta)
-        + (4725 / 2048) * np.cos(2 * phi + theta)
-        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
-        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
-        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
-        + (9009 / 2048) * np.cos(6 * phi + theta)
-        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
+        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2048) * np.cos(2 * phi - theta)
+        + (1575 / 1024) * np.cos(2 * phi + theta)
+        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
+        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (9009 / 2048) * np.cos(6 * phi - theta)
+        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
         + 1225 / 1024
     )
 
@@ -6969,18 +6969,18 @@ def N_gg_1_6_8_7(theta, phi):
         + (257985 / 77824) * np.cos(8 * phi)
         + (1289925 / 856064) * np.cos(2 * theta)
         + (694575 / 856064) * np.cos(4 * theta)
-        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
-        + (14175 / 53504) * np.cos(2 * phi - theta)
-        - 552825 / 856064 * np.cos(2 * phi + theta)
-        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
-        + (19845 / 77824) * np.cos(2 * phi + 5 * theta)
-        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (93555 / 77824) * np.cos(4 * phi + 4 * theta)
-        + (257985 / 77824) * np.cos(6 * phi - theta)
-        - 36855 / 19456 * np.cos(6 * phi + theta)
-        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
-        + (405405 / 77824) * np.cos(8 * phi + 2 * theta)
+        + (19845 / 77824) * np.cos(2 * phi - 5 * theta)
+        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
+        - 552825 / 856064 * np.cos(2 * phi - theta)
+        + (14175 / 53504) * np.cos(2 * phi + theta)
+        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
+        + (93555 / 77824) * np.cos(4 * phi - 4 * theta)
+        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
+        - 36855 / 19456 * np.cos(6 * phi - theta)
+        + (257985 / 77824) * np.cos(6 * phi + theta)
+        + (405405 / 77824) * np.cos(8 * phi - 2 * theta)
         - 297675 / 428032
     )
 
@@ -7033,118 +7033,6 @@ def N_gg_1_6_8_9(theta, phi):
         + (12182625 / 14319616) * np.cos(2 * theta)
         - 6185025 / 14319616 * np.cos(4 * theta)
         + (26801775 / 14319616) * np.cos(6 * theta)
-        + (11486475 / 14319616) * np.cos(2 * phi - 7 * theta)
-        + (11486475 / 7159808) * np.cos(2 * phi - 5 * theta)
-        - 6185025 / 7159808 * np.cos(2 * phi - 3 * theta)
-        + (133875 / 7159808) * np.cos(2 * phi - theta)
-        + (12182625 / 14319616) * np.cos(2 * phi + theta)
-        - 5060475 / 3579904 * np.cos(2 * phi + 3 * theta)
-        + (18555075 / 7159808) * np.cos(2 * phi + 5 * theta)
-        + (34459425 / 14319616) * np.cos(4 * phi - 6 * theta)
-        - 3828825 / 3579904 * np.cos(4 * phi - 4 * theta)
-        + (294525 / 223744) * np.cos(4 * phi - 2 * theta)
-        - 6185025 / 14319616 * np.cos(4 * phi + 2 * theta)
-        + (18555075 / 7159808) * np.cos(4 * phi + 4 * theta)
-        + (49774725 / 14319616) * np.cos(6 * phi - 5 * theta)
-        - 7110675 / 7159808 * np.cos(6 * phi - 3 * theta)
-        - 3828825 / 3579904 * np.cos(6 * phi - theta)
-        + (11486475 / 7159808) * np.cos(6 * phi + theta)
-        + (26801775 / 14319616) * np.cos(6 * phi + 3 * theta)
-        + (35553375 / 14319616) * np.cos(8 * phi - 4 * theta)
-        + (49774725 / 14319616) * np.cos(8 * phi - 2 * theta)
-        + (11486475 / 14319616) * np.cos(8 * phi + 2 * theta)
-        - 7809375 / 14319616
-    )
-
-
-def M_gg_1_6_8_10():
-    def func(k):
-        return (1 / 13783770) * k**12
-
-    return func
-
-
-def N_gg_1_6_8_10(theta, phi):
-    return (
-        (5355 / 2048) * np.cos(2 * phi + theta)
-        + (11781 / 4096) * np.cos(4 * phi + 2 * theta)
-        + (7293 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (109395 / 16384) * np.cos(8 * phi + 4 * theta)
-        + 20825 / 16384
-    )
-
-
-def M_gg_1_6_8_11():
-    def func(k):
-        return (1 / 20675655) * k**12
-
-    return func
-
-
-def N_gg_1_6_8_11(theta, phi):
-    return (
-        (176715 / 77824) * np.cos(4 * phi)
-        + (187425 / 77824) * np.cos(2 * theta)
-        + (187425 / 77824) * np.cos(2 * phi - theta)
-        - 26775 / 19456 * np.cos(2 * phi + theta)
-        + (176715 / 77824) * np.cos(2 * phi + 3 * theta)
-        - 11781 / 19456 * np.cos(4 * phi + 2 * theta)
-        + (153153 / 77824) * np.cos(4 * phi + 4 * theta)
-        + (153153 / 77824) * np.cos(6 * phi + theta)
-        + (21879 / 19456) * np.cos(6 * phi + 3 * theta)
-        + (109395 / 77824) * np.cos(6 * phi + 5 * theta)
-        + (109395 / 77824) * np.cos(8 * phi + 2 * theta)
-        + (546975 / 77824) * np.cos(8 * phi + 4 * theta)
-        - 62475 / 77824
-    )
-
-
-def M_gg_1_6_8_12():
-    def func(k):
-        return (4 / 227432205) * k**12
-
-    return func
-
-
-def N_gg_1_6_8_12(theta, phi):
-    return (
-        -530145 / 4046848 * np.cos(4 * phi)
-        + (530145 / 622592) * np.cos(8 * phi)
-        - 5060475 / 4046848 * np.cos(2 * theta)
-        + (18555075 / 8093696) * np.cos(4 * theta)
-        + (5060475 / 2023424) * np.cos(2 * phi - 3 * theta)
-        - 5060475 / 4046848 * np.cos(2 * phi - theta)
-        + (2457945 / 4046848) * np.cos(2 * phi + theta)
-        - 530145 / 4046848 * np.cos(2 * phi + 3 * theta)
-        + (530145 / 311296) * np.cos(2 * phi + 5 * theta)
-        + (18555075 / 8093696) * np.cos(4 * phi - 2 * theta)
-        - 954261 / 1011712 * np.cos(4 * phi + 2 * theta)
-        + (530145 / 311296) * np.cos(4 * phi + 4 * theta)
-        + (530145 / 622592) * np.cos(4 * phi + 6 * theta)
-        + (530145 / 311296) * np.cos(6 * phi - theta)
-        + (530145 / 311296) * np.cos(6 * phi + theta)
-        - 590733 / 311296 * np.cos(6 * phi + 3 * theta)
-        + (984555 / 311296) * np.cos(6 * phi + 5 * theta)
-        + (984555 / 311296) * np.cos(8 * phi + 2 * theta)
-        + (2953665 / 622592) * np.cos(8 * phi + 4 * theta)
-        + 5060475 / 8093696
-    )
-
-
-def M_gg_1_6_8_13():
-    def func(k):
-        return (8 / 2956618665) * k**12
-
-    return func
-
-
-def N_gg_1_6_8_13(theta, phi):
-    return (
-        -6185025 / 7159808 * np.cos(4 * phi)
-        + (34459425 / 14319616) * np.cos(8 * phi)
-        + (12182625 / 14319616) * np.cos(2 * theta)
-        - 6185025 / 14319616 * np.cos(4 * theta)
-        + (26801775 / 14319616) * np.cos(6 * theta)
         + (18555075 / 7159808) * np.cos(2 * phi - 5 * theta)
         - 5060475 / 3579904 * np.cos(2 * phi - 3 * theta)
         + (12182625 / 14319616) * np.cos(2 * phi - theta)
@@ -7169,6 +7057,118 @@ def N_gg_1_6_8_13(theta, phi):
     )
 
 
+def M_gg_1_6_8_10():
+    def func(k):
+        return (1 / 13783770) * k**12
+
+    return func
+
+
+def N_gg_1_6_8_10(theta, phi):
+    return (
+        (5355 / 2048) * np.cos(2 * phi - theta)
+        + (11781 / 4096) * np.cos(4 * phi - 2 * theta)
+        + (7293 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (109395 / 16384) * np.cos(8 * phi - 4 * theta)
+        + 20825 / 16384
+    )
+
+
+def M_gg_1_6_8_11():
+    def func(k):
+        return (1 / 20675655) * k**12
+
+    return func
+
+
+def N_gg_1_6_8_11(theta, phi):
+    return (
+        (176715 / 77824) * np.cos(4 * phi)
+        + (187425 / 77824) * np.cos(2 * theta)
+        + (176715 / 77824) * np.cos(2 * phi - 3 * theta)
+        - 26775 / 19456 * np.cos(2 * phi - theta)
+        + (187425 / 77824) * np.cos(2 * phi + theta)
+        + (153153 / 77824) * np.cos(4 * phi - 4 * theta)
+        - 11781 / 19456 * np.cos(4 * phi - 2 * theta)
+        + (109395 / 77824) * np.cos(6 * phi - 5 * theta)
+        + (21879 / 19456) * np.cos(6 * phi - 3 * theta)
+        + (153153 / 77824) * np.cos(6 * phi - theta)
+        + (546975 / 77824) * np.cos(8 * phi - 4 * theta)
+        + (109395 / 77824) * np.cos(8 * phi - 2 * theta)
+        - 62475 / 77824
+    )
+
+
+def M_gg_1_6_8_12():
+    def func(k):
+        return (4 / 227432205) * k**12
+
+    return func
+
+
+def N_gg_1_6_8_12(theta, phi):
+    return (
+        -530145 / 4046848 * np.cos(4 * phi)
+        + (530145 / 622592) * np.cos(8 * phi)
+        - 5060475 / 4046848 * np.cos(2 * theta)
+        + (18555075 / 8093696) * np.cos(4 * theta)
+        + (530145 / 311296) * np.cos(2 * phi - 5 * theta)
+        - 530145 / 4046848 * np.cos(2 * phi - 3 * theta)
+        + (2457945 / 4046848) * np.cos(2 * phi - theta)
+        - 5060475 / 4046848 * np.cos(2 * phi + theta)
+        + (5060475 / 2023424) * np.cos(2 * phi + 3 * theta)
+        + (530145 / 622592) * np.cos(4 * phi - 6 * theta)
+        + (530145 / 311296) * np.cos(4 * phi - 4 * theta)
+        - 954261 / 1011712 * np.cos(4 * phi - 2 * theta)
+        + (18555075 / 8093696) * np.cos(4 * phi + 2 * theta)
+        + (984555 / 311296) * np.cos(6 * phi - 5 * theta)
+        - 590733 / 311296 * np.cos(6 * phi - 3 * theta)
+        + (530145 / 311296) * np.cos(6 * phi - theta)
+        + (530145 / 311296) * np.cos(6 * phi + theta)
+        + (2953665 / 622592) * np.cos(8 * phi - 4 * theta)
+        + (984555 / 311296) * np.cos(8 * phi - 2 * theta)
+        + 5060475 / 8093696
+    )
+
+
+def M_gg_1_6_8_13():
+    def func(k):
+        return (8 / 2956618665) * k**12
+
+    return func
+
+
+def N_gg_1_6_8_13(theta, phi):
+    return (
+        -6185025 / 7159808 * np.cos(4 * phi)
+        + (34459425 / 14319616) * np.cos(8 * phi)
+        + (12182625 / 14319616) * np.cos(2 * theta)
+        - 6185025 / 14319616 * np.cos(4 * theta)
+        + (26801775 / 14319616) * np.cos(6 * theta)
+        + (11486475 / 14319616) * np.cos(2 * phi - 7 * theta)
+        + (11486475 / 7159808) * np.cos(2 * phi - 5 * theta)
+        - 6185025 / 7159808 * np.cos(2 * phi - 3 * theta)
+        + (133875 / 7159808) * np.cos(2 * phi - theta)
+        + (12182625 / 14319616) * np.cos(2 * phi + theta)
+        - 5060475 / 3579904 * np.cos(2 * phi + 3 * theta)
+        + (18555075 / 7159808) * np.cos(2 * phi + 5 * theta)
+        + (34459425 / 14319616) * np.cos(4 * phi - 6 * theta)
+        - 3828825 / 3579904 * np.cos(4 * phi - 4 * theta)
+        + (294525 / 223744) * np.cos(4 * phi - 2 * theta)
+        - 6185025 / 14319616 * np.cos(4 * phi + 2 * theta)
+        + (18555075 / 7159808) * np.cos(4 * phi + 4 * theta)
+        + (49774725 / 14319616) * np.cos(6 * phi - 5 * theta)
+        - 7110675 / 7159808 * np.cos(6 * phi - 3 * theta)
+        - 3828825 / 3579904 * np.cos(6 * phi - theta)
+        + (11486475 / 7159808) * np.cos(6 * phi + theta)
+        + (26801775 / 14319616) * np.cos(6 * phi + 3 * theta)
+        + (35553375 / 14319616) * np.cos(8 * phi - 4 * theta)
+        + (49774725 / 14319616) * np.cos(8 * phi - 2 * theta)
+        + (11486475 / 14319616) * np.cos(8 * phi + 2 * theta)
+        - 7809375 / 14319616
+    )
+
+
 def M_gg_1_6_10_0():
     def func(k):
         return (1 / 20675655) * k**12
@@ -7180,17 +7180,17 @@ def N_gg_1_6_10_0(theta, phi):
     return (
         (675675 / 311296) * np.cos(4 * phi)
         + (297675 / 311296) * np.cos(2 * theta)
-        + (363825 / 622592) * np.cos(2 * phi - 3 * theta)
-        + (363825 / 155648) * np.cos(2 * phi - theta)
-        + (1819125 / 1245184) * np.cos(2 * phi + theta)
-        + (96525 / 311296) * np.cos(4 * phi - 4 * theta)
-        + (675675 / 311296) * np.cos(4 * phi - 2 * theta)
-        + (289575 / 2490368) * np.cos(6 * phi - 5 * theta)
-        + (289575 / 155648) * np.cos(6 * phi - 3 * theta)
-        + (2027025 / 622592) * np.cos(6 * phi - theta)
-        + (1640925 / 1245184) * np.cos(8 * phi - 4 * theta)
-        + (1640925 / 311296) * np.cos(8 * phi - 2 * theta)
-        + (1640925 / 131072) * np.cos(10 * phi - 3 * theta)
+        + (1819125 / 1245184) * np.cos(2 * phi - theta)
+        + (363825 / 155648) * np.cos(2 * phi + theta)
+        + (363825 / 622592) * np.cos(2 * phi + 3 * theta)
+        + (675675 / 311296) * np.cos(4 * phi + 2 * theta)
+        + (96525 / 311296) * np.cos(4 * phi + 4 * theta)
+        + (2027025 / 622592) * np.cos(6 * phi + theta)
+        + (289575 / 155648) * np.cos(6 * phi + 3 * theta)
+        + (289575 / 2490368) * np.cos(6 * phi + 5 * theta)
+        + (1640925 / 311296) * np.cos(8 * phi + 2 * theta)
+        + (1640925 / 1245184) * np.cos(8 * phi + 4 * theta)
+        + (1640925 / 131072) * np.cos(10 * phi + 3 * theta)
         + 1488375 / 1245184
     )
 
@@ -7203,70 +7203,6 @@ def M_gg_1_6_10_1():
 
 
 def N_gg_1_6_10_1(theta, phi):
-    return (
-        (14189175 / 5292032) * np.cos(4 * phi)
-        + (2837835 / 622592) * np.cos(8 * phi)
-        + (6251175 / 5292032) * np.cos(2 * theta)
-        + (1250235 / 10584064) * np.cos(4 * theta)
-        + (509355 / 21168128) * np.cos(2 * phi - 5 * theta)
-        + (1528065 / 2646016) * np.cos(2 * phi - 3 * theta)
-        + (22920975 / 10584064) * np.cos(2 * phi - theta)
-        + (2546775 / 1323008) * np.cos(2 * phi + theta)
-        + (7640325 / 21168128) * np.cos(2 * phi + 3 * theta)
-        + (945945 / 5292032) * np.cos(4 * phi - 4 * theta)
-        + (8513505 / 5292032) * np.cos(4 * phi - 2 * theta)
-        + (4729725 / 5292032) * np.cos(4 * phi + 2 * theta)
-        + (8513505 / 10584064) * np.cos(6 * phi - 3 * theta)
-        + (8513505 / 2646016) * np.cos(6 * phi - theta)
-        + (42567525 / 21168128) * np.cos(6 * phi + theta)
-        + (945945 / 311296) * np.cos(8 * phi - 2 * theta)
-        + (945945 / 65536) * np.cos(10 * phi - theta)
-        + 6251175 / 5292032
-    )
-
-
-def M_gg_1_6_10_2():
-    def func(k):
-        return (4 / 227432205) * k**12
-
-    return func
-
-
-def N_gg_1_6_10_2(theta, phi):
-    return (
-        -6081075 / 7159808 * np.cos(4 * phi)
-        + (48243195 / 14319616) * np.cos(8 * phi)
-        + (9823275 / 7159808) * np.cos(2 * theta)
-        + (13752585 / 14319616) * np.cos(4 * theta)
-        + (6621615 / 14319616) * np.cos(2 * phi - 5 * theta)
-        + (12879405 / 7159808) * np.cos(2 * phi - 3 * theta)
-        - 3274425 / 3579904 * np.cos(2 * phi - theta)
-        + (363825 / 894976) * np.cos(2 * phi + theta)
-        + (22920975 / 14319616) * np.cos(2 * phi + 3 * theta)
-        + (2027025 / 14319616) * np.cos(4 * phi - 6 * theta)
-        + (11563695 / 7159808) * np.cos(4 * phi - 4 * theta)
-        + (1216215 / 3579904) * np.cos(4 * phi - 2 * theta)
-        + (33108075 / 14319616) * np.cos(4 * phi + 2 * theta)
-        + (13030875 / 14319616) * np.cos(6 * phi - 5 * theta)
-        + (7123545 / 3579904) * np.cos(6 * phi - 3 * theta)
-        - 13378365 / 7159808 * np.cos(6 * phi - theta)
-        + (42567525 / 14319616) * np.cos(6 * phi + theta)
-        + (44304975 / 14319616) * np.cos(8 * phi - 4 * theta)
-        - 10173735 / 7159808 * np.cos(8 * phi - 2 * theta)
-        + (4922775 / 753664) * np.cos(10 * phi - 3 * theta)
-        + (2297295 / 753664) * np.cos(10 * phi - theta)
-        - 9823275 / 14319616
-    )
-
-
-def M_gg_1_6_10_3():
-    def func(k):
-        return (41 / 173918745) * k**12
-
-    return func
-
-
-def N_gg_1_6_10_3(theta, phi):
     return (
         (14189175 / 5292032) * np.cos(4 * phi)
         + (2837835 / 622592) * np.cos(8 * phi)
@@ -7285,6 +7221,70 @@ def N_gg_1_6_10_3(theta, phi):
         + (8513505 / 10584064) * np.cos(6 * phi + 3 * theta)
         + (945945 / 311296) * np.cos(8 * phi + 2 * theta)
         + (945945 / 65536) * np.cos(10 * phi + theta)
+        + 6251175 / 5292032
+    )
+
+
+def M_gg_1_6_10_2():
+    def func(k):
+        return (4 / 227432205) * k**12
+
+    return func
+
+
+def N_gg_1_6_10_2(theta, phi):
+    return (
+        -6081075 / 7159808 * np.cos(4 * phi)
+        + (48243195 / 14319616) * np.cos(8 * phi)
+        + (9823275 / 7159808) * np.cos(2 * theta)
+        + (13752585 / 14319616) * np.cos(4 * theta)
+        + (22920975 / 14319616) * np.cos(2 * phi - 3 * theta)
+        + (363825 / 894976) * np.cos(2 * phi - theta)
+        - 3274425 / 3579904 * np.cos(2 * phi + theta)
+        + (12879405 / 7159808) * np.cos(2 * phi + 3 * theta)
+        + (6621615 / 14319616) * np.cos(2 * phi + 5 * theta)
+        + (33108075 / 14319616) * np.cos(4 * phi - 2 * theta)
+        + (1216215 / 3579904) * np.cos(4 * phi + 2 * theta)
+        + (11563695 / 7159808) * np.cos(4 * phi + 4 * theta)
+        + (2027025 / 14319616) * np.cos(4 * phi + 6 * theta)
+        + (42567525 / 14319616) * np.cos(6 * phi - theta)
+        - 13378365 / 7159808 * np.cos(6 * phi + theta)
+        + (7123545 / 3579904) * np.cos(6 * phi + 3 * theta)
+        + (13030875 / 14319616) * np.cos(6 * phi + 5 * theta)
+        - 10173735 / 7159808 * np.cos(8 * phi + 2 * theta)
+        + (44304975 / 14319616) * np.cos(8 * phi + 4 * theta)
+        + (2297295 / 753664) * np.cos(10 * phi + theta)
+        + (4922775 / 753664) * np.cos(10 * phi + 3 * theta)
+        - 9823275 / 14319616
+    )
+
+
+def M_gg_1_6_10_3():
+    def func(k):
+        return (41 / 173918745) * k**12
+
+    return func
+
+
+def N_gg_1_6_10_3(theta, phi):
+    return (
+        (14189175 / 5292032) * np.cos(4 * phi)
+        + (2837835 / 622592) * np.cos(8 * phi)
+        + (6251175 / 5292032) * np.cos(2 * theta)
+        + (1250235 / 10584064) * np.cos(4 * theta)
+        + (509355 / 21168128) * np.cos(2 * phi - 5 * theta)
+        + (1528065 / 2646016) * np.cos(2 * phi - 3 * theta)
+        + (22920975 / 10584064) * np.cos(2 * phi - theta)
+        + (2546775 / 1323008) * np.cos(2 * phi + theta)
+        + (7640325 / 21168128) * np.cos(2 * phi + 3 * theta)
+        + (945945 / 5292032) * np.cos(4 * phi - 4 * theta)
+        + (8513505 / 5292032) * np.cos(4 * phi - 2 * theta)
+        + (4729725 / 5292032) * np.cos(4 * phi + 2 * theta)
+        + (8513505 / 10584064) * np.cos(6 * phi - 3 * theta)
+        + (8513505 / 2646016) * np.cos(6 * phi - theta)
+        + (42567525 / 21168128) * np.cos(6 * phi + theta)
+        + (945945 / 311296) * np.cos(8 * phi - 2 * theta)
+        + (945945 / 65536) * np.cos(10 * phi - theta)
         + 6251175 / 5292032
     )
 
@@ -7339,107 +7339,6 @@ def N_gg_1_6_10_5(theta, phi):
         - 138442689 / 114556928 * np.cos(2 * theta)
         + (112771197 / 71598080) * np.cos(4 * theta)
         + (393323931 / 572784640) * np.cos(6 * theta)
-        + (43702659 / 229113856) * np.cos(2 * phi - 7 * theta)
-        + (194675481 / 114556928) * np.cos(2 * phi - 5 * theta)
-        - 79968735 / 229113856 * np.cos(2 * phi - 3 * theta)
-        + (14771295 / 57278464) * np.cos(2 * phi - theta)
-        - 89137125 / 229113856 * np.cos(2 * phi + theta)
-        + (48592467 / 114556928) * np.cos(2 * phi + 3 * theta)
-        + (332812557 / 229113856) * np.cos(2 * phi + 5 * theta)
-        + (51648597 / 57278464) * np.cos(4 * phi - 6 * theta)
-        + (86080995 / 57278464) * np.cos(4 * phi - 4 * theta)
-        - 34999965 / 28639232 * np.cos(4 * phi - 2 * theta)
-        - 59594535 / 57278464 * np.cos(4 * phi + 2 * theta)
-        + (131107977 / 57278464) * np.cos(4 * phi + 4 * theta)
-        + (258242985 / 114556928) * np.cos(6 * phi - 5 * theta)
-        - 36891855 / 57278464 * np.cos(6 * phi - 3 * theta)
-        + (218513295 / 229113856) * np.cos(6 * phi - theta)
-        - 171972801 / 114556928 * np.cos(6 * phi + theta)
-        + (655539885 / 229113856) * np.cos(6 * phi + 3 * theta)
-        + (209053845 / 57278464) * np.cos(8 * phi - 4 * theta)
-        - 209053845 / 114556928 * np.cos(8 * phi - 2 * theta)
-        + (318405087 / 114556928) * np.cos(8 * phi + 2 * theta)
-        + (41810769 / 12058624) * np.cos(10 * phi - 3 * theta)
-        + (125432307 / 30146560) * np.cos(10 * phi - theta)
-        + (106135029 / 60293120) * np.cos(10 * phi + theta)
-        + 32089365 / 57278464
-    )
-
-
-def M_gg_1_6_10_6():
-    def func(k):
-        return (1 / 20675655) * k**12
-
-    return func
-
-
-def N_gg_1_6_10_6(theta, phi):
-    return (
-        (675675 / 311296) * np.cos(4 * phi)
-        + (297675 / 311296) * np.cos(2 * theta)
-        + (1819125 / 1245184) * np.cos(2 * phi - theta)
-        + (363825 / 155648) * np.cos(2 * phi + theta)
-        + (363825 / 622592) * np.cos(2 * phi + 3 * theta)
-        + (675675 / 311296) * np.cos(4 * phi + 2 * theta)
-        + (96525 / 311296) * np.cos(4 * phi + 4 * theta)
-        + (2027025 / 622592) * np.cos(6 * phi + theta)
-        + (289575 / 155648) * np.cos(6 * phi + 3 * theta)
-        + (289575 / 2490368) * np.cos(6 * phi + 5 * theta)
-        + (1640925 / 311296) * np.cos(8 * phi + 2 * theta)
-        + (1640925 / 1245184) * np.cos(8 * phi + 4 * theta)
-        + (1640925 / 131072) * np.cos(10 * phi + 3 * theta)
-        + 1488375 / 1245184
-    )
-
-
-def M_gg_1_6_10_7():
-    def func(k):
-        return (4 / 227432205) * k**12
-
-    return func
-
-
-def N_gg_1_6_10_7(theta, phi):
-    return (
-        -6081075 / 7159808 * np.cos(4 * phi)
-        + (48243195 / 14319616) * np.cos(8 * phi)
-        + (9823275 / 7159808) * np.cos(2 * theta)
-        + (13752585 / 14319616) * np.cos(4 * theta)
-        + (22920975 / 14319616) * np.cos(2 * phi - 3 * theta)
-        + (363825 / 894976) * np.cos(2 * phi - theta)
-        - 3274425 / 3579904 * np.cos(2 * phi + theta)
-        + (12879405 / 7159808) * np.cos(2 * phi + 3 * theta)
-        + (6621615 / 14319616) * np.cos(2 * phi + 5 * theta)
-        + (33108075 / 14319616) * np.cos(4 * phi - 2 * theta)
-        + (1216215 / 3579904) * np.cos(4 * phi + 2 * theta)
-        + (11563695 / 7159808) * np.cos(4 * phi + 4 * theta)
-        + (2027025 / 14319616) * np.cos(4 * phi + 6 * theta)
-        + (42567525 / 14319616) * np.cos(6 * phi - theta)
-        - 13378365 / 7159808 * np.cos(6 * phi + theta)
-        + (7123545 / 3579904) * np.cos(6 * phi + 3 * theta)
-        + (13030875 / 14319616) * np.cos(6 * phi + 5 * theta)
-        - 10173735 / 7159808 * np.cos(8 * phi + 2 * theta)
-        + (44304975 / 14319616) * np.cos(8 * phi + 4 * theta)
-        + (2297295 / 753664) * np.cos(10 * phi + theta)
-        + (4922775 / 753664) * np.cos(10 * phi + 3 * theta)
-        - 9823275 / 14319616
-    )
-
-
-def M_gg_1_6_10_8():
-    def func(k):
-        return (8 / 2956618665) * k**12
-
-    return func
-
-
-def N_gg_1_6_10_8(theta, phi):
-    return (
-        (945945 / 894976) * np.cos(4 * phi)
-        + (9648639 / 28639232) * np.cos(8 * phi)
-        - 138442689 / 114556928 * np.cos(2 * theta)
-        + (112771197 / 71598080) * np.cos(4 * theta)
-        + (393323931 / 572784640) * np.cos(6 * theta)
         + (332812557 / 229113856) * np.cos(2 * phi - 5 * theta)
         + (48592467 / 114556928) * np.cos(2 * phi - 3 * theta)
         - 89137125 / 229113856 * np.cos(2 * phi - theta)
@@ -7467,6 +7366,107 @@ def N_gg_1_6_10_8(theta, phi):
     )
 
 
+def M_gg_1_6_10_6():
+    def func(k):
+        return (1 / 20675655) * k**12
+
+    return func
+
+
+def N_gg_1_6_10_6(theta, phi):
+    return (
+        (675675 / 311296) * np.cos(4 * phi)
+        + (297675 / 311296) * np.cos(2 * theta)
+        + (363825 / 622592) * np.cos(2 * phi - 3 * theta)
+        + (363825 / 155648) * np.cos(2 * phi - theta)
+        + (1819125 / 1245184) * np.cos(2 * phi + theta)
+        + (96525 / 311296) * np.cos(4 * phi - 4 * theta)
+        + (675675 / 311296) * np.cos(4 * phi - 2 * theta)
+        + (289575 / 2490368) * np.cos(6 * phi - 5 * theta)
+        + (289575 / 155648) * np.cos(6 * phi - 3 * theta)
+        + (2027025 / 622592) * np.cos(6 * phi - theta)
+        + (1640925 / 1245184) * np.cos(8 * phi - 4 * theta)
+        + (1640925 / 311296) * np.cos(8 * phi - 2 * theta)
+        + (1640925 / 131072) * np.cos(10 * phi - 3 * theta)
+        + 1488375 / 1245184
+    )
+
+
+def M_gg_1_6_10_7():
+    def func(k):
+        return (4 / 227432205) * k**12
+
+    return func
+
+
+def N_gg_1_6_10_7(theta, phi):
+    return (
+        -6081075 / 7159808 * np.cos(4 * phi)
+        + (48243195 / 14319616) * np.cos(8 * phi)
+        + (9823275 / 7159808) * np.cos(2 * theta)
+        + (13752585 / 14319616) * np.cos(4 * theta)
+        + (6621615 / 14319616) * np.cos(2 * phi - 5 * theta)
+        + (12879405 / 7159808) * np.cos(2 * phi - 3 * theta)
+        - 3274425 / 3579904 * np.cos(2 * phi - theta)
+        + (363825 / 894976) * np.cos(2 * phi + theta)
+        + (22920975 / 14319616) * np.cos(2 * phi + 3 * theta)
+        + (2027025 / 14319616) * np.cos(4 * phi - 6 * theta)
+        + (11563695 / 7159808) * np.cos(4 * phi - 4 * theta)
+        + (1216215 / 3579904) * np.cos(4 * phi - 2 * theta)
+        + (33108075 / 14319616) * np.cos(4 * phi + 2 * theta)
+        + (13030875 / 14319616) * np.cos(6 * phi - 5 * theta)
+        + (7123545 / 3579904) * np.cos(6 * phi - 3 * theta)
+        - 13378365 / 7159808 * np.cos(6 * phi - theta)
+        + (42567525 / 14319616) * np.cos(6 * phi + theta)
+        + (44304975 / 14319616) * np.cos(8 * phi - 4 * theta)
+        - 10173735 / 7159808 * np.cos(8 * phi - 2 * theta)
+        + (4922775 / 753664) * np.cos(10 * phi - 3 * theta)
+        + (2297295 / 753664) * np.cos(10 * phi - theta)
+        - 9823275 / 14319616
+    )
+
+
+def M_gg_1_6_10_8():
+    def func(k):
+        return (8 / 2956618665) * k**12
+
+    return func
+
+
+def N_gg_1_6_10_8(theta, phi):
+    return (
+        (945945 / 894976) * np.cos(4 * phi)
+        + (9648639 / 28639232) * np.cos(8 * phi)
+        - 138442689 / 114556928 * np.cos(2 * theta)
+        + (112771197 / 71598080) * np.cos(4 * theta)
+        + (393323931 / 572784640) * np.cos(6 * theta)
+        + (43702659 / 229113856) * np.cos(2 * phi - 7 * theta)
+        + (194675481 / 114556928) * np.cos(2 * phi - 5 * theta)
+        - 79968735 / 229113856 * np.cos(2 * phi - 3 * theta)
+        + (14771295 / 57278464) * np.cos(2 * phi - theta)
+        - 89137125 / 229113856 * np.cos(2 * phi + theta)
+        + (48592467 / 114556928) * np.cos(2 * phi + 3 * theta)
+        + (332812557 / 229113856) * np.cos(2 * phi + 5 * theta)
+        + (51648597 / 57278464) * np.cos(4 * phi - 6 * theta)
+        + (86080995 / 57278464) * np.cos(4 * phi - 4 * theta)
+        - 34999965 / 28639232 * np.cos(4 * phi - 2 * theta)
+        - 59594535 / 57278464 * np.cos(4 * phi + 2 * theta)
+        + (131107977 / 57278464) * np.cos(4 * phi + 4 * theta)
+        + (258242985 / 114556928) * np.cos(6 * phi - 5 * theta)
+        - 36891855 / 57278464 * np.cos(6 * phi - 3 * theta)
+        + (218513295 / 229113856) * np.cos(6 * phi - theta)
+        - 171972801 / 114556928 * np.cos(6 * phi + theta)
+        + (655539885 / 229113856) * np.cos(6 * phi + 3 * theta)
+        + (209053845 / 57278464) * np.cos(8 * phi - 4 * theta)
+        - 209053845 / 114556928 * np.cos(8 * phi - 2 * theta)
+        + (318405087 / 114556928) * np.cos(8 * phi + 2 * theta)
+        + (41810769 / 12058624) * np.cos(10 * phi - 3 * theta)
+        + (125432307 / 30146560) * np.cos(10 * phi - theta)
+        + (106135029 / 60293120) * np.cos(10 * phi + theta)
+        + 32089365 / 57278464
+    )
+
+
 def M_gg_1_6_12_0():
     def func(k):
         return (4 / 227432205) * k**12
@@ -7480,24 +7480,24 @@ def N_gg_1_6_12_0(theta, phi):
         + (34459425 / 12058624) * np.cos(8 * phi)
         + (36018675 / 28639232) * np.cos(2 * theta)
         + (36018675 / 229113856) * np.cos(4 * theta)
-        + (6081075 / 114556928) * np.cos(2 * phi - 5 * theta)
-        + (42567525 / 57278464) * np.cos(2 * phi - 3 * theta)
-        + (127702575 / 57278464) * np.cos(2 * phi - theta)
-        + (212837625 / 114556928) * np.cos(2 * phi + theta)
-        + (42567525 / 114556928) * np.cos(2 * phi + 3 * theta)
-        + (10135125 / 916455424) * np.cos(4 * phi - 6 * theta)
-        + (10135125 / 28639232) * np.cos(4 * phi - 4 * theta)
-        + (212837625 / 114556928) * np.cos(4 * phi - 2 * theta)
-        + (354729375 / 458227712) * np.cos(4 * phi + 2 * theta)
-        + (24613875 / 229113856) * np.cos(6 * phi - 5 * theta)
-        + (73841625 / 57278464) * np.cos(6 * phi - 3 * theta)
-        + (172297125 / 57278464) * np.cos(6 * phi - theta)
-        + (172297125 / 114556928) * np.cos(6 * phi + theta)
-        + (14768325 / 24117248) * np.cos(8 * phi - 4 * theta)
-        + (4922775 / 1507328) * np.cos(8 * phi - 2 * theta)
-        + (34459425 / 12058624) * np.cos(10 * phi - 3 * theta)
-        + (34459425 / 6029312) * np.cos(10 * phi - theta)
-        + (34459425 / 2097152) * np.cos(12 * phi - 2 * theta)
+        + (42567525 / 114556928) * np.cos(2 * phi - 3 * theta)
+        + (212837625 / 114556928) * np.cos(2 * phi - theta)
+        + (127702575 / 57278464) * np.cos(2 * phi + theta)
+        + (42567525 / 57278464) * np.cos(2 * phi + 3 * theta)
+        + (6081075 / 114556928) * np.cos(2 * phi + 5 * theta)
+        + (354729375 / 458227712) * np.cos(4 * phi - 2 * theta)
+        + (212837625 / 114556928) * np.cos(4 * phi + 2 * theta)
+        + (10135125 / 28639232) * np.cos(4 * phi + 4 * theta)
+        + (10135125 / 916455424) * np.cos(4 * phi + 6 * theta)
+        + (172297125 / 114556928) * np.cos(6 * phi - theta)
+        + (172297125 / 57278464) * np.cos(6 * phi + theta)
+        + (73841625 / 57278464) * np.cos(6 * phi + 3 * theta)
+        + (24613875 / 229113856) * np.cos(6 * phi + 5 * theta)
+        + (4922775 / 1507328) * np.cos(8 * phi + 2 * theta)
+        + (14768325 / 24117248) * np.cos(8 * phi + 4 * theta)
+        + (34459425 / 6029312) * np.cos(10 * phi + theta)
+        + (34459425 / 12058624) * np.cos(10 * phi + 3 * theta)
+        + (34459425 / 2097152) * np.cos(12 * phi + 2 * theta)
         + 540280125 / 458227712
     )
 
@@ -7554,84 +7554,6 @@ def N_gg_1_6_12_2(theta, phi):
         + (225450225 / 229113856) * np.cos(2 * theta)
         + (9018009 / 7159808) * np.cos(4 * theta)
         + (33066033 / 229113856) * np.cos(6 * theta)
-        + (6441435 / 229113856) * np.cos(2 * phi - 7 * theta)
-        + (18621603 / 28639232) * np.cos(2 * phi - 5 * theta)
-        + (381215835 / 229113856) * np.cos(2 * phi - 3 * theta)
-        - 20495475 / 28639232 * np.cos(2 * phi - theta)
-        - 61486425 / 229113856 * np.cos(2 * phi + theta)
-        + (12297285 / 7159808) * np.cos(2 * phi + 3 * theta)
-        + (99198099 / 229113856) * np.cos(2 * phi + 5 * theta)
-        + (43918875 / 229113856) * np.cos(4 * phi - 6 * theta)
-        + (342567225 / 229113856) * np.cos(4 * phi - 4 * theta)
-        + (20495475 / 28639232) * np.cos(4 * phi - 2 * theta)
-        + (184459275 / 114556928) * np.cos(4 * phi + 2 * theta)
-        + (225450225 / 229113856) * np.cos(4 * phi + 4 * theta)
-        + (82957875 / 114556928) * np.cos(6 * phi - 5 * theta)
-        + (57675475 / 28639232) * np.cos(6 * phi - 3 * theta)
-        - 282056775 / 229113856 * np.cos(6 * phi - theta)
-        + (16591575 / 28639232) * np.cos(6 * phi + theta)
-        + (425850425 / 229113856) * np.cos(6 * phi + 3 * theta)
-        + (11851125 / 6029312) * np.cos(8 * phi - 4 * theta)
-        + (9954945 / 12058624) * np.cos(8 * phi - 2 * theta)
-        + (36501465 / 12058624) * np.cos(8 * phi + 2 * theta)
-        + (49774725 / 12058624) * np.cos(10 * phi - 3 * theta)
-        - 1990989 / 753664 * np.cos(10 * phi - theta)
-        + (51102051 / 12058624) * np.cos(10 * phi + theta)
-        + (3318315 / 524288) * np.cos(12 * phi - 2 * theta)
-        - 75150075 / 114556928
-    )
-
-
-def M_gg_1_6_12_3():
-    def func(k):
-        return (4 / 227432205) * k**12
-
-    return func
-
-
-def N_gg_1_6_12_3(theta, phi):
-    return (
-        (70945875 / 28639232) * np.cos(4 * phi)
-        + (34459425 / 12058624) * np.cos(8 * phi)
-        + (36018675 / 28639232) * np.cos(2 * theta)
-        + (36018675 / 229113856) * np.cos(4 * theta)
-        + (42567525 / 114556928) * np.cos(2 * phi - 3 * theta)
-        + (212837625 / 114556928) * np.cos(2 * phi - theta)
-        + (127702575 / 57278464) * np.cos(2 * phi + theta)
-        + (42567525 / 57278464) * np.cos(2 * phi + 3 * theta)
-        + (6081075 / 114556928) * np.cos(2 * phi + 5 * theta)
-        + (354729375 / 458227712) * np.cos(4 * phi - 2 * theta)
-        + (212837625 / 114556928) * np.cos(4 * phi + 2 * theta)
-        + (10135125 / 28639232) * np.cos(4 * phi + 4 * theta)
-        + (10135125 / 916455424) * np.cos(4 * phi + 6 * theta)
-        + (172297125 / 114556928) * np.cos(6 * phi - theta)
-        + (172297125 / 57278464) * np.cos(6 * phi + theta)
-        + (73841625 / 57278464) * np.cos(6 * phi + 3 * theta)
-        + (24613875 / 229113856) * np.cos(6 * phi + 5 * theta)
-        + (4922775 / 1507328) * np.cos(8 * phi + 2 * theta)
-        + (14768325 / 24117248) * np.cos(8 * phi + 4 * theta)
-        + (34459425 / 6029312) * np.cos(10 * phi + theta)
-        + (34459425 / 12058624) * np.cos(10 * phi + 3 * theta)
-        + (34459425 / 2097152) * np.cos(12 * phi + 2 * theta)
-        + 540280125 / 458227712
-    )
-
-
-def M_gg_1_6_12_4():
-    def func(k):
-        return (8 / 2956618665) * k**12
-
-    return func
-
-
-def N_gg_1_6_12_4(theta, phi):
-    return (
-        -307432125 / 229113856 * np.cos(4 * phi)
-        - 1990989 / 1507328 * np.cos(8 * phi)
-        + (2433431 / 524288) * np.cos(12 * phi)
-        + (225450225 / 229113856) * np.cos(2 * theta)
-        + (9018009 / 7159808) * np.cos(4 * theta)
-        + (33066033 / 229113856) * np.cos(6 * theta)
         + (99198099 / 229113856) * np.cos(2 * phi - 5 * theta)
         + (12297285 / 7159808) * np.cos(2 * phi - 3 * theta)
         - 61486425 / 229113856 * np.cos(2 * phi - theta)
@@ -7660,6 +7582,84 @@ def N_gg_1_6_12_4(theta, phi):
     )
 
 
+def M_gg_1_6_12_3():
+    def func(k):
+        return (4 / 227432205) * k**12
+
+    return func
+
+
+def N_gg_1_6_12_3(theta, phi):
+    return (
+        (70945875 / 28639232) * np.cos(4 * phi)
+        + (34459425 / 12058624) * np.cos(8 * phi)
+        + (36018675 / 28639232) * np.cos(2 * theta)
+        + (36018675 / 229113856) * np.cos(4 * theta)
+        + (6081075 / 114556928) * np.cos(2 * phi - 5 * theta)
+        + (42567525 / 57278464) * np.cos(2 * phi - 3 * theta)
+        + (127702575 / 57278464) * np.cos(2 * phi - theta)
+        + (212837625 / 114556928) * np.cos(2 * phi + theta)
+        + (42567525 / 114556928) * np.cos(2 * phi + 3 * theta)
+        + (10135125 / 916455424) * np.cos(4 * phi - 6 * theta)
+        + (10135125 / 28639232) * np.cos(4 * phi - 4 * theta)
+        + (212837625 / 114556928) * np.cos(4 * phi - 2 * theta)
+        + (354729375 / 458227712) * np.cos(4 * phi + 2 * theta)
+        + (24613875 / 229113856) * np.cos(6 * phi - 5 * theta)
+        + (73841625 / 57278464) * np.cos(6 * phi - 3 * theta)
+        + (172297125 / 57278464) * np.cos(6 * phi - theta)
+        + (172297125 / 114556928) * np.cos(6 * phi + theta)
+        + (14768325 / 24117248) * np.cos(8 * phi - 4 * theta)
+        + (4922775 / 1507328) * np.cos(8 * phi - 2 * theta)
+        + (34459425 / 12058624) * np.cos(10 * phi - 3 * theta)
+        + (34459425 / 6029312) * np.cos(10 * phi - theta)
+        + (34459425 / 2097152) * np.cos(12 * phi - 2 * theta)
+        + 540280125 / 458227712
+    )
+
+
+def M_gg_1_6_12_4():
+    def func(k):
+        return (8 / 2956618665) * k**12
+
+    return func
+
+
+def N_gg_1_6_12_4(theta, phi):
+    return (
+        -307432125 / 229113856 * np.cos(4 * phi)
+        - 1990989 / 1507328 * np.cos(8 * phi)
+        + (2433431 / 524288) * np.cos(12 * phi)
+        + (225450225 / 229113856) * np.cos(2 * theta)
+        + (9018009 / 7159808) * np.cos(4 * theta)
+        + (33066033 / 229113856) * np.cos(6 * theta)
+        + (6441435 / 229113856) * np.cos(2 * phi - 7 * theta)
+        + (18621603 / 28639232) * np.cos(2 * phi - 5 * theta)
+        + (381215835 / 229113856) * np.cos(2 * phi - 3 * theta)
+        - 20495475 / 28639232 * np.cos(2 * phi - theta)
+        - 61486425 / 229113856 * np.cos(2 * phi + theta)
+        + (12297285 / 7159808) * np.cos(2 * phi + 3 * theta)
+        + (99198099 / 229113856) * np.cos(2 * phi + 5 * theta)
+        + (43918875 / 229113856) * np.cos(4 * phi - 6 * theta)
+        + (342567225 / 229113856) * np.cos(4 * phi - 4 * theta)
+        + (20495475 / 28639232) * np.cos(4 * phi - 2 * theta)
+        + (184459275 / 114556928) * np.cos(4 * phi + 2 * theta)
+        + (225450225 / 229113856) * np.cos(4 * phi + 4 * theta)
+        + (82957875 / 114556928) * np.cos(6 * phi - 5 * theta)
+        + (57675475 / 28639232) * np.cos(6 * phi - 3 * theta)
+        - 282056775 / 229113856 * np.cos(6 * phi - theta)
+        + (16591575 / 28639232) * np.cos(6 * phi + theta)
+        + (425850425 / 229113856) * np.cos(6 * phi + 3 * theta)
+        + (11851125 / 6029312) * np.cos(8 * phi - 4 * theta)
+        + (9954945 / 12058624) * np.cos(8 * phi - 2 * theta)
+        + (36501465 / 12058624) * np.cos(8 * phi + 2 * theta)
+        + (49774725 / 12058624) * np.cos(10 * phi - 3 * theta)
+        - 1990989 / 753664 * np.cos(10 * phi - theta)
+        + (51102051 / 12058624) * np.cos(10 * phi + theta)
+        + (3318315 / 524288) * np.cos(12 * phi - 2 * theta)
+        - 75150075 / 114556928
+    )
+
+
 def M_gg_1_6_14_0():
     def func(k):
         return (8 / 2956618665) * k**12
@@ -7668,50 +7668,6 @@ def M_gg_1_6_14_0():
 
 
 def N_gg_1_6_14_0(theta, phi):
-    return (
-        (2299592295 / 916455424) * np.cos(4 * phi)
-        + (153306153 / 48234496) * np.cos(8 * phi)
-        + (12167155 / 2097152) * np.cos(12 * phi)
-        + (1289575287 / 916455424) * np.cos(2 * theta)
-        + (1289575287 / 4582277120) * np.cos(4 * theta)
-        + (61408347 / 4582277120) * np.cos(6 * theta)
-        + (14171157 / 7331643392) * np.cos(2 * phi - 7 * theta)
-        + (42513471 / 458227712) * np.cos(2 * phi - 5 * theta)
-        + (1487971485 / 1832910848) * np.cos(2 * phi - 3 * theta)
-        + (495990495 / 229113856) * np.cos(2 * phi - theta)
-        + (7439857425 / 3665821696) * np.cos(2 * phi + theta)
-        + (297594297 / 458227712) * np.cos(2 * phi + 3 * theta)
-        + (99198099 / 1832910848) * np.cos(2 * phi + 5 * theta)
-        + (65702637 / 3665821696) * np.cos(4 * phi - 6 * theta)
-        + (328513185 / 916455424) * np.cos(4 * phi - 4 * theta)
-        + (766530765 / 458227712) * np.cos(4 * phi - 2 * theta)
-        + (2299592295 / 1832910848) * np.cos(4 * phi + 2 * theta)
-        + (153306153 / 916455424) * np.cos(4 * phi + 4 * theta)
-        + (36501465 / 385875968) * np.cos(6 * phi - 5 * theta)
-        + (12167155 / 12058624) * np.cos(6 * phi - 3 * theta)
-        + (255510255 / 96468992) * np.cos(6 * phi - theta)
-        + (51102051 / 24117248) * np.cos(6 * phi + theta)
-        + (85170085 / 192937984) * np.cos(6 * phi + 3 * theta)
-        + (36501465 / 96468992) * np.cos(8 * phi - 4 * theta)
-        + (109504395 / 48234496) * np.cos(8 * phi - 2 * theta)
-        + (51102051 / 48234496) * np.cos(8 * phi + 2 * theta)
-        + (21900879 / 16777216) * np.cos(10 * phi - 3 * theta)
-        + (21900879 / 5242880) * np.cos(10 * phi - theta)
-        + (51102051 / 20971520) * np.cos(10 * phi + theta)
-        + (36501465 / 8388608) * np.cos(12 * phi - 2 * theta)
-        + (328513185 / 16777216) * np.cos(14 * phi - theta)
-        + 2149292145 / 1832910848
-    )
-
-
-def M_gg_1_6_14_1():
-    def func(k):
-        return (8 / 2956618665) * k**12
-
-    return func
-
-
-def N_gg_1_6_14_1(theta, phi):
     return (
         (2299592295 / 916455424) * np.cos(4 * phi)
         + (153306153 / 48234496) * np.cos(8 * phi)
@@ -7748,6 +7704,50 @@ def N_gg_1_6_14_1(theta, phi):
     )
 
 
+def M_gg_1_6_14_1():
+    def func(k):
+        return (8 / 2956618665) * k**12
+
+    return func
+
+
+def N_gg_1_6_14_1(theta, phi):
+    return (
+        (2299592295 / 916455424) * np.cos(4 * phi)
+        + (153306153 / 48234496) * np.cos(8 * phi)
+        + (12167155 / 2097152) * np.cos(12 * phi)
+        + (1289575287 / 916455424) * np.cos(2 * theta)
+        + (1289575287 / 4582277120) * np.cos(4 * theta)
+        + (61408347 / 4582277120) * np.cos(6 * theta)
+        + (14171157 / 7331643392) * np.cos(2 * phi - 7 * theta)
+        + (42513471 / 458227712) * np.cos(2 * phi - 5 * theta)
+        + (1487971485 / 1832910848) * np.cos(2 * phi - 3 * theta)
+        + (495990495 / 229113856) * np.cos(2 * phi - theta)
+        + (7439857425 / 3665821696) * np.cos(2 * phi + theta)
+        + (297594297 / 458227712) * np.cos(2 * phi + 3 * theta)
+        + (99198099 / 1832910848) * np.cos(2 * phi + 5 * theta)
+        + (65702637 / 3665821696) * np.cos(4 * phi - 6 * theta)
+        + (328513185 / 916455424) * np.cos(4 * phi - 4 * theta)
+        + (766530765 / 458227712) * np.cos(4 * phi - 2 * theta)
+        + (2299592295 / 1832910848) * np.cos(4 * phi + 2 * theta)
+        + (153306153 / 916455424) * np.cos(4 * phi + 4 * theta)
+        + (36501465 / 385875968) * np.cos(6 * phi - 5 * theta)
+        + (12167155 / 12058624) * np.cos(6 * phi - 3 * theta)
+        + (255510255 / 96468992) * np.cos(6 * phi - theta)
+        + (51102051 / 24117248) * np.cos(6 * phi + theta)
+        + (85170085 / 192937984) * np.cos(6 * phi + 3 * theta)
+        + (36501465 / 96468992) * np.cos(8 * phi - 4 * theta)
+        + (109504395 / 48234496) * np.cos(8 * phi - 2 * theta)
+        + (51102051 / 48234496) * np.cos(8 * phi + 2 * theta)
+        + (21900879 / 16777216) * np.cos(10 * phi - 3 * theta)
+        + (21900879 / 5242880) * np.cos(10 * phi - theta)
+        + (51102051 / 20971520) * np.cos(10 * phi + theta)
+        + (36501465 / 8388608) * np.cos(12 * phi - 2 * theta)
+        + (328513185 / 16777216) * np.cos(14 * phi - theta)
+        + 2149292145 / 1832910848
+    )
+
+
 def M_gg_2_0_0_0():
     def func(k):
         return 1 / 9
@@ -7778,7 +7778,7 @@ def M_gg_2_0_2_0():
 
 
 def N_gg_2_0_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_2_0_2_1():
@@ -7789,7 +7789,7 @@ def M_gg_2_0_2_1():
 
 
 def N_gg_2_0_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_2_0_2_2():
@@ -7855,7 +7855,7 @@ def M_gg_2_1_2_0():
 
 
 def N_gg_2_1_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_2_1_2_1():
@@ -7866,7 +7866,7 @@ def M_gg_2_1_2_1():
 
 
 def N_gg_2_1_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_2_1_2_2():
@@ -7895,9 +7895,9 @@ def M_gg_2_1_2_3():
 def N_gg_2_1_2_3(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (225 / 32) * np.cos(2 * phi - 3 * theta)
-        + (225 / 112) * np.cos(2 * phi - theta)
-        + (135 / 224) * np.cos(2 * phi + theta)
+        + (135 / 224) * np.cos(2 * phi - theta)
+        + (225 / 112) * np.cos(2 * phi + theta)
+        + (225 / 32) * np.cos(2 * phi + 3 * theta)
         + 135 / 112
     )
 
@@ -7912,9 +7912,9 @@ def M_gg_2_1_2_4():
 def N_gg_2_1_2_4(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (135 / 224) * np.cos(2 * phi - theta)
-        + (225 / 112) * np.cos(2 * phi + theta)
-        + (225 / 32) * np.cos(2 * phi + 3 * theta)
+        + (225 / 32) * np.cos(2 * phi - 3 * theta)
+        + (225 / 112) * np.cos(2 * phi - theta)
+        + (135 / 224) * np.cos(2 * phi + theta)
         + 135 / 112
     )
 
@@ -7928,8 +7928,8 @@ def M_gg_2_1_4_0():
 
 def N_gg_2_1_4_0(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi - theta)
-        + (315 / 64) * np.cos(4 * phi - 2 * theta)
+        (45 / 16) * np.cos(2 * phi + theta)
+        + (315 / 64) * np.cos(4 * phi + 2 * theta)
         + 81 / 64
     )
 
@@ -7962,10 +7962,10 @@ def N_gg_2_1_4_2(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (675 / 352) * np.cos(2 * phi - 3 * theta)
-        - 225 / 308 * np.cos(2 * phi - theta)
-        + (6075 / 2464) * np.cos(2 * phi + theta)
-        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
+        + (6075 / 2464) * np.cos(2 * phi - theta)
+        - 225 / 308 * np.cos(2 * phi + theta)
+        + (675 / 352) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2464
     )
 
@@ -7979,8 +7979,8 @@ def M_gg_2_1_4_3():
 
 def N_gg_2_1_4_3(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi + theta)
-        + (315 / 64) * np.cos(4 * phi + 2 * theta)
+        (45 / 16) * np.cos(2 * phi - theta)
+        + (315 / 64) * np.cos(4 * phi - 2 * theta)
         + 81 / 64
     )
 
@@ -7996,10 +7996,10 @@ def N_gg_2_1_4_4(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (6075 / 2464) * np.cos(2 * phi - theta)
-        - 225 / 308 * np.cos(2 * phi + theta)
-        + (675 / 352) * np.cos(2 * phi + 3 * theta)
-        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
+        + (675 / 352) * np.cos(2 * phi - 3 * theta)
+        - 225 / 308 * np.cos(2 * phi - theta)
+        + (6075 / 2464) * np.cos(2 * phi + theta)
+        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
         - 2025 / 2464
     )
 
@@ -8015,11 +8015,11 @@ def N_gg_2_1_6_0(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi + theta)
         + 3375 / 2816
     )
 
@@ -8035,11 +8035,11 @@ def N_gg_2_1_6_1(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi - theta)
         + 3375 / 2816
     )
 
@@ -8085,7 +8085,7 @@ def M_gg_2_2_2_0():
 
 
 def N_gg_2_2_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_2_2_2_1():
@@ -8096,7 +8096,7 @@ def M_gg_2_2_2_1():
 
 
 def N_gg_2_2_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_2_2_2_2():
@@ -8125,9 +8125,9 @@ def M_gg_2_2_2_3():
 def N_gg_2_2_2_3(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (225 / 32) * np.cos(2 * phi - 3 * theta)
-        + (225 / 112) * np.cos(2 * phi - theta)
-        + (135 / 224) * np.cos(2 * phi + theta)
+        + (135 / 224) * np.cos(2 * phi - theta)
+        + (225 / 112) * np.cos(2 * phi + theta)
+        + (225 / 32) * np.cos(2 * phi + 3 * theta)
         + 135 / 112
     )
 
@@ -8142,9 +8142,9 @@ def M_gg_2_2_2_4():
 def N_gg_2_2_2_4(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (135 / 224) * np.cos(2 * phi - theta)
-        + (225 / 112) * np.cos(2 * phi + theta)
-        + (225 / 32) * np.cos(2 * phi + 3 * theta)
+        + (225 / 32) * np.cos(2 * phi - 3 * theta)
+        + (225 / 112) * np.cos(2 * phi - theta)
+        + (135 / 224) * np.cos(2 * phi + theta)
         + 135 / 112
     )
 
@@ -8177,8 +8177,8 @@ def M_gg_2_2_4_0():
 
 def N_gg_2_2_4_0(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi - theta)
-        + (315 / 64) * np.cos(4 * phi - 2 * theta)
+        (45 / 16) * np.cos(2 * phi + theta)
+        + (315 / 64) * np.cos(4 * phi + 2 * theta)
         + 81 / 64
     )
 
@@ -8211,10 +8211,10 @@ def N_gg_2_2_4_2(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (675 / 352) * np.cos(2 * phi - 3 * theta)
-        - 225 / 308 * np.cos(2 * phi - theta)
-        + (6075 / 2464) * np.cos(2 * phi + theta)
-        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
+        + (6075 / 2464) * np.cos(2 * phi - theta)
+        - 225 / 308 * np.cos(2 * phi + theta)
+        + (675 / 352) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2464
     )
 
@@ -8230,11 +8230,11 @@ def N_gg_2_2_4_3(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
         + 3375 / 2816
     )
 
@@ -8248,8 +8248,8 @@ def M_gg_2_2_4_4():
 
 def N_gg_2_2_4_4(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi + theta)
-        + (315 / 64) * np.cos(4 * phi + 2 * theta)
+        (45 / 16) * np.cos(2 * phi - theta)
+        + (315 / 64) * np.cos(4 * phi - 2 * theta)
         + 81 / 64
     )
 
@@ -8265,10 +8265,10 @@ def N_gg_2_2_4_5(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (6075 / 2464) * np.cos(2 * phi - theta)
-        - 225 / 308 * np.cos(2 * phi + theta)
-        + (675 / 352) * np.cos(2 * phi + 3 * theta)
-        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
+        + (675 / 352) * np.cos(2 * phi - 3 * theta)
+        - 225 / 308 * np.cos(2 * phi - theta)
+        + (6075 / 2464) * np.cos(2 * phi + theta)
+        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
         - 2025 / 2464
     )
 
@@ -8306,11 +8306,11 @@ def N_gg_2_2_4_7(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
         + 3375 / 2816
     )
 
@@ -8324,9 +8324,9 @@ def M_gg_2_2_6_0():
 
 def N_gg_2_2_6_0(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi - theta)
-        + (819 / 256) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        (1365 / 512) * np.cos(2 * phi + theta)
+        + (819 / 256) * np.cos(4 * phi + 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         + 325 / 256
     )
 
@@ -8342,11 +8342,11 @@ def N_gg_2_2_6_1(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi + theta)
         + 3375 / 2816
     )
 
@@ -8362,13 +8362,13 @@ def N_gg_2_2_6_2(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
-        - 6825 / 5632 * np.cos(2 * phi - theta)
-        + (6825 / 2816) * np.cos(2 * phi + theta)
-        + (819 / 512) * np.cos(4 * phi - 4 * theta)
-        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
-        + (819 / 512) * np.cos(6 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi - theta)
+        - 6825 / 5632 * np.cos(2 * phi + theta)
+        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (819 / 512) * np.cos(4 * phi + 4 * theta)
+        + (819 / 512) * np.cos(6 * phi + theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         - 2275 / 2816
     )
 
@@ -8384,11 +8384,11 @@ def N_gg_2_2_6_3(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi - theta)
         + 3375 / 2816
     )
 
@@ -8424,9 +8424,9 @@ def M_gg_2_2_6_5():
 
 def N_gg_2_2_6_5(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi + theta)
-        + (819 / 256) * np.cos(4 * phi + 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        (1365 / 512) * np.cos(2 * phi - theta)
+        + (819 / 256) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
         + 325 / 256
     )
 
@@ -8442,13 +8442,13 @@ def N_gg_2_2_6_6(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (6825 / 2816) * np.cos(2 * phi - theta)
-        - 6825 / 5632 * np.cos(2 * phi + theta)
-        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (819 / 512) * np.cos(4 * phi + 4 * theta)
-        + (819 / 512) * np.cos(6 * phi + theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
+        - 6825 / 5632 * np.cos(2 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi + theta)
+        + (819 / 512) * np.cos(4 * phi - 4 * theta)
+        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        + (819 / 512) * np.cos(6 * phi - theta)
         - 2275 / 2816
     )
 
@@ -8464,14 +8464,14 @@ def N_gg_2_2_8_0(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2048) * np.cos(2 * phi - theta)
-        + (1575 / 1024) * np.cos(2 * phi + theta)
-        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
-        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (9009 / 2048) * np.cos(6 * phi - theta)
-        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
+        + (1575 / 1024) * np.cos(2 * phi - theta)
+        + (4725 / 2048) * np.cos(2 * phi + theta)
+        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
+        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
+        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
+        + (9009 / 2048) * np.cos(6 * phi + theta)
+        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
         + 1225 / 1024
     )
 
@@ -8512,14 +8512,14 @@ def N_gg_2_2_8_2(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (1575 / 1024) * np.cos(2 * phi - theta)
-        + (4725 / 2048) * np.cos(2 * phi + theta)
-        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
-        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
-        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
-        + (9009 / 2048) * np.cos(6 * phi + theta)
-        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
+        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2048) * np.cos(2 * phi - theta)
+        + (1575 / 1024) * np.cos(2 * phi + theta)
+        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
+        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (9009 / 2048) * np.cos(6 * phi - theta)
+        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
         + 1225 / 1024
     )
 
@@ -8565,7 +8565,7 @@ def M_gg_2_3_2_0():
 
 
 def N_gg_2_3_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_2_3_2_1():
@@ -8576,7 +8576,7 @@ def M_gg_2_3_2_1():
 
 
 def N_gg_2_3_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_2_3_2_2():
@@ -8605,9 +8605,9 @@ def M_gg_2_3_2_3():
 def N_gg_2_3_2_3(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (225 / 32) * np.cos(2 * phi - 3 * theta)
-        + (225 / 112) * np.cos(2 * phi - theta)
-        + (135 / 224) * np.cos(2 * phi + theta)
+        + (135 / 224) * np.cos(2 * phi - theta)
+        + (225 / 112) * np.cos(2 * phi + theta)
+        + (225 / 32) * np.cos(2 * phi + 3 * theta)
         + 135 / 112
     )
 
@@ -8622,9 +8622,9 @@ def M_gg_2_3_2_4():
 def N_gg_2_3_2_4(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (135 / 224) * np.cos(2 * phi - theta)
-        + (225 / 112) * np.cos(2 * phi + theta)
-        + (225 / 32) * np.cos(2 * phi + 3 * theta)
+        + (225 / 32) * np.cos(2 * phi - 3 * theta)
+        + (225 / 112) * np.cos(2 * phi - theta)
+        + (135 / 224) * np.cos(2 * phi + theta)
         + 135 / 112
     )
 
@@ -8659,11 +8659,11 @@ def N_gg_2_3_2_6(theta, phi):
     return (
         (1575 / 704) * np.cos(2 * theta)
         + (4725 / 2816) * np.cos(4 * theta)
-        + (4725 / 512) * np.cos(2 * phi - 5 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 512) * np.cos(2 * phi + 5 * theta)
         + 3375 / 2816
     )
 
@@ -8679,11 +8679,11 @@ def N_gg_2_3_2_7(theta, phi):
     return (
         (1575 / 704) * np.cos(2 * theta)
         + (4725 / 2816) * np.cos(4 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 512) * np.cos(2 * phi + 5 * theta)
+        + (4725 / 512) * np.cos(2 * phi - 5 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
         + 3375 / 2816
     )
 
@@ -8697,8 +8697,8 @@ def M_gg_2_3_4_0():
 
 def N_gg_2_3_4_0(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi - theta)
-        + (315 / 64) * np.cos(4 * phi - 2 * theta)
+        (45 / 16) * np.cos(2 * phi + theta)
+        + (315 / 64) * np.cos(4 * phi + 2 * theta)
         + 81 / 64
     )
 
@@ -8731,10 +8731,10 @@ def N_gg_2_3_4_2(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (675 / 352) * np.cos(2 * phi - 3 * theta)
-        - 225 / 308 * np.cos(2 * phi - theta)
-        + (6075 / 2464) * np.cos(2 * phi + theta)
-        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
+        + (6075 / 2464) * np.cos(2 * phi - theta)
+        - 225 / 308 * np.cos(2 * phi + theta)
+        + (675 / 352) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2464
     )
 
@@ -8750,11 +8750,11 @@ def N_gg_2_3_4_3(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
         + 3375 / 2816
     )
 
@@ -8768,8 +8768,8 @@ def M_gg_2_3_4_4():
 
 def N_gg_2_3_4_4(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi + theta)
-        + (315 / 64) * np.cos(4 * phi + 2 * theta)
+        (45 / 16) * np.cos(2 * phi - theta)
+        + (315 / 64) * np.cos(4 * phi - 2 * theta)
         + 81 / 64
     )
 
@@ -8785,10 +8785,10 @@ def N_gg_2_3_4_5(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (6075 / 2464) * np.cos(2 * phi - theta)
-        - 225 / 308 * np.cos(2 * phi + theta)
-        + (675 / 352) * np.cos(2 * phi + 3 * theta)
-        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
+        + (675 / 352) * np.cos(2 * phi - 3 * theta)
+        - 225 / 308 * np.cos(2 * phi - theta)
+        + (6075 / 2464) * np.cos(2 * phi + theta)
+        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
         - 2025 / 2464
     )
 
@@ -8826,13 +8826,13 @@ def N_gg_2_3_4_7(theta, phi):
     return (
         (4725 / 2816) * np.cos(4 * phi)
         + (8505 / 2816) * np.cos(4 * theta)
-        + (945 / 256) * np.cos(2 * phi - 5 * theta)
-        - 2835 / 1408 * np.cos(2 * phi - 3 * theta)
-        + (225 / 128) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(2 * phi + 3 * theta)
-        + (945 / 256) * np.cos(4 * phi - 4 * theta)
-        + (8505 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (1575 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 2816) * np.cos(2 * phi - 3 * theta)
+        + (225 / 128) * np.cos(2 * phi - theta)
+        - 2835 / 1408 * np.cos(2 * phi + 3 * theta)
+        + (945 / 256) * np.cos(2 * phi + 5 * theta)
+        + (1575 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (8505 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (945 / 256) * np.cos(4 * phi + 4 * theta)
         - 2025 / 2816
     )
 
@@ -8848,11 +8848,11 @@ def N_gg_2_3_4_8(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
         + 3375 / 2816
     )
 
@@ -8868,13 +8868,13 @@ def N_gg_2_3_4_9(theta, phi):
     return (
         (4725 / 2816) * np.cos(4 * phi)
         + (8505 / 2816) * np.cos(4 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - 3 * theta)
-        + (225 / 128) * np.cos(2 * phi - theta)
-        - 2835 / 1408 * np.cos(2 * phi + 3 * theta)
-        + (945 / 256) * np.cos(2 * phi + 5 * theta)
-        + (1575 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (8505 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (945 / 256) * np.cos(4 * phi + 4 * theta)
+        + (945 / 256) * np.cos(2 * phi - 5 * theta)
+        - 2835 / 1408 * np.cos(2 * phi - 3 * theta)
+        + (225 / 128) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(2 * phi + 3 * theta)
+        + (945 / 256) * np.cos(4 * phi - 4 * theta)
+        + (8505 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1575 / 2816) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2816
     )
 
@@ -8888,9 +8888,9 @@ def M_gg_2_3_6_0():
 
 def N_gg_2_3_6_0(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi - theta)
-        + (819 / 256) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        (1365 / 512) * np.cos(2 * phi + theta)
+        + (819 / 256) * np.cos(4 * phi + 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         + 325 / 256
     )
 
@@ -8906,11 +8906,11 @@ def N_gg_2_3_6_1(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi + theta)
         + 3375 / 2816
     )
 
@@ -8926,13 +8926,13 @@ def N_gg_2_3_6_2(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
-        - 6825 / 5632 * np.cos(2 * phi - theta)
-        + (6825 / 2816) * np.cos(2 * phi + theta)
-        + (819 / 512) * np.cos(4 * phi - 4 * theta)
-        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
-        + (819 / 512) * np.cos(6 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi - theta)
+        - 6825 / 5632 * np.cos(2 * phi + theta)
+        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (819 / 512) * np.cos(4 * phi + 4 * theta)
+        + (819 / 512) * np.cos(6 * phi + theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         - 2275 / 2816
     )
 
@@ -8948,14 +8948,14 @@ def N_gg_2_3_6_3(theta, phi):
     return (
         (945 / 2048) * np.cos(4 * phi)
         + (1575 / 1024) * np.cos(2 * theta)
-        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2048) * np.cos(2 * phi - theta)
-        + (3675 / 4096) * np.cos(2 * phi + theta)
-        + (9009 / 2048) * np.cos(4 * phi - 4 * theta)
-        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
-        + (45045 / 4096) * np.cos(6 * phi - 5 * theta)
-        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (693 / 4096) * np.cos(6 * phi - theta)
+        + (3675 / 4096) * np.cos(2 * phi - theta)
+        + (4725 / 2048) * np.cos(2 * phi + theta)
+        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
+        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
+        + (9009 / 2048) * np.cos(4 * phi + 4 * theta)
+        + (693 / 4096) * np.cos(6 * phi + theta)
+        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (45045 / 4096) * np.cos(6 * phi + 5 * theta)
         + 1225 / 1024
     )
 
@@ -8971,11 +8971,11 @@ def N_gg_2_3_6_4(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi - theta)
         + 3375 / 2816
     )
 
@@ -9014,17 +9014,17 @@ def N_gg_2_3_6_6(theta, phi):
         (282555 / 382976) * np.cos(4 * phi)
         - 20475 / 17408 * np.cos(2 * theta)
         + (429975 / 191488) * np.cos(4 * theta)
-        + (85995 / 69632) * np.cos(2 * phi - 5 * theta)
-        + (282555 / 382976) * np.cos(2 * phi - 3 * theta)
-        + (12285 / 69632) * np.cos(2 * phi - theta)
-        - 20475 / 17408 * np.cos(2 * phi + theta)
-        + (1003275 / 382976) * np.cos(2 * phi + 3 * theta)
-        + (110565 / 34816) * np.cos(4 * phi - 4 * theta)
-        - 22113 / 11968 * np.cos(4 * phi - 2 * theta)
-        + (429975 / 191488) * np.cos(4 * phi + 2 * theta)
-        + (243243 / 69632) * np.cos(6 * phi - 3 * theta)
-        + (110565 / 34816) * np.cos(6 * phi - theta)
-        + (85995 / 69632) * np.cos(6 * phi + theta)
+        + (1003275 / 382976) * np.cos(2 * phi - 3 * theta)
+        - 20475 / 17408 * np.cos(2 * phi - theta)
+        + (12285 / 69632) * np.cos(2 * phi + theta)
+        + (282555 / 382976) * np.cos(2 * phi + 3 * theta)
+        + (85995 / 69632) * np.cos(2 * phi + 5 * theta)
+        + (429975 / 191488) * np.cos(4 * phi - 2 * theta)
+        - 22113 / 11968 * np.cos(4 * phi + 2 * theta)
+        + (110565 / 34816) * np.cos(4 * phi + 4 * theta)
+        + (85995 / 69632) * np.cos(6 * phi - theta)
+        + (110565 / 34816) * np.cos(6 * phi + theta)
+        + (243243 / 69632) * np.cos(6 * phi + 3 * theta)
         + 61425 / 95744
     )
 
@@ -9038,9 +9038,9 @@ def M_gg_2_3_6_7():
 
 def N_gg_2_3_6_7(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi + theta)
-        + (819 / 256) * np.cos(4 * phi + 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        (1365 / 512) * np.cos(2 * phi - theta)
+        + (819 / 256) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
         + 325 / 256
     )
 
@@ -9056,13 +9056,13 @@ def N_gg_2_3_6_8(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (6825 / 2816) * np.cos(2 * phi - theta)
-        - 6825 / 5632 * np.cos(2 * phi + theta)
-        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (819 / 512) * np.cos(4 * phi + 4 * theta)
-        + (819 / 512) * np.cos(6 * phi + theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
+        - 6825 / 5632 * np.cos(2 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi + theta)
+        + (819 / 512) * np.cos(4 * phi - 4 * theta)
+        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        + (819 / 512) * np.cos(6 * phi - theta)
         - 2275 / 2816
     )
 
@@ -9079,17 +9079,17 @@ def N_gg_2_3_6_9(theta, phi):
         (282555 / 382976) * np.cos(4 * phi)
         - 20475 / 17408 * np.cos(2 * theta)
         + (429975 / 191488) * np.cos(4 * theta)
-        + (1003275 / 382976) * np.cos(2 * phi - 3 * theta)
-        - 20475 / 17408 * np.cos(2 * phi - theta)
-        + (12285 / 69632) * np.cos(2 * phi + theta)
-        + (282555 / 382976) * np.cos(2 * phi + 3 * theta)
-        + (85995 / 69632) * np.cos(2 * phi + 5 * theta)
-        + (429975 / 191488) * np.cos(4 * phi - 2 * theta)
-        - 22113 / 11968 * np.cos(4 * phi + 2 * theta)
-        + (110565 / 34816) * np.cos(4 * phi + 4 * theta)
-        + (85995 / 69632) * np.cos(6 * phi - theta)
-        + (110565 / 34816) * np.cos(6 * phi + theta)
-        + (243243 / 69632) * np.cos(6 * phi + 3 * theta)
+        + (85995 / 69632) * np.cos(2 * phi - 5 * theta)
+        + (282555 / 382976) * np.cos(2 * phi - 3 * theta)
+        + (12285 / 69632) * np.cos(2 * phi - theta)
+        - 20475 / 17408 * np.cos(2 * phi + theta)
+        + (1003275 / 382976) * np.cos(2 * phi + 3 * theta)
+        + (110565 / 34816) * np.cos(4 * phi - 4 * theta)
+        - 22113 / 11968 * np.cos(4 * phi - 2 * theta)
+        + (429975 / 191488) * np.cos(4 * phi + 2 * theta)
+        + (243243 / 69632) * np.cos(6 * phi - 3 * theta)
+        + (110565 / 34816) * np.cos(6 * phi - theta)
+        + (85995 / 69632) * np.cos(6 * phi + theta)
         + 61425 / 95744
     )
 
@@ -9105,14 +9105,14 @@ def N_gg_2_3_6_10(theta, phi):
     return (
         (945 / 2048) * np.cos(4 * phi)
         + (1575 / 1024) * np.cos(2 * theta)
-        + (3675 / 4096) * np.cos(2 * phi - theta)
-        + (4725 / 2048) * np.cos(2 * phi + theta)
-        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
-        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
-        + (9009 / 2048) * np.cos(4 * phi + 4 * theta)
-        + (693 / 4096) * np.cos(6 * phi + theta)
-        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (45045 / 4096) * np.cos(6 * phi + 5 * theta)
+        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2048) * np.cos(2 * phi - theta)
+        + (3675 / 4096) * np.cos(2 * phi + theta)
+        + (9009 / 2048) * np.cos(4 * phi - 4 * theta)
+        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
+        + (45045 / 4096) * np.cos(6 * phi - 5 * theta)
+        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (693 / 4096) * np.cos(6 * phi - theta)
         + 1225 / 1024
     )
 
@@ -9126,10 +9126,10 @@ def M_gg_2_3_8_0():
 
 def N_gg_2_3_8_0(theta, phi):
     return (
-        (5355 / 2048) * np.cos(2 * phi - theta)
-        + (11781 / 4096) * np.cos(4 * phi - 2 * theta)
-        + (7293 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (109395 / 16384) * np.cos(8 * phi - 4 * theta)
+        (5355 / 2048) * np.cos(2 * phi + theta)
+        + (11781 / 4096) * np.cos(4 * phi + 2 * theta)
+        + (7293 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (109395 / 16384) * np.cos(8 * phi + 4 * theta)
         + 20825 / 16384
     )
 
@@ -9145,14 +9145,14 @@ def N_gg_2_3_8_1(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2048) * np.cos(2 * phi - theta)
-        + (1575 / 1024) * np.cos(2 * phi + theta)
-        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
-        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (9009 / 2048) * np.cos(6 * phi - theta)
-        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
+        + (1575 / 1024) * np.cos(2 * phi - theta)
+        + (4725 / 2048) * np.cos(2 * phi + theta)
+        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
+        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
+        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
+        + (9009 / 2048) * np.cos(6 * phi + theta)
+        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
         + 1225 / 1024
     )
 
@@ -9168,16 +9168,16 @@ def N_gg_2_3_8_2(theta, phi):
     return (
         (176715 / 77824) * np.cos(4 * phi)
         + (187425 / 77824) * np.cos(2 * theta)
-        + (176715 / 77824) * np.cos(2 * phi - 3 * theta)
-        - 26775 / 19456 * np.cos(2 * phi - theta)
-        + (187425 / 77824) * np.cos(2 * phi + theta)
-        + (153153 / 77824) * np.cos(4 * phi - 4 * theta)
-        - 11781 / 19456 * np.cos(4 * phi - 2 * theta)
-        + (109395 / 77824) * np.cos(6 * phi - 5 * theta)
-        + (21879 / 19456) * np.cos(6 * phi - 3 * theta)
-        + (153153 / 77824) * np.cos(6 * phi - theta)
-        + (546975 / 77824) * np.cos(8 * phi - 4 * theta)
-        + (109395 / 77824) * np.cos(8 * phi - 2 * theta)
+        + (187425 / 77824) * np.cos(2 * phi - theta)
+        - 26775 / 19456 * np.cos(2 * phi + theta)
+        + (176715 / 77824) * np.cos(2 * phi + 3 * theta)
+        - 11781 / 19456 * np.cos(4 * phi + 2 * theta)
+        + (153153 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (153153 / 77824) * np.cos(6 * phi + theta)
+        + (21879 / 19456) * np.cos(6 * phi + 3 * theta)
+        + (109395 / 77824) * np.cos(6 * phi + 5 * theta)
+        + (109395 / 77824) * np.cos(8 * phi + 2 * theta)
+        + (546975 / 77824) * np.cos(8 * phi + 4 * theta)
         - 62475 / 77824
     )
 
@@ -9220,18 +9220,18 @@ def N_gg_2_3_8_4(theta, phi):
         + (257985 / 77824) * np.cos(8 * phi)
         + (1289925 / 856064) * np.cos(2 * theta)
         + (694575 / 856064) * np.cos(4 * theta)
-        + (19845 / 77824) * np.cos(2 * phi - 5 * theta)
-        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
-        - 552825 / 856064 * np.cos(2 * phi - theta)
-        + (14175 / 53504) * np.cos(2 * phi + theta)
-        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
-        + (93555 / 77824) * np.cos(4 * phi - 4 * theta)
-        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
-        - 36855 / 19456 * np.cos(6 * phi - theta)
-        + (257985 / 77824) * np.cos(6 * phi + theta)
-        + (405405 / 77824) * np.cos(8 * phi - 2 * theta)
+        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
+        + (14175 / 53504) * np.cos(2 * phi - theta)
+        - 552825 / 856064 * np.cos(2 * phi + theta)
+        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
+        + (19845 / 77824) * np.cos(2 * phi + 5 * theta)
+        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (93555 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (257985 / 77824) * np.cos(6 * phi - theta)
+        - 36855 / 19456 * np.cos(6 * phi + theta)
+        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
+        + (405405 / 77824) * np.cos(8 * phi + 2 * theta)
         - 297675 / 428032
     )
 
@@ -9247,14 +9247,14 @@ def N_gg_2_3_8_5(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (1575 / 1024) * np.cos(2 * phi - theta)
-        + (4725 / 2048) * np.cos(2 * phi + theta)
-        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
-        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
-        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
-        + (9009 / 2048) * np.cos(6 * phi + theta)
-        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
+        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2048) * np.cos(2 * phi - theta)
+        + (1575 / 1024) * np.cos(2 * phi + theta)
+        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
+        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (9009 / 2048) * np.cos(6 * phi - theta)
+        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
         + 1225 / 1024
     )
 
@@ -9272,18 +9272,18 @@ def N_gg_2_3_8_6(theta, phi):
         + (257985 / 77824) * np.cos(8 * phi)
         + (1289925 / 856064) * np.cos(2 * theta)
         + (694575 / 856064) * np.cos(4 * theta)
-        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
-        + (14175 / 53504) * np.cos(2 * phi - theta)
-        - 552825 / 856064 * np.cos(2 * phi + theta)
-        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
-        + (19845 / 77824) * np.cos(2 * phi + 5 * theta)
-        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (93555 / 77824) * np.cos(4 * phi + 4 * theta)
-        + (257985 / 77824) * np.cos(6 * phi - theta)
-        - 36855 / 19456 * np.cos(6 * phi + theta)
-        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
-        + (405405 / 77824) * np.cos(8 * phi + 2 * theta)
+        + (19845 / 77824) * np.cos(2 * phi - 5 * theta)
+        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
+        - 552825 / 856064 * np.cos(2 * phi - theta)
+        + (14175 / 53504) * np.cos(2 * phi + theta)
+        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
+        + (93555 / 77824) * np.cos(4 * phi - 4 * theta)
+        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
+        - 36855 / 19456 * np.cos(6 * phi - theta)
+        + (257985 / 77824) * np.cos(6 * phi + theta)
+        + (405405 / 77824) * np.cos(8 * phi - 2 * theta)
         - 297675 / 428032
     )
 
@@ -9297,10 +9297,10 @@ def M_gg_2_3_8_7():
 
 def N_gg_2_3_8_7(theta, phi):
     return (
-        (5355 / 2048) * np.cos(2 * phi + theta)
-        + (11781 / 4096) * np.cos(4 * phi + 2 * theta)
-        + (7293 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (109395 / 16384) * np.cos(8 * phi + 4 * theta)
+        (5355 / 2048) * np.cos(2 * phi - theta)
+        + (11781 / 4096) * np.cos(4 * phi - 2 * theta)
+        + (7293 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (109395 / 16384) * np.cos(8 * phi - 4 * theta)
         + 20825 / 16384
     )
 
@@ -9316,16 +9316,16 @@ def N_gg_2_3_8_8(theta, phi):
     return (
         (176715 / 77824) * np.cos(4 * phi)
         + (187425 / 77824) * np.cos(2 * theta)
-        + (187425 / 77824) * np.cos(2 * phi - theta)
-        - 26775 / 19456 * np.cos(2 * phi + theta)
-        + (176715 / 77824) * np.cos(2 * phi + 3 * theta)
-        - 11781 / 19456 * np.cos(4 * phi + 2 * theta)
-        + (153153 / 77824) * np.cos(4 * phi + 4 * theta)
-        + (153153 / 77824) * np.cos(6 * phi + theta)
-        + (21879 / 19456) * np.cos(6 * phi + 3 * theta)
-        + (109395 / 77824) * np.cos(6 * phi + 5 * theta)
-        + (109395 / 77824) * np.cos(8 * phi + 2 * theta)
-        + (546975 / 77824) * np.cos(8 * phi + 4 * theta)
+        + (176715 / 77824) * np.cos(2 * phi - 3 * theta)
+        - 26775 / 19456 * np.cos(2 * phi - theta)
+        + (187425 / 77824) * np.cos(2 * phi + theta)
+        + (153153 / 77824) * np.cos(4 * phi - 4 * theta)
+        - 11781 / 19456 * np.cos(4 * phi - 2 * theta)
+        + (109395 / 77824) * np.cos(6 * phi - 5 * theta)
+        + (21879 / 19456) * np.cos(6 * phi - 3 * theta)
+        + (153153 / 77824) * np.cos(6 * phi - theta)
+        + (546975 / 77824) * np.cos(8 * phi - 4 * theta)
+        + (109395 / 77824) * np.cos(8 * phi - 2 * theta)
         - 62475 / 77824
     )
 
@@ -9341,17 +9341,17 @@ def N_gg_2_3_10_0(theta, phi):
     return (
         (675675 / 311296) * np.cos(4 * phi)
         + (297675 / 311296) * np.cos(2 * theta)
-        + (363825 / 622592) * np.cos(2 * phi - 3 * theta)
-        + (363825 / 155648) * np.cos(2 * phi - theta)
-        + (1819125 / 1245184) * np.cos(2 * phi + theta)
-        + (96525 / 311296) * np.cos(4 * phi - 4 * theta)
-        + (675675 / 311296) * np.cos(4 * phi - 2 * theta)
-        + (289575 / 2490368) * np.cos(6 * phi - 5 * theta)
-        + (289575 / 155648) * np.cos(6 * phi - 3 * theta)
-        + (2027025 / 622592) * np.cos(6 * phi - theta)
-        + (1640925 / 1245184) * np.cos(8 * phi - 4 * theta)
-        + (1640925 / 311296) * np.cos(8 * phi - 2 * theta)
-        + (1640925 / 131072) * np.cos(10 * phi - 3 * theta)
+        + (1819125 / 1245184) * np.cos(2 * phi - theta)
+        + (363825 / 155648) * np.cos(2 * phi + theta)
+        + (363825 / 622592) * np.cos(2 * phi + 3 * theta)
+        + (675675 / 311296) * np.cos(4 * phi + 2 * theta)
+        + (96525 / 311296) * np.cos(4 * phi + 4 * theta)
+        + (2027025 / 622592) * np.cos(6 * phi + theta)
+        + (289575 / 155648) * np.cos(6 * phi + 3 * theta)
+        + (289575 / 2490368) * np.cos(6 * phi + 5 * theta)
+        + (1640925 / 311296) * np.cos(8 * phi + 2 * theta)
+        + (1640925 / 1245184) * np.cos(8 * phi + 4 * theta)
+        + (1640925 / 131072) * np.cos(10 * phi + 3 * theta)
         + 1488375 / 1245184
     )
 
@@ -9364,36 +9364,6 @@ def M_gg_2_3_10_1():
 
 
 def N_gg_2_3_10_1(theta, phi):
-    return (
-        (14189175 / 5292032) * np.cos(4 * phi)
-        + (2837835 / 622592) * np.cos(8 * phi)
-        + (6251175 / 5292032) * np.cos(2 * theta)
-        + (1250235 / 10584064) * np.cos(4 * theta)
-        + (509355 / 21168128) * np.cos(2 * phi - 5 * theta)
-        + (1528065 / 2646016) * np.cos(2 * phi - 3 * theta)
-        + (22920975 / 10584064) * np.cos(2 * phi - theta)
-        + (2546775 / 1323008) * np.cos(2 * phi + theta)
-        + (7640325 / 21168128) * np.cos(2 * phi + 3 * theta)
-        + (945945 / 5292032) * np.cos(4 * phi - 4 * theta)
-        + (8513505 / 5292032) * np.cos(4 * phi - 2 * theta)
-        + (4729725 / 5292032) * np.cos(4 * phi + 2 * theta)
-        + (8513505 / 10584064) * np.cos(6 * phi - 3 * theta)
-        + (8513505 / 2646016) * np.cos(6 * phi - theta)
-        + (42567525 / 21168128) * np.cos(6 * phi + theta)
-        + (945945 / 311296) * np.cos(8 * phi - 2 * theta)
-        + (945945 / 65536) * np.cos(10 * phi - theta)
-        + 6251175 / 5292032
-    )
-
-
-def M_gg_2_3_10_2():
-    def func(k):
-        return -8 / 945945 * k**6
-
-    return func
-
-
-def N_gg_2_3_10_2(theta, phi):
     return (
         (14189175 / 5292032) * np.cos(4 * phi)
         + (2837835 / 622592) * np.cos(8 * phi)
@@ -9416,6 +9386,36 @@ def N_gg_2_3_10_2(theta, phi):
     )
 
 
+def M_gg_2_3_10_2():
+    def func(k):
+        return -8 / 945945 * k**6
+
+    return func
+
+
+def N_gg_2_3_10_2(theta, phi):
+    return (
+        (14189175 / 5292032) * np.cos(4 * phi)
+        + (2837835 / 622592) * np.cos(8 * phi)
+        + (6251175 / 5292032) * np.cos(2 * theta)
+        + (1250235 / 10584064) * np.cos(4 * theta)
+        + (509355 / 21168128) * np.cos(2 * phi - 5 * theta)
+        + (1528065 / 2646016) * np.cos(2 * phi - 3 * theta)
+        + (22920975 / 10584064) * np.cos(2 * phi - theta)
+        + (2546775 / 1323008) * np.cos(2 * phi + theta)
+        + (7640325 / 21168128) * np.cos(2 * phi + 3 * theta)
+        + (945945 / 5292032) * np.cos(4 * phi - 4 * theta)
+        + (8513505 / 5292032) * np.cos(4 * phi - 2 * theta)
+        + (4729725 / 5292032) * np.cos(4 * phi + 2 * theta)
+        + (8513505 / 10584064) * np.cos(6 * phi - 3 * theta)
+        + (8513505 / 2646016) * np.cos(6 * phi - theta)
+        + (42567525 / 21168128) * np.cos(6 * phi + theta)
+        + (945945 / 311296) * np.cos(8 * phi - 2 * theta)
+        + (945945 / 65536) * np.cos(10 * phi - theta)
+        + 6251175 / 5292032
+    )
+
+
 def M_gg_2_3_10_3():
     def func(k):
         return -16 / 4922775 * k**6
@@ -9427,17 +9427,17 @@ def N_gg_2_3_10_3(theta, phi):
     return (
         (675675 / 311296) * np.cos(4 * phi)
         + (297675 / 311296) * np.cos(2 * theta)
-        + (1819125 / 1245184) * np.cos(2 * phi - theta)
-        + (363825 / 155648) * np.cos(2 * phi + theta)
-        + (363825 / 622592) * np.cos(2 * phi + 3 * theta)
-        + (675675 / 311296) * np.cos(4 * phi + 2 * theta)
-        + (96525 / 311296) * np.cos(4 * phi + 4 * theta)
-        + (2027025 / 622592) * np.cos(6 * phi + theta)
-        + (289575 / 155648) * np.cos(6 * phi + 3 * theta)
-        + (289575 / 2490368) * np.cos(6 * phi + 5 * theta)
-        + (1640925 / 311296) * np.cos(8 * phi + 2 * theta)
-        + (1640925 / 1245184) * np.cos(8 * phi + 4 * theta)
-        + (1640925 / 131072) * np.cos(10 * phi + 3 * theta)
+        + (363825 / 622592) * np.cos(2 * phi - 3 * theta)
+        + (363825 / 155648) * np.cos(2 * phi - theta)
+        + (1819125 / 1245184) * np.cos(2 * phi + theta)
+        + (96525 / 311296) * np.cos(4 * phi - 4 * theta)
+        + (675675 / 311296) * np.cos(4 * phi - 2 * theta)
+        + (289575 / 2490368) * np.cos(6 * phi - 5 * theta)
+        + (289575 / 155648) * np.cos(6 * phi - 3 * theta)
+        + (2027025 / 622592) * np.cos(6 * phi - theta)
+        + (1640925 / 1245184) * np.cos(8 * phi - 4 * theta)
+        + (1640925 / 311296) * np.cos(8 * phi - 2 * theta)
+        + (1640925 / 131072) * np.cos(10 * phi - 3 * theta)
         + 1488375 / 1245184
     )
 
@@ -9499,7 +9499,7 @@ def M_gg_2_4_2_0():
 
 
 def N_gg_2_4_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_2_4_2_1():
@@ -9510,7 +9510,7 @@ def M_gg_2_4_2_1():
 
 
 def N_gg_2_4_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_2_4_2_2():
@@ -9539,9 +9539,9 @@ def M_gg_2_4_2_3():
 def N_gg_2_4_2_3(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (225 / 32) * np.cos(2 * phi - 3 * theta)
-        + (225 / 112) * np.cos(2 * phi - theta)
-        + (135 / 224) * np.cos(2 * phi + theta)
+        + (135 / 224) * np.cos(2 * phi - theta)
+        + (225 / 112) * np.cos(2 * phi + theta)
+        + (225 / 32) * np.cos(2 * phi + 3 * theta)
         + 135 / 112
     )
 
@@ -9556,9 +9556,9 @@ def M_gg_2_4_2_4():
 def N_gg_2_4_2_4(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (135 / 224) * np.cos(2 * phi - theta)
-        + (225 / 112) * np.cos(2 * phi + theta)
-        + (225 / 32) * np.cos(2 * phi + 3 * theta)
+        + (225 / 32) * np.cos(2 * phi - 3 * theta)
+        + (225 / 112) * np.cos(2 * phi - theta)
+        + (135 / 224) * np.cos(2 * phi + theta)
         + 135 / 112
     )
 
@@ -9593,11 +9593,11 @@ def N_gg_2_4_2_6(theta, phi):
     return (
         (1575 / 704) * np.cos(2 * theta)
         + (4725 / 2816) * np.cos(4 * theta)
-        + (4725 / 512) * np.cos(2 * phi - 5 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 512) * np.cos(2 * phi + 5 * theta)
         + 3375 / 2816
     )
 
@@ -9613,11 +9613,11 @@ def N_gg_2_4_2_7(theta, phi):
     return (
         (1575 / 704) * np.cos(2 * theta)
         + (4725 / 2816) * np.cos(4 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 512) * np.cos(2 * phi + 5 * theta)
+        + (4725 / 512) * np.cos(2 * phi - 5 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
         + 3375 / 2816
     )
 
@@ -9653,8 +9653,8 @@ def M_gg_2_4_4_0():
 
 def N_gg_2_4_4_0(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi - theta)
-        + (315 / 64) * np.cos(4 * phi - 2 * theta)
+        (45 / 16) * np.cos(2 * phi + theta)
+        + (315 / 64) * np.cos(4 * phi + 2 * theta)
         + 81 / 64
     )
 
@@ -9687,10 +9687,10 @@ def N_gg_2_4_4_2(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (675 / 352) * np.cos(2 * phi - 3 * theta)
-        - 225 / 308 * np.cos(2 * phi - theta)
-        + (6075 / 2464) * np.cos(2 * phi + theta)
-        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
+        + (6075 / 2464) * np.cos(2 * phi - theta)
+        - 225 / 308 * np.cos(2 * phi + theta)
+        + (675 / 352) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2464
     )
 
@@ -9706,11 +9706,11 @@ def N_gg_2_4_4_3(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
         + 3375 / 2816
     )
 
@@ -9724,8 +9724,8 @@ def M_gg_2_4_4_4():
 
 def N_gg_2_4_4_4(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi + theta)
-        + (315 / 64) * np.cos(4 * phi + 2 * theta)
+        (45 / 16) * np.cos(2 * phi - theta)
+        + (315 / 64) * np.cos(4 * phi - 2 * theta)
         + 81 / 64
     )
 
@@ -9741,10 +9741,10 @@ def N_gg_2_4_4_5(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (6075 / 2464) * np.cos(2 * phi - theta)
-        - 225 / 308 * np.cos(2 * phi + theta)
-        + (675 / 352) * np.cos(2 * phi + 3 * theta)
-        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
+        + (675 / 352) * np.cos(2 * phi - 3 * theta)
+        - 225 / 308 * np.cos(2 * phi - theta)
+        + (6075 / 2464) * np.cos(2 * phi + theta)
+        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
         - 2025 / 2464
     )
 
@@ -9782,13 +9782,13 @@ def N_gg_2_4_4_7(theta, phi):
     return (
         (4725 / 2816) * np.cos(4 * phi)
         + (8505 / 2816) * np.cos(4 * theta)
-        + (945 / 256) * np.cos(2 * phi - 5 * theta)
-        - 2835 / 1408 * np.cos(2 * phi - 3 * theta)
-        + (225 / 128) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(2 * phi + 3 * theta)
-        + (945 / 256) * np.cos(4 * phi - 4 * theta)
-        + (8505 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (1575 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 2816) * np.cos(2 * phi - 3 * theta)
+        + (225 / 128) * np.cos(2 * phi - theta)
+        - 2835 / 1408 * np.cos(2 * phi + 3 * theta)
+        + (945 / 256) * np.cos(2 * phi + 5 * theta)
+        + (1575 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (8505 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (945 / 256) * np.cos(4 * phi + 4 * theta)
         - 2025 / 2816
     )
 
@@ -9805,15 +9805,15 @@ def N_gg_2_4_4_8(theta, phi):
         (99225 / 292864) * np.cos(4 * phi)
         + (297675 / 146432) * np.cos(2 * theta)
         + (59535 / 53248) * np.cos(4 * theta)
-        + (6615 / 2048) * np.cos(2 * phi - 5 * theta)
-        + (19845 / 6656) * np.cos(2 * phi - 3 * theta)
-        + (297675 / 146432) * np.cos(2 * phi - theta)
-        + (77175 / 73216) * np.cos(2 * phi + theta)
-        + (99225 / 292864) * np.cos(2 * phi + 3 * theta)
-        + (99225 / 8192) * np.cos(4 * phi - 6 * theta)
-        + (6615 / 2048) * np.cos(4 * phi - 4 * theta)
-        + (59535 / 53248) * np.cos(4 * phi - 2 * theta)
-        + (77175 / 1171456) * np.cos(4 * phi + 2 * theta)
+        + (99225 / 292864) * np.cos(2 * phi - 3 * theta)
+        + (77175 / 73216) * np.cos(2 * phi - theta)
+        + (297675 / 146432) * np.cos(2 * phi + theta)
+        + (19845 / 6656) * np.cos(2 * phi + 3 * theta)
+        + (6615 / 2048) * np.cos(2 * phi + 5 * theta)
+        + (77175 / 1171456) * np.cos(4 * phi - 2 * theta)
+        + (59535 / 53248) * np.cos(4 * phi + 2 * theta)
+        + (6615 / 2048) * np.cos(4 * phi + 4 * theta)
+        + (99225 / 8192) * np.cos(4 * phi + 6 * theta)
         + 694575 / 585728
     )
 
@@ -9829,11 +9829,11 @@ def N_gg_2_4_4_9(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
         + 3375 / 2816
     )
 
@@ -9849,13 +9849,13 @@ def N_gg_2_4_4_10(theta, phi):
     return (
         (4725 / 2816) * np.cos(4 * phi)
         + (8505 / 2816) * np.cos(4 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - 3 * theta)
-        + (225 / 128) * np.cos(2 * phi - theta)
-        - 2835 / 1408 * np.cos(2 * phi + 3 * theta)
-        + (945 / 256) * np.cos(2 * phi + 5 * theta)
-        + (1575 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (8505 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (945 / 256) * np.cos(4 * phi + 4 * theta)
+        + (945 / 256) * np.cos(2 * phi - 5 * theta)
+        - 2835 / 1408 * np.cos(2 * phi - 3 * theta)
+        + (225 / 128) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(2 * phi + 3 * theta)
+        + (945 / 256) * np.cos(4 * phi - 4 * theta)
+        + (8505 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1575 / 2816) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2816
     )
 
@@ -9899,15 +9899,15 @@ def N_gg_2_4_4_12(theta, phi):
         (99225 / 292864) * np.cos(4 * phi)
         + (297675 / 146432) * np.cos(2 * theta)
         + (59535 / 53248) * np.cos(4 * theta)
-        + (99225 / 292864) * np.cos(2 * phi - 3 * theta)
-        + (77175 / 73216) * np.cos(2 * phi - theta)
-        + (297675 / 146432) * np.cos(2 * phi + theta)
-        + (19845 / 6656) * np.cos(2 * phi + 3 * theta)
-        + (6615 / 2048) * np.cos(2 * phi + 5 * theta)
-        + (77175 / 1171456) * np.cos(4 * phi - 2 * theta)
-        + (59535 / 53248) * np.cos(4 * phi + 2 * theta)
-        + (6615 / 2048) * np.cos(4 * phi + 4 * theta)
-        + (99225 / 8192) * np.cos(4 * phi + 6 * theta)
+        + (6615 / 2048) * np.cos(2 * phi - 5 * theta)
+        + (19845 / 6656) * np.cos(2 * phi - 3 * theta)
+        + (297675 / 146432) * np.cos(2 * phi - theta)
+        + (77175 / 73216) * np.cos(2 * phi + theta)
+        + (99225 / 292864) * np.cos(2 * phi + 3 * theta)
+        + (99225 / 8192) * np.cos(4 * phi - 6 * theta)
+        + (6615 / 2048) * np.cos(4 * phi - 4 * theta)
+        + (59535 / 53248) * np.cos(4 * phi - 2 * theta)
+        + (77175 / 1171456) * np.cos(4 * phi + 2 * theta)
         + 694575 / 585728
     )
 
@@ -9921,9 +9921,9 @@ def M_gg_2_4_6_0():
 
 def N_gg_2_4_6_0(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi - theta)
-        + (819 / 256) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        (1365 / 512) * np.cos(2 * phi + theta)
+        + (819 / 256) * np.cos(4 * phi + 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         + 325 / 256
     )
 
@@ -9939,11 +9939,11 @@ def N_gg_2_4_6_1(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi + theta)
         + 3375 / 2816
     )
 
@@ -9959,13 +9959,13 @@ def N_gg_2_4_6_2(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
-        - 6825 / 5632 * np.cos(2 * phi - theta)
-        + (6825 / 2816) * np.cos(2 * phi + theta)
-        + (819 / 512) * np.cos(4 * phi - 4 * theta)
-        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
-        + (819 / 512) * np.cos(6 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi - theta)
+        - 6825 / 5632 * np.cos(2 * phi + theta)
+        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (819 / 512) * np.cos(4 * phi + 4 * theta)
+        + (819 / 512) * np.cos(6 * phi + theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         - 2275 / 2816
     )
 
@@ -9981,14 +9981,14 @@ def N_gg_2_4_6_3(theta, phi):
     return (
         (945 / 2048) * np.cos(4 * phi)
         + (1575 / 1024) * np.cos(2 * theta)
-        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2048) * np.cos(2 * phi - theta)
-        + (3675 / 4096) * np.cos(2 * phi + theta)
-        + (9009 / 2048) * np.cos(4 * phi - 4 * theta)
-        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
-        + (45045 / 4096) * np.cos(6 * phi - 5 * theta)
-        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (693 / 4096) * np.cos(6 * phi - theta)
+        + (3675 / 4096) * np.cos(2 * phi - theta)
+        + (4725 / 2048) * np.cos(2 * phi + theta)
+        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
+        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
+        + (9009 / 2048) * np.cos(4 * phi + 4 * theta)
+        + (693 / 4096) * np.cos(6 * phi + theta)
+        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (45045 / 4096) * np.cos(6 * phi + 5 * theta)
         + 1225 / 1024
     )
 
@@ -10004,11 +10004,11 @@ def N_gg_2_4_6_4(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi - theta)
         + 3375 / 2816
     )
 
@@ -10047,17 +10047,17 @@ def N_gg_2_4_6_6(theta, phi):
         (282555 / 382976) * np.cos(4 * phi)
         - 20475 / 17408 * np.cos(2 * theta)
         + (429975 / 191488) * np.cos(4 * theta)
-        + (85995 / 69632) * np.cos(2 * phi - 5 * theta)
-        + (282555 / 382976) * np.cos(2 * phi - 3 * theta)
-        + (12285 / 69632) * np.cos(2 * phi - theta)
-        - 20475 / 17408 * np.cos(2 * phi + theta)
-        + (1003275 / 382976) * np.cos(2 * phi + 3 * theta)
-        + (110565 / 34816) * np.cos(4 * phi - 4 * theta)
-        - 22113 / 11968 * np.cos(4 * phi - 2 * theta)
-        + (429975 / 191488) * np.cos(4 * phi + 2 * theta)
-        + (243243 / 69632) * np.cos(6 * phi - 3 * theta)
-        + (110565 / 34816) * np.cos(6 * phi - theta)
-        + (85995 / 69632) * np.cos(6 * phi + theta)
+        + (1003275 / 382976) * np.cos(2 * phi - 3 * theta)
+        - 20475 / 17408 * np.cos(2 * phi - theta)
+        + (12285 / 69632) * np.cos(2 * phi + theta)
+        + (282555 / 382976) * np.cos(2 * phi + 3 * theta)
+        + (85995 / 69632) * np.cos(2 * phi + 5 * theta)
+        + (429975 / 191488) * np.cos(4 * phi - 2 * theta)
+        - 22113 / 11968 * np.cos(4 * phi + 2 * theta)
+        + (110565 / 34816) * np.cos(4 * phi + 4 * theta)
+        + (85995 / 69632) * np.cos(6 * phi - theta)
+        + (110565 / 34816) * np.cos(6 * phi + theta)
+        + (243243 / 69632) * np.cos(6 * phi + 3 * theta)
         + 61425 / 95744
     )
 
@@ -10074,19 +10074,19 @@ def N_gg_2_4_6_7(theta, phi):
         (394065 / 214016) * np.cos(4 * phi)
         + (14175 / 53504) * np.cos(2 * theta)
         + (99225 / 38912) * np.cos(4 * theta)
-        + (257985 / 77824) * np.cos(2 * phi - 5 * theta)
-        - 104895 / 77824 * np.cos(2 * phi - 3 * theta)
-        - 552825 / 856064 * np.cos(2 * phi - theta)
-        + (1289925 / 856064) * np.cos(2 * phi + theta)
-        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
-        + (257985 / 77824) * np.cos(4 * phi - 6 * theta)
-        - 36855 / 19456 * np.cos(4 * phi - 4 * theta)
-        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (694575 / 856064) * np.cos(4 * phi + 2 * theta)
-        + (405405 / 77824) * np.cos(6 * phi - 5 * theta)
-        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
-        + (93555 / 77824) * np.cos(6 * phi - theta)
-        + (19845 / 77824) * np.cos(6 * phi + theta)
+        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
+        + (1289925 / 856064) * np.cos(2 * phi - theta)
+        - 552825 / 856064 * np.cos(2 * phi + theta)
+        - 104895 / 77824 * np.cos(2 * phi + 3 * theta)
+        + (257985 / 77824) * np.cos(2 * phi + 5 * theta)
+        + (694575 / 856064) * np.cos(4 * phi - 2 * theta)
+        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
+        - 36855 / 19456 * np.cos(4 * phi + 4 * theta)
+        + (257985 / 77824) * np.cos(4 * phi + 6 * theta)
+        + (19845 / 77824) * np.cos(6 * phi - theta)
+        + (93555 / 77824) * np.cos(6 * phi + theta)
+        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
+        + (405405 / 77824) * np.cos(6 * phi + 5 * theta)
         - 297675 / 428032
     )
 
@@ -10100,9 +10100,9 @@ def M_gg_2_4_6_8():
 
 def N_gg_2_4_6_8(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi + theta)
-        + (819 / 256) * np.cos(4 * phi + 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        (1365 / 512) * np.cos(2 * phi - theta)
+        + (819 / 256) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
         + 325 / 256
     )
 
@@ -10118,13 +10118,13 @@ def N_gg_2_4_6_9(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (6825 / 2816) * np.cos(2 * phi - theta)
-        - 6825 / 5632 * np.cos(2 * phi + theta)
-        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (819 / 512) * np.cos(4 * phi + 4 * theta)
-        + (819 / 512) * np.cos(6 * phi + theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
+        - 6825 / 5632 * np.cos(2 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi + theta)
+        + (819 / 512) * np.cos(4 * phi - 4 * theta)
+        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        + (819 / 512) * np.cos(6 * phi - theta)
         - 2275 / 2816
     )
 
@@ -10141,17 +10141,17 @@ def N_gg_2_4_6_10(theta, phi):
         (282555 / 382976) * np.cos(4 * phi)
         - 20475 / 17408 * np.cos(2 * theta)
         + (429975 / 191488) * np.cos(4 * theta)
-        + (1003275 / 382976) * np.cos(2 * phi - 3 * theta)
-        - 20475 / 17408 * np.cos(2 * phi - theta)
-        + (12285 / 69632) * np.cos(2 * phi + theta)
-        + (282555 / 382976) * np.cos(2 * phi + 3 * theta)
-        + (85995 / 69632) * np.cos(2 * phi + 5 * theta)
-        + (429975 / 191488) * np.cos(4 * phi - 2 * theta)
-        - 22113 / 11968 * np.cos(4 * phi + 2 * theta)
-        + (110565 / 34816) * np.cos(4 * phi + 4 * theta)
-        + (85995 / 69632) * np.cos(6 * phi - theta)
-        + (110565 / 34816) * np.cos(6 * phi + theta)
-        + (243243 / 69632) * np.cos(6 * phi + 3 * theta)
+        + (85995 / 69632) * np.cos(2 * phi - 5 * theta)
+        + (282555 / 382976) * np.cos(2 * phi - 3 * theta)
+        + (12285 / 69632) * np.cos(2 * phi - theta)
+        - 20475 / 17408 * np.cos(2 * phi + theta)
+        + (1003275 / 382976) * np.cos(2 * phi + 3 * theta)
+        + (110565 / 34816) * np.cos(4 * phi - 4 * theta)
+        - 22113 / 11968 * np.cos(4 * phi - 2 * theta)
+        + (429975 / 191488) * np.cos(4 * phi + 2 * theta)
+        + (243243 / 69632) * np.cos(6 * phi - 3 * theta)
+        + (110565 / 34816) * np.cos(6 * phi - theta)
+        + (85995 / 69632) * np.cos(6 * phi + theta)
         + 61425 / 95744
     )
 
@@ -10198,14 +10198,14 @@ def N_gg_2_4_6_12(theta, phi):
     return (
         (945 / 2048) * np.cos(4 * phi)
         + (1575 / 1024) * np.cos(2 * theta)
-        + (3675 / 4096) * np.cos(2 * phi - theta)
-        + (4725 / 2048) * np.cos(2 * phi + theta)
-        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
-        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
-        + (9009 / 2048) * np.cos(4 * phi + 4 * theta)
-        + (693 / 4096) * np.cos(6 * phi + theta)
-        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (45045 / 4096) * np.cos(6 * phi + 5 * theta)
+        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2048) * np.cos(2 * phi - theta)
+        + (3675 / 4096) * np.cos(2 * phi + theta)
+        + (9009 / 2048) * np.cos(4 * phi - 4 * theta)
+        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
+        + (45045 / 4096) * np.cos(6 * phi - 5 * theta)
+        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (693 / 4096) * np.cos(6 * phi - theta)
         + 1225 / 1024
     )
 
@@ -10222,19 +10222,19 @@ def N_gg_2_4_6_13(theta, phi):
         (394065 / 214016) * np.cos(4 * phi)
         + (14175 / 53504) * np.cos(2 * theta)
         + (99225 / 38912) * np.cos(4 * theta)
-        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
-        + (1289925 / 856064) * np.cos(2 * phi - theta)
-        - 552825 / 856064 * np.cos(2 * phi + theta)
-        - 104895 / 77824 * np.cos(2 * phi + 3 * theta)
-        + (257985 / 77824) * np.cos(2 * phi + 5 * theta)
-        + (694575 / 856064) * np.cos(4 * phi - 2 * theta)
-        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
-        - 36855 / 19456 * np.cos(4 * phi + 4 * theta)
-        + (257985 / 77824) * np.cos(4 * phi + 6 * theta)
-        + (19845 / 77824) * np.cos(6 * phi - theta)
-        + (93555 / 77824) * np.cos(6 * phi + theta)
-        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
-        + (405405 / 77824) * np.cos(6 * phi + 5 * theta)
+        + (257985 / 77824) * np.cos(2 * phi - 5 * theta)
+        - 104895 / 77824 * np.cos(2 * phi - 3 * theta)
+        - 552825 / 856064 * np.cos(2 * phi - theta)
+        + (1289925 / 856064) * np.cos(2 * phi + theta)
+        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
+        + (257985 / 77824) * np.cos(4 * phi - 6 * theta)
+        - 36855 / 19456 * np.cos(4 * phi - 4 * theta)
+        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (694575 / 856064) * np.cos(4 * phi + 2 * theta)
+        + (405405 / 77824) * np.cos(6 * phi - 5 * theta)
+        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
+        + (93555 / 77824) * np.cos(6 * phi - theta)
+        + (19845 / 77824) * np.cos(6 * phi + theta)
         - 297675 / 428032
     )
 
@@ -10248,10 +10248,10 @@ def M_gg_2_4_8_0():
 
 def N_gg_2_4_8_0(theta, phi):
     return (
-        (5355 / 2048) * np.cos(2 * phi - theta)
-        + (11781 / 4096) * np.cos(4 * phi - 2 * theta)
-        + (7293 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (109395 / 16384) * np.cos(8 * phi - 4 * theta)
+        (5355 / 2048) * np.cos(2 * phi + theta)
+        + (11781 / 4096) * np.cos(4 * phi + 2 * theta)
+        + (7293 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (109395 / 16384) * np.cos(8 * phi + 4 * theta)
         + 20825 / 16384
     )
 
@@ -10267,14 +10267,14 @@ def N_gg_2_4_8_1(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2048) * np.cos(2 * phi - theta)
-        + (1575 / 1024) * np.cos(2 * phi + theta)
-        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
-        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (9009 / 2048) * np.cos(6 * phi - theta)
-        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
+        + (1575 / 1024) * np.cos(2 * phi - theta)
+        + (4725 / 2048) * np.cos(2 * phi + theta)
+        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
+        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
+        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
+        + (9009 / 2048) * np.cos(6 * phi + theta)
+        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
         + 1225 / 1024
     )
 
@@ -10290,16 +10290,16 @@ def N_gg_2_4_8_2(theta, phi):
     return (
         (176715 / 77824) * np.cos(4 * phi)
         + (187425 / 77824) * np.cos(2 * theta)
-        + (176715 / 77824) * np.cos(2 * phi - 3 * theta)
-        - 26775 / 19456 * np.cos(2 * phi - theta)
-        + (187425 / 77824) * np.cos(2 * phi + theta)
-        + (153153 / 77824) * np.cos(4 * phi - 4 * theta)
-        - 11781 / 19456 * np.cos(4 * phi - 2 * theta)
-        + (109395 / 77824) * np.cos(6 * phi - 5 * theta)
-        + (21879 / 19456) * np.cos(6 * phi - 3 * theta)
-        + (153153 / 77824) * np.cos(6 * phi - theta)
-        + (546975 / 77824) * np.cos(8 * phi - 4 * theta)
-        + (109395 / 77824) * np.cos(8 * phi - 2 * theta)
+        + (187425 / 77824) * np.cos(2 * phi - theta)
+        - 26775 / 19456 * np.cos(2 * phi + theta)
+        + (176715 / 77824) * np.cos(2 * phi + 3 * theta)
+        - 11781 / 19456 * np.cos(4 * phi + 2 * theta)
+        + (153153 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (153153 / 77824) * np.cos(6 * phi + theta)
+        + (21879 / 19456) * np.cos(6 * phi + 3 * theta)
+        + (109395 / 77824) * np.cos(6 * phi + 5 * theta)
+        + (109395 / 77824) * np.cos(8 * phi + 2 * theta)
+        + (546975 / 77824) * np.cos(8 * phi + 4 * theta)
         - 62475 / 77824
     )
 
@@ -10342,18 +10342,18 @@ def N_gg_2_4_8_4(theta, phi):
         + (257985 / 77824) * np.cos(8 * phi)
         + (1289925 / 856064) * np.cos(2 * theta)
         + (694575 / 856064) * np.cos(4 * theta)
-        + (19845 / 77824) * np.cos(2 * phi - 5 * theta)
-        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
-        - 552825 / 856064 * np.cos(2 * phi - theta)
-        + (14175 / 53504) * np.cos(2 * phi + theta)
-        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
-        + (93555 / 77824) * np.cos(4 * phi - 4 * theta)
-        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
-        - 36855 / 19456 * np.cos(6 * phi - theta)
-        + (257985 / 77824) * np.cos(6 * phi + theta)
-        + (405405 / 77824) * np.cos(8 * phi - 2 * theta)
+        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
+        + (14175 / 53504) * np.cos(2 * phi - theta)
+        - 552825 / 856064 * np.cos(2 * phi + theta)
+        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
+        + (19845 / 77824) * np.cos(2 * phi + 5 * theta)
+        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (93555 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (257985 / 77824) * np.cos(6 * phi - theta)
+        - 36855 / 19456 * np.cos(6 * phi + theta)
+        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
+        + (405405 / 77824) * np.cos(8 * phi + 2 * theta)
         - 297675 / 428032
     )
 
@@ -10371,21 +10371,21 @@ def N_gg_2_4_8_5(theta, phi):
         + (530145 / 622592) * np.cos(8 * phi)
         - 5060475 / 4046848 * np.cos(2 * theta)
         + (18555075 / 8093696) * np.cos(4 * theta)
-        + (530145 / 311296) * np.cos(2 * phi - 5 * theta)
-        - 530145 / 4046848 * np.cos(2 * phi - 3 * theta)
-        + (2457945 / 4046848) * np.cos(2 * phi - theta)
-        - 5060475 / 4046848 * np.cos(2 * phi + theta)
-        + (5060475 / 2023424) * np.cos(2 * phi + 3 * theta)
-        + (530145 / 622592) * np.cos(4 * phi - 6 * theta)
-        + (530145 / 311296) * np.cos(4 * phi - 4 * theta)
-        - 954261 / 1011712 * np.cos(4 * phi - 2 * theta)
-        + (18555075 / 8093696) * np.cos(4 * phi + 2 * theta)
-        + (984555 / 311296) * np.cos(6 * phi - 5 * theta)
-        - 590733 / 311296 * np.cos(6 * phi - 3 * theta)
+        + (5060475 / 2023424) * np.cos(2 * phi - 3 * theta)
+        - 5060475 / 4046848 * np.cos(2 * phi - theta)
+        + (2457945 / 4046848) * np.cos(2 * phi + theta)
+        - 530145 / 4046848 * np.cos(2 * phi + 3 * theta)
+        + (530145 / 311296) * np.cos(2 * phi + 5 * theta)
+        + (18555075 / 8093696) * np.cos(4 * phi - 2 * theta)
+        - 954261 / 1011712 * np.cos(4 * phi + 2 * theta)
+        + (530145 / 311296) * np.cos(4 * phi + 4 * theta)
+        + (530145 / 622592) * np.cos(4 * phi + 6 * theta)
         + (530145 / 311296) * np.cos(6 * phi - theta)
         + (530145 / 311296) * np.cos(6 * phi + theta)
-        + (2953665 / 622592) * np.cos(8 * phi - 4 * theta)
-        + (984555 / 311296) * np.cos(8 * phi - 2 * theta)
+        - 590733 / 311296 * np.cos(6 * phi + 3 * theta)
+        + (984555 / 311296) * np.cos(6 * phi + 5 * theta)
+        + (984555 / 311296) * np.cos(8 * phi + 2 * theta)
+        + (2953665 / 622592) * np.cos(8 * phi + 4 * theta)
         + 5060475 / 8093696
     )
 
@@ -10401,14 +10401,14 @@ def N_gg_2_4_8_6(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (1575 / 1024) * np.cos(2 * phi - theta)
-        + (4725 / 2048) * np.cos(2 * phi + theta)
-        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
-        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
-        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
-        + (9009 / 2048) * np.cos(6 * phi + theta)
-        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
+        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2048) * np.cos(2 * phi - theta)
+        + (1575 / 1024) * np.cos(2 * phi + theta)
+        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
+        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (9009 / 2048) * np.cos(6 * phi - theta)
+        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
         + 1225 / 1024
     )
 
@@ -10426,18 +10426,18 @@ def N_gg_2_4_8_7(theta, phi):
         + (257985 / 77824) * np.cos(8 * phi)
         + (1289925 / 856064) * np.cos(2 * theta)
         + (694575 / 856064) * np.cos(4 * theta)
-        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
-        + (14175 / 53504) * np.cos(2 * phi - theta)
-        - 552825 / 856064 * np.cos(2 * phi + theta)
-        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
-        + (19845 / 77824) * np.cos(2 * phi + 5 * theta)
-        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (93555 / 77824) * np.cos(4 * phi + 4 * theta)
-        + (257985 / 77824) * np.cos(6 * phi - theta)
-        - 36855 / 19456 * np.cos(6 * phi + theta)
-        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
-        + (405405 / 77824) * np.cos(8 * phi + 2 * theta)
+        + (19845 / 77824) * np.cos(2 * phi - 5 * theta)
+        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
+        - 552825 / 856064 * np.cos(2 * phi - theta)
+        + (14175 / 53504) * np.cos(2 * phi + theta)
+        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
+        + (93555 / 77824) * np.cos(4 * phi - 4 * theta)
+        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
+        - 36855 / 19456 * np.cos(6 * phi - theta)
+        + (257985 / 77824) * np.cos(6 * phi + theta)
+        + (405405 / 77824) * np.cos(8 * phi - 2 * theta)
         - 297675 / 428032
     )
 
@@ -10485,10 +10485,10 @@ def M_gg_2_4_8_9():
 
 def N_gg_2_4_8_9(theta, phi):
     return (
-        (5355 / 2048) * np.cos(2 * phi + theta)
-        + (11781 / 4096) * np.cos(4 * phi + 2 * theta)
-        + (7293 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (109395 / 16384) * np.cos(8 * phi + 4 * theta)
+        (5355 / 2048) * np.cos(2 * phi - theta)
+        + (11781 / 4096) * np.cos(4 * phi - 2 * theta)
+        + (7293 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (109395 / 16384) * np.cos(8 * phi - 4 * theta)
         + 20825 / 16384
     )
 
@@ -10504,16 +10504,16 @@ def N_gg_2_4_8_10(theta, phi):
     return (
         (176715 / 77824) * np.cos(4 * phi)
         + (187425 / 77824) * np.cos(2 * theta)
-        + (187425 / 77824) * np.cos(2 * phi - theta)
-        - 26775 / 19456 * np.cos(2 * phi + theta)
-        + (176715 / 77824) * np.cos(2 * phi + 3 * theta)
-        - 11781 / 19456 * np.cos(4 * phi + 2 * theta)
-        + (153153 / 77824) * np.cos(4 * phi + 4 * theta)
-        + (153153 / 77824) * np.cos(6 * phi + theta)
-        + (21879 / 19456) * np.cos(6 * phi + 3 * theta)
-        + (109395 / 77824) * np.cos(6 * phi + 5 * theta)
-        + (109395 / 77824) * np.cos(8 * phi + 2 * theta)
-        + (546975 / 77824) * np.cos(8 * phi + 4 * theta)
+        + (176715 / 77824) * np.cos(2 * phi - 3 * theta)
+        - 26775 / 19456 * np.cos(2 * phi - theta)
+        + (187425 / 77824) * np.cos(2 * phi + theta)
+        + (153153 / 77824) * np.cos(4 * phi - 4 * theta)
+        - 11781 / 19456 * np.cos(4 * phi - 2 * theta)
+        + (109395 / 77824) * np.cos(6 * phi - 5 * theta)
+        + (21879 / 19456) * np.cos(6 * phi - 3 * theta)
+        + (153153 / 77824) * np.cos(6 * phi - theta)
+        + (546975 / 77824) * np.cos(8 * phi - 4 * theta)
+        + (109395 / 77824) * np.cos(8 * phi - 2 * theta)
         - 62475 / 77824
     )
 
@@ -10531,21 +10531,21 @@ def N_gg_2_4_8_11(theta, phi):
         + (530145 / 622592) * np.cos(8 * phi)
         - 5060475 / 4046848 * np.cos(2 * theta)
         + (18555075 / 8093696) * np.cos(4 * theta)
-        + (5060475 / 2023424) * np.cos(2 * phi - 3 * theta)
-        - 5060475 / 4046848 * np.cos(2 * phi - theta)
-        + (2457945 / 4046848) * np.cos(2 * phi + theta)
-        - 530145 / 4046848 * np.cos(2 * phi + 3 * theta)
-        + (530145 / 311296) * np.cos(2 * phi + 5 * theta)
-        + (18555075 / 8093696) * np.cos(4 * phi - 2 * theta)
-        - 954261 / 1011712 * np.cos(4 * phi + 2 * theta)
-        + (530145 / 311296) * np.cos(4 * phi + 4 * theta)
-        + (530145 / 622592) * np.cos(4 * phi + 6 * theta)
+        + (530145 / 311296) * np.cos(2 * phi - 5 * theta)
+        - 530145 / 4046848 * np.cos(2 * phi - 3 * theta)
+        + (2457945 / 4046848) * np.cos(2 * phi - theta)
+        - 5060475 / 4046848 * np.cos(2 * phi + theta)
+        + (5060475 / 2023424) * np.cos(2 * phi + 3 * theta)
+        + (530145 / 622592) * np.cos(4 * phi - 6 * theta)
+        + (530145 / 311296) * np.cos(4 * phi - 4 * theta)
+        - 954261 / 1011712 * np.cos(4 * phi - 2 * theta)
+        + (18555075 / 8093696) * np.cos(4 * phi + 2 * theta)
+        + (984555 / 311296) * np.cos(6 * phi - 5 * theta)
+        - 590733 / 311296 * np.cos(6 * phi - 3 * theta)
         + (530145 / 311296) * np.cos(6 * phi - theta)
         + (530145 / 311296) * np.cos(6 * phi + theta)
-        - 590733 / 311296 * np.cos(6 * phi + 3 * theta)
-        + (984555 / 311296) * np.cos(6 * phi + 5 * theta)
-        + (984555 / 311296) * np.cos(8 * phi + 2 * theta)
-        + (2953665 / 622592) * np.cos(8 * phi + 4 * theta)
+        + (2953665 / 622592) * np.cos(8 * phi - 4 * theta)
+        + (984555 / 311296) * np.cos(8 * phi - 2 * theta)
         + 5060475 / 8093696
     )
 
@@ -10561,17 +10561,17 @@ def N_gg_2_4_10_0(theta, phi):
     return (
         (675675 / 311296) * np.cos(4 * phi)
         + (297675 / 311296) * np.cos(2 * theta)
-        + (363825 / 622592) * np.cos(2 * phi - 3 * theta)
-        + (363825 / 155648) * np.cos(2 * phi - theta)
-        + (1819125 / 1245184) * np.cos(2 * phi + theta)
-        + (96525 / 311296) * np.cos(4 * phi - 4 * theta)
-        + (675675 / 311296) * np.cos(4 * phi - 2 * theta)
-        + (289575 / 2490368) * np.cos(6 * phi - 5 * theta)
-        + (289575 / 155648) * np.cos(6 * phi - 3 * theta)
-        + (2027025 / 622592) * np.cos(6 * phi - theta)
-        + (1640925 / 1245184) * np.cos(8 * phi - 4 * theta)
-        + (1640925 / 311296) * np.cos(8 * phi - 2 * theta)
-        + (1640925 / 131072) * np.cos(10 * phi - 3 * theta)
+        + (1819125 / 1245184) * np.cos(2 * phi - theta)
+        + (363825 / 155648) * np.cos(2 * phi + theta)
+        + (363825 / 622592) * np.cos(2 * phi + 3 * theta)
+        + (675675 / 311296) * np.cos(4 * phi + 2 * theta)
+        + (96525 / 311296) * np.cos(4 * phi + 4 * theta)
+        + (2027025 / 622592) * np.cos(6 * phi + theta)
+        + (289575 / 155648) * np.cos(6 * phi + 3 * theta)
+        + (289575 / 2490368) * np.cos(6 * phi + 5 * theta)
+        + (1640925 / 311296) * np.cos(8 * phi + 2 * theta)
+        + (1640925 / 1245184) * np.cos(8 * phi + 4 * theta)
+        + (1640925 / 131072) * np.cos(10 * phi + 3 * theta)
         + 1488375 / 1245184
     )
 
@@ -10584,70 +10584,6 @@ def M_gg_2_4_10_1():
 
 
 def N_gg_2_4_10_1(theta, phi):
-    return (
-        (14189175 / 5292032) * np.cos(4 * phi)
-        + (2837835 / 622592) * np.cos(8 * phi)
-        + (6251175 / 5292032) * np.cos(2 * theta)
-        + (1250235 / 10584064) * np.cos(4 * theta)
-        + (509355 / 21168128) * np.cos(2 * phi - 5 * theta)
-        + (1528065 / 2646016) * np.cos(2 * phi - 3 * theta)
-        + (22920975 / 10584064) * np.cos(2 * phi - theta)
-        + (2546775 / 1323008) * np.cos(2 * phi + theta)
-        + (7640325 / 21168128) * np.cos(2 * phi + 3 * theta)
-        + (945945 / 5292032) * np.cos(4 * phi - 4 * theta)
-        + (8513505 / 5292032) * np.cos(4 * phi - 2 * theta)
-        + (4729725 / 5292032) * np.cos(4 * phi + 2 * theta)
-        + (8513505 / 10584064) * np.cos(6 * phi - 3 * theta)
-        + (8513505 / 2646016) * np.cos(6 * phi - theta)
-        + (42567525 / 21168128) * np.cos(6 * phi + theta)
-        + (945945 / 311296) * np.cos(8 * phi - 2 * theta)
-        + (945945 / 65536) * np.cos(10 * phi - theta)
-        + 6251175 / 5292032
-    )
-
-
-def M_gg_2_4_10_2():
-    def func(k):
-        return (32 / 103378275) * k**8
-
-    return func
-
-
-def N_gg_2_4_10_2(theta, phi):
-    return (
-        -6081075 / 7159808 * np.cos(4 * phi)
-        + (48243195 / 14319616) * np.cos(8 * phi)
-        + (9823275 / 7159808) * np.cos(2 * theta)
-        + (13752585 / 14319616) * np.cos(4 * theta)
-        + (6621615 / 14319616) * np.cos(2 * phi - 5 * theta)
-        + (12879405 / 7159808) * np.cos(2 * phi - 3 * theta)
-        - 3274425 / 3579904 * np.cos(2 * phi - theta)
-        + (363825 / 894976) * np.cos(2 * phi + theta)
-        + (22920975 / 14319616) * np.cos(2 * phi + 3 * theta)
-        + (2027025 / 14319616) * np.cos(4 * phi - 6 * theta)
-        + (11563695 / 7159808) * np.cos(4 * phi - 4 * theta)
-        + (1216215 / 3579904) * np.cos(4 * phi - 2 * theta)
-        + (33108075 / 14319616) * np.cos(4 * phi + 2 * theta)
-        + (13030875 / 14319616) * np.cos(6 * phi - 5 * theta)
-        + (7123545 / 3579904) * np.cos(6 * phi - 3 * theta)
-        - 13378365 / 7159808 * np.cos(6 * phi - theta)
-        + (42567525 / 14319616) * np.cos(6 * phi + theta)
-        + (44304975 / 14319616) * np.cos(8 * phi - 4 * theta)
-        - 10173735 / 7159808 * np.cos(8 * phi - 2 * theta)
-        + (4922775 / 753664) * np.cos(10 * phi - 3 * theta)
-        + (2297295 / 753664) * np.cos(10 * phi - theta)
-        - 9823275 / 14319616
-    )
-
-
-def M_gg_2_4_10_3():
-    def func(k):
-        return (2582 / 468242775) * k**8
-
-    return func
-
-
-def N_gg_2_4_10_3(theta, phi):
     return (
         (14189175 / 5292032) * np.cos(4 * phi)
         + (2837835 / 622592) * np.cos(8 * phi)
@@ -10666,6 +10602,70 @@ def N_gg_2_4_10_3(theta, phi):
         + (8513505 / 10584064) * np.cos(6 * phi + 3 * theta)
         + (945945 / 311296) * np.cos(8 * phi + 2 * theta)
         + (945945 / 65536) * np.cos(10 * phi + theta)
+        + 6251175 / 5292032
+    )
+
+
+def M_gg_2_4_10_2():
+    def func(k):
+        return (32 / 103378275) * k**8
+
+    return func
+
+
+def N_gg_2_4_10_2(theta, phi):
+    return (
+        -6081075 / 7159808 * np.cos(4 * phi)
+        + (48243195 / 14319616) * np.cos(8 * phi)
+        + (9823275 / 7159808) * np.cos(2 * theta)
+        + (13752585 / 14319616) * np.cos(4 * theta)
+        + (22920975 / 14319616) * np.cos(2 * phi - 3 * theta)
+        + (363825 / 894976) * np.cos(2 * phi - theta)
+        - 3274425 / 3579904 * np.cos(2 * phi + theta)
+        + (12879405 / 7159808) * np.cos(2 * phi + 3 * theta)
+        + (6621615 / 14319616) * np.cos(2 * phi + 5 * theta)
+        + (33108075 / 14319616) * np.cos(4 * phi - 2 * theta)
+        + (1216215 / 3579904) * np.cos(4 * phi + 2 * theta)
+        + (11563695 / 7159808) * np.cos(4 * phi + 4 * theta)
+        + (2027025 / 14319616) * np.cos(4 * phi + 6 * theta)
+        + (42567525 / 14319616) * np.cos(6 * phi - theta)
+        - 13378365 / 7159808 * np.cos(6 * phi + theta)
+        + (7123545 / 3579904) * np.cos(6 * phi + 3 * theta)
+        + (13030875 / 14319616) * np.cos(6 * phi + 5 * theta)
+        - 10173735 / 7159808 * np.cos(8 * phi + 2 * theta)
+        + (44304975 / 14319616) * np.cos(8 * phi + 4 * theta)
+        + (2297295 / 753664) * np.cos(10 * phi + theta)
+        + (4922775 / 753664) * np.cos(10 * phi + 3 * theta)
+        - 9823275 / 14319616
+    )
+
+
+def M_gg_2_4_10_3():
+    def func(k):
+        return (2582 / 468242775) * k**8
+
+    return func
+
+
+def N_gg_2_4_10_3(theta, phi):
+    return (
+        (14189175 / 5292032) * np.cos(4 * phi)
+        + (2837835 / 622592) * np.cos(8 * phi)
+        + (6251175 / 5292032) * np.cos(2 * theta)
+        + (1250235 / 10584064) * np.cos(4 * theta)
+        + (509355 / 21168128) * np.cos(2 * phi - 5 * theta)
+        + (1528065 / 2646016) * np.cos(2 * phi - 3 * theta)
+        + (22920975 / 10584064) * np.cos(2 * phi - theta)
+        + (2546775 / 1323008) * np.cos(2 * phi + theta)
+        + (7640325 / 21168128) * np.cos(2 * phi + 3 * theta)
+        + (945945 / 5292032) * np.cos(4 * phi - 4 * theta)
+        + (8513505 / 5292032) * np.cos(4 * phi - 2 * theta)
+        + (4729725 / 5292032) * np.cos(4 * phi + 2 * theta)
+        + (8513505 / 10584064) * np.cos(6 * phi - 3 * theta)
+        + (8513505 / 2646016) * np.cos(6 * phi - theta)
+        + (42567525 / 21168128) * np.cos(6 * phi + theta)
+        + (945945 / 311296) * np.cos(8 * phi - 2 * theta)
+        + (945945 / 65536) * np.cos(10 * phi - theta)
         + 6251175 / 5292032
     )
 
@@ -10717,17 +10717,17 @@ def N_gg_2_4_10_5(theta, phi):
     return (
         (675675 / 311296) * np.cos(4 * phi)
         + (297675 / 311296) * np.cos(2 * theta)
-        + (1819125 / 1245184) * np.cos(2 * phi - theta)
-        + (363825 / 155648) * np.cos(2 * phi + theta)
-        + (363825 / 622592) * np.cos(2 * phi + 3 * theta)
-        + (675675 / 311296) * np.cos(4 * phi + 2 * theta)
-        + (96525 / 311296) * np.cos(4 * phi + 4 * theta)
-        + (2027025 / 622592) * np.cos(6 * phi + theta)
-        + (289575 / 155648) * np.cos(6 * phi + 3 * theta)
-        + (289575 / 2490368) * np.cos(6 * phi + 5 * theta)
-        + (1640925 / 311296) * np.cos(8 * phi + 2 * theta)
-        + (1640925 / 1245184) * np.cos(8 * phi + 4 * theta)
-        + (1640925 / 131072) * np.cos(10 * phi + 3 * theta)
+        + (363825 / 622592) * np.cos(2 * phi - 3 * theta)
+        + (363825 / 155648) * np.cos(2 * phi - theta)
+        + (1819125 / 1245184) * np.cos(2 * phi + theta)
+        + (96525 / 311296) * np.cos(4 * phi - 4 * theta)
+        + (675675 / 311296) * np.cos(4 * phi - 2 * theta)
+        + (289575 / 2490368) * np.cos(6 * phi - 5 * theta)
+        + (289575 / 155648) * np.cos(6 * phi - 3 * theta)
+        + (2027025 / 622592) * np.cos(6 * phi - theta)
+        + (1640925 / 1245184) * np.cos(8 * phi - 4 * theta)
+        + (1640925 / 311296) * np.cos(8 * phi - 2 * theta)
+        + (1640925 / 131072) * np.cos(10 * phi - 3 * theta)
         + 1488375 / 1245184
     )
 
@@ -10745,23 +10745,23 @@ def N_gg_2_4_10_6(theta, phi):
         + (48243195 / 14319616) * np.cos(8 * phi)
         + (9823275 / 7159808) * np.cos(2 * theta)
         + (13752585 / 14319616) * np.cos(4 * theta)
-        + (22920975 / 14319616) * np.cos(2 * phi - 3 * theta)
-        + (363825 / 894976) * np.cos(2 * phi - theta)
-        - 3274425 / 3579904 * np.cos(2 * phi + theta)
-        + (12879405 / 7159808) * np.cos(2 * phi + 3 * theta)
-        + (6621615 / 14319616) * np.cos(2 * phi + 5 * theta)
-        + (33108075 / 14319616) * np.cos(4 * phi - 2 * theta)
-        + (1216215 / 3579904) * np.cos(4 * phi + 2 * theta)
-        + (11563695 / 7159808) * np.cos(4 * phi + 4 * theta)
-        + (2027025 / 14319616) * np.cos(4 * phi + 6 * theta)
-        + (42567525 / 14319616) * np.cos(6 * phi - theta)
-        - 13378365 / 7159808 * np.cos(6 * phi + theta)
-        + (7123545 / 3579904) * np.cos(6 * phi + 3 * theta)
-        + (13030875 / 14319616) * np.cos(6 * phi + 5 * theta)
-        - 10173735 / 7159808 * np.cos(8 * phi + 2 * theta)
-        + (44304975 / 14319616) * np.cos(8 * phi + 4 * theta)
-        + (2297295 / 753664) * np.cos(10 * phi + theta)
-        + (4922775 / 753664) * np.cos(10 * phi + 3 * theta)
+        + (6621615 / 14319616) * np.cos(2 * phi - 5 * theta)
+        + (12879405 / 7159808) * np.cos(2 * phi - 3 * theta)
+        - 3274425 / 3579904 * np.cos(2 * phi - theta)
+        + (363825 / 894976) * np.cos(2 * phi + theta)
+        + (22920975 / 14319616) * np.cos(2 * phi + 3 * theta)
+        + (2027025 / 14319616) * np.cos(4 * phi - 6 * theta)
+        + (11563695 / 7159808) * np.cos(4 * phi - 4 * theta)
+        + (1216215 / 3579904) * np.cos(4 * phi - 2 * theta)
+        + (33108075 / 14319616) * np.cos(4 * phi + 2 * theta)
+        + (13030875 / 14319616) * np.cos(6 * phi - 5 * theta)
+        + (7123545 / 3579904) * np.cos(6 * phi - 3 * theta)
+        - 13378365 / 7159808 * np.cos(6 * phi - theta)
+        + (42567525 / 14319616) * np.cos(6 * phi + theta)
+        + (44304975 / 14319616) * np.cos(8 * phi - 4 * theta)
+        - 10173735 / 7159808 * np.cos(8 * phi - 2 * theta)
+        + (4922775 / 753664) * np.cos(10 * phi - 3 * theta)
+        + (2297295 / 753664) * np.cos(10 * phi - theta)
         - 9823275 / 14319616
     )
 
@@ -10779,24 +10779,24 @@ def N_gg_2_4_12_0(theta, phi):
         + (34459425 / 12058624) * np.cos(8 * phi)
         + (36018675 / 28639232) * np.cos(2 * theta)
         + (36018675 / 229113856) * np.cos(4 * theta)
-        + (6081075 / 114556928) * np.cos(2 * phi - 5 * theta)
-        + (42567525 / 57278464) * np.cos(2 * phi - 3 * theta)
-        + (127702575 / 57278464) * np.cos(2 * phi - theta)
-        + (212837625 / 114556928) * np.cos(2 * phi + theta)
-        + (42567525 / 114556928) * np.cos(2 * phi + 3 * theta)
-        + (10135125 / 916455424) * np.cos(4 * phi - 6 * theta)
-        + (10135125 / 28639232) * np.cos(4 * phi - 4 * theta)
-        + (212837625 / 114556928) * np.cos(4 * phi - 2 * theta)
-        + (354729375 / 458227712) * np.cos(4 * phi + 2 * theta)
-        + (24613875 / 229113856) * np.cos(6 * phi - 5 * theta)
-        + (73841625 / 57278464) * np.cos(6 * phi - 3 * theta)
-        + (172297125 / 57278464) * np.cos(6 * phi - theta)
-        + (172297125 / 114556928) * np.cos(6 * phi + theta)
-        + (14768325 / 24117248) * np.cos(8 * phi - 4 * theta)
-        + (4922775 / 1507328) * np.cos(8 * phi - 2 * theta)
-        + (34459425 / 12058624) * np.cos(10 * phi - 3 * theta)
-        + (34459425 / 6029312) * np.cos(10 * phi - theta)
-        + (34459425 / 2097152) * np.cos(12 * phi - 2 * theta)
+        + (42567525 / 114556928) * np.cos(2 * phi - 3 * theta)
+        + (212837625 / 114556928) * np.cos(2 * phi - theta)
+        + (127702575 / 57278464) * np.cos(2 * phi + theta)
+        + (42567525 / 57278464) * np.cos(2 * phi + 3 * theta)
+        + (6081075 / 114556928) * np.cos(2 * phi + 5 * theta)
+        + (354729375 / 458227712) * np.cos(4 * phi - 2 * theta)
+        + (212837625 / 114556928) * np.cos(4 * phi + 2 * theta)
+        + (10135125 / 28639232) * np.cos(4 * phi + 4 * theta)
+        + (10135125 / 916455424) * np.cos(4 * phi + 6 * theta)
+        + (172297125 / 114556928) * np.cos(6 * phi - theta)
+        + (172297125 / 57278464) * np.cos(6 * phi + theta)
+        + (73841625 / 57278464) * np.cos(6 * phi + 3 * theta)
+        + (24613875 / 229113856) * np.cos(6 * phi + 5 * theta)
+        + (4922775 / 1507328) * np.cos(8 * phi + 2 * theta)
+        + (14768325 / 24117248) * np.cos(8 * phi + 4 * theta)
+        + (34459425 / 6029312) * np.cos(10 * phi + theta)
+        + (34459425 / 12058624) * np.cos(10 * phi + 3 * theta)
+        + (34459425 / 2097152) * np.cos(12 * phi + 2 * theta)
         + 540280125 / 458227712
     )
 
@@ -10851,24 +10851,24 @@ def N_gg_2_4_12_2(theta, phi):
         + (34459425 / 12058624) * np.cos(8 * phi)
         + (36018675 / 28639232) * np.cos(2 * theta)
         + (36018675 / 229113856) * np.cos(4 * theta)
-        + (42567525 / 114556928) * np.cos(2 * phi - 3 * theta)
-        + (212837625 / 114556928) * np.cos(2 * phi - theta)
-        + (127702575 / 57278464) * np.cos(2 * phi + theta)
-        + (42567525 / 57278464) * np.cos(2 * phi + 3 * theta)
-        + (6081075 / 114556928) * np.cos(2 * phi + 5 * theta)
-        + (354729375 / 458227712) * np.cos(4 * phi - 2 * theta)
-        + (212837625 / 114556928) * np.cos(4 * phi + 2 * theta)
-        + (10135125 / 28639232) * np.cos(4 * phi + 4 * theta)
-        + (10135125 / 916455424) * np.cos(4 * phi + 6 * theta)
-        + (172297125 / 114556928) * np.cos(6 * phi - theta)
-        + (172297125 / 57278464) * np.cos(6 * phi + theta)
-        + (73841625 / 57278464) * np.cos(6 * phi + 3 * theta)
-        + (24613875 / 229113856) * np.cos(6 * phi + 5 * theta)
-        + (4922775 / 1507328) * np.cos(8 * phi + 2 * theta)
-        + (14768325 / 24117248) * np.cos(8 * phi + 4 * theta)
-        + (34459425 / 6029312) * np.cos(10 * phi + theta)
-        + (34459425 / 12058624) * np.cos(10 * phi + 3 * theta)
-        + (34459425 / 2097152) * np.cos(12 * phi + 2 * theta)
+        + (6081075 / 114556928) * np.cos(2 * phi - 5 * theta)
+        + (42567525 / 57278464) * np.cos(2 * phi - 3 * theta)
+        + (127702575 / 57278464) * np.cos(2 * phi - theta)
+        + (212837625 / 114556928) * np.cos(2 * phi + theta)
+        + (42567525 / 114556928) * np.cos(2 * phi + 3 * theta)
+        + (10135125 / 916455424) * np.cos(4 * phi - 6 * theta)
+        + (10135125 / 28639232) * np.cos(4 * phi - 4 * theta)
+        + (212837625 / 114556928) * np.cos(4 * phi - 2 * theta)
+        + (354729375 / 458227712) * np.cos(4 * phi + 2 * theta)
+        + (24613875 / 229113856) * np.cos(6 * phi - 5 * theta)
+        + (73841625 / 57278464) * np.cos(6 * phi - 3 * theta)
+        + (172297125 / 57278464) * np.cos(6 * phi - theta)
+        + (172297125 / 114556928) * np.cos(6 * phi + theta)
+        + (14768325 / 24117248) * np.cos(8 * phi - 4 * theta)
+        + (4922775 / 1507328) * np.cos(8 * phi - 2 * theta)
+        + (34459425 / 12058624) * np.cos(10 * phi - 3 * theta)
+        + (34459425 / 6029312) * np.cos(10 * phi - theta)
+        + (34459425 / 2097152) * np.cos(12 * phi - 2 * theta)
         + 540280125 / 458227712
     )
 
@@ -10930,7 +10930,7 @@ def M_gg_2_5_2_0():
 
 
 def N_gg_2_5_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_2_5_2_1():
@@ -10941,7 +10941,7 @@ def M_gg_2_5_2_1():
 
 
 def N_gg_2_5_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_2_5_2_2():
@@ -10970,9 +10970,9 @@ def M_gg_2_5_2_3():
 def N_gg_2_5_2_3(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (225 / 32) * np.cos(2 * phi - 3 * theta)
-        + (225 / 112) * np.cos(2 * phi - theta)
-        + (135 / 224) * np.cos(2 * phi + theta)
+        + (135 / 224) * np.cos(2 * phi - theta)
+        + (225 / 112) * np.cos(2 * phi + theta)
+        + (225 / 32) * np.cos(2 * phi + 3 * theta)
         + 135 / 112
     )
 
@@ -10987,9 +10987,9 @@ def M_gg_2_5_2_4():
 def N_gg_2_5_2_4(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (135 / 224) * np.cos(2 * phi - theta)
-        + (225 / 112) * np.cos(2 * phi + theta)
-        + (225 / 32) * np.cos(2 * phi + 3 * theta)
+        + (225 / 32) * np.cos(2 * phi - 3 * theta)
+        + (225 / 112) * np.cos(2 * phi - theta)
+        + (135 / 224) * np.cos(2 * phi + theta)
         + 135 / 112
     )
 
@@ -11024,11 +11024,11 @@ def N_gg_2_5_2_6(theta, phi):
     return (
         (1575 / 704) * np.cos(2 * theta)
         + (4725 / 2816) * np.cos(4 * theta)
-        + (4725 / 512) * np.cos(2 * phi - 5 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 512) * np.cos(2 * phi + 5 * theta)
         + 3375 / 2816
     )
 
@@ -11044,11 +11044,11 @@ def N_gg_2_5_2_7(theta, phi):
     return (
         (1575 / 704) * np.cos(2 * theta)
         + (4725 / 2816) * np.cos(4 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 512) * np.cos(2 * phi + 5 * theta)
+        + (4725 / 512) * np.cos(2 * phi - 5 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
         + 3375 / 2816
     )
 
@@ -11087,13 +11087,13 @@ def N_gg_2_5_2_9(theta, phi):
         (4725 / 2048) * np.cos(2 * theta)
         + (2079 / 1024) * np.cos(4 * theta)
         + (3003 / 2048) * np.cos(6 * theta)
-        + (45045 / 4096) * np.cos(2 * phi - 7 * theta)
-        + (9009 / 2048) * np.cos(2 * phi - 5 * theta)
-        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 1024) * np.cos(2 * phi - theta)
-        + (3675 / 4096) * np.cos(2 * phi + theta)
-        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
-        + (693 / 4096) * np.cos(2 * phi + 5 * theta)
+        + (693 / 4096) * np.cos(2 * phi - 5 * theta)
+        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
+        + (3675 / 4096) * np.cos(2 * phi - theta)
+        + (1575 / 1024) * np.cos(2 * phi + theta)
+        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
+        + (9009 / 2048) * np.cos(2 * phi + 5 * theta)
+        + (45045 / 4096) * np.cos(2 * phi + 7 * theta)
         + 1225 / 1024
     )
 
@@ -11110,13 +11110,13 @@ def N_gg_2_5_2_10(theta, phi):
         (4725 / 2048) * np.cos(2 * theta)
         + (2079 / 1024) * np.cos(4 * theta)
         + (3003 / 2048) * np.cos(6 * theta)
-        + (693 / 4096) * np.cos(2 * phi - 5 * theta)
-        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
-        + (3675 / 4096) * np.cos(2 * phi - theta)
-        + (1575 / 1024) * np.cos(2 * phi + theta)
-        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
-        + (9009 / 2048) * np.cos(2 * phi + 5 * theta)
-        + (45045 / 4096) * np.cos(2 * phi + 7 * theta)
+        + (45045 / 4096) * np.cos(2 * phi - 7 * theta)
+        + (9009 / 2048) * np.cos(2 * phi - 5 * theta)
+        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 1024) * np.cos(2 * phi - theta)
+        + (3675 / 4096) * np.cos(2 * phi + theta)
+        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
+        + (693 / 4096) * np.cos(2 * phi + 5 * theta)
         + 1225 / 1024
     )
 
@@ -11130,8 +11130,8 @@ def M_gg_2_5_4_0():
 
 def N_gg_2_5_4_0(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi - theta)
-        + (315 / 64) * np.cos(4 * phi - 2 * theta)
+        (45 / 16) * np.cos(2 * phi + theta)
+        + (315 / 64) * np.cos(4 * phi + 2 * theta)
         + 81 / 64
     )
 
@@ -11164,10 +11164,10 @@ def N_gg_2_5_4_2(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (675 / 352) * np.cos(2 * phi - 3 * theta)
-        - 225 / 308 * np.cos(2 * phi - theta)
-        + (6075 / 2464) * np.cos(2 * phi + theta)
-        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
+        + (6075 / 2464) * np.cos(2 * phi - theta)
+        - 225 / 308 * np.cos(2 * phi + theta)
+        + (675 / 352) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2464
     )
 
@@ -11183,11 +11183,11 @@ def N_gg_2_5_4_3(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
         + 3375 / 2816
     )
 
@@ -11201,8 +11201,8 @@ def M_gg_2_5_4_4():
 
 def N_gg_2_5_4_4(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi + theta)
-        + (315 / 64) * np.cos(4 * phi + 2 * theta)
+        (45 / 16) * np.cos(2 * phi - theta)
+        + (315 / 64) * np.cos(4 * phi - 2 * theta)
         + 81 / 64
     )
 
@@ -11218,10 +11218,10 @@ def N_gg_2_5_4_5(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (6075 / 2464) * np.cos(2 * phi - theta)
-        - 225 / 308 * np.cos(2 * phi + theta)
-        + (675 / 352) * np.cos(2 * phi + 3 * theta)
-        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
+        + (675 / 352) * np.cos(2 * phi - 3 * theta)
+        - 225 / 308 * np.cos(2 * phi - theta)
+        + (6075 / 2464) * np.cos(2 * phi + theta)
+        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
         - 2025 / 2464
     )
 
@@ -11259,13 +11259,13 @@ def N_gg_2_5_4_7(theta, phi):
     return (
         (4725 / 2816) * np.cos(4 * phi)
         + (8505 / 2816) * np.cos(4 * theta)
-        + (945 / 256) * np.cos(2 * phi - 5 * theta)
-        - 2835 / 1408 * np.cos(2 * phi - 3 * theta)
-        + (225 / 128) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(2 * phi + 3 * theta)
-        + (945 / 256) * np.cos(4 * phi - 4 * theta)
-        + (8505 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (1575 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 2816) * np.cos(2 * phi - 3 * theta)
+        + (225 / 128) * np.cos(2 * phi - theta)
+        - 2835 / 1408 * np.cos(2 * phi + 3 * theta)
+        + (945 / 256) * np.cos(2 * phi + 5 * theta)
+        + (1575 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (8505 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (945 / 256) * np.cos(4 * phi + 4 * theta)
         - 2025 / 2816
     )
 
@@ -11282,15 +11282,15 @@ def N_gg_2_5_4_8(theta, phi):
         (99225 / 292864) * np.cos(4 * phi)
         + (297675 / 146432) * np.cos(2 * theta)
         + (59535 / 53248) * np.cos(4 * theta)
-        + (6615 / 2048) * np.cos(2 * phi - 5 * theta)
-        + (19845 / 6656) * np.cos(2 * phi - 3 * theta)
-        + (297675 / 146432) * np.cos(2 * phi - theta)
-        + (77175 / 73216) * np.cos(2 * phi + theta)
-        + (99225 / 292864) * np.cos(2 * phi + 3 * theta)
-        + (99225 / 8192) * np.cos(4 * phi - 6 * theta)
-        + (6615 / 2048) * np.cos(4 * phi - 4 * theta)
-        + (59535 / 53248) * np.cos(4 * phi - 2 * theta)
-        + (77175 / 1171456) * np.cos(4 * phi + 2 * theta)
+        + (99225 / 292864) * np.cos(2 * phi - 3 * theta)
+        + (77175 / 73216) * np.cos(2 * phi - theta)
+        + (297675 / 146432) * np.cos(2 * phi + theta)
+        + (19845 / 6656) * np.cos(2 * phi + 3 * theta)
+        + (6615 / 2048) * np.cos(2 * phi + 5 * theta)
+        + (77175 / 1171456) * np.cos(4 * phi - 2 * theta)
+        + (59535 / 53248) * np.cos(4 * phi + 2 * theta)
+        + (6615 / 2048) * np.cos(4 * phi + 4 * theta)
+        + (99225 / 8192) * np.cos(4 * phi + 6 * theta)
         + 694575 / 585728
     )
 
@@ -11306,11 +11306,11 @@ def N_gg_2_5_4_9(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
         + 3375 / 2816
     )
 
@@ -11326,13 +11326,13 @@ def N_gg_2_5_4_10(theta, phi):
     return (
         (4725 / 2816) * np.cos(4 * phi)
         + (8505 / 2816) * np.cos(4 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - 3 * theta)
-        + (225 / 128) * np.cos(2 * phi - theta)
-        - 2835 / 1408 * np.cos(2 * phi + 3 * theta)
-        + (945 / 256) * np.cos(2 * phi + 5 * theta)
-        + (1575 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (8505 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (945 / 256) * np.cos(4 * phi + 4 * theta)
+        + (945 / 256) * np.cos(2 * phi - 5 * theta)
+        - 2835 / 1408 * np.cos(2 * phi - 3 * theta)
+        + (225 / 128) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(2 * phi + 3 * theta)
+        + (945 / 256) * np.cos(4 * phi - 4 * theta)
+        + (8505 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1575 / 2816) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2816
     )
 
@@ -11377,18 +11377,18 @@ def N_gg_2_5_4_12(theta, phi):
         - 552825 / 856064 * np.cos(2 * theta)
         + (49329 / 38912) * np.cos(4 * theta)
         + (243243 / 77824) * np.cos(6 * theta)
-        + (405405 / 77824) * np.cos(2 * phi - 7 * theta)
-        - 36855 / 19456 * np.cos(2 * phi - 5 * theta)
-        - 104895 / 77824 * np.cos(2 * phi - 3 * theta)
-        + (14175 / 53504) * np.cos(2 * phi - theta)
-        + (1289925 / 856064) * np.cos(2 * phi + theta)
-        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
-        + (93555 / 77824) * np.cos(2 * phi + 5 * theta)
-        + (257985 / 77824) * np.cos(4 * phi - 6 * theta)
-        + (257985 / 77824) * np.cos(4 * phi - 4 * theta)
-        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (694575 / 856064) * np.cos(4 * phi + 2 * theta)
-        + (19845 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (93555 / 77824) * np.cos(2 * phi - 5 * theta)
+        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
+        + (1289925 / 856064) * np.cos(2 * phi - theta)
+        + (14175 / 53504) * np.cos(2 * phi + theta)
+        - 104895 / 77824 * np.cos(2 * phi + 3 * theta)
+        - 36855 / 19456 * np.cos(2 * phi + 5 * theta)
+        + (405405 / 77824) * np.cos(2 * phi + 7 * theta)
+        + (19845 / 77824) * np.cos(4 * phi - 4 * theta)
+        + (694575 / 856064) * np.cos(4 * phi - 2 * theta)
+        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (257985 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (257985 / 77824) * np.cos(4 * phi + 6 * theta)
         - 297675 / 428032
     )
 
@@ -11405,15 +11405,15 @@ def N_gg_2_5_4_13(theta, phi):
         (99225 / 292864) * np.cos(4 * phi)
         + (297675 / 146432) * np.cos(2 * theta)
         + (59535 / 53248) * np.cos(4 * theta)
-        + (99225 / 292864) * np.cos(2 * phi - 3 * theta)
-        + (77175 / 73216) * np.cos(2 * phi - theta)
-        + (297675 / 146432) * np.cos(2 * phi + theta)
-        + (19845 / 6656) * np.cos(2 * phi + 3 * theta)
-        + (6615 / 2048) * np.cos(2 * phi + 5 * theta)
-        + (77175 / 1171456) * np.cos(4 * phi - 2 * theta)
-        + (59535 / 53248) * np.cos(4 * phi + 2 * theta)
-        + (6615 / 2048) * np.cos(4 * phi + 4 * theta)
-        + (99225 / 8192) * np.cos(4 * phi + 6 * theta)
+        + (6615 / 2048) * np.cos(2 * phi - 5 * theta)
+        + (19845 / 6656) * np.cos(2 * phi - 3 * theta)
+        + (297675 / 146432) * np.cos(2 * phi - theta)
+        + (77175 / 73216) * np.cos(2 * phi + theta)
+        + (99225 / 292864) * np.cos(2 * phi + 3 * theta)
+        + (99225 / 8192) * np.cos(4 * phi - 6 * theta)
+        + (6615 / 2048) * np.cos(4 * phi - 4 * theta)
+        + (59535 / 53248) * np.cos(4 * phi - 2 * theta)
+        + (77175 / 1171456) * np.cos(4 * phi + 2 * theta)
         + 694575 / 585728
     )
 
@@ -11431,18 +11431,18 @@ def N_gg_2_5_4_14(theta, phi):
         - 552825 / 856064 * np.cos(2 * theta)
         + (49329 / 38912) * np.cos(4 * theta)
         + (243243 / 77824) * np.cos(6 * theta)
-        + (93555 / 77824) * np.cos(2 * phi - 5 * theta)
-        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
-        + (1289925 / 856064) * np.cos(2 * phi - theta)
-        + (14175 / 53504) * np.cos(2 * phi + theta)
-        - 104895 / 77824 * np.cos(2 * phi + 3 * theta)
-        - 36855 / 19456 * np.cos(2 * phi + 5 * theta)
-        + (405405 / 77824) * np.cos(2 * phi + 7 * theta)
-        + (19845 / 77824) * np.cos(4 * phi - 4 * theta)
-        + (694575 / 856064) * np.cos(4 * phi - 2 * theta)
-        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (257985 / 77824) * np.cos(4 * phi + 4 * theta)
-        + (257985 / 77824) * np.cos(4 * phi + 6 * theta)
+        + (405405 / 77824) * np.cos(2 * phi - 7 * theta)
+        - 36855 / 19456 * np.cos(2 * phi - 5 * theta)
+        - 104895 / 77824 * np.cos(2 * phi - 3 * theta)
+        + (14175 / 53504) * np.cos(2 * phi - theta)
+        + (1289925 / 856064) * np.cos(2 * phi + theta)
+        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
+        + (93555 / 77824) * np.cos(2 * phi + 5 * theta)
+        + (257985 / 77824) * np.cos(4 * phi - 6 * theta)
+        + (257985 / 77824) * np.cos(4 * phi - 4 * theta)
+        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (694575 / 856064) * np.cos(4 * phi + 2 * theta)
+        + (19845 / 77824) * np.cos(4 * phi + 4 * theta)
         - 297675 / 428032
     )
 
@@ -11456,9 +11456,9 @@ def M_gg_2_5_6_0():
 
 def N_gg_2_5_6_0(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi - theta)
-        + (819 / 256) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        (1365 / 512) * np.cos(2 * phi + theta)
+        + (819 / 256) * np.cos(4 * phi + 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         + 325 / 256
     )
 
@@ -11474,11 +11474,11 @@ def N_gg_2_5_6_1(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi + theta)
         + 3375 / 2816
     )
 
@@ -11494,13 +11494,13 @@ def N_gg_2_5_6_2(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
-        - 6825 / 5632 * np.cos(2 * phi - theta)
-        + (6825 / 2816) * np.cos(2 * phi + theta)
-        + (819 / 512) * np.cos(4 * phi - 4 * theta)
-        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
-        + (819 / 512) * np.cos(6 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi - theta)
+        - 6825 / 5632 * np.cos(2 * phi + theta)
+        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (819 / 512) * np.cos(4 * phi + 4 * theta)
+        + (819 / 512) * np.cos(6 * phi + theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         - 2275 / 2816
     )
 
@@ -11516,14 +11516,14 @@ def N_gg_2_5_6_3(theta, phi):
     return (
         (945 / 2048) * np.cos(4 * phi)
         + (1575 / 1024) * np.cos(2 * theta)
-        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2048) * np.cos(2 * phi - theta)
-        + (3675 / 4096) * np.cos(2 * phi + theta)
-        + (9009 / 2048) * np.cos(4 * phi - 4 * theta)
-        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
-        + (45045 / 4096) * np.cos(6 * phi - 5 * theta)
-        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (693 / 4096) * np.cos(6 * phi - theta)
+        + (3675 / 4096) * np.cos(2 * phi - theta)
+        + (4725 / 2048) * np.cos(2 * phi + theta)
+        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
+        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
+        + (9009 / 2048) * np.cos(4 * phi + 4 * theta)
+        + (693 / 4096) * np.cos(6 * phi + theta)
+        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (45045 / 4096) * np.cos(6 * phi + 5 * theta)
         + 1225 / 1024
     )
 
@@ -11539,11 +11539,11 @@ def N_gg_2_5_6_4(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi - theta)
         + 3375 / 2816
     )
 
@@ -11582,17 +11582,17 @@ def N_gg_2_5_6_6(theta, phi):
         (282555 / 382976) * np.cos(4 * phi)
         - 20475 / 17408 * np.cos(2 * theta)
         + (429975 / 191488) * np.cos(4 * theta)
-        + (85995 / 69632) * np.cos(2 * phi - 5 * theta)
-        + (282555 / 382976) * np.cos(2 * phi - 3 * theta)
-        + (12285 / 69632) * np.cos(2 * phi - theta)
-        - 20475 / 17408 * np.cos(2 * phi + theta)
-        + (1003275 / 382976) * np.cos(2 * phi + 3 * theta)
-        + (110565 / 34816) * np.cos(4 * phi - 4 * theta)
-        - 22113 / 11968 * np.cos(4 * phi - 2 * theta)
-        + (429975 / 191488) * np.cos(4 * phi + 2 * theta)
-        + (243243 / 69632) * np.cos(6 * phi - 3 * theta)
-        + (110565 / 34816) * np.cos(6 * phi - theta)
-        + (85995 / 69632) * np.cos(6 * phi + theta)
+        + (1003275 / 382976) * np.cos(2 * phi - 3 * theta)
+        - 20475 / 17408 * np.cos(2 * phi - theta)
+        + (12285 / 69632) * np.cos(2 * phi + theta)
+        + (282555 / 382976) * np.cos(2 * phi + 3 * theta)
+        + (85995 / 69632) * np.cos(2 * phi + 5 * theta)
+        + (429975 / 191488) * np.cos(4 * phi - 2 * theta)
+        - 22113 / 11968 * np.cos(4 * phi + 2 * theta)
+        + (110565 / 34816) * np.cos(4 * phi + 4 * theta)
+        + (85995 / 69632) * np.cos(6 * phi - theta)
+        + (110565 / 34816) * np.cos(6 * phi + theta)
+        + (243243 / 69632) * np.cos(6 * phi + 3 * theta)
         + 61425 / 95744
     )
 
@@ -11609,19 +11609,19 @@ def N_gg_2_5_6_7(theta, phi):
         (394065 / 214016) * np.cos(4 * phi)
         + (14175 / 53504) * np.cos(2 * theta)
         + (99225 / 38912) * np.cos(4 * theta)
-        + (257985 / 77824) * np.cos(2 * phi - 5 * theta)
-        - 104895 / 77824 * np.cos(2 * phi - 3 * theta)
-        - 552825 / 856064 * np.cos(2 * phi - theta)
-        + (1289925 / 856064) * np.cos(2 * phi + theta)
-        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
-        + (257985 / 77824) * np.cos(4 * phi - 6 * theta)
-        - 36855 / 19456 * np.cos(4 * phi - 4 * theta)
-        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (694575 / 856064) * np.cos(4 * phi + 2 * theta)
-        + (405405 / 77824) * np.cos(6 * phi - 5 * theta)
-        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
-        + (93555 / 77824) * np.cos(6 * phi - theta)
-        + (19845 / 77824) * np.cos(6 * phi + theta)
+        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
+        + (1289925 / 856064) * np.cos(2 * phi - theta)
+        - 552825 / 856064 * np.cos(2 * phi + theta)
+        - 104895 / 77824 * np.cos(2 * phi + 3 * theta)
+        + (257985 / 77824) * np.cos(2 * phi + 5 * theta)
+        + (694575 / 856064) * np.cos(4 * phi - 2 * theta)
+        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
+        - 36855 / 19456 * np.cos(4 * phi + 4 * theta)
+        + (257985 / 77824) * np.cos(4 * phi + 6 * theta)
+        + (19845 / 77824) * np.cos(6 * phi - theta)
+        + (93555 / 77824) * np.cos(6 * phi + theta)
+        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
+        + (405405 / 77824) * np.cos(6 * phi + 5 * theta)
         - 297675 / 428032
     )
 
@@ -11635,9 +11635,9 @@ def M_gg_2_5_6_8():
 
 def N_gg_2_5_6_8(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi + theta)
-        + (819 / 256) * np.cos(4 * phi + 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        (1365 / 512) * np.cos(2 * phi - theta)
+        + (819 / 256) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
         + 325 / 256
     )
 
@@ -11653,13 +11653,13 @@ def N_gg_2_5_6_9(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (6825 / 2816) * np.cos(2 * phi - theta)
-        - 6825 / 5632 * np.cos(2 * phi + theta)
-        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (819 / 512) * np.cos(4 * phi + 4 * theta)
-        + (819 / 512) * np.cos(6 * phi + theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
+        - 6825 / 5632 * np.cos(2 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi + theta)
+        + (819 / 512) * np.cos(4 * phi - 4 * theta)
+        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        + (819 / 512) * np.cos(6 * phi - theta)
         - 2275 / 2816
     )
 
@@ -11676,17 +11676,17 @@ def N_gg_2_5_6_10(theta, phi):
         (282555 / 382976) * np.cos(4 * phi)
         - 20475 / 17408 * np.cos(2 * theta)
         + (429975 / 191488) * np.cos(4 * theta)
-        + (1003275 / 382976) * np.cos(2 * phi - 3 * theta)
-        - 20475 / 17408 * np.cos(2 * phi - theta)
-        + (12285 / 69632) * np.cos(2 * phi + theta)
-        + (282555 / 382976) * np.cos(2 * phi + 3 * theta)
-        + (85995 / 69632) * np.cos(2 * phi + 5 * theta)
-        + (429975 / 191488) * np.cos(4 * phi - 2 * theta)
-        - 22113 / 11968 * np.cos(4 * phi + 2 * theta)
-        + (110565 / 34816) * np.cos(4 * phi + 4 * theta)
-        + (85995 / 69632) * np.cos(6 * phi - theta)
-        + (110565 / 34816) * np.cos(6 * phi + theta)
-        + (243243 / 69632) * np.cos(6 * phi + 3 * theta)
+        + (85995 / 69632) * np.cos(2 * phi - 5 * theta)
+        + (282555 / 382976) * np.cos(2 * phi - 3 * theta)
+        + (12285 / 69632) * np.cos(2 * phi - theta)
+        - 20475 / 17408 * np.cos(2 * phi + theta)
+        + (1003275 / 382976) * np.cos(2 * phi + 3 * theta)
+        + (110565 / 34816) * np.cos(4 * phi - 4 * theta)
+        - 22113 / 11968 * np.cos(4 * phi - 2 * theta)
+        + (429975 / 191488) * np.cos(4 * phi + 2 * theta)
+        + (243243 / 69632) * np.cos(6 * phi - 3 * theta)
+        + (110565 / 34816) * np.cos(6 * phi - theta)
+        + (85995 / 69632) * np.cos(6 * phi + theta)
         + 61425 / 95744
     )
 
@@ -11735,92 +11735,6 @@ def N_gg_2_5_6_12(theta, phi):
         - 716625 / 3424256 * np.cos(2 * theta)
         - 429975 / 311296 * np.cos(4 * theta)
         + (975975 / 311296) * np.cos(6 * theta)
-        + (2927925 / 1245184) * np.cos(2 * phi - 7 * theta)
-        - 266175 / 311296 * np.cos(2 * phi - 5 * theta)
-        + (429975 / 311296) * np.cos(2 * phi - 3 * theta)
-        - 716625 / 3424256 * np.cos(2 * phi - theta)
-        - 16960125 / 13697024 * np.cos(2 * phi + theta)
-        + (429975 / 856064) * np.cos(2 * phi + 3 * theta)
-        + (1576575 / 622592) * np.cos(2 * phi + 5 * theta)
-        + (2395575 / 622592) * np.cos(4 * phi - 6 * theta)
-        - 266175 / 311296 * np.cos(4 * phi - 4 * theta)
-        - 429975 / 311296 * np.cos(4 * phi - 2 * theta)
-        + (12755925 / 6848512) * np.cos(4 * phi + 2 * theta)
-        + (429975 / 311296) * np.cos(4 * phi + 4 * theta)
-        + (2927925 / 1245184) * np.cos(6 * phi - 5 * theta)
-        + (975975 / 311296) * np.cos(6 * phi - 3 * theta)
-        + (1576575 / 622592) * np.cos(6 * phi - theta)
-        + (429975 / 311296) * np.cos(6 * phi + theta)
-        + (525525 / 1245184) * np.cos(6 * phi + 3 * theta)
-        + 1990625 / 3424256
-    )
-
-
-def M_gg_2_5_6_13():
-    def func(k):
-        return -2 / 6891885 * k**10
-
-    return func
-
-
-def N_gg_2_5_6_13(theta, phi):
-    return (
-        (945 / 2048) * np.cos(4 * phi)
-        + (1575 / 1024) * np.cos(2 * theta)
-        + (3675 / 4096) * np.cos(2 * phi - theta)
-        + (4725 / 2048) * np.cos(2 * phi + theta)
-        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
-        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
-        + (9009 / 2048) * np.cos(4 * phi + 4 * theta)
-        + (693 / 4096) * np.cos(6 * phi + theta)
-        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (45045 / 4096) * np.cos(6 * phi + 5 * theta)
-        + 1225 / 1024
-    )
-
-
-def M_gg_2_5_6_14():
-    def func(k):
-        return -8 / 75810735 * k**10
-
-    return func
-
-
-def N_gg_2_5_6_14(theta, phi):
-    return (
-        (394065 / 214016) * np.cos(4 * phi)
-        + (14175 / 53504) * np.cos(2 * theta)
-        + (99225 / 38912) * np.cos(4 * theta)
-        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
-        + (1289925 / 856064) * np.cos(2 * phi - theta)
-        - 552825 / 856064 * np.cos(2 * phi + theta)
-        - 104895 / 77824 * np.cos(2 * phi + 3 * theta)
-        + (257985 / 77824) * np.cos(2 * phi + 5 * theta)
-        + (694575 / 856064) * np.cos(4 * phi - 2 * theta)
-        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
-        - 36855 / 19456 * np.cos(4 * phi + 4 * theta)
-        + (257985 / 77824) * np.cos(4 * phi + 6 * theta)
-        + (19845 / 77824) * np.cos(6 * phi - theta)
-        + (93555 / 77824) * np.cos(6 * phi + theta)
-        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
-        + (405405 / 77824) * np.cos(6 * phi + 5 * theta)
-        - 297675 / 428032
-    )
-
-
-def M_gg_2_5_6_15():
-    def func(k):
-        return -16 / 985539555 * k**10
-
-    return func
-
-
-def N_gg_2_5_6_15(theta, phi):
-    return (
-        (429975 / 856064) * np.cos(4 * phi)
-        - 716625 / 3424256 * np.cos(2 * theta)
-        - 429975 / 311296 * np.cos(4 * theta)
-        + (975975 / 311296) * np.cos(6 * theta)
         + (1576575 / 622592) * np.cos(2 * phi - 5 * theta)
         + (429975 / 856064) * np.cos(2 * phi - 3 * theta)
         - 16960125 / 13697024 * np.cos(2 * phi - theta)
@@ -11842,6 +11756,92 @@ def N_gg_2_5_6_15(theta, phi):
     )
 
 
+def M_gg_2_5_6_13():
+    def func(k):
+        return -2 / 6891885 * k**10
+
+    return func
+
+
+def N_gg_2_5_6_13(theta, phi):
+    return (
+        (945 / 2048) * np.cos(4 * phi)
+        + (1575 / 1024) * np.cos(2 * theta)
+        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2048) * np.cos(2 * phi - theta)
+        + (3675 / 4096) * np.cos(2 * phi + theta)
+        + (9009 / 2048) * np.cos(4 * phi - 4 * theta)
+        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
+        + (45045 / 4096) * np.cos(6 * phi - 5 * theta)
+        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (693 / 4096) * np.cos(6 * phi - theta)
+        + 1225 / 1024
+    )
+
+
+def M_gg_2_5_6_14():
+    def func(k):
+        return -8 / 75810735 * k**10
+
+    return func
+
+
+def N_gg_2_5_6_14(theta, phi):
+    return (
+        (394065 / 214016) * np.cos(4 * phi)
+        + (14175 / 53504) * np.cos(2 * theta)
+        + (99225 / 38912) * np.cos(4 * theta)
+        + (257985 / 77824) * np.cos(2 * phi - 5 * theta)
+        - 104895 / 77824 * np.cos(2 * phi - 3 * theta)
+        - 552825 / 856064 * np.cos(2 * phi - theta)
+        + (1289925 / 856064) * np.cos(2 * phi + theta)
+        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
+        + (257985 / 77824) * np.cos(4 * phi - 6 * theta)
+        - 36855 / 19456 * np.cos(4 * phi - 4 * theta)
+        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (694575 / 856064) * np.cos(4 * phi + 2 * theta)
+        + (405405 / 77824) * np.cos(6 * phi - 5 * theta)
+        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
+        + (93555 / 77824) * np.cos(6 * phi - theta)
+        + (19845 / 77824) * np.cos(6 * phi + theta)
+        - 297675 / 428032
+    )
+
+
+def M_gg_2_5_6_15():
+    def func(k):
+        return -16 / 985539555 * k**10
+
+    return func
+
+
+def N_gg_2_5_6_15(theta, phi):
+    return (
+        (429975 / 856064) * np.cos(4 * phi)
+        - 716625 / 3424256 * np.cos(2 * theta)
+        - 429975 / 311296 * np.cos(4 * theta)
+        + (975975 / 311296) * np.cos(6 * theta)
+        + (2927925 / 1245184) * np.cos(2 * phi - 7 * theta)
+        - 266175 / 311296 * np.cos(2 * phi - 5 * theta)
+        + (429975 / 311296) * np.cos(2 * phi - 3 * theta)
+        - 716625 / 3424256 * np.cos(2 * phi - theta)
+        - 16960125 / 13697024 * np.cos(2 * phi + theta)
+        + (429975 / 856064) * np.cos(2 * phi + 3 * theta)
+        + (1576575 / 622592) * np.cos(2 * phi + 5 * theta)
+        + (2395575 / 622592) * np.cos(4 * phi - 6 * theta)
+        - 266175 / 311296 * np.cos(4 * phi - 4 * theta)
+        - 429975 / 311296 * np.cos(4 * phi - 2 * theta)
+        + (12755925 / 6848512) * np.cos(4 * phi + 2 * theta)
+        + (429975 / 311296) * np.cos(4 * phi + 4 * theta)
+        + (2927925 / 1245184) * np.cos(6 * phi - 5 * theta)
+        + (975975 / 311296) * np.cos(6 * phi - 3 * theta)
+        + (1576575 / 622592) * np.cos(6 * phi - theta)
+        + (429975 / 311296) * np.cos(6 * phi + theta)
+        + (525525 / 1245184) * np.cos(6 * phi + 3 * theta)
+        + 1990625 / 3424256
+    )
+
+
 def M_gg_2_5_8_0():
     def func(k):
         return -1 / 2297295 * k**10
@@ -11851,10 +11851,10 @@ def M_gg_2_5_8_0():
 
 def N_gg_2_5_8_0(theta, phi):
     return (
-        (5355 / 2048) * np.cos(2 * phi - theta)
-        + (11781 / 4096) * np.cos(4 * phi - 2 * theta)
-        + (7293 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (109395 / 16384) * np.cos(8 * phi - 4 * theta)
+        (5355 / 2048) * np.cos(2 * phi + theta)
+        + (11781 / 4096) * np.cos(4 * phi + 2 * theta)
+        + (7293 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (109395 / 16384) * np.cos(8 * phi + 4 * theta)
         + 20825 / 16384
     )
 
@@ -11870,14 +11870,14 @@ def N_gg_2_5_8_1(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2048) * np.cos(2 * phi - theta)
-        + (1575 / 1024) * np.cos(2 * phi + theta)
-        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
-        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (9009 / 2048) * np.cos(6 * phi - theta)
-        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
+        + (1575 / 1024) * np.cos(2 * phi - theta)
+        + (4725 / 2048) * np.cos(2 * phi + theta)
+        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
+        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
+        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
+        + (9009 / 2048) * np.cos(6 * phi + theta)
+        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
         + 1225 / 1024
     )
 
@@ -11893,16 +11893,16 @@ def N_gg_2_5_8_2(theta, phi):
     return (
         (176715 / 77824) * np.cos(4 * phi)
         + (187425 / 77824) * np.cos(2 * theta)
-        + (176715 / 77824) * np.cos(2 * phi - 3 * theta)
-        - 26775 / 19456 * np.cos(2 * phi - theta)
-        + (187425 / 77824) * np.cos(2 * phi + theta)
-        + (153153 / 77824) * np.cos(4 * phi - 4 * theta)
-        - 11781 / 19456 * np.cos(4 * phi - 2 * theta)
-        + (109395 / 77824) * np.cos(6 * phi - 5 * theta)
-        + (21879 / 19456) * np.cos(6 * phi - 3 * theta)
-        + (153153 / 77824) * np.cos(6 * phi - theta)
-        + (546975 / 77824) * np.cos(8 * phi - 4 * theta)
-        + (109395 / 77824) * np.cos(8 * phi - 2 * theta)
+        + (187425 / 77824) * np.cos(2 * phi - theta)
+        - 26775 / 19456 * np.cos(2 * phi + theta)
+        + (176715 / 77824) * np.cos(2 * phi + 3 * theta)
+        - 11781 / 19456 * np.cos(4 * phi + 2 * theta)
+        + (153153 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (153153 / 77824) * np.cos(6 * phi + theta)
+        + (21879 / 19456) * np.cos(6 * phi + 3 * theta)
+        + (109395 / 77824) * np.cos(6 * phi + 5 * theta)
+        + (109395 / 77824) * np.cos(8 * phi + 2 * theta)
+        + (546975 / 77824) * np.cos(8 * phi + 4 * theta)
         - 62475 / 77824
     )
 
@@ -11945,18 +11945,18 @@ def N_gg_2_5_8_4(theta, phi):
         + (257985 / 77824) * np.cos(8 * phi)
         + (1289925 / 856064) * np.cos(2 * theta)
         + (694575 / 856064) * np.cos(4 * theta)
-        + (19845 / 77824) * np.cos(2 * phi - 5 * theta)
-        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
-        - 552825 / 856064 * np.cos(2 * phi - theta)
-        + (14175 / 53504) * np.cos(2 * phi + theta)
-        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
-        + (93555 / 77824) * np.cos(4 * phi - 4 * theta)
-        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
-        - 36855 / 19456 * np.cos(6 * phi - theta)
-        + (257985 / 77824) * np.cos(6 * phi + theta)
-        + (405405 / 77824) * np.cos(8 * phi - 2 * theta)
+        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
+        + (14175 / 53504) * np.cos(2 * phi - theta)
+        - 552825 / 856064 * np.cos(2 * phi + theta)
+        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
+        + (19845 / 77824) * np.cos(2 * phi + 5 * theta)
+        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (93555 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (257985 / 77824) * np.cos(6 * phi - theta)
+        - 36855 / 19456 * np.cos(6 * phi + theta)
+        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
+        + (405405 / 77824) * np.cos(8 * phi + 2 * theta)
         - 297675 / 428032
     )
 
@@ -11974,21 +11974,21 @@ def N_gg_2_5_8_5(theta, phi):
         + (530145 / 622592) * np.cos(8 * phi)
         - 5060475 / 4046848 * np.cos(2 * theta)
         + (18555075 / 8093696) * np.cos(4 * theta)
-        + (530145 / 311296) * np.cos(2 * phi - 5 * theta)
-        - 530145 / 4046848 * np.cos(2 * phi - 3 * theta)
-        + (2457945 / 4046848) * np.cos(2 * phi - theta)
-        - 5060475 / 4046848 * np.cos(2 * phi + theta)
-        + (5060475 / 2023424) * np.cos(2 * phi + 3 * theta)
-        + (530145 / 622592) * np.cos(4 * phi - 6 * theta)
-        + (530145 / 311296) * np.cos(4 * phi - 4 * theta)
-        - 954261 / 1011712 * np.cos(4 * phi - 2 * theta)
-        + (18555075 / 8093696) * np.cos(4 * phi + 2 * theta)
-        + (984555 / 311296) * np.cos(6 * phi - 5 * theta)
-        - 590733 / 311296 * np.cos(6 * phi - 3 * theta)
+        + (5060475 / 2023424) * np.cos(2 * phi - 3 * theta)
+        - 5060475 / 4046848 * np.cos(2 * phi - theta)
+        + (2457945 / 4046848) * np.cos(2 * phi + theta)
+        - 530145 / 4046848 * np.cos(2 * phi + 3 * theta)
+        + (530145 / 311296) * np.cos(2 * phi + 5 * theta)
+        + (18555075 / 8093696) * np.cos(4 * phi - 2 * theta)
+        - 954261 / 1011712 * np.cos(4 * phi + 2 * theta)
+        + (530145 / 311296) * np.cos(4 * phi + 4 * theta)
+        + (530145 / 622592) * np.cos(4 * phi + 6 * theta)
         + (530145 / 311296) * np.cos(6 * phi - theta)
         + (530145 / 311296) * np.cos(6 * phi + theta)
-        + (2953665 / 622592) * np.cos(8 * phi - 4 * theta)
-        + (984555 / 311296) * np.cos(8 * phi - 2 * theta)
+        - 590733 / 311296 * np.cos(6 * phi + 3 * theta)
+        + (984555 / 311296) * np.cos(6 * phi + 5 * theta)
+        + (984555 / 311296) * np.cos(8 * phi + 2 * theta)
+        + (2953665 / 622592) * np.cos(8 * phi + 4 * theta)
         + 5060475 / 8093696
     )
 
@@ -12004,14 +12004,14 @@ def N_gg_2_5_8_6(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (1575 / 1024) * np.cos(2 * phi - theta)
-        + (4725 / 2048) * np.cos(2 * phi + theta)
-        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
-        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
-        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
-        + (9009 / 2048) * np.cos(6 * phi + theta)
-        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
+        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2048) * np.cos(2 * phi - theta)
+        + (1575 / 1024) * np.cos(2 * phi + theta)
+        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
+        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (9009 / 2048) * np.cos(6 * phi - theta)
+        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
         + 1225 / 1024
     )
 
@@ -12029,18 +12029,18 @@ def N_gg_2_5_8_7(theta, phi):
         + (257985 / 77824) * np.cos(8 * phi)
         + (1289925 / 856064) * np.cos(2 * theta)
         + (694575 / 856064) * np.cos(4 * theta)
-        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
-        + (14175 / 53504) * np.cos(2 * phi - theta)
-        - 552825 / 856064 * np.cos(2 * phi + theta)
-        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
-        + (19845 / 77824) * np.cos(2 * phi + 5 * theta)
-        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (93555 / 77824) * np.cos(4 * phi + 4 * theta)
-        + (257985 / 77824) * np.cos(6 * phi - theta)
-        - 36855 / 19456 * np.cos(6 * phi + theta)
-        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
-        + (405405 / 77824) * np.cos(8 * phi + 2 * theta)
+        + (19845 / 77824) * np.cos(2 * phi - 5 * theta)
+        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
+        - 552825 / 856064 * np.cos(2 * phi - theta)
+        + (14175 / 53504) * np.cos(2 * phi + theta)
+        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
+        + (93555 / 77824) * np.cos(4 * phi - 4 * theta)
+        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
+        - 36855 / 19456 * np.cos(6 * phi - theta)
+        + (257985 / 77824) * np.cos(6 * phi + theta)
+        + (405405 / 77824) * np.cos(8 * phi - 2 * theta)
         - 297675 / 428032
     )
 
@@ -12093,118 +12093,6 @@ def N_gg_2_5_8_9(theta, phi):
         + (12182625 / 14319616) * np.cos(2 * theta)
         - 6185025 / 14319616 * np.cos(4 * theta)
         + (26801775 / 14319616) * np.cos(6 * theta)
-        + (11486475 / 14319616) * np.cos(2 * phi - 7 * theta)
-        + (11486475 / 7159808) * np.cos(2 * phi - 5 * theta)
-        - 6185025 / 7159808 * np.cos(2 * phi - 3 * theta)
-        + (133875 / 7159808) * np.cos(2 * phi - theta)
-        + (12182625 / 14319616) * np.cos(2 * phi + theta)
-        - 5060475 / 3579904 * np.cos(2 * phi + 3 * theta)
-        + (18555075 / 7159808) * np.cos(2 * phi + 5 * theta)
-        + (34459425 / 14319616) * np.cos(4 * phi - 6 * theta)
-        - 3828825 / 3579904 * np.cos(4 * phi - 4 * theta)
-        + (294525 / 223744) * np.cos(4 * phi - 2 * theta)
-        - 6185025 / 14319616 * np.cos(4 * phi + 2 * theta)
-        + (18555075 / 7159808) * np.cos(4 * phi + 4 * theta)
-        + (49774725 / 14319616) * np.cos(6 * phi - 5 * theta)
-        - 7110675 / 7159808 * np.cos(6 * phi - 3 * theta)
-        - 3828825 / 3579904 * np.cos(6 * phi - theta)
-        + (11486475 / 7159808) * np.cos(6 * phi + theta)
-        + (26801775 / 14319616) * np.cos(6 * phi + 3 * theta)
-        + (35553375 / 14319616) * np.cos(8 * phi - 4 * theta)
-        + (49774725 / 14319616) * np.cos(8 * phi - 2 * theta)
-        + (11486475 / 14319616) * np.cos(8 * phi + 2 * theta)
-        - 7809375 / 14319616
-    )
-
-
-def M_gg_2_5_8_10():
-    def func(k):
-        return -1 / 2297295 * k**10
-
-    return func
-
-
-def N_gg_2_5_8_10(theta, phi):
-    return (
-        (5355 / 2048) * np.cos(2 * phi + theta)
-        + (11781 / 4096) * np.cos(4 * phi + 2 * theta)
-        + (7293 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (109395 / 16384) * np.cos(8 * phi + 4 * theta)
-        + 20825 / 16384
-    )
-
-
-def M_gg_2_5_8_11():
-    def func(k):
-        return -2 / 6891885 * k**10
-
-    return func
-
-
-def N_gg_2_5_8_11(theta, phi):
-    return (
-        (176715 / 77824) * np.cos(4 * phi)
-        + (187425 / 77824) * np.cos(2 * theta)
-        + (187425 / 77824) * np.cos(2 * phi - theta)
-        - 26775 / 19456 * np.cos(2 * phi + theta)
-        + (176715 / 77824) * np.cos(2 * phi + 3 * theta)
-        - 11781 / 19456 * np.cos(4 * phi + 2 * theta)
-        + (153153 / 77824) * np.cos(4 * phi + 4 * theta)
-        + (153153 / 77824) * np.cos(6 * phi + theta)
-        + (21879 / 19456) * np.cos(6 * phi + 3 * theta)
-        + (109395 / 77824) * np.cos(6 * phi + 5 * theta)
-        + (109395 / 77824) * np.cos(8 * phi + 2 * theta)
-        + (546975 / 77824) * np.cos(8 * phi + 4 * theta)
-        - 62475 / 77824
-    )
-
-
-def M_gg_2_5_8_12():
-    def func(k):
-        return -8 / 75810735 * k**10
-
-    return func
-
-
-def N_gg_2_5_8_12(theta, phi):
-    return (
-        -530145 / 4046848 * np.cos(4 * phi)
-        + (530145 / 622592) * np.cos(8 * phi)
-        - 5060475 / 4046848 * np.cos(2 * theta)
-        + (18555075 / 8093696) * np.cos(4 * theta)
-        + (5060475 / 2023424) * np.cos(2 * phi - 3 * theta)
-        - 5060475 / 4046848 * np.cos(2 * phi - theta)
-        + (2457945 / 4046848) * np.cos(2 * phi + theta)
-        - 530145 / 4046848 * np.cos(2 * phi + 3 * theta)
-        + (530145 / 311296) * np.cos(2 * phi + 5 * theta)
-        + (18555075 / 8093696) * np.cos(4 * phi - 2 * theta)
-        - 954261 / 1011712 * np.cos(4 * phi + 2 * theta)
-        + (530145 / 311296) * np.cos(4 * phi + 4 * theta)
-        + (530145 / 622592) * np.cos(4 * phi + 6 * theta)
-        + (530145 / 311296) * np.cos(6 * phi - theta)
-        + (530145 / 311296) * np.cos(6 * phi + theta)
-        - 590733 / 311296 * np.cos(6 * phi + 3 * theta)
-        + (984555 / 311296) * np.cos(6 * phi + 5 * theta)
-        + (984555 / 311296) * np.cos(8 * phi + 2 * theta)
-        + (2953665 / 622592) * np.cos(8 * phi + 4 * theta)
-        + 5060475 / 8093696
-    )
-
-
-def M_gg_2_5_8_13():
-    def func(k):
-        return -16 / 985539555 * k**10
-
-    return func
-
-
-def N_gg_2_5_8_13(theta, phi):
-    return (
-        -6185025 / 7159808 * np.cos(4 * phi)
-        + (34459425 / 14319616) * np.cos(8 * phi)
-        + (12182625 / 14319616) * np.cos(2 * theta)
-        - 6185025 / 14319616 * np.cos(4 * theta)
-        + (26801775 / 14319616) * np.cos(6 * theta)
         + (18555075 / 7159808) * np.cos(2 * phi - 5 * theta)
         - 5060475 / 3579904 * np.cos(2 * phi - 3 * theta)
         + (12182625 / 14319616) * np.cos(2 * phi - theta)
@@ -12229,6 +12117,118 @@ def N_gg_2_5_8_13(theta, phi):
     )
 
 
+def M_gg_2_5_8_10():
+    def func(k):
+        return -1 / 2297295 * k**10
+
+    return func
+
+
+def N_gg_2_5_8_10(theta, phi):
+    return (
+        (5355 / 2048) * np.cos(2 * phi - theta)
+        + (11781 / 4096) * np.cos(4 * phi - 2 * theta)
+        + (7293 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (109395 / 16384) * np.cos(8 * phi - 4 * theta)
+        + 20825 / 16384
+    )
+
+
+def M_gg_2_5_8_11():
+    def func(k):
+        return -2 / 6891885 * k**10
+
+    return func
+
+
+def N_gg_2_5_8_11(theta, phi):
+    return (
+        (176715 / 77824) * np.cos(4 * phi)
+        + (187425 / 77824) * np.cos(2 * theta)
+        + (176715 / 77824) * np.cos(2 * phi - 3 * theta)
+        - 26775 / 19456 * np.cos(2 * phi - theta)
+        + (187425 / 77824) * np.cos(2 * phi + theta)
+        + (153153 / 77824) * np.cos(4 * phi - 4 * theta)
+        - 11781 / 19456 * np.cos(4 * phi - 2 * theta)
+        + (109395 / 77824) * np.cos(6 * phi - 5 * theta)
+        + (21879 / 19456) * np.cos(6 * phi - 3 * theta)
+        + (153153 / 77824) * np.cos(6 * phi - theta)
+        + (546975 / 77824) * np.cos(8 * phi - 4 * theta)
+        + (109395 / 77824) * np.cos(8 * phi - 2 * theta)
+        - 62475 / 77824
+    )
+
+
+def M_gg_2_5_8_12():
+    def func(k):
+        return -8 / 75810735 * k**10
+
+    return func
+
+
+def N_gg_2_5_8_12(theta, phi):
+    return (
+        -530145 / 4046848 * np.cos(4 * phi)
+        + (530145 / 622592) * np.cos(8 * phi)
+        - 5060475 / 4046848 * np.cos(2 * theta)
+        + (18555075 / 8093696) * np.cos(4 * theta)
+        + (530145 / 311296) * np.cos(2 * phi - 5 * theta)
+        - 530145 / 4046848 * np.cos(2 * phi - 3 * theta)
+        + (2457945 / 4046848) * np.cos(2 * phi - theta)
+        - 5060475 / 4046848 * np.cos(2 * phi + theta)
+        + (5060475 / 2023424) * np.cos(2 * phi + 3 * theta)
+        + (530145 / 622592) * np.cos(4 * phi - 6 * theta)
+        + (530145 / 311296) * np.cos(4 * phi - 4 * theta)
+        - 954261 / 1011712 * np.cos(4 * phi - 2 * theta)
+        + (18555075 / 8093696) * np.cos(4 * phi + 2 * theta)
+        + (984555 / 311296) * np.cos(6 * phi - 5 * theta)
+        - 590733 / 311296 * np.cos(6 * phi - 3 * theta)
+        + (530145 / 311296) * np.cos(6 * phi - theta)
+        + (530145 / 311296) * np.cos(6 * phi + theta)
+        + (2953665 / 622592) * np.cos(8 * phi - 4 * theta)
+        + (984555 / 311296) * np.cos(8 * phi - 2 * theta)
+        + 5060475 / 8093696
+    )
+
+
+def M_gg_2_5_8_13():
+    def func(k):
+        return -16 / 985539555 * k**10
+
+    return func
+
+
+def N_gg_2_5_8_13(theta, phi):
+    return (
+        -6185025 / 7159808 * np.cos(4 * phi)
+        + (34459425 / 14319616) * np.cos(8 * phi)
+        + (12182625 / 14319616) * np.cos(2 * theta)
+        - 6185025 / 14319616 * np.cos(4 * theta)
+        + (26801775 / 14319616) * np.cos(6 * theta)
+        + (11486475 / 14319616) * np.cos(2 * phi - 7 * theta)
+        + (11486475 / 7159808) * np.cos(2 * phi - 5 * theta)
+        - 6185025 / 7159808 * np.cos(2 * phi - 3 * theta)
+        + (133875 / 7159808) * np.cos(2 * phi - theta)
+        + (12182625 / 14319616) * np.cos(2 * phi + theta)
+        - 5060475 / 3579904 * np.cos(2 * phi + 3 * theta)
+        + (18555075 / 7159808) * np.cos(2 * phi + 5 * theta)
+        + (34459425 / 14319616) * np.cos(4 * phi - 6 * theta)
+        - 3828825 / 3579904 * np.cos(4 * phi - 4 * theta)
+        + (294525 / 223744) * np.cos(4 * phi - 2 * theta)
+        - 6185025 / 14319616 * np.cos(4 * phi + 2 * theta)
+        + (18555075 / 7159808) * np.cos(4 * phi + 4 * theta)
+        + (49774725 / 14319616) * np.cos(6 * phi - 5 * theta)
+        - 7110675 / 7159808 * np.cos(6 * phi - 3 * theta)
+        - 3828825 / 3579904 * np.cos(6 * phi - theta)
+        + (11486475 / 7159808) * np.cos(6 * phi + theta)
+        + (26801775 / 14319616) * np.cos(6 * phi + 3 * theta)
+        + (35553375 / 14319616) * np.cos(8 * phi - 4 * theta)
+        + (49774725 / 14319616) * np.cos(8 * phi - 2 * theta)
+        + (11486475 / 14319616) * np.cos(8 * phi + 2 * theta)
+        - 7809375 / 14319616
+    )
+
+
 def M_gg_2_5_10_0():
     def func(k):
         return -2 / 6891885 * k**10
@@ -12240,17 +12240,17 @@ def N_gg_2_5_10_0(theta, phi):
     return (
         (675675 / 311296) * np.cos(4 * phi)
         + (297675 / 311296) * np.cos(2 * theta)
-        + (363825 / 622592) * np.cos(2 * phi - 3 * theta)
-        + (363825 / 155648) * np.cos(2 * phi - theta)
-        + (1819125 / 1245184) * np.cos(2 * phi + theta)
-        + (96525 / 311296) * np.cos(4 * phi - 4 * theta)
-        + (675675 / 311296) * np.cos(4 * phi - 2 * theta)
-        + (289575 / 2490368) * np.cos(6 * phi - 5 * theta)
-        + (289575 / 155648) * np.cos(6 * phi - 3 * theta)
-        + (2027025 / 622592) * np.cos(6 * phi - theta)
-        + (1640925 / 1245184) * np.cos(8 * phi - 4 * theta)
-        + (1640925 / 311296) * np.cos(8 * phi - 2 * theta)
-        + (1640925 / 131072) * np.cos(10 * phi - 3 * theta)
+        + (1819125 / 1245184) * np.cos(2 * phi - theta)
+        + (363825 / 155648) * np.cos(2 * phi + theta)
+        + (363825 / 622592) * np.cos(2 * phi + 3 * theta)
+        + (675675 / 311296) * np.cos(4 * phi + 2 * theta)
+        + (96525 / 311296) * np.cos(4 * phi + 4 * theta)
+        + (2027025 / 622592) * np.cos(6 * phi + theta)
+        + (289575 / 155648) * np.cos(6 * phi + 3 * theta)
+        + (289575 / 2490368) * np.cos(6 * phi + 5 * theta)
+        + (1640925 / 311296) * np.cos(8 * phi + 2 * theta)
+        + (1640925 / 1245184) * np.cos(8 * phi + 4 * theta)
+        + (1640925 / 131072) * np.cos(10 * phi + 3 * theta)
         + 1488375 / 1245184
     )
 
@@ -12263,70 +12263,6 @@ def M_gg_2_5_10_1():
 
 
 def N_gg_2_5_10_1(theta, phi):
-    return (
-        (14189175 / 5292032) * np.cos(4 * phi)
-        + (2837835 / 622592) * np.cos(8 * phi)
-        + (6251175 / 5292032) * np.cos(2 * theta)
-        + (1250235 / 10584064) * np.cos(4 * theta)
-        + (509355 / 21168128) * np.cos(2 * phi - 5 * theta)
-        + (1528065 / 2646016) * np.cos(2 * phi - 3 * theta)
-        + (22920975 / 10584064) * np.cos(2 * phi - theta)
-        + (2546775 / 1323008) * np.cos(2 * phi + theta)
-        + (7640325 / 21168128) * np.cos(2 * phi + 3 * theta)
-        + (945945 / 5292032) * np.cos(4 * phi - 4 * theta)
-        + (8513505 / 5292032) * np.cos(4 * phi - 2 * theta)
-        + (4729725 / 5292032) * np.cos(4 * phi + 2 * theta)
-        + (8513505 / 10584064) * np.cos(6 * phi - 3 * theta)
-        + (8513505 / 2646016) * np.cos(6 * phi - theta)
-        + (42567525 / 21168128) * np.cos(6 * phi + theta)
-        + (945945 / 311296) * np.cos(8 * phi - 2 * theta)
-        + (945945 / 65536) * np.cos(10 * phi - theta)
-        + 6251175 / 5292032
-    )
-
-
-def M_gg_2_5_10_2():
-    def func(k):
-        return -8 / 75810735 * k**10
-
-    return func
-
-
-def N_gg_2_5_10_2(theta, phi):
-    return (
-        -6081075 / 7159808 * np.cos(4 * phi)
-        + (48243195 / 14319616) * np.cos(8 * phi)
-        + (9823275 / 7159808) * np.cos(2 * theta)
-        + (13752585 / 14319616) * np.cos(4 * theta)
-        + (6621615 / 14319616) * np.cos(2 * phi - 5 * theta)
-        + (12879405 / 7159808) * np.cos(2 * phi - 3 * theta)
-        - 3274425 / 3579904 * np.cos(2 * phi - theta)
-        + (363825 / 894976) * np.cos(2 * phi + theta)
-        + (22920975 / 14319616) * np.cos(2 * phi + 3 * theta)
-        + (2027025 / 14319616) * np.cos(4 * phi - 6 * theta)
-        + (11563695 / 7159808) * np.cos(4 * phi - 4 * theta)
-        + (1216215 / 3579904) * np.cos(4 * phi - 2 * theta)
-        + (33108075 / 14319616) * np.cos(4 * phi + 2 * theta)
-        + (13030875 / 14319616) * np.cos(6 * phi - 5 * theta)
-        + (7123545 / 3579904) * np.cos(6 * phi - 3 * theta)
-        - 13378365 / 7159808 * np.cos(6 * phi - theta)
-        + (42567525 / 14319616) * np.cos(6 * phi + theta)
-        + (44304975 / 14319616) * np.cos(8 * phi - 4 * theta)
-        - 10173735 / 7159808 * np.cos(8 * phi - 2 * theta)
-        + (4922775 / 753664) * np.cos(10 * phi - 3 * theta)
-        + (2297295 / 753664) * np.cos(10 * phi - theta)
-        - 9823275 / 14319616
-    )
-
-
-def M_gg_2_5_10_3():
-    def func(k):
-        return -82 / 57972915 * k**10
-
-    return func
-
-
-def N_gg_2_5_10_3(theta, phi):
     return (
         (14189175 / 5292032) * np.cos(4 * phi)
         + (2837835 / 622592) * np.cos(8 * phi)
@@ -12345,6 +12281,70 @@ def N_gg_2_5_10_3(theta, phi):
         + (8513505 / 10584064) * np.cos(6 * phi + 3 * theta)
         + (945945 / 311296) * np.cos(8 * phi + 2 * theta)
         + (945945 / 65536) * np.cos(10 * phi + theta)
+        + 6251175 / 5292032
+    )
+
+
+def M_gg_2_5_10_2():
+    def func(k):
+        return -8 / 75810735 * k**10
+
+    return func
+
+
+def N_gg_2_5_10_2(theta, phi):
+    return (
+        -6081075 / 7159808 * np.cos(4 * phi)
+        + (48243195 / 14319616) * np.cos(8 * phi)
+        + (9823275 / 7159808) * np.cos(2 * theta)
+        + (13752585 / 14319616) * np.cos(4 * theta)
+        + (22920975 / 14319616) * np.cos(2 * phi - 3 * theta)
+        + (363825 / 894976) * np.cos(2 * phi - theta)
+        - 3274425 / 3579904 * np.cos(2 * phi + theta)
+        + (12879405 / 7159808) * np.cos(2 * phi + 3 * theta)
+        + (6621615 / 14319616) * np.cos(2 * phi + 5 * theta)
+        + (33108075 / 14319616) * np.cos(4 * phi - 2 * theta)
+        + (1216215 / 3579904) * np.cos(4 * phi + 2 * theta)
+        + (11563695 / 7159808) * np.cos(4 * phi + 4 * theta)
+        + (2027025 / 14319616) * np.cos(4 * phi + 6 * theta)
+        + (42567525 / 14319616) * np.cos(6 * phi - theta)
+        - 13378365 / 7159808 * np.cos(6 * phi + theta)
+        + (7123545 / 3579904) * np.cos(6 * phi + 3 * theta)
+        + (13030875 / 14319616) * np.cos(6 * phi + 5 * theta)
+        - 10173735 / 7159808 * np.cos(8 * phi + 2 * theta)
+        + (44304975 / 14319616) * np.cos(8 * phi + 4 * theta)
+        + (2297295 / 753664) * np.cos(10 * phi + theta)
+        + (4922775 / 753664) * np.cos(10 * phi + 3 * theta)
+        - 9823275 / 14319616
+    )
+
+
+def M_gg_2_5_10_3():
+    def func(k):
+        return -82 / 57972915 * k**10
+
+    return func
+
+
+def N_gg_2_5_10_3(theta, phi):
+    return (
+        (14189175 / 5292032) * np.cos(4 * phi)
+        + (2837835 / 622592) * np.cos(8 * phi)
+        + (6251175 / 5292032) * np.cos(2 * theta)
+        + (1250235 / 10584064) * np.cos(4 * theta)
+        + (509355 / 21168128) * np.cos(2 * phi - 5 * theta)
+        + (1528065 / 2646016) * np.cos(2 * phi - 3 * theta)
+        + (22920975 / 10584064) * np.cos(2 * phi - theta)
+        + (2546775 / 1323008) * np.cos(2 * phi + theta)
+        + (7640325 / 21168128) * np.cos(2 * phi + 3 * theta)
+        + (945945 / 5292032) * np.cos(4 * phi - 4 * theta)
+        + (8513505 / 5292032) * np.cos(4 * phi - 2 * theta)
+        + (4729725 / 5292032) * np.cos(4 * phi + 2 * theta)
+        + (8513505 / 10584064) * np.cos(6 * phi - 3 * theta)
+        + (8513505 / 2646016) * np.cos(6 * phi - theta)
+        + (42567525 / 21168128) * np.cos(6 * phi + theta)
+        + (945945 / 311296) * np.cos(8 * phi - 2 * theta)
+        + (945945 / 65536) * np.cos(10 * phi - theta)
         + 6251175 / 5292032
     )
 
@@ -12399,107 +12399,6 @@ def N_gg_2_5_10_5(theta, phi):
         - 138442689 / 114556928 * np.cos(2 * theta)
         + (112771197 / 71598080) * np.cos(4 * theta)
         + (393323931 / 572784640) * np.cos(6 * theta)
-        + (43702659 / 229113856) * np.cos(2 * phi - 7 * theta)
-        + (194675481 / 114556928) * np.cos(2 * phi - 5 * theta)
-        - 79968735 / 229113856 * np.cos(2 * phi - 3 * theta)
-        + (14771295 / 57278464) * np.cos(2 * phi - theta)
-        - 89137125 / 229113856 * np.cos(2 * phi + theta)
-        + (48592467 / 114556928) * np.cos(2 * phi + 3 * theta)
-        + (332812557 / 229113856) * np.cos(2 * phi + 5 * theta)
-        + (51648597 / 57278464) * np.cos(4 * phi - 6 * theta)
-        + (86080995 / 57278464) * np.cos(4 * phi - 4 * theta)
-        - 34999965 / 28639232 * np.cos(4 * phi - 2 * theta)
-        - 59594535 / 57278464 * np.cos(4 * phi + 2 * theta)
-        + (131107977 / 57278464) * np.cos(4 * phi + 4 * theta)
-        + (258242985 / 114556928) * np.cos(6 * phi - 5 * theta)
-        - 36891855 / 57278464 * np.cos(6 * phi - 3 * theta)
-        + (218513295 / 229113856) * np.cos(6 * phi - theta)
-        - 171972801 / 114556928 * np.cos(6 * phi + theta)
-        + (655539885 / 229113856) * np.cos(6 * phi + 3 * theta)
-        + (209053845 / 57278464) * np.cos(8 * phi - 4 * theta)
-        - 209053845 / 114556928 * np.cos(8 * phi - 2 * theta)
-        + (318405087 / 114556928) * np.cos(8 * phi + 2 * theta)
-        + (41810769 / 12058624) * np.cos(10 * phi - 3 * theta)
-        + (125432307 / 30146560) * np.cos(10 * phi - theta)
-        + (106135029 / 60293120) * np.cos(10 * phi + theta)
-        + 32089365 / 57278464
-    )
-
-
-def M_gg_2_5_10_6():
-    def func(k):
-        return -2 / 6891885 * k**10
-
-    return func
-
-
-def N_gg_2_5_10_6(theta, phi):
-    return (
-        (675675 / 311296) * np.cos(4 * phi)
-        + (297675 / 311296) * np.cos(2 * theta)
-        + (1819125 / 1245184) * np.cos(2 * phi - theta)
-        + (363825 / 155648) * np.cos(2 * phi + theta)
-        + (363825 / 622592) * np.cos(2 * phi + 3 * theta)
-        + (675675 / 311296) * np.cos(4 * phi + 2 * theta)
-        + (96525 / 311296) * np.cos(4 * phi + 4 * theta)
-        + (2027025 / 622592) * np.cos(6 * phi + theta)
-        + (289575 / 155648) * np.cos(6 * phi + 3 * theta)
-        + (289575 / 2490368) * np.cos(6 * phi + 5 * theta)
-        + (1640925 / 311296) * np.cos(8 * phi + 2 * theta)
-        + (1640925 / 1245184) * np.cos(8 * phi + 4 * theta)
-        + (1640925 / 131072) * np.cos(10 * phi + 3 * theta)
-        + 1488375 / 1245184
-    )
-
-
-def M_gg_2_5_10_7():
-    def func(k):
-        return -8 / 75810735 * k**10
-
-    return func
-
-
-def N_gg_2_5_10_7(theta, phi):
-    return (
-        -6081075 / 7159808 * np.cos(4 * phi)
-        + (48243195 / 14319616) * np.cos(8 * phi)
-        + (9823275 / 7159808) * np.cos(2 * theta)
-        + (13752585 / 14319616) * np.cos(4 * theta)
-        + (22920975 / 14319616) * np.cos(2 * phi - 3 * theta)
-        + (363825 / 894976) * np.cos(2 * phi - theta)
-        - 3274425 / 3579904 * np.cos(2 * phi + theta)
-        + (12879405 / 7159808) * np.cos(2 * phi + 3 * theta)
-        + (6621615 / 14319616) * np.cos(2 * phi + 5 * theta)
-        + (33108075 / 14319616) * np.cos(4 * phi - 2 * theta)
-        + (1216215 / 3579904) * np.cos(4 * phi + 2 * theta)
-        + (11563695 / 7159808) * np.cos(4 * phi + 4 * theta)
-        + (2027025 / 14319616) * np.cos(4 * phi + 6 * theta)
-        + (42567525 / 14319616) * np.cos(6 * phi - theta)
-        - 13378365 / 7159808 * np.cos(6 * phi + theta)
-        + (7123545 / 3579904) * np.cos(6 * phi + 3 * theta)
-        + (13030875 / 14319616) * np.cos(6 * phi + 5 * theta)
-        - 10173735 / 7159808 * np.cos(8 * phi + 2 * theta)
-        + (44304975 / 14319616) * np.cos(8 * phi + 4 * theta)
-        + (2297295 / 753664) * np.cos(10 * phi + theta)
-        + (4922775 / 753664) * np.cos(10 * phi + 3 * theta)
-        - 9823275 / 14319616
-    )
-
-
-def M_gg_2_5_10_8():
-    def func(k):
-        return -16 / 985539555 * k**10
-
-    return func
-
-
-def N_gg_2_5_10_8(theta, phi):
-    return (
-        (945945 / 894976) * np.cos(4 * phi)
-        + (9648639 / 28639232) * np.cos(8 * phi)
-        - 138442689 / 114556928 * np.cos(2 * theta)
-        + (112771197 / 71598080) * np.cos(4 * theta)
-        + (393323931 / 572784640) * np.cos(6 * theta)
         + (332812557 / 229113856) * np.cos(2 * phi - 5 * theta)
         + (48592467 / 114556928) * np.cos(2 * phi - 3 * theta)
         - 89137125 / 229113856 * np.cos(2 * phi - theta)
@@ -12527,6 +12426,107 @@ def N_gg_2_5_10_8(theta, phi):
     )
 
 
+def M_gg_2_5_10_6():
+    def func(k):
+        return -2 / 6891885 * k**10
+
+    return func
+
+
+def N_gg_2_5_10_6(theta, phi):
+    return (
+        (675675 / 311296) * np.cos(4 * phi)
+        + (297675 / 311296) * np.cos(2 * theta)
+        + (363825 / 622592) * np.cos(2 * phi - 3 * theta)
+        + (363825 / 155648) * np.cos(2 * phi - theta)
+        + (1819125 / 1245184) * np.cos(2 * phi + theta)
+        + (96525 / 311296) * np.cos(4 * phi - 4 * theta)
+        + (675675 / 311296) * np.cos(4 * phi - 2 * theta)
+        + (289575 / 2490368) * np.cos(6 * phi - 5 * theta)
+        + (289575 / 155648) * np.cos(6 * phi - 3 * theta)
+        + (2027025 / 622592) * np.cos(6 * phi - theta)
+        + (1640925 / 1245184) * np.cos(8 * phi - 4 * theta)
+        + (1640925 / 311296) * np.cos(8 * phi - 2 * theta)
+        + (1640925 / 131072) * np.cos(10 * phi - 3 * theta)
+        + 1488375 / 1245184
+    )
+
+
+def M_gg_2_5_10_7():
+    def func(k):
+        return -8 / 75810735 * k**10
+
+    return func
+
+
+def N_gg_2_5_10_7(theta, phi):
+    return (
+        -6081075 / 7159808 * np.cos(4 * phi)
+        + (48243195 / 14319616) * np.cos(8 * phi)
+        + (9823275 / 7159808) * np.cos(2 * theta)
+        + (13752585 / 14319616) * np.cos(4 * theta)
+        + (6621615 / 14319616) * np.cos(2 * phi - 5 * theta)
+        + (12879405 / 7159808) * np.cos(2 * phi - 3 * theta)
+        - 3274425 / 3579904 * np.cos(2 * phi - theta)
+        + (363825 / 894976) * np.cos(2 * phi + theta)
+        + (22920975 / 14319616) * np.cos(2 * phi + 3 * theta)
+        + (2027025 / 14319616) * np.cos(4 * phi - 6 * theta)
+        + (11563695 / 7159808) * np.cos(4 * phi - 4 * theta)
+        + (1216215 / 3579904) * np.cos(4 * phi - 2 * theta)
+        + (33108075 / 14319616) * np.cos(4 * phi + 2 * theta)
+        + (13030875 / 14319616) * np.cos(6 * phi - 5 * theta)
+        + (7123545 / 3579904) * np.cos(6 * phi - 3 * theta)
+        - 13378365 / 7159808 * np.cos(6 * phi - theta)
+        + (42567525 / 14319616) * np.cos(6 * phi + theta)
+        + (44304975 / 14319616) * np.cos(8 * phi - 4 * theta)
+        - 10173735 / 7159808 * np.cos(8 * phi - 2 * theta)
+        + (4922775 / 753664) * np.cos(10 * phi - 3 * theta)
+        + (2297295 / 753664) * np.cos(10 * phi - theta)
+        - 9823275 / 14319616
+    )
+
+
+def M_gg_2_5_10_8():
+    def func(k):
+        return -16 / 985539555 * k**10
+
+    return func
+
+
+def N_gg_2_5_10_8(theta, phi):
+    return (
+        (945945 / 894976) * np.cos(4 * phi)
+        + (9648639 / 28639232) * np.cos(8 * phi)
+        - 138442689 / 114556928 * np.cos(2 * theta)
+        + (112771197 / 71598080) * np.cos(4 * theta)
+        + (393323931 / 572784640) * np.cos(6 * theta)
+        + (43702659 / 229113856) * np.cos(2 * phi - 7 * theta)
+        + (194675481 / 114556928) * np.cos(2 * phi - 5 * theta)
+        - 79968735 / 229113856 * np.cos(2 * phi - 3 * theta)
+        + (14771295 / 57278464) * np.cos(2 * phi - theta)
+        - 89137125 / 229113856 * np.cos(2 * phi + theta)
+        + (48592467 / 114556928) * np.cos(2 * phi + 3 * theta)
+        + (332812557 / 229113856) * np.cos(2 * phi + 5 * theta)
+        + (51648597 / 57278464) * np.cos(4 * phi - 6 * theta)
+        + (86080995 / 57278464) * np.cos(4 * phi - 4 * theta)
+        - 34999965 / 28639232 * np.cos(4 * phi - 2 * theta)
+        - 59594535 / 57278464 * np.cos(4 * phi + 2 * theta)
+        + (131107977 / 57278464) * np.cos(4 * phi + 4 * theta)
+        + (258242985 / 114556928) * np.cos(6 * phi - 5 * theta)
+        - 36891855 / 57278464 * np.cos(6 * phi - 3 * theta)
+        + (218513295 / 229113856) * np.cos(6 * phi - theta)
+        - 171972801 / 114556928 * np.cos(6 * phi + theta)
+        + (655539885 / 229113856) * np.cos(6 * phi + 3 * theta)
+        + (209053845 / 57278464) * np.cos(8 * phi - 4 * theta)
+        - 209053845 / 114556928 * np.cos(8 * phi - 2 * theta)
+        + (318405087 / 114556928) * np.cos(8 * phi + 2 * theta)
+        + (41810769 / 12058624) * np.cos(10 * phi - 3 * theta)
+        + (125432307 / 30146560) * np.cos(10 * phi - theta)
+        + (106135029 / 60293120) * np.cos(10 * phi + theta)
+        + 32089365 / 57278464
+    )
+
+
 def M_gg_2_5_12_0():
     def func(k):
         return -8 / 75810735 * k**10
@@ -12540,24 +12540,24 @@ def N_gg_2_5_12_0(theta, phi):
         + (34459425 / 12058624) * np.cos(8 * phi)
         + (36018675 / 28639232) * np.cos(2 * theta)
         + (36018675 / 229113856) * np.cos(4 * theta)
-        + (6081075 / 114556928) * np.cos(2 * phi - 5 * theta)
-        + (42567525 / 57278464) * np.cos(2 * phi - 3 * theta)
-        + (127702575 / 57278464) * np.cos(2 * phi - theta)
-        + (212837625 / 114556928) * np.cos(2 * phi + theta)
-        + (42567525 / 114556928) * np.cos(2 * phi + 3 * theta)
-        + (10135125 / 916455424) * np.cos(4 * phi - 6 * theta)
-        + (10135125 / 28639232) * np.cos(4 * phi - 4 * theta)
-        + (212837625 / 114556928) * np.cos(4 * phi - 2 * theta)
-        + (354729375 / 458227712) * np.cos(4 * phi + 2 * theta)
-        + (24613875 / 229113856) * np.cos(6 * phi - 5 * theta)
-        + (73841625 / 57278464) * np.cos(6 * phi - 3 * theta)
-        + (172297125 / 57278464) * np.cos(6 * phi - theta)
-        + (172297125 / 114556928) * np.cos(6 * phi + theta)
-        + (14768325 / 24117248) * np.cos(8 * phi - 4 * theta)
-        + (4922775 / 1507328) * np.cos(8 * phi - 2 * theta)
-        + (34459425 / 12058624) * np.cos(10 * phi - 3 * theta)
-        + (34459425 / 6029312) * np.cos(10 * phi - theta)
-        + (34459425 / 2097152) * np.cos(12 * phi - 2 * theta)
+        + (42567525 / 114556928) * np.cos(2 * phi - 3 * theta)
+        + (212837625 / 114556928) * np.cos(2 * phi - theta)
+        + (127702575 / 57278464) * np.cos(2 * phi + theta)
+        + (42567525 / 57278464) * np.cos(2 * phi + 3 * theta)
+        + (6081075 / 114556928) * np.cos(2 * phi + 5 * theta)
+        + (354729375 / 458227712) * np.cos(4 * phi - 2 * theta)
+        + (212837625 / 114556928) * np.cos(4 * phi + 2 * theta)
+        + (10135125 / 28639232) * np.cos(4 * phi + 4 * theta)
+        + (10135125 / 916455424) * np.cos(4 * phi + 6 * theta)
+        + (172297125 / 114556928) * np.cos(6 * phi - theta)
+        + (172297125 / 57278464) * np.cos(6 * phi + theta)
+        + (73841625 / 57278464) * np.cos(6 * phi + 3 * theta)
+        + (24613875 / 229113856) * np.cos(6 * phi + 5 * theta)
+        + (4922775 / 1507328) * np.cos(8 * phi + 2 * theta)
+        + (14768325 / 24117248) * np.cos(8 * phi + 4 * theta)
+        + (34459425 / 6029312) * np.cos(10 * phi + theta)
+        + (34459425 / 12058624) * np.cos(10 * phi + 3 * theta)
+        + (34459425 / 2097152) * np.cos(12 * phi + 2 * theta)
         + 540280125 / 458227712
     )
 
@@ -12614,84 +12614,6 @@ def N_gg_2_5_12_2(theta, phi):
         + (225450225 / 229113856) * np.cos(2 * theta)
         + (9018009 / 7159808) * np.cos(4 * theta)
         + (33066033 / 229113856) * np.cos(6 * theta)
-        + (6441435 / 229113856) * np.cos(2 * phi - 7 * theta)
-        + (18621603 / 28639232) * np.cos(2 * phi - 5 * theta)
-        + (381215835 / 229113856) * np.cos(2 * phi - 3 * theta)
-        - 20495475 / 28639232 * np.cos(2 * phi - theta)
-        - 61486425 / 229113856 * np.cos(2 * phi + theta)
-        + (12297285 / 7159808) * np.cos(2 * phi + 3 * theta)
-        + (99198099 / 229113856) * np.cos(2 * phi + 5 * theta)
-        + (43918875 / 229113856) * np.cos(4 * phi - 6 * theta)
-        + (342567225 / 229113856) * np.cos(4 * phi - 4 * theta)
-        + (20495475 / 28639232) * np.cos(4 * phi - 2 * theta)
-        + (184459275 / 114556928) * np.cos(4 * phi + 2 * theta)
-        + (225450225 / 229113856) * np.cos(4 * phi + 4 * theta)
-        + (82957875 / 114556928) * np.cos(6 * phi - 5 * theta)
-        + (57675475 / 28639232) * np.cos(6 * phi - 3 * theta)
-        - 282056775 / 229113856 * np.cos(6 * phi - theta)
-        + (16591575 / 28639232) * np.cos(6 * phi + theta)
-        + (425850425 / 229113856) * np.cos(6 * phi + 3 * theta)
-        + (11851125 / 6029312) * np.cos(8 * phi - 4 * theta)
-        + (9954945 / 12058624) * np.cos(8 * phi - 2 * theta)
-        + (36501465 / 12058624) * np.cos(8 * phi + 2 * theta)
-        + (49774725 / 12058624) * np.cos(10 * phi - 3 * theta)
-        - 1990989 / 753664 * np.cos(10 * phi - theta)
-        + (51102051 / 12058624) * np.cos(10 * phi + theta)
-        + (3318315 / 524288) * np.cos(12 * phi - 2 * theta)
-        - 75150075 / 114556928
-    )
-
-
-def M_gg_2_5_12_3():
-    def func(k):
-        return -8 / 75810735 * k**10
-
-    return func
-
-
-def N_gg_2_5_12_3(theta, phi):
-    return (
-        (70945875 / 28639232) * np.cos(4 * phi)
-        + (34459425 / 12058624) * np.cos(8 * phi)
-        + (36018675 / 28639232) * np.cos(2 * theta)
-        + (36018675 / 229113856) * np.cos(4 * theta)
-        + (42567525 / 114556928) * np.cos(2 * phi - 3 * theta)
-        + (212837625 / 114556928) * np.cos(2 * phi - theta)
-        + (127702575 / 57278464) * np.cos(2 * phi + theta)
-        + (42567525 / 57278464) * np.cos(2 * phi + 3 * theta)
-        + (6081075 / 114556928) * np.cos(2 * phi + 5 * theta)
-        + (354729375 / 458227712) * np.cos(4 * phi - 2 * theta)
-        + (212837625 / 114556928) * np.cos(4 * phi + 2 * theta)
-        + (10135125 / 28639232) * np.cos(4 * phi + 4 * theta)
-        + (10135125 / 916455424) * np.cos(4 * phi + 6 * theta)
-        + (172297125 / 114556928) * np.cos(6 * phi - theta)
-        + (172297125 / 57278464) * np.cos(6 * phi + theta)
-        + (73841625 / 57278464) * np.cos(6 * phi + 3 * theta)
-        + (24613875 / 229113856) * np.cos(6 * phi + 5 * theta)
-        + (4922775 / 1507328) * np.cos(8 * phi + 2 * theta)
-        + (14768325 / 24117248) * np.cos(8 * phi + 4 * theta)
-        + (34459425 / 6029312) * np.cos(10 * phi + theta)
-        + (34459425 / 12058624) * np.cos(10 * phi + 3 * theta)
-        + (34459425 / 2097152) * np.cos(12 * phi + 2 * theta)
-        + 540280125 / 458227712
-    )
-
-
-def M_gg_2_5_12_4():
-    def func(k):
-        return -16 / 985539555 * k**10
-
-    return func
-
-
-def N_gg_2_5_12_4(theta, phi):
-    return (
-        -307432125 / 229113856 * np.cos(4 * phi)
-        - 1990989 / 1507328 * np.cos(8 * phi)
-        + (2433431 / 524288) * np.cos(12 * phi)
-        + (225450225 / 229113856) * np.cos(2 * theta)
-        + (9018009 / 7159808) * np.cos(4 * theta)
-        + (33066033 / 229113856) * np.cos(6 * theta)
         + (99198099 / 229113856) * np.cos(2 * phi - 5 * theta)
         + (12297285 / 7159808) * np.cos(2 * phi - 3 * theta)
         - 61486425 / 229113856 * np.cos(2 * phi - theta)
@@ -12720,6 +12642,84 @@ def N_gg_2_5_12_4(theta, phi):
     )
 
 
+def M_gg_2_5_12_3():
+    def func(k):
+        return -8 / 75810735 * k**10
+
+    return func
+
+
+def N_gg_2_5_12_3(theta, phi):
+    return (
+        (70945875 / 28639232) * np.cos(4 * phi)
+        + (34459425 / 12058624) * np.cos(8 * phi)
+        + (36018675 / 28639232) * np.cos(2 * theta)
+        + (36018675 / 229113856) * np.cos(4 * theta)
+        + (6081075 / 114556928) * np.cos(2 * phi - 5 * theta)
+        + (42567525 / 57278464) * np.cos(2 * phi - 3 * theta)
+        + (127702575 / 57278464) * np.cos(2 * phi - theta)
+        + (212837625 / 114556928) * np.cos(2 * phi + theta)
+        + (42567525 / 114556928) * np.cos(2 * phi + 3 * theta)
+        + (10135125 / 916455424) * np.cos(4 * phi - 6 * theta)
+        + (10135125 / 28639232) * np.cos(4 * phi - 4 * theta)
+        + (212837625 / 114556928) * np.cos(4 * phi - 2 * theta)
+        + (354729375 / 458227712) * np.cos(4 * phi + 2 * theta)
+        + (24613875 / 229113856) * np.cos(6 * phi - 5 * theta)
+        + (73841625 / 57278464) * np.cos(6 * phi - 3 * theta)
+        + (172297125 / 57278464) * np.cos(6 * phi - theta)
+        + (172297125 / 114556928) * np.cos(6 * phi + theta)
+        + (14768325 / 24117248) * np.cos(8 * phi - 4 * theta)
+        + (4922775 / 1507328) * np.cos(8 * phi - 2 * theta)
+        + (34459425 / 12058624) * np.cos(10 * phi - 3 * theta)
+        + (34459425 / 6029312) * np.cos(10 * phi - theta)
+        + (34459425 / 2097152) * np.cos(12 * phi - 2 * theta)
+        + 540280125 / 458227712
+    )
+
+
+def M_gg_2_5_12_4():
+    def func(k):
+        return -16 / 985539555 * k**10
+
+    return func
+
+
+def N_gg_2_5_12_4(theta, phi):
+    return (
+        -307432125 / 229113856 * np.cos(4 * phi)
+        - 1990989 / 1507328 * np.cos(8 * phi)
+        + (2433431 / 524288) * np.cos(12 * phi)
+        + (225450225 / 229113856) * np.cos(2 * theta)
+        + (9018009 / 7159808) * np.cos(4 * theta)
+        + (33066033 / 229113856) * np.cos(6 * theta)
+        + (6441435 / 229113856) * np.cos(2 * phi - 7 * theta)
+        + (18621603 / 28639232) * np.cos(2 * phi - 5 * theta)
+        + (381215835 / 229113856) * np.cos(2 * phi - 3 * theta)
+        - 20495475 / 28639232 * np.cos(2 * phi - theta)
+        - 61486425 / 229113856 * np.cos(2 * phi + theta)
+        + (12297285 / 7159808) * np.cos(2 * phi + 3 * theta)
+        + (99198099 / 229113856) * np.cos(2 * phi + 5 * theta)
+        + (43918875 / 229113856) * np.cos(4 * phi - 6 * theta)
+        + (342567225 / 229113856) * np.cos(4 * phi - 4 * theta)
+        + (20495475 / 28639232) * np.cos(4 * phi - 2 * theta)
+        + (184459275 / 114556928) * np.cos(4 * phi + 2 * theta)
+        + (225450225 / 229113856) * np.cos(4 * phi + 4 * theta)
+        + (82957875 / 114556928) * np.cos(6 * phi - 5 * theta)
+        + (57675475 / 28639232) * np.cos(6 * phi - 3 * theta)
+        - 282056775 / 229113856 * np.cos(6 * phi - theta)
+        + (16591575 / 28639232) * np.cos(6 * phi + theta)
+        + (425850425 / 229113856) * np.cos(6 * phi + 3 * theta)
+        + (11851125 / 6029312) * np.cos(8 * phi - 4 * theta)
+        + (9954945 / 12058624) * np.cos(8 * phi - 2 * theta)
+        + (36501465 / 12058624) * np.cos(8 * phi + 2 * theta)
+        + (49774725 / 12058624) * np.cos(10 * phi - 3 * theta)
+        - 1990989 / 753664 * np.cos(10 * phi - theta)
+        + (51102051 / 12058624) * np.cos(10 * phi + theta)
+        + (3318315 / 524288) * np.cos(12 * phi - 2 * theta)
+        - 75150075 / 114556928
+    )
+
+
 def M_gg_2_5_14_0():
     def func(k):
         return -16 / 985539555 * k**10
@@ -12728,50 +12728,6 @@ def M_gg_2_5_14_0():
 
 
 def N_gg_2_5_14_0(theta, phi):
-    return (
-        (2299592295 / 916455424) * np.cos(4 * phi)
-        + (153306153 / 48234496) * np.cos(8 * phi)
-        + (12167155 / 2097152) * np.cos(12 * phi)
-        + (1289575287 / 916455424) * np.cos(2 * theta)
-        + (1289575287 / 4582277120) * np.cos(4 * theta)
-        + (61408347 / 4582277120) * np.cos(6 * theta)
-        + (14171157 / 7331643392) * np.cos(2 * phi - 7 * theta)
-        + (42513471 / 458227712) * np.cos(2 * phi - 5 * theta)
-        + (1487971485 / 1832910848) * np.cos(2 * phi - 3 * theta)
-        + (495990495 / 229113856) * np.cos(2 * phi - theta)
-        + (7439857425 / 3665821696) * np.cos(2 * phi + theta)
-        + (297594297 / 458227712) * np.cos(2 * phi + 3 * theta)
-        + (99198099 / 1832910848) * np.cos(2 * phi + 5 * theta)
-        + (65702637 / 3665821696) * np.cos(4 * phi - 6 * theta)
-        + (328513185 / 916455424) * np.cos(4 * phi - 4 * theta)
-        + (766530765 / 458227712) * np.cos(4 * phi - 2 * theta)
-        + (2299592295 / 1832910848) * np.cos(4 * phi + 2 * theta)
-        + (153306153 / 916455424) * np.cos(4 * phi + 4 * theta)
-        + (36501465 / 385875968) * np.cos(6 * phi - 5 * theta)
-        + (12167155 / 12058624) * np.cos(6 * phi - 3 * theta)
-        + (255510255 / 96468992) * np.cos(6 * phi - theta)
-        + (51102051 / 24117248) * np.cos(6 * phi + theta)
-        + (85170085 / 192937984) * np.cos(6 * phi + 3 * theta)
-        + (36501465 / 96468992) * np.cos(8 * phi - 4 * theta)
-        + (109504395 / 48234496) * np.cos(8 * phi - 2 * theta)
-        + (51102051 / 48234496) * np.cos(8 * phi + 2 * theta)
-        + (21900879 / 16777216) * np.cos(10 * phi - 3 * theta)
-        + (21900879 / 5242880) * np.cos(10 * phi - theta)
-        + (51102051 / 20971520) * np.cos(10 * phi + theta)
-        + (36501465 / 8388608) * np.cos(12 * phi - 2 * theta)
-        + (328513185 / 16777216) * np.cos(14 * phi - theta)
-        + 2149292145 / 1832910848
-    )
-
-
-def M_gg_2_5_14_1():
-    def func(k):
-        return -16 / 985539555 * k**10
-
-    return func
-
-
-def N_gg_2_5_14_1(theta, phi):
     return (
         (2299592295 / 916455424) * np.cos(4 * phi)
         + (153306153 / 48234496) * np.cos(8 * phi)
@@ -12804,6 +12760,50 @@ def N_gg_2_5_14_1(theta, phi):
         + (21900879 / 16777216) * np.cos(10 * phi + 3 * theta)
         + (36501465 / 8388608) * np.cos(12 * phi + 2 * theta)
         + (328513185 / 16777216) * np.cos(14 * phi + theta)
+        + 2149292145 / 1832910848
+    )
+
+
+def M_gg_2_5_14_1():
+    def func(k):
+        return -16 / 985539555 * k**10
+
+    return func
+
+
+def N_gg_2_5_14_1(theta, phi):
+    return (
+        (2299592295 / 916455424) * np.cos(4 * phi)
+        + (153306153 / 48234496) * np.cos(8 * phi)
+        + (12167155 / 2097152) * np.cos(12 * phi)
+        + (1289575287 / 916455424) * np.cos(2 * theta)
+        + (1289575287 / 4582277120) * np.cos(4 * theta)
+        + (61408347 / 4582277120) * np.cos(6 * theta)
+        + (14171157 / 7331643392) * np.cos(2 * phi - 7 * theta)
+        + (42513471 / 458227712) * np.cos(2 * phi - 5 * theta)
+        + (1487971485 / 1832910848) * np.cos(2 * phi - 3 * theta)
+        + (495990495 / 229113856) * np.cos(2 * phi - theta)
+        + (7439857425 / 3665821696) * np.cos(2 * phi + theta)
+        + (297594297 / 458227712) * np.cos(2 * phi + 3 * theta)
+        + (99198099 / 1832910848) * np.cos(2 * phi + 5 * theta)
+        + (65702637 / 3665821696) * np.cos(4 * phi - 6 * theta)
+        + (328513185 / 916455424) * np.cos(4 * phi - 4 * theta)
+        + (766530765 / 458227712) * np.cos(4 * phi - 2 * theta)
+        + (2299592295 / 1832910848) * np.cos(4 * phi + 2 * theta)
+        + (153306153 / 916455424) * np.cos(4 * phi + 4 * theta)
+        + (36501465 / 385875968) * np.cos(6 * phi - 5 * theta)
+        + (12167155 / 12058624) * np.cos(6 * phi - 3 * theta)
+        + (255510255 / 96468992) * np.cos(6 * phi - theta)
+        + (51102051 / 24117248) * np.cos(6 * phi + theta)
+        + (85170085 / 192937984) * np.cos(6 * phi + 3 * theta)
+        + (36501465 / 96468992) * np.cos(8 * phi - 4 * theta)
+        + (109504395 / 48234496) * np.cos(8 * phi - 2 * theta)
+        + (51102051 / 48234496) * np.cos(8 * phi + 2 * theta)
+        + (21900879 / 16777216) * np.cos(10 * phi - 3 * theta)
+        + (21900879 / 5242880) * np.cos(10 * phi - theta)
+        + (51102051 / 20971520) * np.cos(10 * phi + theta)
+        + (36501465 / 8388608) * np.cos(12 * phi - 2 * theta)
+        + (328513185 / 16777216) * np.cos(14 * phi - theta)
         + 2149292145 / 1832910848
     )
 
@@ -12882,7 +12882,7 @@ def M_gg_2_6_2_0():
 
 
 def N_gg_2_6_2_0(theta, phi):
-    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
 
 
 def M_gg_2_6_2_1():
@@ -12893,7 +12893,7 @@ def M_gg_2_6_2_1():
 
 
 def N_gg_2_6_2_1(theta, phi):
-    return (15 / 4) * np.cos(2 * phi + theta) + 5 / 4
+    return (15 / 4) * np.cos(2 * phi - theta) + 5 / 4
 
 
 def M_gg_2_6_2_2():
@@ -12922,9 +12922,9 @@ def M_gg_2_6_2_3():
 def N_gg_2_6_2_3(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (225 / 32) * np.cos(2 * phi - 3 * theta)
-        + (225 / 112) * np.cos(2 * phi - theta)
-        + (135 / 224) * np.cos(2 * phi + theta)
+        + (135 / 224) * np.cos(2 * phi - theta)
+        + (225 / 112) * np.cos(2 * phi + theta)
+        + (225 / 32) * np.cos(2 * phi + 3 * theta)
         + 135 / 112
     )
 
@@ -12939,9 +12939,9 @@ def M_gg_2_6_2_4():
 def N_gg_2_6_2_4(theta, phi):
     return (
         (225 / 112) * np.cos(2 * theta)
-        + (135 / 224) * np.cos(2 * phi - theta)
-        + (225 / 112) * np.cos(2 * phi + theta)
-        + (225 / 32) * np.cos(2 * phi + 3 * theta)
+        + (225 / 32) * np.cos(2 * phi - 3 * theta)
+        + (225 / 112) * np.cos(2 * phi - theta)
+        + (135 / 224) * np.cos(2 * phi + theta)
         + 135 / 112
     )
 
@@ -12976,11 +12976,11 @@ def N_gg_2_6_2_6(theta, phi):
     return (
         (1575 / 704) * np.cos(2 * theta)
         + (4725 / 2816) * np.cos(4 * theta)
-        + (4725 / 512) * np.cos(2 * phi - 5 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 512) * np.cos(2 * phi + 5 * theta)
         + 3375 / 2816
     )
 
@@ -12996,11 +12996,11 @@ def N_gg_2_6_2_7(theta, phi):
     return (
         (1575 / 704) * np.cos(2 * theta)
         + (4725 / 2816) * np.cos(4 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 512) * np.cos(2 * phi + 5 * theta)
+        + (4725 / 512) * np.cos(2 * phi - 5 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
         + 3375 / 2816
     )
 
@@ -13039,13 +13039,13 @@ def N_gg_2_6_2_9(theta, phi):
         (4725 / 2048) * np.cos(2 * theta)
         + (2079 / 1024) * np.cos(4 * theta)
         + (3003 / 2048) * np.cos(6 * theta)
-        + (45045 / 4096) * np.cos(2 * phi - 7 * theta)
-        + (9009 / 2048) * np.cos(2 * phi - 5 * theta)
-        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 1024) * np.cos(2 * phi - theta)
-        + (3675 / 4096) * np.cos(2 * phi + theta)
-        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
-        + (693 / 4096) * np.cos(2 * phi + 5 * theta)
+        + (693 / 4096) * np.cos(2 * phi - 5 * theta)
+        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
+        + (3675 / 4096) * np.cos(2 * phi - theta)
+        + (1575 / 1024) * np.cos(2 * phi + theta)
+        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
+        + (9009 / 2048) * np.cos(2 * phi + 5 * theta)
+        + (45045 / 4096) * np.cos(2 * phi + 7 * theta)
         + 1225 / 1024
     )
 
@@ -13062,13 +13062,13 @@ def N_gg_2_6_2_10(theta, phi):
         (4725 / 2048) * np.cos(2 * theta)
         + (2079 / 1024) * np.cos(4 * theta)
         + (3003 / 2048) * np.cos(6 * theta)
-        + (693 / 4096) * np.cos(2 * phi - 5 * theta)
-        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
-        + (3675 / 4096) * np.cos(2 * phi - theta)
-        + (1575 / 1024) * np.cos(2 * phi + theta)
-        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
-        + (9009 / 2048) * np.cos(2 * phi + 5 * theta)
-        + (45045 / 4096) * np.cos(2 * phi + 7 * theta)
+        + (45045 / 4096) * np.cos(2 * phi - 7 * theta)
+        + (9009 / 2048) * np.cos(2 * phi - 5 * theta)
+        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 1024) * np.cos(2 * phi - theta)
+        + (3675 / 4096) * np.cos(2 * phi + theta)
+        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
+        + (693 / 4096) * np.cos(2 * phi + 5 * theta)
         + 1225 / 1024
     )
 
@@ -13107,8 +13107,8 @@ def M_gg_2_6_4_0():
 
 def N_gg_2_6_4_0(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi - theta)
-        + (315 / 64) * np.cos(4 * phi - 2 * theta)
+        (45 / 16) * np.cos(2 * phi + theta)
+        + (315 / 64) * np.cos(4 * phi + 2 * theta)
         + 81 / 64
     )
 
@@ -13141,10 +13141,10 @@ def N_gg_2_6_4_2(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (675 / 352) * np.cos(2 * phi - 3 * theta)
-        - 225 / 308 * np.cos(2 * phi - theta)
-        + (6075 / 2464) * np.cos(2 * phi + theta)
-        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
+        + (6075 / 2464) * np.cos(2 * phi - theta)
+        - 225 / 308 * np.cos(2 * phi + theta)
+        + (675 / 352) * np.cos(2 * phi + 3 * theta)
+        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2464
     )
 
@@ -13160,11 +13160,11 @@ def N_gg_2_6_4_3(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (1125 / 1408) * np.cos(2 * phi + theta)
-        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1125 / 1408) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
         + 3375 / 2816
     )
 
@@ -13178,8 +13178,8 @@ def M_gg_2_6_4_4():
 
 def N_gg_2_6_4_4(theta, phi):
     return (
-        (45 / 16) * np.cos(2 * phi + theta)
-        + (315 / 64) * np.cos(4 * phi + 2 * theta)
+        (45 / 16) * np.cos(2 * phi - theta)
+        + (315 / 64) * np.cos(4 * phi - 2 * theta)
         + 81 / 64
     )
 
@@ -13195,10 +13195,10 @@ def N_gg_2_6_4_5(theta, phi):
     return (
         (675 / 352) * np.cos(4 * phi)
         + (6075 / 2464) * np.cos(2 * theta)
-        + (6075 / 2464) * np.cos(2 * phi - theta)
-        - 225 / 308 * np.cos(2 * phi + theta)
-        + (675 / 352) * np.cos(2 * phi + 3 * theta)
-        + (1575 / 352) * np.cos(4 * phi + 2 * theta)
+        + (675 / 352) * np.cos(2 * phi - 3 * theta)
+        - 225 / 308 * np.cos(2 * phi - theta)
+        + (6075 / 2464) * np.cos(2 * phi + theta)
+        + (1575 / 352) * np.cos(4 * phi - 2 * theta)
         - 2025 / 2464
     )
 
@@ -13236,13 +13236,13 @@ def N_gg_2_6_4_7(theta, phi):
     return (
         (4725 / 2816) * np.cos(4 * phi)
         + (8505 / 2816) * np.cos(4 * theta)
-        + (945 / 256) * np.cos(2 * phi - 5 * theta)
-        - 2835 / 1408 * np.cos(2 * phi - 3 * theta)
-        + (225 / 128) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(2 * phi + 3 * theta)
-        + (945 / 256) * np.cos(4 * phi - 4 * theta)
-        + (8505 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (1575 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 2816) * np.cos(2 * phi - 3 * theta)
+        + (225 / 128) * np.cos(2 * phi - theta)
+        - 2835 / 1408 * np.cos(2 * phi + 3 * theta)
+        + (945 / 256) * np.cos(2 * phi + 5 * theta)
+        + (1575 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (8505 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (945 / 256) * np.cos(4 * phi + 4 * theta)
         - 2025 / 2816
     )
 
@@ -13259,15 +13259,15 @@ def N_gg_2_6_4_8(theta, phi):
         (99225 / 292864) * np.cos(4 * phi)
         + (297675 / 146432) * np.cos(2 * theta)
         + (59535 / 53248) * np.cos(4 * theta)
-        + (6615 / 2048) * np.cos(2 * phi - 5 * theta)
-        + (19845 / 6656) * np.cos(2 * phi - 3 * theta)
-        + (297675 / 146432) * np.cos(2 * phi - theta)
-        + (77175 / 73216) * np.cos(2 * phi + theta)
-        + (99225 / 292864) * np.cos(2 * phi + 3 * theta)
-        + (99225 / 8192) * np.cos(4 * phi - 6 * theta)
-        + (6615 / 2048) * np.cos(4 * phi - 4 * theta)
-        + (59535 / 53248) * np.cos(4 * phi - 2 * theta)
-        + (77175 / 1171456) * np.cos(4 * phi + 2 * theta)
+        + (99225 / 292864) * np.cos(2 * phi - 3 * theta)
+        + (77175 / 73216) * np.cos(2 * phi - theta)
+        + (297675 / 146432) * np.cos(2 * phi + theta)
+        + (19845 / 6656) * np.cos(2 * phi + 3 * theta)
+        + (6615 / 2048) * np.cos(2 * phi + 5 * theta)
+        + (77175 / 1171456) * np.cos(4 * phi - 2 * theta)
+        + (59535 / 53248) * np.cos(4 * phi + 2 * theta)
+        + (6615 / 2048) * np.cos(4 * phi + 4 * theta)
+        + (99225 / 8192) * np.cos(4 * phi + 6 * theta)
         + 694575 / 585728
     )
 
@@ -13283,11 +13283,11 @@ def N_gg_2_6_4_9(theta, phi):
     return (
         (1575 / 5632) * np.cos(4 * phi)
         + (4725 / 2816) * np.cos(2 * theta)
-        + (1125 / 1408) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (4725 / 1408) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(4 * phi + 4 * theta)
+        + (4725 / 1408) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (1125 / 1408) * np.cos(2 * phi + theta)
+        + (4725 / 512) * np.cos(4 * phi - 4 * theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
         + 3375 / 2816
     )
 
@@ -13303,13 +13303,13 @@ def N_gg_2_6_4_10(theta, phi):
     return (
         (4725 / 2816) * np.cos(4 * phi)
         + (8505 / 2816) * np.cos(4 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - 3 * theta)
-        + (225 / 128) * np.cos(2 * phi - theta)
-        - 2835 / 1408 * np.cos(2 * phi + 3 * theta)
-        + (945 / 256) * np.cos(2 * phi + 5 * theta)
-        + (1575 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (8505 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (945 / 256) * np.cos(4 * phi + 4 * theta)
+        + (945 / 256) * np.cos(2 * phi - 5 * theta)
+        - 2835 / 1408 * np.cos(2 * phi - 3 * theta)
+        + (225 / 128) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(2 * phi + 3 * theta)
+        + (945 / 256) * np.cos(4 * phi - 4 * theta)
+        + (8505 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (1575 / 2816) * np.cos(4 * phi + 2 * theta)
         - 2025 / 2816
     )
 
@@ -13354,18 +13354,18 @@ def N_gg_2_6_4_12(theta, phi):
         - 552825 / 856064 * np.cos(2 * theta)
         + (49329 / 38912) * np.cos(4 * theta)
         + (243243 / 77824) * np.cos(6 * theta)
-        + (405405 / 77824) * np.cos(2 * phi - 7 * theta)
-        - 36855 / 19456 * np.cos(2 * phi - 5 * theta)
-        - 104895 / 77824 * np.cos(2 * phi - 3 * theta)
-        + (14175 / 53504) * np.cos(2 * phi - theta)
-        + (1289925 / 856064) * np.cos(2 * phi + theta)
-        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
-        + (93555 / 77824) * np.cos(2 * phi + 5 * theta)
-        + (257985 / 77824) * np.cos(4 * phi - 6 * theta)
-        + (257985 / 77824) * np.cos(4 * phi - 4 * theta)
-        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (694575 / 856064) * np.cos(4 * phi + 2 * theta)
-        + (19845 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (93555 / 77824) * np.cos(2 * phi - 5 * theta)
+        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
+        + (1289925 / 856064) * np.cos(2 * phi - theta)
+        + (14175 / 53504) * np.cos(2 * phi + theta)
+        - 104895 / 77824 * np.cos(2 * phi + 3 * theta)
+        - 36855 / 19456 * np.cos(2 * phi + 5 * theta)
+        + (405405 / 77824) * np.cos(2 * phi + 7 * theta)
+        + (19845 / 77824) * np.cos(4 * phi - 4 * theta)
+        + (694575 / 856064) * np.cos(4 * phi - 2 * theta)
+        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (257985 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (257985 / 77824) * np.cos(4 * phi + 6 * theta)
         - 297675 / 428032
     )
 
@@ -13382,15 +13382,15 @@ def N_gg_2_6_4_13(theta, phi):
         (99225 / 292864) * np.cos(4 * phi)
         + (297675 / 146432) * np.cos(2 * theta)
         + (59535 / 53248) * np.cos(4 * theta)
-        + (99225 / 292864) * np.cos(2 * phi - 3 * theta)
-        + (77175 / 73216) * np.cos(2 * phi - theta)
-        + (297675 / 146432) * np.cos(2 * phi + theta)
-        + (19845 / 6656) * np.cos(2 * phi + 3 * theta)
-        + (6615 / 2048) * np.cos(2 * phi + 5 * theta)
-        + (77175 / 1171456) * np.cos(4 * phi - 2 * theta)
-        + (59535 / 53248) * np.cos(4 * phi + 2 * theta)
-        + (6615 / 2048) * np.cos(4 * phi + 4 * theta)
-        + (99225 / 8192) * np.cos(4 * phi + 6 * theta)
+        + (6615 / 2048) * np.cos(2 * phi - 5 * theta)
+        + (19845 / 6656) * np.cos(2 * phi - 3 * theta)
+        + (297675 / 146432) * np.cos(2 * phi - theta)
+        + (77175 / 73216) * np.cos(2 * phi + theta)
+        + (99225 / 292864) * np.cos(2 * phi + 3 * theta)
+        + (99225 / 8192) * np.cos(4 * phi - 6 * theta)
+        + (6615 / 2048) * np.cos(4 * phi - 4 * theta)
+        + (59535 / 53248) * np.cos(4 * phi - 2 * theta)
+        + (77175 / 1171456) * np.cos(4 * phi + 2 * theta)
         + 694575 / 585728
     )
 
@@ -13408,18 +13408,18 @@ def N_gg_2_6_4_14(theta, phi):
         - 552825 / 856064 * np.cos(2 * theta)
         + (49329 / 38912) * np.cos(4 * theta)
         + (243243 / 77824) * np.cos(6 * theta)
-        + (93555 / 77824) * np.cos(2 * phi - 5 * theta)
-        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
-        + (1289925 / 856064) * np.cos(2 * phi - theta)
-        + (14175 / 53504) * np.cos(2 * phi + theta)
-        - 104895 / 77824 * np.cos(2 * phi + 3 * theta)
-        - 36855 / 19456 * np.cos(2 * phi + 5 * theta)
-        + (405405 / 77824) * np.cos(2 * phi + 7 * theta)
-        + (19845 / 77824) * np.cos(4 * phi - 4 * theta)
-        + (694575 / 856064) * np.cos(4 * phi - 2 * theta)
-        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (257985 / 77824) * np.cos(4 * phi + 4 * theta)
-        + (257985 / 77824) * np.cos(4 * phi + 6 * theta)
+        + (405405 / 77824) * np.cos(2 * phi - 7 * theta)
+        - 36855 / 19456 * np.cos(2 * phi - 5 * theta)
+        - 104895 / 77824 * np.cos(2 * phi - 3 * theta)
+        + (14175 / 53504) * np.cos(2 * phi - theta)
+        + (1289925 / 856064) * np.cos(2 * phi + theta)
+        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
+        + (93555 / 77824) * np.cos(2 * phi + 5 * theta)
+        + (257985 / 77824) * np.cos(4 * phi - 6 * theta)
+        + (257985 / 77824) * np.cos(4 * phi - 4 * theta)
+        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (694575 / 856064) * np.cos(4 * phi + 2 * theta)
+        + (19845 / 77824) * np.cos(4 * phi + 4 * theta)
         - 297675 / 428032
     )
 
@@ -13465,9 +13465,9 @@ def M_gg_2_6_6_0():
 
 def N_gg_2_6_6_0(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi - theta)
-        + (819 / 256) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        (1365 / 512) * np.cos(2 * phi + theta)
+        + (819 / 256) * np.cos(4 * phi + 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         + 325 / 256
     )
 
@@ -13483,11 +13483,11 @@ def N_gg_2_6_6_1(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
-        + (1575 / 704) * np.cos(2 * phi - theta)
-        + (4725 / 2816) * np.cos(2 * phi + theta)
-        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi - theta)
+        + (1575 / 704) * np.cos(2 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi + theta)
         + 3375 / 2816
     )
 
@@ -13503,13 +13503,13 @@ def N_gg_2_6_6_2(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
-        - 6825 / 5632 * np.cos(2 * phi - theta)
-        + (6825 / 2816) * np.cos(2 * phi + theta)
-        + (819 / 512) * np.cos(4 * phi - 4 * theta)
-        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
-        + (819 / 512) * np.cos(6 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi - theta)
+        - 6825 / 5632 * np.cos(2 * phi + theta)
+        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
+        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
+        + (819 / 512) * np.cos(4 * phi + 4 * theta)
+        + (819 / 512) * np.cos(6 * phi + theta)
+        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
         - 2275 / 2816
     )
 
@@ -13525,14 +13525,14 @@ def N_gg_2_6_6_3(theta, phi):
     return (
         (945 / 2048) * np.cos(4 * phi)
         + (1575 / 1024) * np.cos(2 * theta)
-        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2048) * np.cos(2 * phi - theta)
-        + (3675 / 4096) * np.cos(2 * phi + theta)
-        + (9009 / 2048) * np.cos(4 * phi - 4 * theta)
-        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
-        + (45045 / 4096) * np.cos(6 * phi - 5 * theta)
-        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (693 / 4096) * np.cos(6 * phi - theta)
+        + (3675 / 4096) * np.cos(2 * phi - theta)
+        + (4725 / 2048) * np.cos(2 * phi + theta)
+        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
+        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
+        + (9009 / 2048) * np.cos(4 * phi + 4 * theta)
+        + (693 / 4096) * np.cos(6 * phi + theta)
+        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (45045 / 4096) * np.cos(6 * phi + 5 * theta)
         + 1225 / 1024
     )
 
@@ -13548,11 +13548,11 @@ def N_gg_2_6_6_4(theta, phi):
     return (
         (4725 / 1408) * np.cos(4 * phi)
         + (1125 / 1408) * np.cos(2 * theta)
-        + (4725 / 2816) * np.cos(2 * phi - theta)
-        + (1575 / 704) * np.cos(2 * phi + theta)
-        + (1575 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (4725 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (4725 / 512) * np.cos(6 * phi + theta)
+        + (1575 / 5632) * np.cos(2 * phi - 3 * theta)
+        + (1575 / 704) * np.cos(2 * phi - theta)
+        + (4725 / 2816) * np.cos(2 * phi + theta)
+        + (4725 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (4725 / 512) * np.cos(6 * phi - theta)
         + 3375 / 2816
     )
 
@@ -13591,17 +13591,17 @@ def N_gg_2_6_6_6(theta, phi):
         (282555 / 382976) * np.cos(4 * phi)
         - 20475 / 17408 * np.cos(2 * theta)
         + (429975 / 191488) * np.cos(4 * theta)
-        + (85995 / 69632) * np.cos(2 * phi - 5 * theta)
-        + (282555 / 382976) * np.cos(2 * phi - 3 * theta)
-        + (12285 / 69632) * np.cos(2 * phi - theta)
-        - 20475 / 17408 * np.cos(2 * phi + theta)
-        + (1003275 / 382976) * np.cos(2 * phi + 3 * theta)
-        + (110565 / 34816) * np.cos(4 * phi - 4 * theta)
-        - 22113 / 11968 * np.cos(4 * phi - 2 * theta)
-        + (429975 / 191488) * np.cos(4 * phi + 2 * theta)
-        + (243243 / 69632) * np.cos(6 * phi - 3 * theta)
-        + (110565 / 34816) * np.cos(6 * phi - theta)
-        + (85995 / 69632) * np.cos(6 * phi + theta)
+        + (1003275 / 382976) * np.cos(2 * phi - 3 * theta)
+        - 20475 / 17408 * np.cos(2 * phi - theta)
+        + (12285 / 69632) * np.cos(2 * phi + theta)
+        + (282555 / 382976) * np.cos(2 * phi + 3 * theta)
+        + (85995 / 69632) * np.cos(2 * phi + 5 * theta)
+        + (429975 / 191488) * np.cos(4 * phi - 2 * theta)
+        - 22113 / 11968 * np.cos(4 * phi + 2 * theta)
+        + (110565 / 34816) * np.cos(4 * phi + 4 * theta)
+        + (85995 / 69632) * np.cos(6 * phi - theta)
+        + (110565 / 34816) * np.cos(6 * phi + theta)
+        + (243243 / 69632) * np.cos(6 * phi + 3 * theta)
         + 61425 / 95744
     )
 
@@ -13618,19 +13618,19 @@ def N_gg_2_6_6_7(theta, phi):
         (394065 / 214016) * np.cos(4 * phi)
         + (14175 / 53504) * np.cos(2 * theta)
         + (99225 / 38912) * np.cos(4 * theta)
-        + (257985 / 77824) * np.cos(2 * phi - 5 * theta)
-        - 104895 / 77824 * np.cos(2 * phi - 3 * theta)
-        - 552825 / 856064 * np.cos(2 * phi - theta)
-        + (1289925 / 856064) * np.cos(2 * phi + theta)
-        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
-        + (257985 / 77824) * np.cos(4 * phi - 6 * theta)
-        - 36855 / 19456 * np.cos(4 * phi - 4 * theta)
-        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (694575 / 856064) * np.cos(4 * phi + 2 * theta)
-        + (405405 / 77824) * np.cos(6 * phi - 5 * theta)
-        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
-        + (93555 / 77824) * np.cos(6 * phi - theta)
-        + (19845 / 77824) * np.cos(6 * phi + theta)
+        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
+        + (1289925 / 856064) * np.cos(2 * phi - theta)
+        - 552825 / 856064 * np.cos(2 * phi + theta)
+        - 104895 / 77824 * np.cos(2 * phi + 3 * theta)
+        + (257985 / 77824) * np.cos(2 * phi + 5 * theta)
+        + (694575 / 856064) * np.cos(4 * phi - 2 * theta)
+        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
+        - 36855 / 19456 * np.cos(4 * phi + 4 * theta)
+        + (257985 / 77824) * np.cos(4 * phi + 6 * theta)
+        + (19845 / 77824) * np.cos(6 * phi - theta)
+        + (93555 / 77824) * np.cos(6 * phi + theta)
+        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
+        + (405405 / 77824) * np.cos(6 * phi + 5 * theta)
         - 297675 / 428032
     )
 
@@ -13644,9 +13644,9 @@ def M_gg_2_6_6_8():
 
 def N_gg_2_6_6_8(theta, phi):
     return (
-        (1365 / 512) * np.cos(2 * phi + theta)
-        + (819 / 256) * np.cos(4 * phi + 2 * theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        (1365 / 512) * np.cos(2 * phi - theta)
+        + (819 / 256) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
         + 325 / 256
     )
 
@@ -13662,13 +13662,13 @@ def N_gg_2_6_6_9(theta, phi):
     return (
         (12285 / 5632) * np.cos(4 * phi)
         + (6825 / 2816) * np.cos(2 * theta)
-        + (6825 / 2816) * np.cos(2 * phi - theta)
-        - 6825 / 5632 * np.cos(2 * phi + theta)
-        + (12285 / 5632) * np.cos(2 * phi + 3 * theta)
-        + (819 / 2816) * np.cos(4 * phi + 2 * theta)
-        + (819 / 512) * np.cos(4 * phi + 4 * theta)
-        + (819 / 512) * np.cos(6 * phi + theta)
-        + (3003 / 512) * np.cos(6 * phi + 3 * theta)
+        + (12285 / 5632) * np.cos(2 * phi - 3 * theta)
+        - 6825 / 5632 * np.cos(2 * phi - theta)
+        + (6825 / 2816) * np.cos(2 * phi + theta)
+        + (819 / 512) * np.cos(4 * phi - 4 * theta)
+        + (819 / 2816) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 512) * np.cos(6 * phi - 3 * theta)
+        + (819 / 512) * np.cos(6 * phi - theta)
         - 2275 / 2816
     )
 
@@ -13685,17 +13685,17 @@ def N_gg_2_6_6_10(theta, phi):
         (282555 / 382976) * np.cos(4 * phi)
         - 20475 / 17408 * np.cos(2 * theta)
         + (429975 / 191488) * np.cos(4 * theta)
-        + (1003275 / 382976) * np.cos(2 * phi - 3 * theta)
-        - 20475 / 17408 * np.cos(2 * phi - theta)
-        + (12285 / 69632) * np.cos(2 * phi + theta)
-        + (282555 / 382976) * np.cos(2 * phi + 3 * theta)
-        + (85995 / 69632) * np.cos(2 * phi + 5 * theta)
-        + (429975 / 191488) * np.cos(4 * phi - 2 * theta)
-        - 22113 / 11968 * np.cos(4 * phi + 2 * theta)
-        + (110565 / 34816) * np.cos(4 * phi + 4 * theta)
-        + (85995 / 69632) * np.cos(6 * phi - theta)
-        + (110565 / 34816) * np.cos(6 * phi + theta)
-        + (243243 / 69632) * np.cos(6 * phi + 3 * theta)
+        + (85995 / 69632) * np.cos(2 * phi - 5 * theta)
+        + (282555 / 382976) * np.cos(2 * phi - 3 * theta)
+        + (12285 / 69632) * np.cos(2 * phi - theta)
+        - 20475 / 17408 * np.cos(2 * phi + theta)
+        + (1003275 / 382976) * np.cos(2 * phi + 3 * theta)
+        + (110565 / 34816) * np.cos(4 * phi - 4 * theta)
+        - 22113 / 11968 * np.cos(4 * phi - 2 * theta)
+        + (429975 / 191488) * np.cos(4 * phi + 2 * theta)
+        + (243243 / 69632) * np.cos(6 * phi - 3 * theta)
+        + (110565 / 34816) * np.cos(6 * phi - theta)
+        + (85995 / 69632) * np.cos(6 * phi + theta)
         + 61425 / 95744
     )
 
@@ -13744,92 +13744,6 @@ def N_gg_2_6_6_12(theta, phi):
         - 716625 / 3424256 * np.cos(2 * theta)
         - 429975 / 311296 * np.cos(4 * theta)
         + (975975 / 311296) * np.cos(6 * theta)
-        + (2927925 / 1245184) * np.cos(2 * phi - 7 * theta)
-        - 266175 / 311296 * np.cos(2 * phi - 5 * theta)
-        + (429975 / 311296) * np.cos(2 * phi - 3 * theta)
-        - 716625 / 3424256 * np.cos(2 * phi - theta)
-        - 16960125 / 13697024 * np.cos(2 * phi + theta)
-        + (429975 / 856064) * np.cos(2 * phi + 3 * theta)
-        + (1576575 / 622592) * np.cos(2 * phi + 5 * theta)
-        + (2395575 / 622592) * np.cos(4 * phi - 6 * theta)
-        - 266175 / 311296 * np.cos(4 * phi - 4 * theta)
-        - 429975 / 311296 * np.cos(4 * phi - 2 * theta)
-        + (12755925 / 6848512) * np.cos(4 * phi + 2 * theta)
-        + (429975 / 311296) * np.cos(4 * phi + 4 * theta)
-        + (2927925 / 1245184) * np.cos(6 * phi - 5 * theta)
-        + (975975 / 311296) * np.cos(6 * phi - 3 * theta)
-        + (1576575 / 622592) * np.cos(6 * phi - theta)
-        + (429975 / 311296) * np.cos(6 * phi + theta)
-        + (525525 / 1245184) * np.cos(6 * phi + 3 * theta)
-        + 1990625 / 3424256
-    )
-
-
-def M_gg_2_6_6_13():
-    def func(k):
-        return (4 / 97470945) * k**12
-
-    return func
-
-
-def N_gg_2_6_6_13(theta, phi):
-    return (
-        (945 / 2048) * np.cos(4 * phi)
-        + (1575 / 1024) * np.cos(2 * theta)
-        + (3675 / 4096) * np.cos(2 * phi - theta)
-        + (4725 / 2048) * np.cos(2 * phi + theta)
-        + (10395 / 4096) * np.cos(2 * phi + 3 * theta)
-        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
-        + (9009 / 2048) * np.cos(4 * phi + 4 * theta)
-        + (693 / 4096) * np.cos(6 * phi + theta)
-        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (45045 / 4096) * np.cos(6 * phi + 5 * theta)
-        + 1225 / 1024
-    )
-
-
-def M_gg_2_6_6_14():
-    def func(k):
-        return (8 / 422374095) * k**12
-
-    return func
-
-
-def N_gg_2_6_6_14(theta, phi):
-    return (
-        (394065 / 214016) * np.cos(4 * phi)
-        + (14175 / 53504) * np.cos(2 * theta)
-        + (99225 / 38912) * np.cos(4 * theta)
-        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
-        + (1289925 / 856064) * np.cos(2 * phi - theta)
-        - 552825 / 856064 * np.cos(2 * phi + theta)
-        - 104895 / 77824 * np.cos(2 * phi + 3 * theta)
-        + (257985 / 77824) * np.cos(2 * phi + 5 * theta)
-        + (694575 / 856064) * np.cos(4 * phi - 2 * theta)
-        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
-        - 36855 / 19456 * np.cos(4 * phi + 4 * theta)
-        + (257985 / 77824) * np.cos(4 * phi + 6 * theta)
-        + (19845 / 77824) * np.cos(6 * phi - theta)
-        + (93555 / 77824) * np.cos(6 * phi + theta)
-        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
-        + (405405 / 77824) * np.cos(6 * phi + 5 * theta)
-        - 297675 / 428032
-    )
-
-
-def M_gg_2_6_6_15():
-    def func(k):
-        return (32 / 6335611425) * k**12
-
-    return func
-
-
-def N_gg_2_6_6_15(theta, phi):
-    return (
-        (429975 / 856064) * np.cos(4 * phi)
-        - 716625 / 3424256 * np.cos(2 * theta)
-        - 429975 / 311296 * np.cos(4 * theta)
-        + (975975 / 311296) * np.cos(6 * theta)
         + (1576575 / 622592) * np.cos(2 * phi - 5 * theta)
         + (429975 / 856064) * np.cos(2 * phi - 3 * theta)
         - 16960125 / 13697024 * np.cos(2 * phi - theta)
@@ -13847,6 +13761,92 @@ def N_gg_2_6_6_15(theta, phi):
         + (1576575 / 622592) * np.cos(6 * phi + theta)
         + (975975 / 311296) * np.cos(6 * phi + 3 * theta)
         + (2927925 / 1245184) * np.cos(6 * phi + 5 * theta)
+        + 1990625 / 3424256
+    )
+
+
+def M_gg_2_6_6_13():
+    def func(k):
+        return (4 / 97470945) * k**12
+
+    return func
+
+
+def N_gg_2_6_6_13(theta, phi):
+    return (
+        (945 / 2048) * np.cos(4 * phi)
+        + (1575 / 1024) * np.cos(2 * theta)
+        + (10395 / 4096) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2048) * np.cos(2 * phi - theta)
+        + (3675 / 4096) * np.cos(2 * phi + theta)
+        + (9009 / 2048) * np.cos(4 * phi - 4 * theta)
+        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
+        + (45045 / 4096) * np.cos(6 * phi - 5 * theta)
+        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (693 / 4096) * np.cos(6 * phi - theta)
+        + 1225 / 1024
+    )
+
+
+def M_gg_2_6_6_14():
+    def func(k):
+        return (8 / 422374095) * k**12
+
+    return func
+
+
+def N_gg_2_6_6_14(theta, phi):
+    return (
+        (394065 / 214016) * np.cos(4 * phi)
+        + (14175 / 53504) * np.cos(2 * theta)
+        + (99225 / 38912) * np.cos(4 * theta)
+        + (257985 / 77824) * np.cos(2 * phi - 5 * theta)
+        - 104895 / 77824 * np.cos(2 * phi - 3 * theta)
+        - 552825 / 856064 * np.cos(2 * phi - theta)
+        + (1289925 / 856064) * np.cos(2 * phi + theta)
+        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
+        + (257985 / 77824) * np.cos(4 * phi - 6 * theta)
+        - 36855 / 19456 * np.cos(4 * phi - 4 * theta)
+        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (694575 / 856064) * np.cos(4 * phi + 2 * theta)
+        + (405405 / 77824) * np.cos(6 * phi - 5 * theta)
+        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
+        + (93555 / 77824) * np.cos(6 * phi - theta)
+        + (19845 / 77824) * np.cos(6 * phi + theta)
+        - 297675 / 428032
+    )
+
+
+def M_gg_2_6_6_15():
+    def func(k):
+        return (32 / 6335611425) * k**12
+
+    return func
+
+
+def N_gg_2_6_6_15(theta, phi):
+    return (
+        (429975 / 856064) * np.cos(4 * phi)
+        - 716625 / 3424256 * np.cos(2 * theta)
+        - 429975 / 311296 * np.cos(4 * theta)
+        + (975975 / 311296) * np.cos(6 * theta)
+        + (2927925 / 1245184) * np.cos(2 * phi - 7 * theta)
+        - 266175 / 311296 * np.cos(2 * phi - 5 * theta)
+        + (429975 / 311296) * np.cos(2 * phi - 3 * theta)
+        - 716625 / 3424256 * np.cos(2 * phi - theta)
+        - 16960125 / 13697024 * np.cos(2 * phi + theta)
+        + (429975 / 856064) * np.cos(2 * phi + 3 * theta)
+        + (1576575 / 622592) * np.cos(2 * phi + 5 * theta)
+        + (2395575 / 622592) * np.cos(4 * phi - 6 * theta)
+        - 266175 / 311296 * np.cos(4 * phi - 4 * theta)
+        - 429975 / 311296 * np.cos(4 * phi - 2 * theta)
+        + (12755925 / 6848512) * np.cos(4 * phi + 2 * theta)
+        + (429975 / 311296) * np.cos(4 * phi + 4 * theta)
+        + (2927925 / 1245184) * np.cos(6 * phi - 5 * theta)
+        + (975975 / 311296) * np.cos(6 * phi - 3 * theta)
+        + (1576575 / 622592) * np.cos(6 * phi - theta)
+        + (429975 / 311296) * np.cos(6 * phi + theta)
+        + (525525 / 1245184) * np.cos(6 * phi + 3 * theta)
         + 1990625 / 3424256
     )
 
@@ -13898,10 +13898,10 @@ def M_gg_2_6_8_0():
 
 def N_gg_2_6_8_0(theta, phi):
     return (
-        (5355 / 2048) * np.cos(2 * phi - theta)
-        + (11781 / 4096) * np.cos(4 * phi - 2 * theta)
-        + (7293 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (109395 / 16384) * np.cos(8 * phi - 4 * theta)
+        (5355 / 2048) * np.cos(2 * phi + theta)
+        + (11781 / 4096) * np.cos(4 * phi + 2 * theta)
+        + (7293 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (109395 / 16384) * np.cos(8 * phi + 4 * theta)
         + 20825 / 16384
     )
 
@@ -13917,14 +13917,14 @@ def N_gg_2_6_8_1(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
-        + (4725 / 2048) * np.cos(2 * phi - theta)
-        + (1575 / 1024) * np.cos(2 * phi + theta)
-        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
-        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
-        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
-        + (9009 / 2048) * np.cos(6 * phi - theta)
-        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
+        + (1575 / 1024) * np.cos(2 * phi - theta)
+        + (4725 / 2048) * np.cos(2 * phi + theta)
+        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
+        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
+        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
+        + (9009 / 2048) * np.cos(6 * phi + theta)
+        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
+        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
         + 1225 / 1024
     )
 
@@ -13940,16 +13940,16 @@ def N_gg_2_6_8_2(theta, phi):
     return (
         (176715 / 77824) * np.cos(4 * phi)
         + (187425 / 77824) * np.cos(2 * theta)
-        + (176715 / 77824) * np.cos(2 * phi - 3 * theta)
-        - 26775 / 19456 * np.cos(2 * phi - theta)
-        + (187425 / 77824) * np.cos(2 * phi + theta)
-        + (153153 / 77824) * np.cos(4 * phi - 4 * theta)
-        - 11781 / 19456 * np.cos(4 * phi - 2 * theta)
-        + (109395 / 77824) * np.cos(6 * phi - 5 * theta)
-        + (21879 / 19456) * np.cos(6 * phi - 3 * theta)
-        + (153153 / 77824) * np.cos(6 * phi - theta)
-        + (546975 / 77824) * np.cos(8 * phi - 4 * theta)
-        + (109395 / 77824) * np.cos(8 * phi - 2 * theta)
+        + (187425 / 77824) * np.cos(2 * phi - theta)
+        - 26775 / 19456 * np.cos(2 * phi + theta)
+        + (176715 / 77824) * np.cos(2 * phi + 3 * theta)
+        - 11781 / 19456 * np.cos(4 * phi + 2 * theta)
+        + (153153 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (153153 / 77824) * np.cos(6 * phi + theta)
+        + (21879 / 19456) * np.cos(6 * phi + 3 * theta)
+        + (109395 / 77824) * np.cos(6 * phi + 5 * theta)
+        + (109395 / 77824) * np.cos(8 * phi + 2 * theta)
+        + (546975 / 77824) * np.cos(8 * phi + 4 * theta)
         - 62475 / 77824
     )
 
@@ -13992,18 +13992,18 @@ def N_gg_2_6_8_4(theta, phi):
         + (257985 / 77824) * np.cos(8 * phi)
         + (1289925 / 856064) * np.cos(2 * theta)
         + (694575 / 856064) * np.cos(4 * theta)
-        + (19845 / 77824) * np.cos(2 * phi - 5 * theta)
-        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
-        - 552825 / 856064 * np.cos(2 * phi - theta)
-        + (14175 / 53504) * np.cos(2 * phi + theta)
-        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
-        + (93555 / 77824) * np.cos(4 * phi - 4 * theta)
-        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
-        - 36855 / 19456 * np.cos(6 * phi - theta)
-        + (257985 / 77824) * np.cos(6 * phi + theta)
-        + (405405 / 77824) * np.cos(8 * phi - 2 * theta)
+        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
+        + (14175 / 53504) * np.cos(2 * phi - theta)
+        - 552825 / 856064 * np.cos(2 * phi + theta)
+        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
+        + (19845 / 77824) * np.cos(2 * phi + 5 * theta)
+        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (93555 / 77824) * np.cos(4 * phi + 4 * theta)
+        + (257985 / 77824) * np.cos(6 * phi - theta)
+        - 36855 / 19456 * np.cos(6 * phi + theta)
+        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
+        + (405405 / 77824) * np.cos(8 * phi + 2 * theta)
         - 297675 / 428032
     )
 
@@ -14021,21 +14021,21 @@ def N_gg_2_6_8_5(theta, phi):
         + (530145 / 622592) * np.cos(8 * phi)
         - 5060475 / 4046848 * np.cos(2 * theta)
         + (18555075 / 8093696) * np.cos(4 * theta)
-        + (530145 / 311296) * np.cos(2 * phi - 5 * theta)
-        - 530145 / 4046848 * np.cos(2 * phi - 3 * theta)
-        + (2457945 / 4046848) * np.cos(2 * phi - theta)
-        - 5060475 / 4046848 * np.cos(2 * phi + theta)
-        + (5060475 / 2023424) * np.cos(2 * phi + 3 * theta)
-        + (530145 / 622592) * np.cos(4 * phi - 6 * theta)
-        + (530145 / 311296) * np.cos(4 * phi - 4 * theta)
-        - 954261 / 1011712 * np.cos(4 * phi - 2 * theta)
-        + (18555075 / 8093696) * np.cos(4 * phi + 2 * theta)
-        + (984555 / 311296) * np.cos(6 * phi - 5 * theta)
-        - 590733 / 311296 * np.cos(6 * phi - 3 * theta)
+        + (5060475 / 2023424) * np.cos(2 * phi - 3 * theta)
+        - 5060475 / 4046848 * np.cos(2 * phi - theta)
+        + (2457945 / 4046848) * np.cos(2 * phi + theta)
+        - 530145 / 4046848 * np.cos(2 * phi + 3 * theta)
+        + (530145 / 311296) * np.cos(2 * phi + 5 * theta)
+        + (18555075 / 8093696) * np.cos(4 * phi - 2 * theta)
+        - 954261 / 1011712 * np.cos(4 * phi + 2 * theta)
+        + (530145 / 311296) * np.cos(4 * phi + 4 * theta)
+        + (530145 / 622592) * np.cos(4 * phi + 6 * theta)
         + (530145 / 311296) * np.cos(6 * phi - theta)
         + (530145 / 311296) * np.cos(6 * phi + theta)
-        + (2953665 / 622592) * np.cos(8 * phi - 4 * theta)
-        + (984555 / 311296) * np.cos(8 * phi - 2 * theta)
+        - 590733 / 311296 * np.cos(6 * phi + 3 * theta)
+        + (984555 / 311296) * np.cos(6 * phi + 5 * theta)
+        + (984555 / 311296) * np.cos(8 * phi + 2 * theta)
+        + (2953665 / 622592) * np.cos(8 * phi + 4 * theta)
         + 5060475 / 8093696
     )
 
@@ -14051,14 +14051,14 @@ def N_gg_2_6_8_6(theta, phi):
     return (
         (10395 / 4096) * np.cos(4 * phi)
         + (3675 / 4096) * np.cos(2 * theta)
-        + (1575 / 1024) * np.cos(2 * phi - theta)
-        + (4725 / 2048) * np.cos(2 * phi + theta)
-        + (945 / 2048) * np.cos(2 * phi + 3 * theta)
-        + (2079 / 1024) * np.cos(4 * phi + 2 * theta)
-        + (693 / 4096) * np.cos(4 * phi + 4 * theta)
-        + (9009 / 2048) * np.cos(6 * phi + theta)
-        + (3003 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (45045 / 4096) * np.cos(8 * phi + 2 * theta)
+        + (945 / 2048) * np.cos(2 * phi - 3 * theta)
+        + (4725 / 2048) * np.cos(2 * phi - theta)
+        + (1575 / 1024) * np.cos(2 * phi + theta)
+        + (693 / 4096) * np.cos(4 * phi - 4 * theta)
+        + (2079 / 1024) * np.cos(4 * phi - 2 * theta)
+        + (3003 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (9009 / 2048) * np.cos(6 * phi - theta)
+        + (45045 / 4096) * np.cos(8 * phi - 2 * theta)
         + 1225 / 1024
     )
 
@@ -14076,18 +14076,18 @@ def N_gg_2_6_8_7(theta, phi):
         + (257985 / 77824) * np.cos(8 * phi)
         + (1289925 / 856064) * np.cos(2 * theta)
         + (694575 / 856064) * np.cos(4 * theta)
-        + (694575 / 428032) * np.cos(2 * phi - 3 * theta)
-        + (14175 / 53504) * np.cos(2 * phi - theta)
-        - 552825 / 856064 * np.cos(2 * phi + theta)
-        + (394065 / 214016) * np.cos(2 * phi + 3 * theta)
-        + (19845 / 77824) * np.cos(2 * phi + 5 * theta)
-        + (99225 / 38912) * np.cos(4 * phi - 2 * theta)
-        + (49329 / 38912) * np.cos(4 * phi + 2 * theta)
-        + (93555 / 77824) * np.cos(4 * phi + 4 * theta)
-        + (257985 / 77824) * np.cos(6 * phi - theta)
-        - 36855 / 19456 * np.cos(6 * phi + theta)
-        + (243243 / 77824) * np.cos(6 * phi + 3 * theta)
-        + (405405 / 77824) * np.cos(8 * phi + 2 * theta)
+        + (19845 / 77824) * np.cos(2 * phi - 5 * theta)
+        + (394065 / 214016) * np.cos(2 * phi - 3 * theta)
+        - 552825 / 856064 * np.cos(2 * phi - theta)
+        + (14175 / 53504) * np.cos(2 * phi + theta)
+        + (694575 / 428032) * np.cos(2 * phi + 3 * theta)
+        + (93555 / 77824) * np.cos(4 * phi - 4 * theta)
+        + (49329 / 38912) * np.cos(4 * phi - 2 * theta)
+        + (99225 / 38912) * np.cos(4 * phi + 2 * theta)
+        + (243243 / 77824) * np.cos(6 * phi - 3 * theta)
+        - 36855 / 19456 * np.cos(6 * phi - theta)
+        + (257985 / 77824) * np.cos(6 * phi + theta)
+        + (405405 / 77824) * np.cos(8 * phi - 2 * theta)
         - 297675 / 428032
     )
 
@@ -14140,118 +14140,6 @@ def N_gg_2_6_8_9(theta, phi):
         + (12182625 / 14319616) * np.cos(2 * theta)
         - 6185025 / 14319616 * np.cos(4 * theta)
         + (26801775 / 14319616) * np.cos(6 * theta)
-        + (11486475 / 14319616) * np.cos(2 * phi - 7 * theta)
-        + (11486475 / 7159808) * np.cos(2 * phi - 5 * theta)
-        - 6185025 / 7159808 * np.cos(2 * phi - 3 * theta)
-        + (133875 / 7159808) * np.cos(2 * phi - theta)
-        + (12182625 / 14319616) * np.cos(2 * phi + theta)
-        - 5060475 / 3579904 * np.cos(2 * phi + 3 * theta)
-        + (18555075 / 7159808) * np.cos(2 * phi + 5 * theta)
-        + (34459425 / 14319616) * np.cos(4 * phi - 6 * theta)
-        - 3828825 / 3579904 * np.cos(4 * phi - 4 * theta)
-        + (294525 / 223744) * np.cos(4 * phi - 2 * theta)
-        - 6185025 / 14319616 * np.cos(4 * phi + 2 * theta)
-        + (18555075 / 7159808) * np.cos(4 * phi + 4 * theta)
-        + (49774725 / 14319616) * np.cos(6 * phi - 5 * theta)
-        - 7110675 / 7159808 * np.cos(6 * phi - 3 * theta)
-        - 3828825 / 3579904 * np.cos(6 * phi - theta)
-        + (11486475 / 7159808) * np.cos(6 * phi + theta)
-        + (26801775 / 14319616) * np.cos(6 * phi + 3 * theta)
-        + (35553375 / 14319616) * np.cos(8 * phi - 4 * theta)
-        + (49774725 / 14319616) * np.cos(8 * phi - 2 * theta)
-        + (11486475 / 14319616) * np.cos(8 * phi + 2 * theta)
-        - 7809375 / 14319616
-    )
-
-
-def M_gg_2_6_8_10():
-    def func(k):
-        return (1 / 17721990) * k**12
-
-    return func
-
-
-def N_gg_2_6_8_10(theta, phi):
-    return (
-        (5355 / 2048) * np.cos(2 * phi + theta)
-        + (11781 / 4096) * np.cos(4 * phi + 2 * theta)
-        + (7293 / 2048) * np.cos(6 * phi + 3 * theta)
-        + (109395 / 16384) * np.cos(8 * phi + 4 * theta)
-        + 20825 / 16384
-    )
-
-
-def M_gg_2_6_8_11():
-    def func(k):
-        return (4 / 97470945) * k**12
-
-    return func
-
-
-def N_gg_2_6_8_11(theta, phi):
-    return (
-        (176715 / 77824) * np.cos(4 * phi)
-        + (187425 / 77824) * np.cos(2 * theta)
-        + (187425 / 77824) * np.cos(2 * phi - theta)
-        - 26775 / 19456 * np.cos(2 * phi + theta)
-        + (176715 / 77824) * np.cos(2 * phi + 3 * theta)
-        - 11781 / 19456 * np.cos(4 * phi + 2 * theta)
-        + (153153 / 77824) * np.cos(4 * phi + 4 * theta)
-        + (153153 / 77824) * np.cos(6 * phi + theta)
-        + (21879 / 19456) * np.cos(6 * phi + 3 * theta)
-        + (109395 / 77824) * np.cos(6 * phi + 5 * theta)
-        + (109395 / 77824) * np.cos(8 * phi + 2 * theta)
-        + (546975 / 77824) * np.cos(8 * phi + 4 * theta)
-        - 62475 / 77824
-    )
-
-
-def M_gg_2_6_8_12():
-    def func(k):
-        return (8 / 422374095) * k**12
-
-    return func
-
-
-def N_gg_2_6_8_12(theta, phi):
-    return (
-        -530145 / 4046848 * np.cos(4 * phi)
-        + (530145 / 622592) * np.cos(8 * phi)
-        - 5060475 / 4046848 * np.cos(2 * theta)
-        + (18555075 / 8093696) * np.cos(4 * theta)
-        + (5060475 / 2023424) * np.cos(2 * phi - 3 * theta)
-        - 5060475 / 4046848 * np.cos(2 * phi - theta)
-        + (2457945 / 4046848) * np.cos(2 * phi + theta)
-        - 530145 / 4046848 * np.cos(2 * phi + 3 * theta)
-        + (530145 / 311296) * np.cos(2 * phi + 5 * theta)
-        + (18555075 / 8093696) * np.cos(4 * phi - 2 * theta)
-        - 954261 / 1011712 * np.cos(4 * phi + 2 * theta)
-        + (530145 / 311296) * np.cos(4 * phi + 4 * theta)
-        + (530145 / 622592) * np.cos(4 * phi + 6 * theta)
-        + (530145 / 311296) * np.cos(6 * phi - theta)
-        + (530145 / 311296) * np.cos(6 * phi + theta)
-        - 590733 / 311296 * np.cos(6 * phi + 3 * theta)
-        + (984555 / 311296) * np.cos(6 * phi + 5 * theta)
-        + (984555 / 311296) * np.cos(8 * phi + 2 * theta)
-        + (2953665 / 622592) * np.cos(8 * phi + 4 * theta)
-        + 5060475 / 8093696
-    )
-
-
-def M_gg_2_6_8_13():
-    def func(k):
-        return (32 / 6335611425) * k**12
-
-    return func
-
-
-def N_gg_2_6_8_13(theta, phi):
-    return (
-        -6185025 / 7159808 * np.cos(4 * phi)
-        + (34459425 / 14319616) * np.cos(8 * phi)
-        + (12182625 / 14319616) * np.cos(2 * theta)
-        - 6185025 / 14319616 * np.cos(4 * theta)
-        + (26801775 / 14319616) * np.cos(6 * theta)
         + (18555075 / 7159808) * np.cos(2 * phi - 5 * theta)
         - 5060475 / 3579904 * np.cos(2 * phi - 3 * theta)
         + (12182625 / 14319616) * np.cos(2 * phi - theta)
@@ -14272,6 +14160,118 @@ def N_gg_2_6_8_13(theta, phi):
         + (11486475 / 14319616) * np.cos(8 * phi - 2 * theta)
         + (49774725 / 14319616) * np.cos(8 * phi + 2 * theta)
         + (35553375 / 14319616) * np.cos(8 * phi + 4 * theta)
+        - 7809375 / 14319616
+    )
+
+
+def M_gg_2_6_8_10():
+    def func(k):
+        return (1 / 17721990) * k**12
+
+    return func
+
+
+def N_gg_2_6_8_10(theta, phi):
+    return (
+        (5355 / 2048) * np.cos(2 * phi - theta)
+        + (11781 / 4096) * np.cos(4 * phi - 2 * theta)
+        + (7293 / 2048) * np.cos(6 * phi - 3 * theta)
+        + (109395 / 16384) * np.cos(8 * phi - 4 * theta)
+        + 20825 / 16384
+    )
+
+
+def M_gg_2_6_8_11():
+    def func(k):
+        return (4 / 97470945) * k**12
+
+    return func
+
+
+def N_gg_2_6_8_11(theta, phi):
+    return (
+        (176715 / 77824) * np.cos(4 * phi)
+        + (187425 / 77824) * np.cos(2 * theta)
+        + (176715 / 77824) * np.cos(2 * phi - 3 * theta)
+        - 26775 / 19456 * np.cos(2 * phi - theta)
+        + (187425 / 77824) * np.cos(2 * phi + theta)
+        + (153153 / 77824) * np.cos(4 * phi - 4 * theta)
+        - 11781 / 19456 * np.cos(4 * phi - 2 * theta)
+        + (109395 / 77824) * np.cos(6 * phi - 5 * theta)
+        + (21879 / 19456) * np.cos(6 * phi - 3 * theta)
+        + (153153 / 77824) * np.cos(6 * phi - theta)
+        + (546975 / 77824) * np.cos(8 * phi - 4 * theta)
+        + (109395 / 77824) * np.cos(8 * phi - 2 * theta)
+        - 62475 / 77824
+    )
+
+
+def M_gg_2_6_8_12():
+    def func(k):
+        return (8 / 422374095) * k**12
+
+    return func
+
+
+def N_gg_2_6_8_12(theta, phi):
+    return (
+        -530145 / 4046848 * np.cos(4 * phi)
+        + (530145 / 622592) * np.cos(8 * phi)
+        - 5060475 / 4046848 * np.cos(2 * theta)
+        + (18555075 / 8093696) * np.cos(4 * theta)
+        + (530145 / 311296) * np.cos(2 * phi - 5 * theta)
+        - 530145 / 4046848 * np.cos(2 * phi - 3 * theta)
+        + (2457945 / 4046848) * np.cos(2 * phi - theta)
+        - 5060475 / 4046848 * np.cos(2 * phi + theta)
+        + (5060475 / 2023424) * np.cos(2 * phi + 3 * theta)
+        + (530145 / 622592) * np.cos(4 * phi - 6 * theta)
+        + (530145 / 311296) * np.cos(4 * phi - 4 * theta)
+        - 954261 / 1011712 * np.cos(4 * phi - 2 * theta)
+        + (18555075 / 8093696) * np.cos(4 * phi + 2 * theta)
+        + (984555 / 311296) * np.cos(6 * phi - 5 * theta)
+        - 590733 / 311296 * np.cos(6 * phi - 3 * theta)
+        + (530145 / 311296) * np.cos(6 * phi - theta)
+        + (530145 / 311296) * np.cos(6 * phi + theta)
+        + (2953665 / 622592) * np.cos(8 * phi - 4 * theta)
+        + (984555 / 311296) * np.cos(8 * phi - 2 * theta)
+        + 5060475 / 8093696
+    )
+
+
+def M_gg_2_6_8_13():
+    def func(k):
+        return (32 / 6335611425) * k**12
+
+    return func
+
+
+def N_gg_2_6_8_13(theta, phi):
+    return (
+        -6185025 / 7159808 * np.cos(4 * phi)
+        + (34459425 / 14319616) * np.cos(8 * phi)
+        + (12182625 / 14319616) * np.cos(2 * theta)
+        - 6185025 / 14319616 * np.cos(4 * theta)
+        + (26801775 / 14319616) * np.cos(6 * theta)
+        + (11486475 / 14319616) * np.cos(2 * phi - 7 * theta)
+        + (11486475 / 7159808) * np.cos(2 * phi - 5 * theta)
+        - 6185025 / 7159808 * np.cos(2 * phi - 3 * theta)
+        + (133875 / 7159808) * np.cos(2 * phi - theta)
+        + (12182625 / 14319616) * np.cos(2 * phi + theta)
+        - 5060475 / 3579904 * np.cos(2 * phi + 3 * theta)
+        + (18555075 / 7159808) * np.cos(2 * phi + 5 * theta)
+        + (34459425 / 14319616) * np.cos(4 * phi - 6 * theta)
+        - 3828825 / 3579904 * np.cos(4 * phi - 4 * theta)
+        + (294525 / 223744) * np.cos(4 * phi - 2 * theta)
+        - 6185025 / 14319616 * np.cos(4 * phi + 2 * theta)
+        + (18555075 / 7159808) * np.cos(4 * phi + 4 * theta)
+        + (49774725 / 14319616) * np.cos(6 * phi - 5 * theta)
+        - 7110675 / 7159808 * np.cos(6 * phi - 3 * theta)
+        - 3828825 / 3579904 * np.cos(6 * phi - theta)
+        + (11486475 / 7159808) * np.cos(6 * phi + theta)
+        + (26801775 / 14319616) * np.cos(6 * phi + 3 * theta)
+        + (35553375 / 14319616) * np.cos(8 * phi - 4 * theta)
+        + (49774725 / 14319616) * np.cos(8 * phi - 2 * theta)
+        + (11486475 / 14319616) * np.cos(8 * phi + 2 * theta)
         - 7809375 / 14319616
     )
 
@@ -14330,17 +14330,17 @@ def N_gg_2_6_10_0(theta, phi):
     return (
         (675675 / 311296) * np.cos(4 * phi)
         + (297675 / 311296) * np.cos(2 * theta)
-        + (363825 / 622592) * np.cos(2 * phi - 3 * theta)
-        + (363825 / 155648) * np.cos(2 * phi - theta)
-        + (1819125 / 1245184) * np.cos(2 * phi + theta)
-        + (96525 / 311296) * np.cos(4 * phi - 4 * theta)
-        + (675675 / 311296) * np.cos(4 * phi - 2 * theta)
-        + (289575 / 2490368) * np.cos(6 * phi - 5 * theta)
-        + (289575 / 155648) * np.cos(6 * phi - 3 * theta)
-        + (2027025 / 622592) * np.cos(6 * phi - theta)
-        + (1640925 / 1245184) * np.cos(8 * phi - 4 * theta)
-        + (1640925 / 311296) * np.cos(8 * phi - 2 * theta)
-        + (1640925 / 131072) * np.cos(10 * phi - 3 * theta)
+        + (1819125 / 1245184) * np.cos(2 * phi - theta)
+        + (363825 / 155648) * np.cos(2 * phi + theta)
+        + (363825 / 622592) * np.cos(2 * phi + 3 * theta)
+        + (675675 / 311296) * np.cos(4 * phi + 2 * theta)
+        + (96525 / 311296) * np.cos(4 * phi + 4 * theta)
+        + (2027025 / 622592) * np.cos(6 * phi + theta)
+        + (289575 / 155648) * np.cos(6 * phi + 3 * theta)
+        + (289575 / 2490368) * np.cos(6 * phi + 5 * theta)
+        + (1640925 / 311296) * np.cos(8 * phi + 2 * theta)
+        + (1640925 / 1245184) * np.cos(8 * phi + 4 * theta)
+        + (1640925 / 131072) * np.cos(10 * phi + 3 * theta)
         + 1488375 / 1245184
     )
 
@@ -14353,70 +14353,6 @@ def M_gg_2_6_10_1():
 
 
 def N_gg_2_6_10_1(theta, phi):
-    return (
-        (14189175 / 5292032) * np.cos(4 * phi)
-        + (2837835 / 622592) * np.cos(8 * phi)
-        + (6251175 / 5292032) * np.cos(2 * theta)
-        + (1250235 / 10584064) * np.cos(4 * theta)
-        + (509355 / 21168128) * np.cos(2 * phi - 5 * theta)
-        + (1528065 / 2646016) * np.cos(2 * phi - 3 * theta)
-        + (22920975 / 10584064) * np.cos(2 * phi - theta)
-        + (2546775 / 1323008) * np.cos(2 * phi + theta)
-        + (7640325 / 21168128) * np.cos(2 * phi + 3 * theta)
-        + (945945 / 5292032) * np.cos(4 * phi - 4 * theta)
-        + (8513505 / 5292032) * np.cos(4 * phi - 2 * theta)
-        + (4729725 / 5292032) * np.cos(4 * phi + 2 * theta)
-        + (8513505 / 10584064) * np.cos(6 * phi - 3 * theta)
-        + (8513505 / 2646016) * np.cos(6 * phi - theta)
-        + (42567525 / 21168128) * np.cos(6 * phi + theta)
-        + (945945 / 311296) * np.cos(8 * phi - 2 * theta)
-        + (945945 / 65536) * np.cos(10 * phi - theta)
-        + 6251175 / 5292032
-    )
-
-
-def M_gg_2_6_10_2():
-    def func(k):
-        return (8 / 422374095) * k**12
-
-    return func
-
-
-def N_gg_2_6_10_2(theta, phi):
-    return (
-        -6081075 / 7159808 * np.cos(4 * phi)
-        + (48243195 / 14319616) * np.cos(8 * phi)
-        + (9823275 / 7159808) * np.cos(2 * theta)
-        + (13752585 / 14319616) * np.cos(4 * theta)
-        + (6621615 / 14319616) * np.cos(2 * phi - 5 * theta)
-        + (12879405 / 7159808) * np.cos(2 * phi - 3 * theta)
-        - 3274425 / 3579904 * np.cos(2 * phi - theta)
-        + (363825 / 894976) * np.cos(2 * phi + theta)
-        + (22920975 / 14319616) * np.cos(2 * phi + 3 * theta)
-        + (2027025 / 14319616) * np.cos(4 * phi - 6 * theta)
-        + (11563695 / 7159808) * np.cos(4 * phi - 4 * theta)
-        + (1216215 / 3579904) * np.cos(4 * phi - 2 * theta)
-        + (33108075 / 14319616) * np.cos(4 * phi + 2 * theta)
-        + (13030875 / 14319616) * np.cos(6 * phi - 5 * theta)
-        + (7123545 / 3579904) * np.cos(6 * phi - 3 * theta)
-        - 13378365 / 7159808 * np.cos(6 * phi - theta)
-        + (42567525 / 14319616) * np.cos(6 * phi + theta)
-        + (44304975 / 14319616) * np.cos(8 * phi - 4 * theta)
-        - 10173735 / 7159808 * np.cos(8 * phi - 2 * theta)
-        + (4922775 / 753664) * np.cos(10 * phi - 3 * theta)
-        + (2297295 / 753664) * np.cos(10 * phi - theta)
-        - 9823275 / 14319616
-    )
-
-
-def M_gg_2_6_10_3():
-    def func(k):
-        return (4 / 24845535) * k**12
-
-    return func
-
-
-def N_gg_2_6_10_3(theta, phi):
     return (
         (14189175 / 5292032) * np.cos(4 * phi)
         + (2837835 / 622592) * np.cos(8 * phi)
@@ -14435,6 +14371,70 @@ def N_gg_2_6_10_3(theta, phi):
         + (8513505 / 10584064) * np.cos(6 * phi + 3 * theta)
         + (945945 / 311296) * np.cos(8 * phi + 2 * theta)
         + (945945 / 65536) * np.cos(10 * phi + theta)
+        + 6251175 / 5292032
+    )
+
+
+def M_gg_2_6_10_2():
+    def func(k):
+        return (8 / 422374095) * k**12
+
+    return func
+
+
+def N_gg_2_6_10_2(theta, phi):
+    return (
+        -6081075 / 7159808 * np.cos(4 * phi)
+        + (48243195 / 14319616) * np.cos(8 * phi)
+        + (9823275 / 7159808) * np.cos(2 * theta)
+        + (13752585 / 14319616) * np.cos(4 * theta)
+        + (22920975 / 14319616) * np.cos(2 * phi - 3 * theta)
+        + (363825 / 894976) * np.cos(2 * phi - theta)
+        - 3274425 / 3579904 * np.cos(2 * phi + theta)
+        + (12879405 / 7159808) * np.cos(2 * phi + 3 * theta)
+        + (6621615 / 14319616) * np.cos(2 * phi + 5 * theta)
+        + (33108075 / 14319616) * np.cos(4 * phi - 2 * theta)
+        + (1216215 / 3579904) * np.cos(4 * phi + 2 * theta)
+        + (11563695 / 7159808) * np.cos(4 * phi + 4 * theta)
+        + (2027025 / 14319616) * np.cos(4 * phi + 6 * theta)
+        + (42567525 / 14319616) * np.cos(6 * phi - theta)
+        - 13378365 / 7159808 * np.cos(6 * phi + theta)
+        + (7123545 / 3579904) * np.cos(6 * phi + 3 * theta)
+        + (13030875 / 14319616) * np.cos(6 * phi + 5 * theta)
+        - 10173735 / 7159808 * np.cos(8 * phi + 2 * theta)
+        + (44304975 / 14319616) * np.cos(8 * phi + 4 * theta)
+        + (2297295 / 753664) * np.cos(10 * phi + theta)
+        + (4922775 / 753664) * np.cos(10 * phi + 3 * theta)
+        - 9823275 / 14319616
+    )
+
+
+def M_gg_2_6_10_3():
+    def func(k):
+        return (4 / 24845535) * k**12
+
+    return func
+
+
+def N_gg_2_6_10_3(theta, phi):
+    return (
+        (14189175 / 5292032) * np.cos(4 * phi)
+        + (2837835 / 622592) * np.cos(8 * phi)
+        + (6251175 / 5292032) * np.cos(2 * theta)
+        + (1250235 / 10584064) * np.cos(4 * theta)
+        + (509355 / 21168128) * np.cos(2 * phi - 5 * theta)
+        + (1528065 / 2646016) * np.cos(2 * phi - 3 * theta)
+        + (22920975 / 10584064) * np.cos(2 * phi - theta)
+        + (2546775 / 1323008) * np.cos(2 * phi + theta)
+        + (7640325 / 21168128) * np.cos(2 * phi + 3 * theta)
+        + (945945 / 5292032) * np.cos(4 * phi - 4 * theta)
+        + (8513505 / 5292032) * np.cos(4 * phi - 2 * theta)
+        + (4729725 / 5292032) * np.cos(4 * phi + 2 * theta)
+        + (8513505 / 10584064) * np.cos(6 * phi - 3 * theta)
+        + (8513505 / 2646016) * np.cos(6 * phi - theta)
+        + (42567525 / 21168128) * np.cos(6 * phi + theta)
+        + (945945 / 311296) * np.cos(8 * phi - 2 * theta)
+        + (945945 / 65536) * np.cos(10 * phi - theta)
         + 6251175 / 5292032
     )
 
@@ -14489,107 +14489,6 @@ def N_gg_2_6_10_5(theta, phi):
         - 138442689 / 114556928 * np.cos(2 * theta)
         + (112771197 / 71598080) * np.cos(4 * theta)
         + (393323931 / 572784640) * np.cos(6 * theta)
-        + (43702659 / 229113856) * np.cos(2 * phi - 7 * theta)
-        + (194675481 / 114556928) * np.cos(2 * phi - 5 * theta)
-        - 79968735 / 229113856 * np.cos(2 * phi - 3 * theta)
-        + (14771295 / 57278464) * np.cos(2 * phi - theta)
-        - 89137125 / 229113856 * np.cos(2 * phi + theta)
-        + (48592467 / 114556928) * np.cos(2 * phi + 3 * theta)
-        + (332812557 / 229113856) * np.cos(2 * phi + 5 * theta)
-        + (51648597 / 57278464) * np.cos(4 * phi - 6 * theta)
-        + (86080995 / 57278464) * np.cos(4 * phi - 4 * theta)
-        - 34999965 / 28639232 * np.cos(4 * phi - 2 * theta)
-        - 59594535 / 57278464 * np.cos(4 * phi + 2 * theta)
-        + (131107977 / 57278464) * np.cos(4 * phi + 4 * theta)
-        + (258242985 / 114556928) * np.cos(6 * phi - 5 * theta)
-        - 36891855 / 57278464 * np.cos(6 * phi - 3 * theta)
-        + (218513295 / 229113856) * np.cos(6 * phi - theta)
-        - 171972801 / 114556928 * np.cos(6 * phi + theta)
-        + (655539885 / 229113856) * np.cos(6 * phi + 3 * theta)
-        + (209053845 / 57278464) * np.cos(8 * phi - 4 * theta)
-        - 209053845 / 114556928 * np.cos(8 * phi - 2 * theta)
-        + (318405087 / 114556928) * np.cos(8 * phi + 2 * theta)
-        + (41810769 / 12058624) * np.cos(10 * phi - 3 * theta)
-        + (125432307 / 30146560) * np.cos(10 * phi - theta)
-        + (106135029 / 60293120) * np.cos(10 * phi + theta)
-        + 32089365 / 57278464
-    )
-
-
-def M_gg_2_6_10_6():
-    def func(k):
-        return (4 / 97470945) * k**12
-
-    return func
-
-
-def N_gg_2_6_10_6(theta, phi):
-    return (
-        (675675 / 311296) * np.cos(4 * phi)
-        + (297675 / 311296) * np.cos(2 * theta)
-        + (1819125 / 1245184) * np.cos(2 * phi - theta)
-        + (363825 / 155648) * np.cos(2 * phi + theta)
-        + (363825 / 622592) * np.cos(2 * phi + 3 * theta)
-        + (675675 / 311296) * np.cos(4 * phi + 2 * theta)
-        + (96525 / 311296) * np.cos(4 * phi + 4 * theta)
-        + (2027025 / 622592) * np.cos(6 * phi + theta)
-        + (289575 / 155648) * np.cos(6 * phi + 3 * theta)
-        + (289575 / 2490368) * np.cos(6 * phi + 5 * theta)
-        + (1640925 / 311296) * np.cos(8 * phi + 2 * theta)
-        + (1640925 / 1245184) * np.cos(8 * phi + 4 * theta)
-        + (1640925 / 131072) * np.cos(10 * phi + 3 * theta)
-        + 1488375 / 1245184
-    )
-
-
-def M_gg_2_6_10_7():
-    def func(k):
-        return (8 / 422374095) * k**12
-
-    return func
-
-
-def N_gg_2_6_10_7(theta, phi):
-    return (
-        -6081075 / 7159808 * np.cos(4 * phi)
-        + (48243195 / 14319616) * np.cos(8 * phi)
-        + (9823275 / 7159808) * np.cos(2 * theta)
-        + (13752585 / 14319616) * np.cos(4 * theta)
-        + (22920975 / 14319616) * np.cos(2 * phi - 3 * theta)
-        + (363825 / 894976) * np.cos(2 * phi - theta)
-        - 3274425 / 3579904 * np.cos(2 * phi + theta)
-        + (12879405 / 7159808) * np.cos(2 * phi + 3 * theta)
-        + (6621615 / 14319616) * np.cos(2 * phi + 5 * theta)
-        + (33108075 / 14319616) * np.cos(4 * phi - 2 * theta)
-        + (1216215 / 3579904) * np.cos(4 * phi + 2 * theta)
-        + (11563695 / 7159808) * np.cos(4 * phi + 4 * theta)
-        + (2027025 / 14319616) * np.cos(4 * phi + 6 * theta)
-        + (42567525 / 14319616) * np.cos(6 * phi - theta)
-        - 13378365 / 7159808 * np.cos(6 * phi + theta)
-        + (7123545 / 3579904) * np.cos(6 * phi + 3 * theta)
-        + (13030875 / 14319616) * np.cos(6 * phi + 5 * theta)
-        - 10173735 / 7159808 * np.cos(8 * phi + 2 * theta)
-        + (44304975 / 14319616) * np.cos(8 * phi + 4 * theta)
-        + (2297295 / 753664) * np.cos(10 * phi + theta)
-        + (4922775 / 753664) * np.cos(10 * phi + 3 * theta)
-        - 9823275 / 14319616
-    )
-
-
-def M_gg_2_6_10_8():
-    def func(k):
-        return (32 / 6335611425) * k**12
-
-    return func
-
-
-def N_gg_2_6_10_8(theta, phi):
-    return (
-        (945945 / 894976) * np.cos(4 * phi)
-        + (9648639 / 28639232) * np.cos(8 * phi)
-        - 138442689 / 114556928 * np.cos(2 * theta)
-        + (112771197 / 71598080) * np.cos(4 * theta)
-        + (393323931 / 572784640) * np.cos(6 * theta)
         + (332812557 / 229113856) * np.cos(2 * phi - 5 * theta)
         + (48592467 / 114556928) * np.cos(2 * phi - 3 * theta)
         - 89137125 / 229113856 * np.cos(2 * phi - theta)
@@ -14613,6 +14512,107 @@ def N_gg_2_6_10_8(theta, phi):
         + (106135029 / 60293120) * np.cos(10 * phi - theta)
         + (125432307 / 30146560) * np.cos(10 * phi + theta)
         + (41810769 / 12058624) * np.cos(10 * phi + 3 * theta)
+        + 32089365 / 57278464
+    )
+
+
+def M_gg_2_6_10_6():
+    def func(k):
+        return (4 / 97470945) * k**12
+
+    return func
+
+
+def N_gg_2_6_10_6(theta, phi):
+    return (
+        (675675 / 311296) * np.cos(4 * phi)
+        + (297675 / 311296) * np.cos(2 * theta)
+        + (363825 / 622592) * np.cos(2 * phi - 3 * theta)
+        + (363825 / 155648) * np.cos(2 * phi - theta)
+        + (1819125 / 1245184) * np.cos(2 * phi + theta)
+        + (96525 / 311296) * np.cos(4 * phi - 4 * theta)
+        + (675675 / 311296) * np.cos(4 * phi - 2 * theta)
+        + (289575 / 2490368) * np.cos(6 * phi - 5 * theta)
+        + (289575 / 155648) * np.cos(6 * phi - 3 * theta)
+        + (2027025 / 622592) * np.cos(6 * phi - theta)
+        + (1640925 / 1245184) * np.cos(8 * phi - 4 * theta)
+        + (1640925 / 311296) * np.cos(8 * phi - 2 * theta)
+        + (1640925 / 131072) * np.cos(10 * phi - 3 * theta)
+        + 1488375 / 1245184
+    )
+
+
+def M_gg_2_6_10_7():
+    def func(k):
+        return (8 / 422374095) * k**12
+
+    return func
+
+
+def N_gg_2_6_10_7(theta, phi):
+    return (
+        -6081075 / 7159808 * np.cos(4 * phi)
+        + (48243195 / 14319616) * np.cos(8 * phi)
+        + (9823275 / 7159808) * np.cos(2 * theta)
+        + (13752585 / 14319616) * np.cos(4 * theta)
+        + (6621615 / 14319616) * np.cos(2 * phi - 5 * theta)
+        + (12879405 / 7159808) * np.cos(2 * phi - 3 * theta)
+        - 3274425 / 3579904 * np.cos(2 * phi - theta)
+        + (363825 / 894976) * np.cos(2 * phi + theta)
+        + (22920975 / 14319616) * np.cos(2 * phi + 3 * theta)
+        + (2027025 / 14319616) * np.cos(4 * phi - 6 * theta)
+        + (11563695 / 7159808) * np.cos(4 * phi - 4 * theta)
+        + (1216215 / 3579904) * np.cos(4 * phi - 2 * theta)
+        + (33108075 / 14319616) * np.cos(4 * phi + 2 * theta)
+        + (13030875 / 14319616) * np.cos(6 * phi - 5 * theta)
+        + (7123545 / 3579904) * np.cos(6 * phi - 3 * theta)
+        - 13378365 / 7159808 * np.cos(6 * phi - theta)
+        + (42567525 / 14319616) * np.cos(6 * phi + theta)
+        + (44304975 / 14319616) * np.cos(8 * phi - 4 * theta)
+        - 10173735 / 7159808 * np.cos(8 * phi - 2 * theta)
+        + (4922775 / 753664) * np.cos(10 * phi - 3 * theta)
+        + (2297295 / 753664) * np.cos(10 * phi - theta)
+        - 9823275 / 14319616
+    )
+
+
+def M_gg_2_6_10_8():
+    def func(k):
+        return (32 / 6335611425) * k**12
+
+    return func
+
+
+def N_gg_2_6_10_8(theta, phi):
+    return (
+        (945945 / 894976) * np.cos(4 * phi)
+        + (9648639 / 28639232) * np.cos(8 * phi)
+        - 138442689 / 114556928 * np.cos(2 * theta)
+        + (112771197 / 71598080) * np.cos(4 * theta)
+        + (393323931 / 572784640) * np.cos(6 * theta)
+        + (43702659 / 229113856) * np.cos(2 * phi - 7 * theta)
+        + (194675481 / 114556928) * np.cos(2 * phi - 5 * theta)
+        - 79968735 / 229113856 * np.cos(2 * phi - 3 * theta)
+        + (14771295 / 57278464) * np.cos(2 * phi - theta)
+        - 89137125 / 229113856 * np.cos(2 * phi + theta)
+        + (48592467 / 114556928) * np.cos(2 * phi + 3 * theta)
+        + (332812557 / 229113856) * np.cos(2 * phi + 5 * theta)
+        + (51648597 / 57278464) * np.cos(4 * phi - 6 * theta)
+        + (86080995 / 57278464) * np.cos(4 * phi - 4 * theta)
+        - 34999965 / 28639232 * np.cos(4 * phi - 2 * theta)
+        - 59594535 / 57278464 * np.cos(4 * phi + 2 * theta)
+        + (131107977 / 57278464) * np.cos(4 * phi + 4 * theta)
+        + (258242985 / 114556928) * np.cos(6 * phi - 5 * theta)
+        - 36891855 / 57278464 * np.cos(6 * phi - 3 * theta)
+        + (218513295 / 229113856) * np.cos(6 * phi - theta)
+        - 171972801 / 114556928 * np.cos(6 * phi + theta)
+        + (655539885 / 229113856) * np.cos(6 * phi + 3 * theta)
+        + (209053845 / 57278464) * np.cos(8 * phi - 4 * theta)
+        - 209053845 / 114556928 * np.cos(8 * phi - 2 * theta)
+        + (318405087 / 114556928) * np.cos(8 * phi + 2 * theta)
+        + (41810769 / 12058624) * np.cos(10 * phi - 3 * theta)
+        + (125432307 / 30146560) * np.cos(10 * phi - theta)
+        + (106135029 / 60293120) * np.cos(10 * phi + theta)
         + 32089365 / 57278464
     )
 
@@ -14677,24 +14677,24 @@ def N_gg_2_6_12_0(theta, phi):
         + (34459425 / 12058624) * np.cos(8 * phi)
         + (36018675 / 28639232) * np.cos(2 * theta)
         + (36018675 / 229113856) * np.cos(4 * theta)
-        + (6081075 / 114556928) * np.cos(2 * phi - 5 * theta)
-        + (42567525 / 57278464) * np.cos(2 * phi - 3 * theta)
-        + (127702575 / 57278464) * np.cos(2 * phi - theta)
-        + (212837625 / 114556928) * np.cos(2 * phi + theta)
-        + (42567525 / 114556928) * np.cos(2 * phi + 3 * theta)
-        + (10135125 / 916455424) * np.cos(4 * phi - 6 * theta)
-        + (10135125 / 28639232) * np.cos(4 * phi - 4 * theta)
-        + (212837625 / 114556928) * np.cos(4 * phi - 2 * theta)
-        + (354729375 / 458227712) * np.cos(4 * phi + 2 * theta)
-        + (24613875 / 229113856) * np.cos(6 * phi - 5 * theta)
-        + (73841625 / 57278464) * np.cos(6 * phi - 3 * theta)
-        + (172297125 / 57278464) * np.cos(6 * phi - theta)
-        + (172297125 / 114556928) * np.cos(6 * phi + theta)
-        + (14768325 / 24117248) * np.cos(8 * phi - 4 * theta)
-        + (4922775 / 1507328) * np.cos(8 * phi - 2 * theta)
-        + (34459425 / 12058624) * np.cos(10 * phi - 3 * theta)
-        + (34459425 / 6029312) * np.cos(10 * phi - theta)
-        + (34459425 / 2097152) * np.cos(12 * phi - 2 * theta)
+        + (42567525 / 114556928) * np.cos(2 * phi - 3 * theta)
+        + (212837625 / 114556928) * np.cos(2 * phi - theta)
+        + (127702575 / 57278464) * np.cos(2 * phi + theta)
+        + (42567525 / 57278464) * np.cos(2 * phi + 3 * theta)
+        + (6081075 / 114556928) * np.cos(2 * phi + 5 * theta)
+        + (354729375 / 458227712) * np.cos(4 * phi - 2 * theta)
+        + (212837625 / 114556928) * np.cos(4 * phi + 2 * theta)
+        + (10135125 / 28639232) * np.cos(4 * phi + 4 * theta)
+        + (10135125 / 916455424) * np.cos(4 * phi + 6 * theta)
+        + (172297125 / 114556928) * np.cos(6 * phi - theta)
+        + (172297125 / 57278464) * np.cos(6 * phi + theta)
+        + (73841625 / 57278464) * np.cos(6 * phi + 3 * theta)
+        + (24613875 / 229113856) * np.cos(6 * phi + 5 * theta)
+        + (4922775 / 1507328) * np.cos(8 * phi + 2 * theta)
+        + (14768325 / 24117248) * np.cos(8 * phi + 4 * theta)
+        + (34459425 / 6029312) * np.cos(10 * phi + theta)
+        + (34459425 / 12058624) * np.cos(10 * phi + 3 * theta)
+        + (34459425 / 2097152) * np.cos(12 * phi + 2 * theta)
         + 540280125 / 458227712
     )
 
@@ -14751,84 +14751,6 @@ def N_gg_2_6_12_2(theta, phi):
         + (225450225 / 229113856) * np.cos(2 * theta)
         + (9018009 / 7159808) * np.cos(4 * theta)
         + (33066033 / 229113856) * np.cos(6 * theta)
-        + (6441435 / 229113856) * np.cos(2 * phi - 7 * theta)
-        + (18621603 / 28639232) * np.cos(2 * phi - 5 * theta)
-        + (381215835 / 229113856) * np.cos(2 * phi - 3 * theta)
-        - 20495475 / 28639232 * np.cos(2 * phi - theta)
-        - 61486425 / 229113856 * np.cos(2 * phi + theta)
-        + (12297285 / 7159808) * np.cos(2 * phi + 3 * theta)
-        + (99198099 / 229113856) * np.cos(2 * phi + 5 * theta)
-        + (43918875 / 229113856) * np.cos(4 * phi - 6 * theta)
-        + (342567225 / 229113856) * np.cos(4 * phi - 4 * theta)
-        + (20495475 / 28639232) * np.cos(4 * phi - 2 * theta)
-        + (184459275 / 114556928) * np.cos(4 * phi + 2 * theta)
-        + (225450225 / 229113856) * np.cos(4 * phi + 4 * theta)
-        + (82957875 / 114556928) * np.cos(6 * phi - 5 * theta)
-        + (57675475 / 28639232) * np.cos(6 * phi - 3 * theta)
-        - 282056775 / 229113856 * np.cos(6 * phi - theta)
-        + (16591575 / 28639232) * np.cos(6 * phi + theta)
-        + (425850425 / 229113856) * np.cos(6 * phi + 3 * theta)
-        + (11851125 / 6029312) * np.cos(8 * phi - 4 * theta)
-        + (9954945 / 12058624) * np.cos(8 * phi - 2 * theta)
-        + (36501465 / 12058624) * np.cos(8 * phi + 2 * theta)
-        + (49774725 / 12058624) * np.cos(10 * phi - 3 * theta)
-        - 1990989 / 753664 * np.cos(10 * phi - theta)
-        + (51102051 / 12058624) * np.cos(10 * phi + theta)
-        + (3318315 / 524288) * np.cos(12 * phi - 2 * theta)
-        - 75150075 / 114556928
-    )
-
-
-def M_gg_2_6_12_3():
-    def func(k):
-        return (8 / 422374095) * k**12
-
-    return func
-
-
-def N_gg_2_6_12_3(theta, phi):
-    return (
-        (70945875 / 28639232) * np.cos(4 * phi)
-        + (34459425 / 12058624) * np.cos(8 * phi)
-        + (36018675 / 28639232) * np.cos(2 * theta)
-        + (36018675 / 229113856) * np.cos(4 * theta)
-        + (42567525 / 114556928) * np.cos(2 * phi - 3 * theta)
-        + (212837625 / 114556928) * np.cos(2 * phi - theta)
-        + (127702575 / 57278464) * np.cos(2 * phi + theta)
-        + (42567525 / 57278464) * np.cos(2 * phi + 3 * theta)
-        + (6081075 / 114556928) * np.cos(2 * phi + 5 * theta)
-        + (354729375 / 458227712) * np.cos(4 * phi - 2 * theta)
-        + (212837625 / 114556928) * np.cos(4 * phi + 2 * theta)
-        + (10135125 / 28639232) * np.cos(4 * phi + 4 * theta)
-        + (10135125 / 916455424) * np.cos(4 * phi + 6 * theta)
-        + (172297125 / 114556928) * np.cos(6 * phi - theta)
-        + (172297125 / 57278464) * np.cos(6 * phi + theta)
-        + (73841625 / 57278464) * np.cos(6 * phi + 3 * theta)
-        + (24613875 / 229113856) * np.cos(6 * phi + 5 * theta)
-        + (4922775 / 1507328) * np.cos(8 * phi + 2 * theta)
-        + (14768325 / 24117248) * np.cos(8 * phi + 4 * theta)
-        + (34459425 / 6029312) * np.cos(10 * phi + theta)
-        + (34459425 / 12058624) * np.cos(10 * phi + 3 * theta)
-        + (34459425 / 2097152) * np.cos(12 * phi + 2 * theta)
-        + 540280125 / 458227712
-    )
-
-
-def M_gg_2_6_12_4():
-    def func(k):
-        return (32 / 6335611425) * k**12
-
-    return func
-
-
-def N_gg_2_6_12_4(theta, phi):
-    return (
-        -307432125 / 229113856 * np.cos(4 * phi)
-        - 1990989 / 1507328 * np.cos(8 * phi)
-        + (2433431 / 524288) * np.cos(12 * phi)
-        + (225450225 / 229113856) * np.cos(2 * theta)
-        + (9018009 / 7159808) * np.cos(4 * theta)
-        + (33066033 / 229113856) * np.cos(6 * theta)
         + (99198099 / 229113856) * np.cos(2 * phi - 5 * theta)
         + (12297285 / 7159808) * np.cos(2 * phi - 3 * theta)
         - 61486425 / 229113856 * np.cos(2 * phi - theta)
@@ -14853,6 +14775,84 @@ def N_gg_2_6_12_4(theta, phi):
         - 1990989 / 753664 * np.cos(10 * phi + theta)
         + (49774725 / 12058624) * np.cos(10 * phi + 3 * theta)
         + (3318315 / 524288) * np.cos(12 * phi + 2 * theta)
+        - 75150075 / 114556928
+    )
+
+
+def M_gg_2_6_12_3():
+    def func(k):
+        return (8 / 422374095) * k**12
+
+    return func
+
+
+def N_gg_2_6_12_3(theta, phi):
+    return (
+        (70945875 / 28639232) * np.cos(4 * phi)
+        + (34459425 / 12058624) * np.cos(8 * phi)
+        + (36018675 / 28639232) * np.cos(2 * theta)
+        + (36018675 / 229113856) * np.cos(4 * theta)
+        + (6081075 / 114556928) * np.cos(2 * phi - 5 * theta)
+        + (42567525 / 57278464) * np.cos(2 * phi - 3 * theta)
+        + (127702575 / 57278464) * np.cos(2 * phi - theta)
+        + (212837625 / 114556928) * np.cos(2 * phi + theta)
+        + (42567525 / 114556928) * np.cos(2 * phi + 3 * theta)
+        + (10135125 / 916455424) * np.cos(4 * phi - 6 * theta)
+        + (10135125 / 28639232) * np.cos(4 * phi - 4 * theta)
+        + (212837625 / 114556928) * np.cos(4 * phi - 2 * theta)
+        + (354729375 / 458227712) * np.cos(4 * phi + 2 * theta)
+        + (24613875 / 229113856) * np.cos(6 * phi - 5 * theta)
+        + (73841625 / 57278464) * np.cos(6 * phi - 3 * theta)
+        + (172297125 / 57278464) * np.cos(6 * phi - theta)
+        + (172297125 / 114556928) * np.cos(6 * phi + theta)
+        + (14768325 / 24117248) * np.cos(8 * phi - 4 * theta)
+        + (4922775 / 1507328) * np.cos(8 * phi - 2 * theta)
+        + (34459425 / 12058624) * np.cos(10 * phi - 3 * theta)
+        + (34459425 / 6029312) * np.cos(10 * phi - theta)
+        + (34459425 / 2097152) * np.cos(12 * phi - 2 * theta)
+        + 540280125 / 458227712
+    )
+
+
+def M_gg_2_6_12_4():
+    def func(k):
+        return (32 / 6335611425) * k**12
+
+    return func
+
+
+def N_gg_2_6_12_4(theta, phi):
+    return (
+        -307432125 / 229113856 * np.cos(4 * phi)
+        - 1990989 / 1507328 * np.cos(8 * phi)
+        + (2433431 / 524288) * np.cos(12 * phi)
+        + (225450225 / 229113856) * np.cos(2 * theta)
+        + (9018009 / 7159808) * np.cos(4 * theta)
+        + (33066033 / 229113856) * np.cos(6 * theta)
+        + (6441435 / 229113856) * np.cos(2 * phi - 7 * theta)
+        + (18621603 / 28639232) * np.cos(2 * phi - 5 * theta)
+        + (381215835 / 229113856) * np.cos(2 * phi - 3 * theta)
+        - 20495475 / 28639232 * np.cos(2 * phi - theta)
+        - 61486425 / 229113856 * np.cos(2 * phi + theta)
+        + (12297285 / 7159808) * np.cos(2 * phi + 3 * theta)
+        + (99198099 / 229113856) * np.cos(2 * phi + 5 * theta)
+        + (43918875 / 229113856) * np.cos(4 * phi - 6 * theta)
+        + (342567225 / 229113856) * np.cos(4 * phi - 4 * theta)
+        + (20495475 / 28639232) * np.cos(4 * phi - 2 * theta)
+        + (184459275 / 114556928) * np.cos(4 * phi + 2 * theta)
+        + (225450225 / 229113856) * np.cos(4 * phi + 4 * theta)
+        + (82957875 / 114556928) * np.cos(6 * phi - 5 * theta)
+        + (57675475 / 28639232) * np.cos(6 * phi - 3 * theta)
+        - 282056775 / 229113856 * np.cos(6 * phi - theta)
+        + (16591575 / 28639232) * np.cos(6 * phi + theta)
+        + (425850425 / 229113856) * np.cos(6 * phi + 3 * theta)
+        + (11851125 / 6029312) * np.cos(8 * phi - 4 * theta)
+        + (9954945 / 12058624) * np.cos(8 * phi - 2 * theta)
+        + (36501465 / 12058624) * np.cos(8 * phi + 2 * theta)
+        + (49774725 / 12058624) * np.cos(10 * phi - 3 * theta)
+        - 1990989 / 753664 * np.cos(10 * phi - theta)
+        + (51102051 / 12058624) * np.cos(10 * phi + theta)
+        + (3318315 / 524288) * np.cos(12 * phi - 2 * theta)
         - 75150075 / 114556928
     )
 
@@ -14922,50 +14922,6 @@ def N_gg_2_6_14_0(theta, phi):
         + (1289575287 / 916455424) * np.cos(2 * theta)
         + (1289575287 / 4582277120) * np.cos(4 * theta)
         + (61408347 / 4582277120) * np.cos(6 * theta)
-        + (14171157 / 7331643392) * np.cos(2 * phi - 7 * theta)
-        + (42513471 / 458227712) * np.cos(2 * phi - 5 * theta)
-        + (1487971485 / 1832910848) * np.cos(2 * phi - 3 * theta)
-        + (495990495 / 229113856) * np.cos(2 * phi - theta)
-        + (7439857425 / 3665821696) * np.cos(2 * phi + theta)
-        + (297594297 / 458227712) * np.cos(2 * phi + 3 * theta)
-        + (99198099 / 1832910848) * np.cos(2 * phi + 5 * theta)
-        + (65702637 / 3665821696) * np.cos(4 * phi - 6 * theta)
-        + (328513185 / 916455424) * np.cos(4 * phi - 4 * theta)
-        + (766530765 / 458227712) * np.cos(4 * phi - 2 * theta)
-        + (2299592295 / 1832910848) * np.cos(4 * phi + 2 * theta)
-        + (153306153 / 916455424) * np.cos(4 * phi + 4 * theta)
-        + (36501465 / 385875968) * np.cos(6 * phi - 5 * theta)
-        + (12167155 / 12058624) * np.cos(6 * phi - 3 * theta)
-        + (255510255 / 96468992) * np.cos(6 * phi - theta)
-        + (51102051 / 24117248) * np.cos(6 * phi + theta)
-        + (85170085 / 192937984) * np.cos(6 * phi + 3 * theta)
-        + (36501465 / 96468992) * np.cos(8 * phi - 4 * theta)
-        + (109504395 / 48234496) * np.cos(8 * phi - 2 * theta)
-        + (51102051 / 48234496) * np.cos(8 * phi + 2 * theta)
-        + (21900879 / 16777216) * np.cos(10 * phi - 3 * theta)
-        + (21900879 / 5242880) * np.cos(10 * phi - theta)
-        + (51102051 / 20971520) * np.cos(10 * phi + theta)
-        + (36501465 / 8388608) * np.cos(12 * phi - 2 * theta)
-        + (328513185 / 16777216) * np.cos(14 * phi - theta)
-        + 2149292145 / 1832910848
-    )
-
-
-def M_gg_2_6_14_1():
-    def func(k):
-        return (32 / 6335611425) * k**12
-
-    return func
-
-
-def N_gg_2_6_14_1(theta, phi):
-    return (
-        (2299592295 / 916455424) * np.cos(4 * phi)
-        + (153306153 / 48234496) * np.cos(8 * phi)
-        + (12167155 / 2097152) * np.cos(12 * phi)
-        + (1289575287 / 916455424) * np.cos(2 * theta)
-        + (1289575287 / 4582277120) * np.cos(4 * theta)
-        + (61408347 / 4582277120) * np.cos(6 * theta)
         + (99198099 / 1832910848) * np.cos(2 * phi - 5 * theta)
         + (297594297 / 458227712) * np.cos(2 * phi - 3 * theta)
         + (7439857425 / 3665821696) * np.cos(2 * phi - theta)
@@ -14991,6 +14947,50 @@ def N_gg_2_6_14_1(theta, phi):
         + (21900879 / 16777216) * np.cos(10 * phi + 3 * theta)
         + (36501465 / 8388608) * np.cos(12 * phi + 2 * theta)
         + (328513185 / 16777216) * np.cos(14 * phi + theta)
+        + 2149292145 / 1832910848
+    )
+
+
+def M_gg_2_6_14_1():
+    def func(k):
+        return (32 / 6335611425) * k**12
+
+    return func
+
+
+def N_gg_2_6_14_1(theta, phi):
+    return (
+        (2299592295 / 916455424) * np.cos(4 * phi)
+        + (153306153 / 48234496) * np.cos(8 * phi)
+        + (12167155 / 2097152) * np.cos(12 * phi)
+        + (1289575287 / 916455424) * np.cos(2 * theta)
+        + (1289575287 / 4582277120) * np.cos(4 * theta)
+        + (61408347 / 4582277120) * np.cos(6 * theta)
+        + (14171157 / 7331643392) * np.cos(2 * phi - 7 * theta)
+        + (42513471 / 458227712) * np.cos(2 * phi - 5 * theta)
+        + (1487971485 / 1832910848) * np.cos(2 * phi - 3 * theta)
+        + (495990495 / 229113856) * np.cos(2 * phi - theta)
+        + (7439857425 / 3665821696) * np.cos(2 * phi + theta)
+        + (297594297 / 458227712) * np.cos(2 * phi + 3 * theta)
+        + (99198099 / 1832910848) * np.cos(2 * phi + 5 * theta)
+        + (65702637 / 3665821696) * np.cos(4 * phi - 6 * theta)
+        + (328513185 / 916455424) * np.cos(4 * phi - 4 * theta)
+        + (766530765 / 458227712) * np.cos(4 * phi - 2 * theta)
+        + (2299592295 / 1832910848) * np.cos(4 * phi + 2 * theta)
+        + (153306153 / 916455424) * np.cos(4 * phi + 4 * theta)
+        + (36501465 / 385875968) * np.cos(6 * phi - 5 * theta)
+        + (12167155 / 12058624) * np.cos(6 * phi - 3 * theta)
+        + (255510255 / 96468992) * np.cos(6 * phi - theta)
+        + (51102051 / 24117248) * np.cos(6 * phi + theta)
+        + (85170085 / 192937984) * np.cos(6 * phi + 3 * theta)
+        + (36501465 / 96468992) * np.cos(8 * phi - 4 * theta)
+        + (109504395 / 48234496) * np.cos(8 * phi - 2 * theta)
+        + (51102051 / 48234496) * np.cos(8 * phi + 2 * theta)
+        + (21900879 / 16777216) * np.cos(10 * phi - 3 * theta)
+        + (21900879 / 5242880) * np.cos(10 * phi - theta)
+        + (51102051 / 20971520) * np.cos(10 * phi + theta)
+        + (36501465 / 8388608) * np.cos(12 * phi - 2 * theta)
+        + (328513185 / 16777216) * np.cos(14 * phi - theta)
         + 2149292145 / 1832910848
     )
 
@@ -15108,7 +15108,7 @@ def M_gv_0_0_1_0():
 
 
 def N_gv_0_0_1_0(theta, phi):
-    return -3 * np.cos(phi - 1 / 2 * theta)
+    return -3 * np.cos(phi + (1 / 2) * theta)
 
 
 def M_gv_0_1_1_0():
@@ -15119,7 +15119,7 @@ def M_gv_0_1_1_0():
 
 
 def N_gv_0_1_1_0(theta, phi):
-    return -3 * np.cos(phi - 1 / 2 * theta)
+    return -3 * np.cos(phi + (1 / 2) * theta)
 
 
 def M_gv_0_1_1_1():
@@ -15130,7 +15130,7 @@ def M_gv_0_1_1_1():
 
 
 def N_gv_0_1_1_1(theta, phi):
-    return -3 / 2 * np.cos(phi - 1 / 2 * theta) - 9 / 2 * np.cos(phi + (3 / 2) * theta)
+    return -9 / 2 * np.cos(phi - 3 / 2 * theta) - 3 / 2 * np.cos(phi + (1 / 2) * theta)
 
 
 def M_gv_0_1_3_0():
@@ -15142,9 +15142,9 @@ def M_gv_0_1_3_0():
 
 def N_gv_0_1_3_0(theta, phi):
     return (
-        -9 / 4 * np.cos(phi - 1 / 2 * theta)
-        - 9 / 8 * np.cos(phi + (3 / 2) * theta)
-        - 45 / 8 * np.cos(3 * phi + (1 / 2) * theta)
+        -9 / 8 * np.cos(phi - 3 / 2 * theta)
+        - 9 / 4 * np.cos(phi + (1 / 2) * theta)
+        - 45 / 8 * np.cos(3 * phi - 1 / 2 * theta)
     )
 
 
@@ -15156,7 +15156,7 @@ def M_gv_0_2_1_0():
 
 
 def N_gv_0_2_1_0(theta, phi):
-    return -3 * np.cos(phi - 1 / 2 * theta)
+    return -3 * np.cos(phi + (1 / 2) * theta)
 
 
 def M_gv_0_2_1_1():
@@ -15167,7 +15167,7 @@ def M_gv_0_2_1_1():
 
 
 def N_gv_0_2_1_1(theta, phi):
-    return -3 / 2 * np.cos(phi - 1 / 2 * theta) - 9 / 2 * np.cos(phi + (3 / 2) * theta)
+    return -9 / 2 * np.cos(phi - 3 / 2 * theta) - 3 / 2 * np.cos(phi + (1 / 2) * theta)
 
 
 def M_gv_0_2_3_0():
@@ -15179,9 +15179,9 @@ def M_gv_0_2_3_0():
 
 def N_gv_0_2_3_0(theta, phi):
     return (
-        -9 / 4 * np.cos(phi - 1 / 2 * theta)
-        - 9 / 8 * np.cos(phi + (3 / 2) * theta)
-        - 45 / 8 * np.cos(3 * phi + (1 / 2) * theta)
+        -9 / 8 * np.cos(phi - 3 / 2 * theta)
+        - 9 / 4 * np.cos(phi + (1 / 2) * theta)
+        - 45 / 8 * np.cos(3 * phi - 1 / 2 * theta)
     )
 
 
@@ -15194,10 +15194,10 @@ def M_gv_0_2_3_1():
 
 def N_gv_0_2_3_1(theta, phi):
     return (
-        -27 / 16 * np.cos(phi - 1 / 2 * theta)
-        - 45 / 16 * np.cos(phi + (3 / 2) * theta)
-        - 15 / 16 * np.cos(3 * phi + (1 / 2) * theta)
-        - 105 / 16 * np.cos(3 * phi + (5 / 2) * theta)
+        -45 / 16 * np.cos(phi - 3 / 2 * theta)
+        - 27 / 16 * np.cos(phi + (1 / 2) * theta)
+        - 105 / 16 * np.cos(3 * phi - 5 / 2 * theta)
+        - 15 / 16 * np.cos(3 * phi - 1 / 2 * theta)
     )
 
 
@@ -15210,11 +15210,11 @@ def M_gv_0_2_5_0():
 
 def N_gv_0_2_5_0(theta, phi):
     return (
-        -135 / 64 * np.cos(phi - 1 / 2 * theta)
-        - 45 / 32 * np.cos(phi + (3 / 2) * theta)
-        - 105 / 32 * np.cos(3 * phi + (1 / 2) * theta)
-        - 105 / 128 * np.cos(3 * phi + (5 / 2) * theta)
-        - 945 / 128 * np.cos(5 * phi + (3 / 2) * theta)
+        -45 / 32 * np.cos(phi - 3 / 2 * theta)
+        - 135 / 64 * np.cos(phi + (1 / 2) * theta)
+        - 105 / 128 * np.cos(3 * phi - 5 / 2 * theta)
+        - 105 / 32 * np.cos(3 * phi - 1 / 2 * theta)
+        - 945 / 128 * np.cos(5 * phi - 3 / 2 * theta)
     )
 
 
@@ -15226,7 +15226,7 @@ def M_gv_0_3_1_0():
 
 
 def N_gv_0_3_1_0(theta, phi):
-    return -3 * np.cos(phi - 1 / 2 * theta)
+    return -3 * np.cos(phi + (1 / 2) * theta)
 
 
 def M_gv_0_3_1_1():
@@ -15237,7 +15237,7 @@ def M_gv_0_3_1_1():
 
 
 def N_gv_0_3_1_1(theta, phi):
-    return -3 / 2 * np.cos(phi - 1 / 2 * theta) - 9 / 2 * np.cos(phi + (3 / 2) * theta)
+    return -9 / 2 * np.cos(phi - 3 / 2 * theta) - 3 / 2 * np.cos(phi + (1 / 2) * theta)
 
 
 def M_gv_0_3_3_0():
@@ -15249,9 +15249,9 @@ def M_gv_0_3_3_0():
 
 def N_gv_0_3_3_0(theta, phi):
     return (
-        -9 / 4 * np.cos(phi - 1 / 2 * theta)
-        - 9 / 8 * np.cos(phi + (3 / 2) * theta)
-        - 45 / 8 * np.cos(3 * phi + (1 / 2) * theta)
+        -9 / 8 * np.cos(phi - 3 / 2 * theta)
+        - 9 / 4 * np.cos(phi + (1 / 2) * theta)
+        - 45 / 8 * np.cos(3 * phi - 1 / 2 * theta)
     )
 
 
@@ -15264,10 +15264,10 @@ def M_gv_0_3_3_1():
 
 def N_gv_0_3_3_1(theta, phi):
     return (
-        -27 / 16 * np.cos(phi - 1 / 2 * theta)
-        - 45 / 16 * np.cos(phi + (3 / 2) * theta)
-        - 15 / 16 * np.cos(3 * phi + (1 / 2) * theta)
-        - 105 / 16 * np.cos(3 * phi + (5 / 2) * theta)
+        -45 / 16 * np.cos(phi - 3 / 2 * theta)
+        - 27 / 16 * np.cos(phi + (1 / 2) * theta)
+        - 105 / 16 * np.cos(3 * phi - 5 / 2 * theta)
+        - 15 / 16 * np.cos(3 * phi - 1 / 2 * theta)
     )
 
 
@@ -15280,11 +15280,11 @@ def M_gv_0_3_5_0():
 
 def N_gv_0_3_5_0(theta, phi):
     return (
-        -135 / 64 * np.cos(phi - 1 / 2 * theta)
-        - 45 / 32 * np.cos(phi + (3 / 2) * theta)
-        - 105 / 32 * np.cos(3 * phi + (1 / 2) * theta)
-        - 105 / 128 * np.cos(3 * phi + (5 / 2) * theta)
-        - 945 / 128 * np.cos(5 * phi + (3 / 2) * theta)
+        -45 / 32 * np.cos(phi - 3 / 2 * theta)
+        - 135 / 64 * np.cos(phi + (1 / 2) * theta)
+        - 105 / 128 * np.cos(3 * phi - 5 / 2 * theta)
+        - 105 / 32 * np.cos(3 * phi - 1 / 2 * theta)
+        - 945 / 128 * np.cos(5 * phi - 3 / 2 * theta)
     )
 
 
@@ -15297,12 +15297,12 @@ def M_gv_0_3_5_1():
 
 def N_gv_0_3_5_1(theta, phi):
     return (
-        -225 / 128 * np.cos(phi - 1 / 2 * theta)
-        - 315 / 128 * np.cos(phi + (3 / 2) * theta)
-        - 315 / 256 * np.cos(3 * phi + (1 / 2) * theta)
-        - 945 / 256 * np.cos(3 * phi + (5 / 2) * theta)
-        - 189 / 256 * np.cos(5 * phi + (3 / 2) * theta)
-        - 2079 / 256 * np.cos(5 * phi + (7 / 2) * theta)
+        -315 / 128 * np.cos(phi - 3 / 2 * theta)
+        - 225 / 128 * np.cos(phi + (1 / 2) * theta)
+        - 945 / 256 * np.cos(3 * phi - 5 / 2 * theta)
+        - 315 / 256 * np.cos(3 * phi - 1 / 2 * theta)
+        - 2079 / 256 * np.cos(5 * phi - 7 / 2 * theta)
+        - 189 / 256 * np.cos(5 * phi - 3 / 2 * theta)
     )
 
 
@@ -15315,13 +15315,13 @@ def M_gv_0_3_7_0():
 
 def N_gv_0_3_7_0(theta, phi):
     return (
-        -525 / 256 * np.cos(phi - 1 / 2 * theta)
-        - 1575 / 1024 * np.cos(phi + (3 / 2) * theta)
-        - 2835 / 1024 * np.cos(3 * phi + (1 / 2) * theta)
-        - 567 / 512 * np.cos(3 * phi + (5 / 2) * theta)
-        - 2079 / 512 * np.cos(5 * phi + (3 / 2) * theta)
-        - 693 / 1024 * np.cos(5 * phi + (7 / 2) * theta)
-        - 9009 / 1024 * np.cos(7 * phi + (5 / 2) * theta)
+        -1575 / 1024 * np.cos(phi - 3 / 2 * theta)
+        - 525 / 256 * np.cos(phi + (1 / 2) * theta)
+        - 567 / 512 * np.cos(3 * phi - 5 / 2 * theta)
+        - 2835 / 1024 * np.cos(3 * phi - 1 / 2 * theta)
+        - 693 / 1024 * np.cos(5 * phi - 7 / 2 * theta)
+        - 2079 / 512 * np.cos(5 * phi - 3 / 2 * theta)
+        - 9009 / 1024 * np.cos(7 * phi - 5 / 2 * theta)
     )
 
 
@@ -15333,7 +15333,7 @@ def M_gv_1_0_1_0():
 
 
 def N_gv_1_0_1_0(theta, phi):
-    return -3 * np.cos(phi - 1 / 2 * theta)
+    return -3 * np.cos(phi + (1 / 2) * theta)
 
 
 def M_gv_1_0_1_1():
@@ -15344,7 +15344,7 @@ def M_gv_1_0_1_1():
 
 
 def N_gv_1_0_1_1(theta, phi):
-    return -3 / 2 * np.cos(phi - 1 / 2 * theta) - 9 / 2 * np.cos(phi + (3 / 2) * theta)
+    return -9 / 2 * np.cos(phi - 3 / 2 * theta) - 3 / 2 * np.cos(phi + (1 / 2) * theta)
 
 
 def M_gv_1_0_3_0():
@@ -15356,9 +15356,9 @@ def M_gv_1_0_3_0():
 
 def N_gv_1_0_3_0(theta, phi):
     return (
-        -9 / 4 * np.cos(phi - 1 / 2 * theta)
-        - 9 / 8 * np.cos(phi + (3 / 2) * theta)
-        - 45 / 8 * np.cos(3 * phi + (1 / 2) * theta)
+        -9 / 8 * np.cos(phi - 3 / 2 * theta)
+        - 9 / 4 * np.cos(phi + (1 / 2) * theta)
+        - 45 / 8 * np.cos(3 * phi - 1 / 2 * theta)
     )
 
 
@@ -15370,7 +15370,7 @@ def M_gv_1_1_1_0():
 
 
 def N_gv_1_1_1_0(theta, phi):
-    return -3 * np.cos(phi - 1 / 2 * theta)
+    return -3 * np.cos(phi + (1 / 2) * theta)
 
 
 def M_gv_1_1_1_1():
@@ -15381,7 +15381,7 @@ def M_gv_1_1_1_1():
 
 
 def N_gv_1_1_1_1(theta, phi):
-    return -3 / 2 * np.cos(phi - 1 / 2 * theta) - 9 / 2 * np.cos(phi + (3 / 2) * theta)
+    return -9 / 2 * np.cos(phi - 3 / 2 * theta) - 3 / 2 * np.cos(phi + (1 / 2) * theta)
 
 
 def M_gv_1_1_3_0():
@@ -15393,9 +15393,9 @@ def M_gv_1_1_3_0():
 
 def N_gv_1_1_3_0(theta, phi):
     return (
-        -9 / 4 * np.cos(phi - 1 / 2 * theta)
-        - 9 / 8 * np.cos(phi + (3 / 2) * theta)
-        - 45 / 8 * np.cos(3 * phi + (1 / 2) * theta)
+        -9 / 8 * np.cos(phi - 3 / 2 * theta)
+        - 9 / 4 * np.cos(phi + (1 / 2) * theta)
+        - 45 / 8 * np.cos(3 * phi - 1 / 2 * theta)
     )
 
 
@@ -15408,10 +15408,10 @@ def M_gv_1_1_3_1():
 
 def N_gv_1_1_3_1(theta, phi):
     return (
-        -27 / 16 * np.cos(phi - 1 / 2 * theta)
-        - 45 / 16 * np.cos(phi + (3 / 2) * theta)
-        - 15 / 16 * np.cos(3 * phi + (1 / 2) * theta)
-        - 105 / 16 * np.cos(3 * phi + (5 / 2) * theta)
+        -45 / 16 * np.cos(phi - 3 / 2 * theta)
+        - 27 / 16 * np.cos(phi + (1 / 2) * theta)
+        - 105 / 16 * np.cos(3 * phi - 5 / 2 * theta)
+        - 15 / 16 * np.cos(3 * phi - 1 / 2 * theta)
     )
 
 
@@ -15424,11 +15424,11 @@ def M_gv_1_1_5_0():
 
 def N_gv_1_1_5_0(theta, phi):
     return (
-        -135 / 64 * np.cos(phi - 1 / 2 * theta)
-        - 45 / 32 * np.cos(phi + (3 / 2) * theta)
-        - 105 / 32 * np.cos(3 * phi + (1 / 2) * theta)
-        - 105 / 128 * np.cos(3 * phi + (5 / 2) * theta)
-        - 945 / 128 * np.cos(5 * phi + (3 / 2) * theta)
+        -45 / 32 * np.cos(phi - 3 / 2 * theta)
+        - 135 / 64 * np.cos(phi + (1 / 2) * theta)
+        - 105 / 128 * np.cos(3 * phi - 5 / 2 * theta)
+        - 105 / 32 * np.cos(3 * phi - 1 / 2 * theta)
+        - 945 / 128 * np.cos(5 * phi - 3 / 2 * theta)
     )
 
 
@@ -15440,7 +15440,7 @@ def M_gv_1_2_1_0():
 
 
 def N_gv_1_2_1_0(theta, phi):
-    return -3 * np.cos(phi - 1 / 2 * theta)
+    return -3 * np.cos(phi + (1 / 2) * theta)
 
 
 def M_gv_1_2_1_1():
@@ -15451,7 +15451,7 @@ def M_gv_1_2_1_1():
 
 
 def N_gv_1_2_1_1(theta, phi):
-    return -3 / 2 * np.cos(phi - 1 / 2 * theta) - 9 / 2 * np.cos(phi + (3 / 2) * theta)
+    return -9 / 2 * np.cos(phi - 3 / 2 * theta) - 3 / 2 * np.cos(phi + (1 / 2) * theta)
 
 
 def M_gv_1_2_3_0():
@@ -15463,9 +15463,9 @@ def M_gv_1_2_3_0():
 
 def N_gv_1_2_3_0(theta, phi):
     return (
-        -9 / 4 * np.cos(phi - 1 / 2 * theta)
-        - 9 / 8 * np.cos(phi + (3 / 2) * theta)
-        - 45 / 8 * np.cos(3 * phi + (1 / 2) * theta)
+        -9 / 8 * np.cos(phi - 3 / 2 * theta)
+        - 9 / 4 * np.cos(phi + (1 / 2) * theta)
+        - 45 / 8 * np.cos(3 * phi - 1 / 2 * theta)
     )
 
 
@@ -15478,10 +15478,10 @@ def M_gv_1_2_3_1():
 
 def N_gv_1_2_3_1(theta, phi):
     return (
-        -27 / 16 * np.cos(phi - 1 / 2 * theta)
-        - 45 / 16 * np.cos(phi + (3 / 2) * theta)
-        - 15 / 16 * np.cos(3 * phi + (1 / 2) * theta)
-        - 105 / 16 * np.cos(3 * phi + (5 / 2) * theta)
+        -45 / 16 * np.cos(phi - 3 / 2 * theta)
+        - 27 / 16 * np.cos(phi + (1 / 2) * theta)
+        - 105 / 16 * np.cos(3 * phi - 5 / 2 * theta)
+        - 15 / 16 * np.cos(3 * phi - 1 / 2 * theta)
     )
 
 
@@ -15494,11 +15494,11 @@ def M_gv_1_2_5_0():
 
 def N_gv_1_2_5_0(theta, phi):
     return (
-        -135 / 64 * np.cos(phi - 1 / 2 * theta)
-        - 45 / 32 * np.cos(phi + (3 / 2) * theta)
-        - 105 / 32 * np.cos(3 * phi + (1 / 2) * theta)
-        - 105 / 128 * np.cos(3 * phi + (5 / 2) * theta)
-        - 945 / 128 * np.cos(5 * phi + (3 / 2) * theta)
+        -45 / 32 * np.cos(phi - 3 / 2 * theta)
+        - 135 / 64 * np.cos(phi + (1 / 2) * theta)
+        - 105 / 128 * np.cos(3 * phi - 5 / 2 * theta)
+        - 105 / 32 * np.cos(3 * phi - 1 / 2 * theta)
+        - 945 / 128 * np.cos(5 * phi - 3 / 2 * theta)
     )
 
 
@@ -15511,12 +15511,12 @@ def M_gv_1_2_5_1():
 
 def N_gv_1_2_5_1(theta, phi):
     return (
-        -225 / 128 * np.cos(phi - 1 / 2 * theta)
-        - 315 / 128 * np.cos(phi + (3 / 2) * theta)
-        - 315 / 256 * np.cos(3 * phi + (1 / 2) * theta)
-        - 945 / 256 * np.cos(3 * phi + (5 / 2) * theta)
-        - 189 / 256 * np.cos(5 * phi + (3 / 2) * theta)
-        - 2079 / 256 * np.cos(5 * phi + (7 / 2) * theta)
+        -315 / 128 * np.cos(phi - 3 / 2 * theta)
+        - 225 / 128 * np.cos(phi + (1 / 2) * theta)
+        - 945 / 256 * np.cos(3 * phi - 5 / 2 * theta)
+        - 315 / 256 * np.cos(3 * phi - 1 / 2 * theta)
+        - 2079 / 256 * np.cos(5 * phi - 7 / 2 * theta)
+        - 189 / 256 * np.cos(5 * phi - 3 / 2 * theta)
     )
 
 
@@ -15529,13 +15529,13 @@ def M_gv_1_2_7_0():
 
 def N_gv_1_2_7_0(theta, phi):
     return (
-        -525 / 256 * np.cos(phi - 1 / 2 * theta)
-        - 1575 / 1024 * np.cos(phi + (3 / 2) * theta)
-        - 2835 / 1024 * np.cos(3 * phi + (1 / 2) * theta)
-        - 567 / 512 * np.cos(3 * phi + (5 / 2) * theta)
-        - 2079 / 512 * np.cos(5 * phi + (3 / 2) * theta)
-        - 693 / 1024 * np.cos(5 * phi + (7 / 2) * theta)
-        - 9009 / 1024 * np.cos(7 * phi + (5 / 2) * theta)
+        -1575 / 1024 * np.cos(phi - 3 / 2 * theta)
+        - 525 / 256 * np.cos(phi + (1 / 2) * theta)
+        - 567 / 512 * np.cos(3 * phi - 5 / 2 * theta)
+        - 2835 / 1024 * np.cos(3 * phi - 1 / 2 * theta)
+        - 693 / 1024 * np.cos(5 * phi - 7 / 2 * theta)
+        - 2079 / 512 * np.cos(5 * phi - 3 / 2 * theta)
+        - 9009 / 1024 * np.cos(7 * phi - 5 / 2 * theta)
     )
 
 
@@ -15547,7 +15547,7 @@ def M_gv_1_3_1_0():
 
 
 def N_gv_1_3_1_0(theta, phi):
-    return -3 * np.cos(phi - 1 / 2 * theta)
+    return -3 * np.cos(phi + (1 / 2) * theta)
 
 
 def M_gv_1_3_1_1():
@@ -15558,7 +15558,7 @@ def M_gv_1_3_1_1():
 
 
 def N_gv_1_3_1_1(theta, phi):
-    return -3 / 2 * np.cos(phi - 1 / 2 * theta) - 9 / 2 * np.cos(phi + (3 / 2) * theta)
+    return -9 / 2 * np.cos(phi - 3 / 2 * theta) - 3 / 2 * np.cos(phi + (1 / 2) * theta)
 
 
 def M_gv_1_3_3_0():
@@ -15570,9 +15570,9 @@ def M_gv_1_3_3_0():
 
 def N_gv_1_3_3_0(theta, phi):
     return (
-        -9 / 4 * np.cos(phi - 1 / 2 * theta)
-        - 9 / 8 * np.cos(phi + (3 / 2) * theta)
-        - 45 / 8 * np.cos(3 * phi + (1 / 2) * theta)
+        -9 / 8 * np.cos(phi - 3 / 2 * theta)
+        - 9 / 4 * np.cos(phi + (1 / 2) * theta)
+        - 45 / 8 * np.cos(3 * phi - 1 / 2 * theta)
     )
 
 
@@ -15585,10 +15585,10 @@ def M_gv_1_3_3_1():
 
 def N_gv_1_3_3_1(theta, phi):
     return (
-        -27 / 16 * np.cos(phi - 1 / 2 * theta)
-        - 45 / 16 * np.cos(phi + (3 / 2) * theta)
-        - 15 / 16 * np.cos(3 * phi + (1 / 2) * theta)
-        - 105 / 16 * np.cos(3 * phi + (5 / 2) * theta)
+        -45 / 16 * np.cos(phi - 3 / 2 * theta)
+        - 27 / 16 * np.cos(phi + (1 / 2) * theta)
+        - 105 / 16 * np.cos(3 * phi - 5 / 2 * theta)
+        - 15 / 16 * np.cos(3 * phi - 1 / 2 * theta)
     )
 
 
@@ -15601,11 +15601,11 @@ def M_gv_1_3_5_0():
 
 def N_gv_1_3_5_0(theta, phi):
     return (
-        -135 / 64 * np.cos(phi - 1 / 2 * theta)
-        - 45 / 32 * np.cos(phi + (3 / 2) * theta)
-        - 105 / 32 * np.cos(3 * phi + (1 / 2) * theta)
-        - 105 / 128 * np.cos(3 * phi + (5 / 2) * theta)
-        - 945 / 128 * np.cos(5 * phi + (3 / 2) * theta)
+        -45 / 32 * np.cos(phi - 3 / 2 * theta)
+        - 135 / 64 * np.cos(phi + (1 / 2) * theta)
+        - 105 / 128 * np.cos(3 * phi - 5 / 2 * theta)
+        - 105 / 32 * np.cos(3 * phi - 1 / 2 * theta)
+        - 945 / 128 * np.cos(5 * phi - 3 / 2 * theta)
     )
 
 
@@ -15618,12 +15618,12 @@ def M_gv_1_3_5_1():
 
 def N_gv_1_3_5_1(theta, phi):
     return (
-        -225 / 128 * np.cos(phi - 1 / 2 * theta)
-        - 315 / 128 * np.cos(phi + (3 / 2) * theta)
-        - 315 / 256 * np.cos(3 * phi + (1 / 2) * theta)
-        - 945 / 256 * np.cos(3 * phi + (5 / 2) * theta)
-        - 189 / 256 * np.cos(5 * phi + (3 / 2) * theta)
-        - 2079 / 256 * np.cos(5 * phi + (7 / 2) * theta)
+        -315 / 128 * np.cos(phi - 3 / 2 * theta)
+        - 225 / 128 * np.cos(phi + (1 / 2) * theta)
+        - 945 / 256 * np.cos(3 * phi - 5 / 2 * theta)
+        - 315 / 256 * np.cos(3 * phi - 1 / 2 * theta)
+        - 2079 / 256 * np.cos(5 * phi - 7 / 2 * theta)
+        - 189 / 256 * np.cos(5 * phi - 3 / 2 * theta)
     )
 
 
@@ -15636,13 +15636,13 @@ def M_gv_1_3_7_0():
 
 def N_gv_1_3_7_0(theta, phi):
     return (
-        -525 / 256 * np.cos(phi - 1 / 2 * theta)
-        - 1575 / 1024 * np.cos(phi + (3 / 2) * theta)
-        - 2835 / 1024 * np.cos(3 * phi + (1 / 2) * theta)
-        - 567 / 512 * np.cos(3 * phi + (5 / 2) * theta)
-        - 2079 / 512 * np.cos(5 * phi + (3 / 2) * theta)
-        - 693 / 1024 * np.cos(5 * phi + (7 / 2) * theta)
-        - 9009 / 1024 * np.cos(7 * phi + (5 / 2) * theta)
+        -1575 / 1024 * np.cos(phi - 3 / 2 * theta)
+        - 525 / 256 * np.cos(phi + (1 / 2) * theta)
+        - 567 / 512 * np.cos(3 * phi - 5 / 2 * theta)
+        - 2835 / 1024 * np.cos(3 * phi - 1 / 2 * theta)
+        - 693 / 1024 * np.cos(5 * phi - 7 / 2 * theta)
+        - 2079 / 512 * np.cos(5 * phi - 3 / 2 * theta)
+        - 9009 / 1024 * np.cos(7 * phi - 5 / 2 * theta)
     )
 
 
@@ -15655,14 +15655,14 @@ def M_gv_1_3_7_1():
 
 def N_gv_1_3_7_1(theta, phi):
     return (
-        -3675 / 2048 * np.cos(phi - 1 / 2 * theta)
-        - 4725 / 2048 * np.cos(phi + (3 / 2) * theta)
-        - 2835 / 2048 * np.cos(3 * phi + (1 / 2) * theta)
-        - 6237 / 2048 * np.cos(3 * phi + (5 / 2) * theta)
-        - 2079 / 2048 * np.cos(5 * phi + (3 / 2) * theta)
-        - 9009 / 2048 * np.cos(5 * phi + (7 / 2) * theta)
-        - 1287 / 2048 * np.cos(7 * phi + (5 / 2) * theta)
-        - 19305 / 2048 * np.cos(7 * phi + (9 / 2) * theta)
+        -4725 / 2048 * np.cos(phi - 3 / 2 * theta)
+        - 3675 / 2048 * np.cos(phi + (1 / 2) * theta)
+        - 6237 / 2048 * np.cos(3 * phi - 5 / 2 * theta)
+        - 2835 / 2048 * np.cos(3 * phi - 1 / 2 * theta)
+        - 9009 / 2048 * np.cos(5 * phi - 7 / 2 * theta)
+        - 2079 / 2048 * np.cos(5 * phi - 3 / 2 * theta)
+        - 19305 / 2048 * np.cos(7 * phi - 9 / 2 * theta)
+        - 1287 / 2048 * np.cos(7 * phi - 5 / 2 * theta)
     )
 
 
@@ -15675,15 +15675,15 @@ def M_gv_1_3_9_0():
 
 def N_gv_1_3_9_0(theta, phi):
     return (
-        -33075 / 16384 * np.cos(phi - 1 / 2 * theta)
-        - 6615 / 4096 * np.cos(phi + (3 / 2) * theta)
-        - 10395 / 4096 * np.cos(3 * phi + (1 / 2) * theta)
-        - 10395 / 8192 * np.cos(3 * phi + (5 / 2) * theta)
-        - 27027 / 8192 * np.cos(5 * phi + (3 / 2) * theta)
-        - 3861 / 4096 * np.cos(5 * phi + (7 / 2) * theta)
-        - 19305 / 4096 * np.cos(7 * phi + (5 / 2) * theta)
-        - 19305 / 32768 * np.cos(7 * phi + (9 / 2) * theta)
-        - 328185 / 32768 * np.cos(9 * phi + (7 / 2) * theta)
+        -6615 / 4096 * np.cos(phi - 3 / 2 * theta)
+        - 33075 / 16384 * np.cos(phi + (1 / 2) * theta)
+        - 10395 / 8192 * np.cos(3 * phi - 5 / 2 * theta)
+        - 10395 / 4096 * np.cos(3 * phi - 1 / 2 * theta)
+        - 3861 / 4096 * np.cos(5 * phi - 7 / 2 * theta)
+        - 27027 / 8192 * np.cos(5 * phi - 3 / 2 * theta)
+        - 19305 / 32768 * np.cos(7 * phi - 9 / 2 * theta)
+        - 19305 / 4096 * np.cos(7 * phi - 5 / 2 * theta)
+        - 328185 / 32768 * np.cos(9 * phi - 7 / 2 * theta)
     )
 
 

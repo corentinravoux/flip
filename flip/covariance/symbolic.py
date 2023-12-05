@@ -94,10 +94,12 @@ def generate_MN_ab_i_l_function_wide_angle(
         for m1 in range(-l1, l1 + 1):
             for m2 in range(-l2, l2 + 1):
                 term_N_l_l1_l2_m_m1_m2 = wigner.gaunt(l, l1, l2, m, m1, m2)
+                # The spherical harmonic terms are taken from Lai et al. 2022 matematica notebook
+                # The sy.pi phase is put to l2 term instead of l1, to obtain the same results as Lai et al. 2022
                 term_N_l_l1_l2_m_m1_m2 *= (
-                    sy.Ynm_c(l, m, sy.pi - phi, 0)
-                    * sy.Ynm_c(l1, m1, theta / 2, sy.pi)
-                    * sy.Ynm_c(l2, m2, theta / 2, 0)
+                    sy.Ynm(l, m, sy.pi - phi, 0)
+                    * sy.Ynm(l1, m1, theta / 2, 0)
+                    * sy.Ynm(l2, m2, theta / 2, sy.pi)
                 )
                 term_N_l_l1_l2 = term_N_l_l1_l2 + term_N_l_l1_l2_m_m1_m2
     term_M_l_l1_l2 = (1 / sy.Rational(4)) * integral_mu1_mu2_M_l.expand(func=True)

@@ -1,9 +1,10 @@
-import sympy as sy
-from sympy.printing import pycode
-from sympy.physics import wigner
-from sympy.simplify.fu import TR8
-from sympy.polys.orthopolys import legendre_poly
 import multiprocessing as mp
+
+import sympy as sy
+from sympy.physics import wigner
+from sympy.polys.orthopolys import legendre_poly
+from sympy.printing import pycode
+from sympy.simplify.fu import TR8
 
 
 def simplify_h(H, max_simplification=20):
@@ -54,9 +55,9 @@ def generate_h_term(l, p, q):
                     for m2 in range(-l2, l2 + 1):
                         sum_term = wigner.gaunt(l, l1, l2, m, m1, m2)
                         sum_term *= (
-                            sy.Ynm_c(l, m, sy.pi - phi, 0)
-                            * sy.Ynm_c(l1, m1, theta / 2, sy.pi)
-                            * sy.Ynm_c(l2, m2, theta / 2, 0)
+                            sy.Ynm(l, m, sy.pi - phi, 0)
+                            * sy.Ynm(l1, m1, theta / 2, 0)
+                            * sy.Ynm(l2, m2, theta / 2, sy.pi)
                         )
                         sum_term *= a_l1_2p * a_l2_2q
                         h_sum = h_sum + sum_term

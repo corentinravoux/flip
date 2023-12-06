@@ -1,7 +1,10 @@
 import logging
 import time
 
+import astropy.constants as acst
 import numpy as np
+
+_C_LIGHT_KMS_ = acst.c.to("km/s").value
 
 
 def radec2cart(rcom, ra, dec):

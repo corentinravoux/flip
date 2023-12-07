@@ -349,7 +349,7 @@ def compute_coeficient(
     )
 
 
-# CR - remove variance for vg --> make no sense.
+# CR - Need to remove variance at zero separation for vg
 
 
 def compute_cov(

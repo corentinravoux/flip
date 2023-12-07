@@ -1,6 +1,7 @@
-import numpy as np
 import emcee
 import iminuit
+import numpy as np
+
 import flip.likelihood as flik
 from flip.covariance.covariance import CovMatrix
 from flip.utils import create_log

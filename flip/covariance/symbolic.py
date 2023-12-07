@@ -94,6 +94,7 @@ def generate_MN_ab_i_l_function_wide_angle(
         for m1 in range(-l1, l1 + 1):
             for m2 in range(-l2, l2 + 1):
                 term_N_l_l1_l2_m_m1_m2 = wigner.gaunt(l, l1, l2, m, m1, m2)
+                # CR - This need to be verified at the sympy level
                 # The spherical harmonic terms are taken from Lai et al. 2022 matematica notebook
                 # The sy.pi phase is put to l2 term instead of l1, to obtain the same results as Lai et al. 2022
                 term_N_l_l1_l2_m_m1_m2 *= (

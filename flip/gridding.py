@@ -8,7 +8,7 @@ try:
 except:
     log.add("No pypower module detected, gridding with this method is unavailable")
 
-# CR - no cut in healpix implemented
+# CR - No cut in healpix implemented with randoms
 
 _GRID_KIND = ["ngp", "ngp_errw", "cic", "tsc", "pcs"]
 
@@ -661,7 +661,7 @@ def grid_data_density_pypower(
     return grid
 
 
-# CR - first try unconnecting pypower:
+# CR - First try unconnecting pypower
 
 
 # def _get_compensation_window(resampler="cic", shotnoise=False):

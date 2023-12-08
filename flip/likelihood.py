@@ -51,7 +51,9 @@ class BaseLikelihood(object):
     def init_from_covariance(
         cls,
         covariance,
+        data,
         parameter_names,
+        likelihood_properties=None,
     ):
         """
         The init_from_covariance function is a class method that initializes the likelihood object from a covariance matrix.
@@ -73,7 +75,12 @@ class BaseLikelihood(object):
         if covariance.full_matrix is False:
             covariance.compute_full_matrix()
 
-        likelihood = cls(covariance=covariance, parameter_names=parameter_names)
+        likelihood = cls(
+            covariance=covariance,
+            data=data,
+            parameter_names=parameter_names,
+            likelihood_properties=likelihood_properties,
+        )
 
         return likelihood
 

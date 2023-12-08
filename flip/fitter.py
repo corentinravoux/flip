@@ -1,3 +1,6 @@
+import multiprocessing as mp
+import os
+
 import emcee
 import iminuit
 import numpy as np
@@ -43,6 +46,7 @@ class BaseFitter(object):
         data,
         parameter_dict,
         likelihood_type=None,
+        likelihood_properties=None,
     ):
         """
         The init_from_covariance function is used to initialize the parameters of a likelihood class.
@@ -57,7 +61,7 @@ class BaseFitter(object):
             data: Calculate the number of parameters in the model
             parameter_dict: Pass the parameter dictionary to the
             likelihood_type: Determine the type of likelihood to use
-            : Initialize the covariance matrix
+            likelihood_properties: Pass specific properties to the likelihood
 
         """
         log.add("Method to override, no initialization is done in this super class")
@@ -72,6 +76,7 @@ class BaseFitter(object):
         data,
         parameter_dict,
         likelihood_type="multivariate_gaussian",
+        likelihood_properties=None,
     ):
         """
         The init_from_file function is a class method that initializes the fitter object from a covariance matrix.
@@ -97,6 +102,7 @@ class BaseFitter(object):
             data,
             parameter_dict,
             likelihood_type=likelihood_type,
+            likelihood_properties=likelihood_properties,
         )
         return fitter
 
@@ -104,6 +110,7 @@ class BaseFitter(object):
         self,
         parameter_dict,
         likelihood_type="multivariate_gaussian",
+        likelihood_properties=None,
     ):
         """
         The get_likelihood function is used to create a likelihood object from the covariance matrix.
@@ -120,18 +127,6 @@ class BaseFitter(object):
             A likelihood object
 
         """
-        if "density" in self.data.keys():
-            density = self.data["density"]
-            density_err = self.data["density_err"]
-        else:
-            density = None
-            density_err = None
-        if "velocity" in self.data.keys():
-            velocity = self.data["velocity"]
-            velocity_err = self.data["velocity_err"]
-        else:
-            velocity = None
-            velocity_err = None
 
         parameter_names = [parameters for parameters in parameter_dict]
 
@@ -139,11 +134,9 @@ class BaseFitter(object):
 
         likelihood = likelihood_class.init_from_covariance(
             self.covariance,
+            self.data,
             parameter_names,
-            density=density,
-            density_err=density_err,
-            velocity=velocity,
-            velocity_err=velocity_err,
+            likelihood_properties=likelihood_properties,
         )
 
         return likelihood
@@ -161,6 +154,10 @@ class BaseFitter(object):
         """
         if likelihood_type == "multivariate_gaussian":
             likelihood_class = flik.MultivariateGaussianLikelihood
+        elif likelihood_type == "multivariate_gaussian_interp1d":
+            likelihood_class = flik.MultivariateGaussianLikelihoodInterpolate1D
+        elif likelihood_type == "multivariate_gaussian_interp2d":
+            likelihood_class = flik.MultivariateGaussianLikelihoodInterpolate2D
         return likelihood_class
 
 
@@ -205,6 +202,7 @@ class FitMinuit(BaseFitter):
         data,
         parameter_dict,
         likelihood_type="multivariate_gaussian",
+        likelihood_properties=None,
     ):
         """
         The init_from_covariance function is a class method that initializes the MinuitFitter object.
@@ -234,6 +232,7 @@ class FitMinuit(BaseFitter):
         likelihood = minuit_fitter.get_likelihood(
             parameter_dict,
             likelihood_type=likelihood_type,
+            likelihood_properties=likelihood_properties,
         )
         minuit_fitter.likelihood = likelihood
         parameter_values = [
@@ -276,13 +275,7 @@ class FitMinuit(BaseFitter):
             limit_up = d["limit_up"] if "limit_up" in d else None
             self.minuit.limits[parameters] = (limit_low, limit_up)
 
-    def run(
-        self,
-        migrad=True,
-        hesse=False,
-        minos=False,
-        n_iter=1
-    ):
+    def run(self, migrad=True, hesse=False, minos=False, n_iter=1):
         """
         The run function is the main function of the class. It takes in a number of
         arguments, and then runs them through Minuit. The arguments are:
@@ -300,7 +293,7 @@ class FitMinuit(BaseFitter):
         """
         if migrad:
             for i in range(n_iter):
-                log.add(f'Iteration {i+1}/{n_iter}\n')
+                log.add(f"Iteration {i+1}/{n_iter}\n")
                 log.add(self.minuit.migrad())
         if hesse:
             log.add(self.minuit.hesse())
@@ -311,12 +304,7 @@ class FitMinuit(BaseFitter):
 class FitMCMC:
     """Class to create and run a MCMC sampler with emcee package."""
 
-    def __init__(
-        self,
-        covariance=None,
-        data=None,
-        likelihood=None
-    ):
+    def __init__(self, covariance=None, data=None, likelihood=None):
         """
         The __init__ function is called when the class is instantiated.
         It sets up the instance of the class, and defines all of its attributes.
@@ -341,22 +329,24 @@ class FitMCMC:
         )
         self.sampler = sampler
 
-    def run_chains(self, file='', nwalkers=None, init=None, sig_init=None, 
-                   number_worker=1, nstep=100, tau_conv=None, progress=False):
-        
+    def run_chains(
+        self,
+        file="",
+        nwalkers=None,
+        init=None,
+        sig_init=None,
+        number_worker=1,
+        nstep=100,
+        tau_conv=None,
+        progress=False,
+    ):
         if os.path.exists(file):
-            log.add("File already exist"
-                    "Initial size: {0}".format(backend.iteration))
+            log.add("File already exist" "Initial size: {0}".format(backend.iteration))
             # Init walkers
             p0 = None
-        elif (nwalkers is not None & 
-              init is not None & 
-              sig_init is not None):
-            
-            p0 = np.random.normal(loc=init, 
-                                 scale=sig_init,
-                                 size=(nwalkers, self.ndim))
-            if file != '':
+        elif nwalkers is not None & init is not None & sig_init is not None:
+            p0 = np.random.normal(loc=init, scale=sig_init, size=(nwalkers, self.ndim))
+            if file != "":
                 backend = emcee.backends.HDFBackend(filename)
                 log.add("Create new file to store chains")
                 nwalkers = backend.shape[0]
@@ -364,18 +354,14 @@ class FitMCMC:
                 backend = None
         else:
             raise ValueError("Need to set either a file or nwalkers, init & sig_init")
-        
+
         # Run chains
         tau = np.inf
-        with Pool(number_worker) as pool:
-            sampler = emcee.EnsembleSampler(nwalkers, 
-                                            self.ndim, 
-                                            self.likelihood,
-                                            pool=pool,
-                                            backend=backend)         
-            for sample in sampler.sample(start, 
-                                         iterations=nstep, 
-                                         progress=progress):   
+        with mp.Pool(number_worker) as pool:
+            sampler = emcee.EnsembleSampler(
+                nwalkers, self.ndim, self.likelihood, pool=pool, backend=backend
+            )
+            for sample in sampler.sample(start, iterations=nstep, progress=progress):
                 if (tau_conv is not None) & (sampler.iteration % 500 == 0):
                     # Compute tau
                     tau = sampler.get_autocorr_time(tol=0)
@@ -386,7 +372,7 @@ class FitMCMC:
                         break
                     old_tau = tau
         return sampler
-                     
+
     @classmethod
     def init_from_covariance(
         cls,
@@ -394,6 +380,7 @@ class FitMCMC:
         data,
         parameter_dict,
         likelihood_type="multivariate_gaussian",
+        likelihood_properties=None,
     ):
         """
         The init_from_covariance function is a class method that initializes the MCMC fitter from a covariance matrix.
@@ -417,13 +404,12 @@ class FitMCMC:
         likelihood = mcmc_fitter.get_likelihood(
             parameter_dict,
             likelihood_type=likelihood_type,
+            likelihood_properties=likelihood_properties,
         )
         mcmc_fitter.likelihood = likelihood
 
-        # CR - need to add the sampler here.
-
         return mcmc_fitter
-    
+
     @property
     def ndim(self):
         return len(self.likelihood.parameter_names)

@@ -7,6 +7,10 @@ import numpy as np
 _C_LIGHT_KMS_ = acst.c.to("km/s").value
 
 
+def Du(k, sigmau):
+    return np.sin(k * sigmau) / (k * sigmau)
+
+
 def radec2cart(rcom, ra, dec):
     """
     The radec2cart function takes in the comoving distance to a galaxy,

@@ -108,11 +108,7 @@ def construct_grid_regular_sphere(grid_size, rcom_max):
     )
 
     # Convert to ra, dec, r_comov
-    center_r_comov = np.sqrt(cp_x**2 + cp_y**2 + cp_z**2)
-    center_ra = np.arctan2(cp_y, cp_x)
-    mask = center_r_comov != 0
-    center_dec = np.zeros(center_ra.shape)
-    center_dec[mask] = np.arcsin(cp_z[mask] / center_r_comov[mask])
+    center_r_comov, center_ra, center_dec = utils.cart2radec(cp_x, cp_y, cp_z)
 
     # Cut the grid with rcom_max
     grid = {
@@ -155,11 +151,7 @@ def construct_grid_regular_rectangular(grid_size, rcom_max):
     )
 
     # Convert to ra, dec, r_comov
-    center_r_comov = np.sqrt(cp_x**2 + cp_y**2 + cp_z**2)
-    center_ra = np.arctan2(cp_y, cp_x)
-    mask = center_r_comov != 0
-    center_dec = np.zeros(center_ra.shape)
-    center_dec[mask] = np.arcsin(cp_z[mask] / center_r_comov[mask])
+    center_r_comov, center_ra, center_dec = utils.cart2radec(cp_x, cp_y, cp_z)
 
     # Cut the grid with rcom_max
     grid = {
@@ -602,13 +594,15 @@ def grid_data_density_pypower(
     )
 
     mesh = catalog_mesh.to_mesh(field="normalized_data", compensate=compensate)
-    mesh_count = catalog_mesh_count.to_mesh(field="randoms", compensate=False) / Nrandom
+    mesh_count = (
+        catalog_mesh_count.to_mesh(field="randoms", compensate=compensate) / Nrandom
+    )
 
     coord_mesh = np.array(
         np.meshgrid(
-            np.sort(mesh.slabs.x.optx[0][:, 0, 0]),
-            np.sort(mesh.slabs.x.optx[1][0, :, 0]),
-            np.sort(mesh.slabs.x.optx[2][0, 0, :]),
+            np.sort(mesh.x[0][:, 0, 0]),
+            np.sort(mesh.x[1][0, :, 0]),
+            np.sort(mesh.x[2][0, 0, :]),
             indexing="ij",
         )
     )
@@ -616,11 +610,7 @@ def grid_data_density_pypower(
     ygrid = np.ravel(coord_mesh[1, :, :, :])
     zgrid = np.ravel(coord_mesh[2, :, :, :])
 
-    rcomgrid = np.sqrt(xgrid**2 + ygrid**2 + zgrid**2)
-    ragrid = np.arctan2(ygrid, xgrid)
-    mask = rcomgrid != 0
-    decgrid = np.zeros(ragrid.shape)
-    decgrid[mask] = np.arcsin(zgrid[mask] / rcomgrid[mask])
+    rcomgrid, ragrid, decgrid = utils.cart2radec(xgrid, ygrid, zgrid)
 
     density_contrast = np.ravel(mesh.value - 1)
 

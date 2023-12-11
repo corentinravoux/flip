@@ -1,8 +1,14 @@
 import os
-
 import numpy as np
-from classy import Class
+from flip.utils import create_log
+log = create_log()
 
+try:
+    from classy import Class
+else:
+    log.add("Install CLASS https://github.com/lesgourg/class_public to use power_spectra module",
+            level="warning")
+    
 
 def get_power_spectrum_suffix(
     z,

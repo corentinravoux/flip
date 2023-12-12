@@ -111,6 +111,7 @@ class BaseFitter(object):
         parameter_dict,
         likelihood_type="multivariate_gaussian",
         likelihood_properties=None,
+        **kwargs,
     ):
         """
         The get_likelihood function is used to create a likelihood object from the covariance matrix.
@@ -137,6 +138,7 @@ class BaseFitter(object):
             self.data,
             parameter_names,
             likelihood_properties=likelihood_properties,
+            **kwargs,
         )
 
         return likelihood
@@ -203,6 +205,7 @@ class FitMinuit(BaseFitter):
         parameter_dict,
         likelihood_type="multivariate_gaussian",
         likelihood_properties=None,
+        **kwargs,
     ):
         """
         The init_from_covariance function is a class method that initializes the MinuitFitter object.
@@ -233,6 +236,7 @@ class FitMinuit(BaseFitter):
             parameter_dict,
             likelihood_type=likelihood_type,
             likelihood_properties=likelihood_properties,
+            **kwargs,
         )
         minuit_fitter.likelihood = likelihood
         parameter_values = [

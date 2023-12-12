@@ -54,6 +54,7 @@ class BaseLikelihood(object):
         data,
         parameter_names,
         likelihood_properties=None,
+        **kwargs,
     ):
         """
         The init_from_covariance function is a class method that initializes the likelihood object from a covariance matrix.
@@ -72,15 +73,16 @@ class BaseLikelihood(object):
             A likelihood object
 
         """
-        if covariance.full_matrix is False:
-            covariance.compute_full_matrix()
 
         likelihood = cls(
             covariance=covariance,
             data=data,
             parameter_names=parameter_names,
             likelihood_properties=likelihood_properties,
+            **kwargs,
         )
+
+        likelihood.verify_covariance()
 
         return likelihood
 
@@ -127,6 +129,10 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
             likelihood_properties=likelihood_properties,
         )
 
+    def verify_covariance(self):
+        if self.covariance.full_matrix is False:
+            self.covariance.compute_full_matrix()
+
     def __call__(self, parameter_values):
         parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
 
@@ -145,38 +151,47 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
 class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
     def __init__(
         self,
-        covariance_list=None,
+        covariance=None,
         data=None,
         parameter_names=None,
         likelihood_properties=None,
+        interpolation_value_name=None,
         interpolation_value_range=None,
     ):
         """
         The __init__ function is called when the class is instantiated.
         It sets up the instance of the class, and defines all its attributes.
-        The __init__ function takes arguments (in this case, just self), but can take any number of additional arguments that are passed to it when a new instance of a class is created.
+        The __init__ function takes arguments, which are then assigned to object attributes:
 
         Args:
             self: Represent the instance of the class
-            covariance_list: Define the covariance matrix
+            covariance: Set the covariance matrix of the likelihood
             data: Store the data
-            parameter_names: Define the parameters that are used in the likelihood
-            likelihood_properties: Pass in the likelihood properties
-            interpolation_value_range: Define the range of values that will be used to interpolate
-            : Set the interpolation value range
+            parameter_names: Specify the names of the parameters that are used in this likelihood
+            likelihood_properties: Pass in the interpolation_value_name and interpolation_value_range
+            interpolation_value_name: Specify the name of the parameter that is being interpolated
+            interpolation_value_range: Specify the range of values that will be used to interpolate
+            : Define the interpolation value name
 
         Returns:
             The object itself
         """
+
         super(MultivariateGaussianLikelihoodInterpolate1D, self).__init__(
-            covariance_list=covariance_list,
+            covariance=covariance,
             data=data,
             parameter_names=parameter_names,
             likelihood_properties=likelihood_properties,
         )
+        self.interpolation_value_name = interpolation_value_name
         self.interpolation_value_range = interpolation_value_range
 
-    def __call__(self, parameter_values, interpolation_value):
+    def verify_covariance(self):
+        for i in range(len(self.covariance)):
+            if self.covariance[i].full_matrix is False:
+                self.covariance[i].compute_full_matrix()
+
+    def __call__(self, parameter_values):
         """
         The __call__ function is the function that is called when you call an instance of a class.
         For example, if you have a class named 'Foo' and create an instance of it like this:
@@ -198,16 +213,18 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         )
 
         covariance_sum_list = []
-        for i in range(len(self.covariance_list)):
+        for i in range(len(self.covariance)):
             covariance_sum_list.append(
-                self.covariance_list[i].compute_covariance_sum(
+                self.covariance[i].compute_covariance_sum(
                     parameter_values_dict, vector_error
                 )
             )
         covariance_sum_interpolated = sc.interpolate.interp1d(
             self.interpolation_value_range, covariance_sum_list, copy=False, axis=0
         )
-        covariance_sum = covariance_sum_interpolated(interpolation_value)
+        covariance_sum = covariance_sum_interpolated(
+            parameter_values_dict[self.interpolation_value_name]
+        )
 
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
@@ -218,7 +235,7 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
 class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
     def __init__(
         self,
-        covariance_matrix=None,
+        covariance=None,
         data=None,
         parameter_names=None,
         likelihood_properties=None,
@@ -232,7 +249,7 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
 
         Args:
             self: Represent the instance of the class
-            covariance_matrix: Store the covariance matrix of the data
+            covariance: Store the covariance matrix of the data
             data: Set the data attribute of the class
             parameter_names: Specify the names of the parameters
             likelihood_properties: Pass in the interpolation values
@@ -244,13 +261,19 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
             The object itself
         """
         super(MultivariateGaussianLikelihoodInterpolate1D, self).__init__(
-            covariance_matrix=covariance_matrix,
+            covariance=covariance,
             data=data,
             parameter_names=parameter_names,
             likelihood_properties=likelihood_properties,
         )
         self.interpolation_value_range_0 = interpolation_value_range_0
         self.interpolation_value_range_1 = interpolation_value_range_1
+
+    def verify_covariance(self):
+        for i in range(len(self.covariance)):
+            for j in range(len(self.covariance[i])):
+                if self.covariance[i][j].full_matrix is False:
+                    self.covariance[i][j].compute_full_matrix()
 
     def __call__(
         self,
@@ -282,11 +305,11 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
 
         covariance_sum_matrix = []
 
-        for i in range(len(self.covariance_matrix)):
+        for i in range(len(self.covariance)):
             covariance_sum_matrix_i = []
-            for j in range(len(self.covariance_matrix[i])):
+            for j in range(len(self.covariance[i])):
                 covariance_sum_matrix_i.append(
-                    self.covariance_matrix[i][j].compute_covariance_sum(
+                    self.covariance[i][j].compute_covariance_sum(
                         parameter_values_dict, vector_error
                     )
                 )

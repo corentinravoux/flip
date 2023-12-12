@@ -46,7 +46,7 @@ intersphinx_mapping = {
 extensions = ['myst_parser', 'sphinx.ext.napoleon', 'sphinx_markdown_tables', 'sphinx.ext.autosectionlabel',
               'sphinx.ext.linkcode', 'sphinx.ext.intersphinx', 'sphinx.ext.autodoc', 'sphinx.ext.autosummary']
 extensions.append('autoapi.extension')
-autoapi_dirs = ['', '../flip']
+autoapi_dirs = ['../flip', '../flip/covariance']
 
 napoleon_google_docstring = True
 myst_enable_extensions = ["dollarmath"]

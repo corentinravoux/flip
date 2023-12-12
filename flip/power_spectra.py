@@ -5,7 +5,7 @@ log = create_log()
 
 try:
     from classy import Class
-else:
+except:
     log.add("Install CLASS https://github.com/lesgourg/class_public to use power_spectra module",
             level="warning")
     

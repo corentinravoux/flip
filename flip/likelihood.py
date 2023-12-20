@@ -88,9 +88,10 @@ class BaseLikelihood(object):
 
     def load_data_vector(
         self,
+        model_type,
         parameter_values_dict,
     ):
-        if self.covariance.model_type in ["velocity", "density_velocity", "full"]:
+        if model_type in ["velocity", "density_velocity", "full"]:
             velocity, velocity_error = vectors.load_velocity_vector(
                 self.data,
                 parameter_values_dict,
@@ -98,14 +99,14 @@ class BaseLikelihood(object):
                 velocity_estimator=self.likelihood_properties["velocity_estimator"],
             )
 
-        if self.covariance.model_type in ["density", "density_velocity", "full"]:
+        if model_type in ["density", "density_velocity", "full"]:
             density, density_error = vectors.load_density_vector(self.data)
 
-        if self.covariance.model_type == "density":
+        if model_type == "density":
             return density, density_error
-        elif self.covariance.model_type == "velocity":
+        elif model_type == "velocity":
             return velocity, velocity_error
-        elif self.covariance.model_type in ["density_velocity", "full"]:
+        elif model_type in ["density_velocity", "full"]:
             return (
                 np.concatenate([density, velocity], axis=0),
                 np.concatenate([density_error, velocity_error], axis=0),
@@ -137,6 +138,7 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
 
         vector, vector_error = self.load_data_vector(
+            self.covariance.model_type,
             parameter_values_dict,
         )
         covariance_sum = self.covariance.compute_covariance_sum(
@@ -209,6 +211,7 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
 
         vector, vector_error = self.load_data_vector(
+            self.covariance[0].model_type,
             parameter_values_dict,
         )
 
@@ -300,6 +303,7 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
         parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
 
         vector, vector_error = self.load_data_vector(
+            self.covariance[0][0].model_type,
             parameter_values_dict,
         )
 

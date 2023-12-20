@@ -16,14 +16,14 @@ class Contraction:
         contraction_dict=None,
         coordinates_dict=None,
         basis_definition=None,
-        los_definition=None,
+        endpoint_los_definition=None,
     ):
         self.model_name = model_name
         self.model_type = model_type
         self.contraction_dict = contraction_dict
         self.coordinates_dict = coordinates_dict
         self.basis_definition = basis_definition
-        self.los_definition = los_definition
+        self.endpoint_los_definition = endpoint_los_definition
 
     @classmethod
     def init_from_flip(
@@ -31,39 +31,16 @@ class Contraction:
         model_name,
         model_type,
         power_spectrum_dict,
-        r_perpendicular,
-        r_parallel,
-        r_reference_perpendicular,
-        r_reference_parallel,
+        coord_1,
+        coord_2,
+        coord_1_reference,
+        coord_2_reference,
+        coordinate_type="rprt",
         additional_parameters_values=None,
         basis_definition="bisector",
-        los_definition="bisector",
+        endpoint_los_definition="bisector",
         **kwargs,
     ):
-        """
-        The init_contraction_from_flip function is a helper function that allows the user to initialize
-        a Contraction object from an existing FLIP object. This is useful for when you want to use the same
-        FLIP object multiple times, but with different contraction parameters. For example, if you wanted to
-        contract a covariance matrix at two different values of r_perpendicular and r_parallel (e.g., one set of values for calculating the power spectrum and another set of values for calculating correlation functions), then this function would be helpful.
-
-        Args:
-            cls: Create an instance of the class that called this function
-            model_name: Define the model name
-            model_type: Determine the type of model,
-            power_spectrum_dict: Pass the power spectrum to the contraction_flip function
-            r_perpendicular: Define the perpendicular distance from the reference point
-            r_parallel: Define the parallel distance at which to evaluate the correlation function
-            r_reference_perpendicular: Define the reference point for the perpendicular distance
-            r_reference_parallel: Set the reference parallel coordinate
-            additional_parameters_values: Pass in the values of the additional parameters
-            basis_definition: Define the basis of the contraction
-            los_definition: Define the line of sight
-            **kwargs: Pass keyword arguments to the function
-            : Define the model type
-
-        Returns:
-            An instance of the contraction class
-        """
         (
             contraction_dict,
             coordinates_dict,
@@ -71,13 +48,14 @@ class Contraction:
             model_name,
             model_type,
             power_spectrum_dict,
-            r_perpendicular,
-            r_parallel,
-            r_reference_perpendicular,
-            r_reference_parallel,
+            coord_1,
+            coord_2,
+            coord_1_reference,
+            coord_2_reference,
+            coordinate_type=coordinate_type,
             additional_parameters_values=additional_parameters_values,
             basis_definition=basis_definition,
-            los_definition=los_definition,
+            endpoint_los_definition=endpoint_los_definition,
             **kwargs,
         )
 
@@ -87,7 +65,7 @@ class Contraction:
             contraction_dict=contraction_dict,
             coordinates_dict=coordinates_dict,
             basis_definition=basis_definition,
-            los_definition=los_definition,
+            endpoint_los_definition=endpoint_los_definition,
         )
 
     @property
@@ -194,25 +172,60 @@ class Contraction:
 
 
 def compute_contraction_coordinates(
-    r_perpendicular,
-    r_parallel,
-    r_reference_perpendicular,
-    r_reference_parallel,
+    coord_1,
+    coord_2,
+    coord_1_reference,
+    coord_2_reference,
+    coordinate_type,
     basis_definition,
-    los_definition,
+    endpoint_los_definition,
 ):
-    coord_rper_rpar = np.array(
-        np.meshgrid(r_perpendicular, r_parallel, indexing="ij")
-    ).reshape((2, len(r_perpendicular) * len(r_parallel)))
+    shape_coord_1_coord_2 = len(coord_1) * len(coord_2)
 
-    r_reference = np.sqrt(r_reference_perpendicular**2 + r_reference_parallel**2)
+    if coordinate_type == "rmu":
+        # r = coord_1, mu = coord_2
+
+        coord_rmu = np.array(np.meshgrid(coord_1, coord_2, indexing="ij")).reshape(
+            (2, shape_coord_1_coord_2)
+        )
+
+        coord_rper_rpar = np.zeros((2, shape_coord_1_coord_2))
+
+        coord_rper_rpar[:, 0] = coord_rmu[:, 0] * np.sqrt(1 - coord_rmu[:, 1] ** 2)
+        coord_rper_rpar[:, 1] = coord_rmu[:, 0] * coord_rmu[:, 1]
+
+        r_perpendicular_reference = coord_1_reference * np.sqrt(
+            1 - coord_2_reference**2
+        )
+        r_parallel_reference = coord_1_reference * coord_2_reference
+
+    elif coordinate_type == "rprt":
+        # r_perpendicular = coord_1, r_parallel = coord_2
+
+        coord_rper_rpar = np.array(
+            np.meshgrid(coord_1, coord_2, indexing="ij")
+        ).reshape((2, shape_coord_1_coord_2))
+
+        r_perpendicular_reference = coord_1_reference
+        r_parallel_reference = coord_2_reference
+
+        coord_rmu = np.zeros((2, shape_coord_1_coord_2))
+
+        coord_rmu[:, 0] = np.sqrt(
+            coord_rper_rpar[0, :] ** 2 + coord_rper_rpar[1, :] ** 2
+        )
+        coord_rmu[:, 1] = coord_rper_rpar[1, :] / np.sqrt(
+            coord_rper_rpar[0, :] ** 2 + coord_rper_rpar[1, :] ** 2
+        )
+
+    r_reference = np.sqrt(r_perpendicular_reference**2 + r_parallel_reference**2)
     r = np.sqrt(coord_rper_rpar[0, :] ** 2 + coord_rper_rpar[1, :] ** 2)
 
     if basis_definition == "bisector":
         # r_perp, r_par and phi are defined with respect to the bisector between the two points.
         r_1 = np.sqrt(
-            (r_reference_perpendicular + coord_rper_rpar[0, :]) ** 2
-            + (r_reference_parallel + coord_rper_rpar[1, :]) ** 2
+            (r_perpendicular_reference + coord_rper_rpar[0, :]) ** 2
+            + (r_parallel_reference + coord_rper_rpar[1, :]) ** 2
         )
 
         phi = np.arccos(np.clip(coord_rper_rpar[1, :] / r, -1.0, 1.0))
@@ -221,8 +234,8 @@ def compute_contraction_coordinates(
     elif basis_definition == "mean":
         # r_perp, r_par and phi are defined with respect to the mean between the two points.
         r_1 = np.sqrt(
-            (r_reference_perpendicular + coord_rper_rpar[0, :]) ** 2
-            + (r_reference_parallel + coord_rper_rpar[1, :]) ** 2
+            (r_perpendicular_reference + coord_rper_rpar[0, :]) ** 2
+            + (r_parallel_reference + coord_rper_rpar[1, :]) ** 2
         )
 
         phi = np.arccos(np.clip(coord_rper_rpar[1, :] / r, -1.0, 1.0))
@@ -232,7 +245,7 @@ def compute_contraction_coordinates(
     elif basis_definition == "endpoint":
         # r_perp, r_par are defined with respect to r_reference. phi can be defined by mean or bisector.
         theta = np.arctan2(coord_rper_rpar[0, :], r_reference + coord_rper_rpar[1, :])
-        if los_definition == "bisector":
+        if endpoint_los_definition == "bisector":
             phi = np.arcsin(
                 np.clip(
                     ((r_reference / r) + (coord_rper_rpar[0, :] / (r * np.sin(theta))))
@@ -241,38 +254,52 @@ def compute_contraction_coordinates(
                     1.0,
                 )
             )
-        elif los_definition == "mean":
-            phi = np.arccos(np.clip(r**2 / 2 + r_parallel * r_reference, -1.0, 1.0))
+        elif endpoint_los_definition == "mean":
+            phi = np.arccos(
+                np.clip(r**2 / 2 + coord_rper_rpar[1, :] * r_reference, -1.0, 1.0)
+            )
 
-    coordinates = np.zeros((3, len(r_perpendicular) * len(r_parallel)))
+    coordinates = np.zeros((3, shape_coord_1_coord_2))
     coordinates[0, :] = r
     coordinates[1, :] = theta
     coordinates[2, :] = phi
 
-    return coord_rper_rpar, coordinates
+    coordinates_dict = {
+        "r_perpendicular": coord_rper_rpar[0].reshape(len(coord_1), len(coord_2)),
+        "r_parallel": coord_rper_rpar[1].reshape(len(coord_1), len(coord_2)),
+        "r": r.reshape(len(coord_1), len(coord_2)),
+        "mu": coord_rmu[:, 1].reshape(len(coord_1), len(coord_2)),
+        "theta": theta.reshape(len(coord_1), len(coord_2)),
+        "phi": phi.reshape(len(coord_1), len(coord_2)),
+    }
+
+    return coordinates_dict, coordinates
 
 
 def contract_covariance(
     model_name,
     model_type,
     power_spectrum_dict,
-    r_perpendicular,
-    r_parallel,
-    r_reference_perpendicular,
-    r_reference_parallel,
+    coord_1,
+    coord_2,
+    coord_1_reference,
+    coord_2_reference,
+    coordinate_type="rprt",
     additional_parameters_values=None,
     basis_definition="bisector",
-    los_definition="bisector",
+    endpoint_los_definition="bisector",
     number_worker=8,
     hankel=True,
 ):
-    coord_rper_rpar, coordinates = compute_contraction_coordinates(
-        r_perpendicular,
-        r_parallel,
-        r_reference_perpendicular,
-        r_reference_parallel,
+    # r_perpendicular : coord_1, r_parallel : coord_2
+    coordinates_dict, coordinates = compute_contraction_coordinates(
+        coord_1,
+        coord_2,
+        coord_1_reference,
+        coord_2_reference,
+        coordinate_type,
         basis_definition,
-        los_definition,
+        endpoint_los_definition,
     )
     contraction_dict = {}
     if model_type in ["density", "full", "density_velocity"]:
@@ -284,7 +311,7 @@ def contract_covariance(
             additional_parameters_values=additional_parameters_values,
             number_worker=number_worker,
             hankel=hankel,
-        )[:, 1:].reshape(-1, len(r_perpendicular), len(r_parallel))
+        )[:, 1:].reshape(-1, len(coord_1), len(coord_2))
 
     if model_type in ["velocity", "full", "density_velocity"]:
         contraction_dict["vv"] = generator_flip.compute_coeficient(
@@ -295,7 +322,7 @@ def contract_covariance(
             additional_parameters_values=additional_parameters_values,
             number_worker=number_worker,
             hankel=hankel,
-        )[:, 1:].reshape(-1, len(r_perpendicular), len(r_parallel))
+        )[:, 1:].reshape(-1, len(coord_1), len(coord_2))
 
     if model_type == "full":
         contraction_dict["gv"] = generator_flip.compute_coeficient(
@@ -306,15 +333,6 @@ def contract_covariance(
             additional_parameters_values=additional_parameters_values,
             number_worker=number_worker,
             hankel=hankel,
-        )[:, 1:].reshape(-1, len(r_perpendicular), len(r_parallel))
+        )[:, 1:].reshape(-1, len(coord_1), len(coord_2))
 
-    coordinates_dict = {
-        "r_perpendicular": coord_rper_rpar[0].reshape(
-            len(r_perpendicular), len(r_parallel)
-        ),
-        "r_parallel": coord_rper_rpar[1].reshape(len(r_perpendicular), len(r_parallel)),
-        "r": coordinates[0].reshape(len(r_perpendicular), len(r_parallel)),
-        "theta": coordinates[1].reshape(len(r_perpendicular), len(r_parallel)),
-        "phi": coordinates[2].reshape(len(r_perpendicular), len(r_parallel)),
-    }
     return contraction_dict, coordinates_dict

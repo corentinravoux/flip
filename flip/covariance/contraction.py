@@ -191,8 +191,8 @@ def compute_contraction_coordinates(
 
         coord_rper_rpar = np.zeros((2, shape_coord_1_coord_2))
 
-        coord_rper_rpar[:, 0] = coord_rmu[:, 0] * np.sqrt(1 - coord_rmu[:, 1] ** 2)
-        coord_rper_rpar[:, 1] = coord_rmu[:, 0] * coord_rmu[:, 1]
+        coord_rper_rpar[0, :] = coord_rmu[0, :] * np.sqrt(1 - coord_rmu[1, :] ** 2)
+        coord_rper_rpar[1, :] = coord_rmu[0, :] * coord_rmu[1, :]
 
         r_perpendicular_reference = coord_1_reference * np.sqrt(
             1 - coord_2_reference**2
@@ -211,10 +211,10 @@ def compute_contraction_coordinates(
 
         coord_rmu = np.zeros((2, shape_coord_1_coord_2))
 
-        coord_rmu[:, 0] = np.sqrt(
+        coord_rmu[0, :] = np.sqrt(
             coord_rper_rpar[0, :] ** 2 + coord_rper_rpar[1, :] ** 2
         )
-        coord_rmu[:, 1] = coord_rper_rpar[1, :] / np.sqrt(
+        coord_rmu[1, :] = coord_rper_rpar[1, :] / np.sqrt(
             coord_rper_rpar[0, :] ** 2 + coord_rper_rpar[1, :] ** 2
         )
 
@@ -268,7 +268,7 @@ def compute_contraction_coordinates(
         "r_perpendicular": coord_rper_rpar[0].reshape(len(coord_1), len(coord_2)),
         "r_parallel": coord_rper_rpar[1].reshape(len(coord_1), len(coord_2)),
         "r": r.reshape(len(coord_1), len(coord_2)),
-        "mu": coord_rmu[:, 1].reshape(len(coord_1), len(coord_2)),
+        "mu": coord_rmu[1, :].reshape(len(coord_1), len(coord_2)),
         "theta": theta.reshape(len(coord_1), len(coord_2)),
         "phi": phi.reshape(len(coord_1), len(coord_2)),
     }

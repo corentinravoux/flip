@@ -1,0 +1,86 @@
+#Author: Edmond Chaussidon (CEA)
+
+## FIGURE
+
+figure.titlesize   : medium     # size of the figure title
+figure.titleweight : normal     # weight of the figure title
+figure.figsize     : 11, 7      # figure size in inches
+figure.dpi         : 100        # figure dots per inch
+figure.autolayout  : False      # When True, automatically adjust subplot
+figure.frameon     : True
+
+figure.subplot.left    : 0.08  # the left side of the subplots of the figure
+figure.subplot.right   : 0.96    # the right side of the subplots of the figure
+figure.subplot.bottom  : 0.1   # the bottom of the subplots of the figure
+figure.subplot.top     : 0.95    # the top of the subplots of the figure
+
+## LINES
+
+lines.linewidth : 1.5
+
+## AXES
+
+axes.facecolor: white
+#axes.facecolor: eeeeee
+axes.edgecolor: bcbcbc
+
+#axes.facecolor             : eeeeee       # axes background color
+#axes.edgecolor             : black        # axes edge color
+axes.linewidth              : 1.0          # edge linewidth
+axes.labelcolor             : black
+axes.prop_cycle             : cycler(color=['blue','orange','green', 'red', 'purple', 'gold', 'black', 'yellow', 'magenta', 'cyan', 'brown', 'grey'])
+#axes.prop_cycle             : cycler(color=['blue', 'red', 'green', 'gold', 'purple', 'black', 'yellow', 'magenta', 'cyan', 'brown', 'grey'])
+axes.formatter.use_mathtext : False # When True, use mathtext for scientific notation
+axes.labelsize : 12
+
+## GRID
+
+axes.grid      : True
+grid.color     : grey
+grid.linestyle : :
+grid.linewidth : 0.7
+grid.alpha     : 0.8
+
+## LEGEND
+
+legend.fancybox  : True
+legend.facecolor : white
+legend.fontsize : 12
+
+## TICKS
+
+xtick.direction : out
+ytick.direction : out
+xtick.labelsize : 12
+ytick.labelsize : 12
+xtick.major.size     : 4      # major tick size in points
+xtick.major.width    : 1      # major tick width in points
+ytick.major.size     : 4      # major tick size in points
+ytick.major.width    : 1      # major tick width in points
+
+
+## IMAGES
+image.aspect : equal
+image.cmap   : jet
+
+## FONT
+
+font.family         : serif
+
+## TEXT
+
+text.color          : k
+text.usetex         : False
+
+#mathtext.cal : cursive
+#mathtext.rm  : serif
+#mathtext.tt  : monospace
+#mathtext.it  : serif:italic
+#mathtext.bf  : serif:bold
+#mathtext.sf  : sans\-serif
+#mathtext.fontset : cm
+#mathtext.default : it
+
+## SAVEFIG
+
+savefig.transparent : False

@@ -5,6 +5,9 @@ from flip.utils import create_log
 
 log = create_log()
 
+_avail_velocity_type = ["direct", "saltfit"]
+_avail_velocity_estimator = ["watkins", "lowz", "hubblehighorder", "full"]
+
 
 def load_density_vector(data):
     density, density_error = None, None
@@ -38,13 +41,26 @@ def load_velocity_vector(
                 velocity_error = np.zeros_like(data["velocity"])
         else:
             raise ValueError(
-                """The data does not contains a velocity field."""
-                """Add it or choose a different velocity_type"""
+                """The data does not contains a "velocity" field."""
+                f"""Add it or choose a different velocity_type among: {_avail_velocity_type}"""
             )
 
-    elif velocity_type == "salt":
-        if "mb" in data.keys():
-            velocity, velocity_error = get_velocity_salt_model(
+    elif velocity_type == "saltfit":
+        key_to_verify = (
+            "mb",
+            "x1",
+            "c",
+            "e_mb",
+            "e_x1",
+            "e_c",
+            "cov_mb_x1",
+            "cov_mb_c",
+            "cov_x1_c",
+            "zobs",
+            "como_dist",
+        )
+        if all(k in data for k in key_to_verify):
+            velocity, velocity_error = get_velocity_from_salt_fit(
                 data,
                 parameter_values_dict,
                 velocity_estimator,
@@ -52,24 +68,29 @@ def load_velocity_vector(
             )
         else:
             raise ValueError(
-                """The data does not contains parameters for salt velocity estimate."""
-                """Add it or choose a different velocity_type"""
+                f"""The data does not contains parameters for saltfit velocity estimate."""
+                f"""Add all the following values: {key_to_verify}"""
+                f"""Or choose a different velocity_type among {_avail_velocity_type}"""
             )
+    else:
+        raise ValueError(
+            f"""Please choose a velocity_type among {_avail_velocity_type}"""
+        )
 
     return velocity, velocity_error
 
 
-def get_velocity_salt_model(
+def get_velocity_from_salt_fit(
     data,
-    parameters,
+    parameter_values_dict,
     velocity_estimator,
     q_0=None,
     j_0=None,
 ):
-    alpha = parameters["alpha"]
-    beta = parameters["beta"]
-    M_0 = parameters["M_0"]
-    sigma_M = parameters["sigma_M"]
+    alpha = parameter_values_dict["alpha"]
+    beta = parameter_values_dict["beta"]
+    M_0 = parameter_values_dict["M_0"]
+    sigma_M = parameter_values_dict["sigma_M"]
 
     mu, variance_mu = compute_observed_distance_modulus(
         data,
@@ -79,7 +100,7 @@ def get_velocity_salt_model(
     )
     variance_mu += sigma_M**2
 
-    muth = 5 * np.log10((1 + data["redshift_obs"]) * data["r_cosmo"]) + 25
+    muth = 5 * np.log10((1 + data["zobs"]) * data["como_dist"]) + 25
     dmu = mu - muth
 
     redshift_dependence = redshift_dependence_velocity(
@@ -122,25 +143,39 @@ def redshift_dependence_velocity(
     q_0=None,
     j_0=None,
 ):
-    pfct = utils._C_LIGHT_KMS_ * np.log(10) / 5
+    prefactor = utils._C_LIGHT_KMS_ * np.log(10) / 5
+    redshift_obs = data["zobs"]
+
     if velocity_estimator == "watkins":
-        redshift_dependence = pfct * data["redshift"] / (1 + data["redshift"])
+        redshift_dependence = prefactor * redshift_obs / (1 + redshift_obs)
     elif velocity_estimator == "lowz":
-        redshift_dependence = pfct / ((1 + data["redshift"]) / data["redshift"] - 1.0)
+        redshift_dependence = prefactor / ((1 + redshift_obs) / redshift_obs - 1.0)
     elif velocity_estimator == "hubblehighorder":
-        redshift_mod = data["redshift"] * (
+        redshift_mod = redshift_obs * (
             1
-            + (1 / 2) * (1 - q_0) * data["redshift"]
-            - (1 / 6) * (1 - q_0 - 3 * q_0**2 + j_0) * data["redshift"] ** 2
+            + (1 / 2) * (1 - q_0) * redshift_obs
+            - (1 / 6) * (1 - q_0 - 3 * q_0**2 + j_0) * redshift_obs**2
         )
-        redshift_dependence = pfct * redshift_mod / (1 + data["redshift"])
+        redshift_dependence = prefactor * redshift_mod / (1 + redshift_obs)
 
     elif velocity_estimator == "full":
-        redshift_dependence = pfct / (
-            (1 + data["redshift"])
+        if "hubble" not in data:
+            raise ValueError(
+                """ The "hubble" field is not present in the data"""
+                """ Please add it or choose a different velocity_estimator from salt fit among {_avail_velocity_estimator}"""
+            )
+        hubble_value = data["hubble"]
+        comoving_distance = data["como_dist"]
+        redshift_dependence = prefactor / (
+            (1 + redshift_obs)
             * utils._C_LIGHT_KMS_
-            / (data["hubble"] * data["r_cosmo"])
+            / (hubble_value * comoving_distance)
             - 1.0
+        )
+
+    else:
+        raise ValueError(
+            f"""Please choose a velocity_estimator from salt fit among {_avail_velocity_estimator}"""
         )
 
     return redshift_dependence

@@ -163,8 +163,9 @@ def plot_correlation_from_likelihood(
     parameter_values_dict = dict(zip(parameter_names, parameter_values))
 
     _, vector_error = likelihood.load_data_vector(
-            parameter_values_dict,
-        )
+        likelihood.covariance.model_type,
+        parameter_values_dict,
+    )
     covariance_sum = likelihood.covariance.compute_covariance_sum(
         parameter_values_dict, vector_error
     )

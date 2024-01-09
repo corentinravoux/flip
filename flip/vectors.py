@@ -159,6 +159,7 @@ def redshift_dependence_velocity(
         redshift_dependence = prefactor * redshift_mod / (1 + redshift_obs)
 
     elif velocity_estimator == "full":
+        # CR - hubble_value * comoving_distance need to be changed to hubble_value * comoving_distance / h  = 100 * E * r
         if "hubble" not in data:
             raise ValueError(
                 """ The "hubble" field is not present in the data"""

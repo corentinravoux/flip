@@ -1,9 +1,11 @@
 import os
+
 import numpy as np
 import pandas as pd
-from flip import fitter, plot_utils, utils
-from flip.covariance import covariance, contraction
 from pkg_resources import resource_filename
+
+from flip import fitter, utils
+from flip.covariance import covariance
 
 flip_base = resource_filename("flip", ".")
 data_path = os.path.join(flip_base, "data")
@@ -27,9 +29,6 @@ ktt, ptt = np.loadtxt(os.path.join(data_path, "power_spectrum_tt.txt"))
 kmt, pmt = np.loadtxt(os.path.join(data_path, "power_spectrum_mt.txt"))
 kmm, pmm = np.loadtxt(os.path.join(data_path, "power_spectrum_mm.txt"))
 
-sigmau_fiducial = 15
-
-power_spectrum_dict = {"vv": [[ktt, ptt * utils.Du(ktt, sigmau_fiducial) ** 2]]}
 
 ### Compute covariance
 sigmau_list = np.linspace(10.0, 20.0, 10)

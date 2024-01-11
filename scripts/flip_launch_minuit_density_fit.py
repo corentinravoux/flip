@@ -1,9 +1,11 @@
 import os
+
 import numpy as np
 import pandas as pd
-from flip import fitter, plot_utils
-from flip.covariance import covariance, contraction
 from pkg_resources import resource_filename
+
+from flip import fitter
+from flip.covariance import covariance
 
 flip_base = resource_filename("flip", ".")
 data_path = os.path.join(flip_base, "data")

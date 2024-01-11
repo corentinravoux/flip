@@ -1,11 +1,9 @@
 import os
-
 import numpy as np
 import pandas as pd
+from flip import fitter, plot_utils, utils
+from flip.covariance import covariance, contraction
 from pkg_resources import resource_filename
-
-from flip import fitter, utils
-from flip.covariance import covariance
 
 flip_base = resource_filename("flip", ".")
 data_path = os.path.join(flip_base, "data")
@@ -16,7 +14,7 @@ sn_data = pd.read_parquet(os.path.join(data_path, "velocity_data.parquet"))
 sn_data = sn_data[np.array(sn_data["status"]) != False]
 sn_data = sn_data[np.array(sn_data["status"]) != None]
 
-coordinates_velocity = np.array([sn_data["ra"], sn_data["dec"], sn_data["como_dist"]])
+coordinates_velocity = np.array([sn_data["ra"], sn_data["dec"], sn_data["rcom_zobs"]])
 
 data_velocity = sn_data.to_dict("list")
 for key in data_velocity.keys():
@@ -29,6 +27,9 @@ ktt, ptt = np.loadtxt(os.path.join(data_path, "power_spectrum_tt.txt"))
 kmt, pmt = np.loadtxt(os.path.join(data_path, "power_spectrum_mt.txt"))
 kmm, pmm = np.loadtxt(os.path.join(data_path, "power_spectrum_mm.txt"))
 
+sigmau_fiducial = 15
+
+power_spectrum_dict = {"vv": [[ktt, ptt * utils.Du(ktt, sigmau_fiducial) ** 2]]}
 
 ### Compute covariance
 sigmau_list = np.linspace(10.0, 20.0, 10)

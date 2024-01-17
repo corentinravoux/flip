@@ -172,3 +172,4 @@ def plot_correlation_from_likelihood(
 
     correlation_sum = cov_utils.return_correlation_matrix(covariance_sum)
     plt.imshow(correlation_sum, vmin=vmin, vmax=vmax)
+    plt.colorbar()

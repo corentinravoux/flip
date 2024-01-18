@@ -40,5 +40,5 @@ save_path = "./"  # If not None, will save all calculated power spectra in this 
     normalize_power_spectrum=normalize_power_spectrum,
     power_spectrum_non_linear_model=power_spectrum_non_linear_model,
     power_spectrum_model=power_spectrum_model,
-    save_path=None,
+    save_path=save_path,
 )

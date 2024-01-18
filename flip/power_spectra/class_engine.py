@@ -154,6 +154,11 @@ def compute_power_spectrum(
 
     fs8_fiducial = get_fiducial_fs8(model, redshift)
     s8_fiducial = get_fiducial_s8(model, redshift)
-    fiducial = {"fsigma_8": fs8_fiducial, "sigma_8 ": s8_fiducial}
+    fiducial = {"fsigma_8": fs8_fiducial, "sigma_8": s8_fiducial}
 
-    return wavenumber, power_spectrum_linear, power_spectrum_non_linear, fiducial
+    return (
+        wavenumber,
+        np.array(power_spectrum_linear),
+        np.array(power_spectrum_non_linear),
+        fiducial,
+    )

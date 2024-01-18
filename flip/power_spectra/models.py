@@ -25,23 +25,22 @@ def bel_coefficients(sigma_8):
 def get_nonlinearbel_model(
     wavenumber,
     power_spectrum_linear,
-    power_spectrum_non_linear,
-    sigma_8=None,
+    **kwargs,
 ):
-    if sigma_8 is None:
+    if "sigma_8" not in kwargs.keys():
         raise ValueError("Fiducial sigma_8 value is needed for nonlinearbel model")
 
-    if power_spectrum_non_linear is None:
+    if "power_spectrum_non_linear" not in kwargs.keys():
         raise ValueError("Non linear power spectrum is needed for nonlinearbel model")
 
-    a1, a2, a3, invkdelta, b = bel_coefficients(sigma_8)
+    a1, a2, a3, invkdelta, b = bel_coefficients(kwargs["sigma_8"])
     power_spectrum_tt = power_spectrum_linear * np.exp(
         -wavenumber * (a1 + a2 * wavenumber + a3 * wavenumber**2)
     )
     power_spectrum_mt = np.sqrt(
-        power_spectrum_linear * power_spectrum_non_linear
+        power_spectrum_linear * kwargs["power_spectrum_non_linear"]
     ) * np.exp(-invkdelta * wavenumber - b * wavenumber**6)
-    power_spectrum_mm = power_spectrum_non_linear
+    power_spectrum_mm = kwargs["power_spectrum_non_linear"]
 
     return power_spectrum_mm, power_spectrum_mt, power_spectrum_tt
 
@@ -49,13 +48,12 @@ def get_nonlinearbel_model(
 def get_linearbel_model(
     wavenumber,
     power_spectrum_linear,
-    power_spectrum_non_linear=None,
-    sigma_8=None,
+    **kwargs,
 ):
-    if sigma_8 is None:
+    if "sigma_8" not in kwargs.keys():
         raise ValueError("Fiducial sigma_8 value is needed for linearbel model")
 
-    a1, a2, a3, invkdelta, b = bel_coefficients(sigma_8)
+    a1, a2, a3, invkdelta, b = bel_coefficients(kwargs["sigma_8"])
     power_spectrum_tt = power_spectrum_linear * np.exp(
         -wavenumber * (a1 + a2 * wavenumber + a3 * wavenumber**2)
     )

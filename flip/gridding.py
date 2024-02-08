@@ -517,6 +517,7 @@ def grid_data_density_pypower(
     interlacing=2,
     compensate=False,
     coord_randoms=None,
+    min_count_random=0,
 ):
     """
     The grid_data_density_pypower function takes in the ra, dec, and rcom values of a galaxy catalog
@@ -554,9 +555,9 @@ def grid_data_density_pypower(
         mask_random &= np.abs(coord_randoms[1]) < rcom_max
         mask_random &= np.abs(coord_randoms[2]) < rcom_max
         coord_randoms_cut = [
-            coord_randoms[0][mask],
-            coord_randoms[1][mask],
-            coord_randoms[2][mask],
+            coord_randoms[0][mask_random],
+            coord_randoms[1][mask_random],
+            coord_randoms[2][mask_random],
         ]
     else:
         coord_randoms_cut = None
@@ -612,9 +613,7 @@ def grid_data_density_pypower(
     )
 
     mesh = catalog_mesh.to_mesh(field="normalized_data", compensate=compensate)
-    mesh_count = (
-        catalog_mesh_count.to_mesh(field="randoms", compensate=compensate) / Nrandom
-    )
+    mesh_count = catalog_mesh_count.to_mesh(field="randoms") / Nrandom
 
     coord_mesh = np.array(
         np.meshgrid(
@@ -632,9 +631,9 @@ def grid_data_density_pypower(
 
     density_contrast = np.ravel(mesh.value - 1)
 
-    count = np.ravel(mesh_count)
-    density_contrast_err = np.full_like(count, np.nan)
-    mask = count != 0.0
+    count = np.ravel(mesh_count).astype(int)
+    density_contrast_err = np.full(count.shape, np.nan)
+    mask = count > min_count_random
     density_contrast_err[mask] = np.sqrt(1 / count[mask])
 
     grid = {
@@ -646,6 +645,7 @@ def grid_data_density_pypower(
         "rcom": rcomgrid,
         "density": density_contrast,
         "density_err": density_contrast_err,
+        "count_random": count,
     }
 
     if grid_type == "rect":

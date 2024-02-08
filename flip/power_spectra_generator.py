@@ -23,9 +23,7 @@ def get_power_spectrum_name(
     power_spectrum_type,
     suffix,
 ):
-    return (
-        f"power_spectrum_{power_spectrum_model}_{power_spectrum_type}_{suffix}.txt",
-    )
+    return f"power_spectrum_{power_spectrum_model}_{power_spectrum_type}_{suffix}.txt"
 
 
 def save_power_spectrum(

@@ -19,6 +19,7 @@ class CovMatrix:
         full_matrix=False,
         number_densities=None,
         number_velocities=None,
+        variant=None,
     ):
         """
         The __init__ function is called when the class is instantiated.
@@ -34,6 +35,7 @@ class CovMatrix:
             full_matrix: Determine whether the covariance matrix is stored as a full matrix or in sparse form
             number_densities: Set the number of density variables in the model
             number_velocities: Set the number of velocities in the model
+            variant: Name of the variation of the analysis
 
         Returns:
             An object of the class
@@ -46,6 +48,7 @@ class CovMatrix:
         self.full_matrix = full_matrix
         self.number_densities = number_densities
         self.number_velocities = number_velocities
+        self.variant = variant
 
     @classmethod
     def init_from_flip(
@@ -57,6 +60,7 @@ class CovMatrix:
         coordinates_velocity=None,
         additional_parameters_values=None,
         los_definition="bisector",
+        variant=None,
         **kwargs,
     ):
         """
@@ -106,11 +110,12 @@ class CovMatrix:
         return cls(
             model_name=model_name,
             model_type=model_type,
+            los_definition=los_definition,
             covariance_dict=covariance_dict,
+            full_matrix=False,
             number_densities=number_densities,
             number_velocities=number_velocities,
-            full_matrix=False,
-            los_definition=los_definition,
+            variant=variant,
         )
 
     @classmethod
@@ -122,6 +127,7 @@ class CovMatrix:
         coordinates_velocity=None,
         coordinates_density=None,
         additional_parameters_values=None,
+        variant=None,
         **kwargs,
     ):
         """
@@ -170,11 +176,12 @@ class CovMatrix:
         return cls(
             model_name=model_name,
             model_type=model_type,
+            los_definition=los_definition,
             covariance_dict=covariance_dict,
+            full_matrix=False,
             number_densities=number_densities,
             number_velocities=number_velocities,
-            full_matrix=False,
-            los_definition=los_definition,
+            variant=variant,
         )
 
     @classmethod
@@ -297,6 +304,7 @@ class CovMatrix:
         coefficients_dict = coefficients.get_coefficients(
             self.model_type,
             parameter_values_dict,
+            variant=self.variant,
         )
         coefficients_dict_diagonal = coefficients.get_diagonal_coefficients(
             self.model_type,

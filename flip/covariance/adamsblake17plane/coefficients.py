@@ -1,4 +1,8 @@
-def get_coefficients(model_type, parameter_values_dict):
+def get_coefficients(
+    model_type,
+    parameter_values_dict,
+    variant=None,
+):
     coefficients_dict = {}
     if model_type in ["density", "full", "density_velocity"]:
         coefficients_dict["gg"] = [

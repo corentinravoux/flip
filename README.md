@@ -14,14 +14,14 @@ cd flip
 pip install .
 ```
 
-## Required packages
+## Required packages
+
 Mandatory: numpy, scipy, matplotlib, [cosmoprimo](https://github.com/adematti/cosmoprimo), iminuit, emcee
 Optional: class, sympy, pypower
 
 ## Need help?
 Documentation available on [ReadTheDoc](https://flip.readthedocs.io/) 
 
-## How to cite
-
+## How to cite
 This package was started on the previous work of [@bastiencarreres](https://github.com/bastiencarreres), for now, please cite [this article](https://arxiv.org/abs/2303.01198)
 A paper describing the concept of the code is in preparation.

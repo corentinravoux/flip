@@ -16,9 +16,9 @@ pip install .
 
 ## Required packages
 
-Mandatory: numpy, scipy, matplotlib, [cosmoprimo](https://github.com/adematti/cosmoprimo), iminuit, emcee
+Mandatory: numpy, scipy, matplotlib, [cosmoprimo](https://github.com/adematti/cosmoprimo), iminuit, emcee, sympy
 
-Optional: class, sympy, pypower
+Optional: classy, pypower
 
 ## Examples
 

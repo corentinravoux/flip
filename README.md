@@ -22,10 +22,17 @@ Optional: class, sympy, pypower
 
 ## Examples
 
-For an example with velocity fit check out <a target="_blank" href="https://colab.research.google.com/github/corentinravoux/flip/blob/main/notebook/fit_velocity.ipynb">
+For an example with velocity fit check out: <a target="_blank" href="https://colab.research.google.com/github/corentinravoux/flip/blob/main/notebook/fit_velocity.ipynb">
   <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
 </a>
 
+For density only: <a target="_blank" href="https://colab.research.google.com/github/corentinravoux/flip/blob/main/notebook/fit_density.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+</a>
+
+For a joint fit: <a target="_blank" href="https://colab.research.google.com/github/corentinravoux/flip/blob/main/notebook/fit_joint.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+</a>
 
 ## Need help?
 Documentation available on [ReadTheDoc](https://flip.readthedocs.io/) 

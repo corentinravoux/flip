@@ -17,11 +17,20 @@ pip install .
 ## Required packages
 
 Mandatory: numpy, scipy, matplotlib, [cosmoprimo](https://github.com/adematti/cosmoprimo), iminuit, emcee
+
 Optional: class, sympy, pypower
+
+## Examples
+
+For an example with velocity fit check out <a target="_blank" href="https://colab.research.google.com/github/corentinravoux/flip/blob/main/notebook/fit_velocity.ipynb">
+  <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/>
+</a>
+
 
 ## Need help?
 Documentation available on [ReadTheDoc](https://flip.readthedocs.io/) 
 
 ## How to cite
-This package was started on the previous work of [@bastiencarreres](https://github.com/bastiencarreres), for now, please cite [this article](https://arxiv.org/abs/2303.01198)
+This package was started on the previous work of [@bastiencarreres](https://github.com/bastiencarreres), for now, please cite [this article](https://arxiv.org/abs/2303.01198).
+
 A paper describing the concept of the code is in preparation.

@@ -2,6 +2,7 @@ import multiprocessing as mp
 import os
 
 import emcee
+import abc
 import iminuit
 import numpy as np
 
@@ -305,14 +306,15 @@ class FitMinuit(BaseFitter):
             log.add(self.minuit.minos())
 
 
-class FitMCMC:
+class FitMCMC(BaseFitter):
     """Class to create and run a MCMC sampler with emcee package."""
 
-    def __init__(self, covariance=None, data=None, likelihood=None):
+    def __init__(self, covariance=None, data=None, likelihood=None, sampler='emcee', p0=None, **kwargs):
         """
         The __init__ function is called when the class is instantiated.
         It sets up the instance of the class, and defines all of its attributes.
-        The __init__ function should always accept at least one argument, self, which refers to the instance of the object being created.
+        The __init__ function should always accept at least one argument, self,
+        which refers to the instance of the object being created.
 
         Args:
             self: Represent the instance of the object itself
@@ -326,56 +328,16 @@ class FitMCMC:
             The object itself, so the return value is self
 
         """
-        super(FitMinuit, self).__init__(
+        super().__init__(
             covariance=covariance,
             data=data,
             likelihood=likelihood,
         )
+        if isinstance(sampler, str):
+            if sampler == 'emcee':
+                sampler = EMCEESampler(get(), p0=p0, **kwargs)
+
         self.sampler = sampler
-
-    def run_chains(
-        self,
-        file="",
-        nwalkers=None,
-        init=None,
-        sig_init=None,
-        number_worker=1,
-        nstep=100,
-        tau_conv=None,
-        progress=False,
-    ):
-        if os.path.exists(file):
-            log.add("File already exist" "Initial size: {0}".format(backend.iteration))
-            # Init walkers
-            p0 = None
-        elif nwalkers is not None & init is not None & sig_init is not None:
-            p0 = np.random.normal(loc=init, scale=sig_init, size=(nwalkers, self.ndim))
-            if file != "":
-                backend = emcee.backends.HDFBackend(filename)
-                log.add("Create new file to store chains")
-                nwalkers = backend.shape[0]
-            else:
-                backend = None
-        else:
-            raise ValueError("Need to set either a file or nwalkers, init & sig_init")
-
-        # Run chains
-        tau = np.inf
-        with mp.Pool(number_worker) as pool:
-            sampler = emcee.EnsembleSampler(
-                nwalkers, self.ndim, self.likelihood, pool=pool, backend=backend
-            )
-            for sample in sampler.sample(start, iterations=nstep, progress=progress):
-                if (tau_conv is not None) & (sampler.iteration % 500 == 0):
-                    # Compute tau
-                    tau = sampler.get_autocorr_time(tol=0)
-                    # Check convergence
-                    converged = np.all(tau * 100 < sampler.iteration)
-                    converged &= np.all(np.abs(old_tau - tau) / tau < tau_conv)
-                    if converged:
-                        break
-                    old_tau = tau
-        return sampler
 
     @classmethod
     def init_from_covariance(
@@ -385,6 +347,9 @@ class FitMCMC:
         parameter_dict,
         likelihood_type="multivariate_gaussian",
         likelihood_properties=None,
+        sampler='emcee',
+        nwalkers=None,
+        backend_file=None
     ):
         """
         The init_from_covariance function is a class method that initializes the MCMC fitter from a covariance matrix.
@@ -401,19 +366,112 @@ class FitMCMC:
             A mcmc_fitter object
 
         """
+
         mcmc_fitter = cls(
             covariance=covariance,
             data=data,
+            backend_file=backend_file
         )
+
         likelihood = mcmc_fitter.get_likelihood(
             parameter_dict,
             likelihood_type=likelihood_type,
             likelihood_properties=likelihood_properties,
         )
+
+
         mcmc_fitter.likelihood = likelihood
+
+        if mcmc_fitter.backend_file is None:
+            mcmc_fitter.sampler.p0 = np.stack([
+                p["randfun"](size=nwalkers) 
+                for p in parameter_dict.values()]).T
 
         return mcmc_fitter
 
     @property
     def ndim(self):
         return len(self.likelihood.parameter_names)
+
+
+
+class Sampler(abc.ABC):
+
+    def __init__(self, likelihood, p0=None):
+        self.likelihood = likelihood
+        self._p0 = None
+        if p0 is not None:
+            self.p0 = p0
+
+
+    @abc.abstractmethod
+    def run_chains(self, nsteps):
+        return
+    
+    @property
+    def ndim(self):
+        return len(self.likelihood.parameter_names)
+
+    @property
+    def p0(self):
+        return self._p0
+
+    @p0.setter
+    def p0(self, value):
+        if value.shape[1] != self.ndim:
+            raise ValueError(f"p0.shape[1] is equal to ndim={self.ndim}, currently {value.shape[1]}")
+        self._p0 = value
+        self.nwalkers = value.shape[0]
+
+
+class EMCEESampler(Sampler):
+    def __init__(self, likelihood, backend_file=None, p0=None):
+        super().__init__(likelihood)
+
+        self.backend = None
+        if backend_file is not None:
+            self.backend =  emcee.backends.HDFBackend(backend_file)
+            if os.path.exists(backend_file):
+                log.add("File already exist" 
+                        "Initial size: {0}".format(self.backend.iteration))
+                self._p0 = None
+                self.ndim = self.backend.shape[1]
+                self.nwalkers = self.backend.shape[0]
+            else:
+                log.add("Create new file to store chains")
+        
+
+    def run_chains(self, nsteps, number_worker=1, progress=False):
+        with mp.Pool(number_worker) as pool:
+            sampler = emcee.EnsembleSampler(
+                self.nwalkers, self.ndim, self.likelihood, pool=pool, backend=self.backend
+            )
+            sampler.run_mcmc(self.p0, nsteps, progress=progress)
+        return sampler
+
+    def run_chains_untilconv(
+        self,
+        number_worker=1,
+        maxstep=100,
+        tau_conv=0.01,
+        progress=False,
+    ):
+        # Run chains until reaching auto correlation convergence criteria
+        tau = np.inf
+        with mp.Pool(number_worker) as pool:
+            sampler = emcee.EnsembleSampler(
+                self.nwalkers, self.ndim, self.likelihood, pool=pool, backend=self.backend
+            )
+            for sample in sampler.sample(self.p0, iterations=nstep, progress=progress):
+                if (sampler.iteration % 500 == 0):
+                    # Compute tau
+                    tau = sampler.get_autocorr_time(tol=0)
+                    # Check convergence
+                    converged = np.all(tau * 100 < sampler.iteration)
+                    converged &= np.all(np.abs(old_tau - tau) / tau < tau_conv)
+                    if converged:
+                        break
+                    old_tau = tau
+        return sampler
+    
+

@@ -1,8 +1,8 @@
+import abc
 import multiprocessing as mp
 import os
 
 import emcee
-import abc
 import iminuit
 import numpy as np
 
@@ -309,7 +309,15 @@ class FitMinuit(BaseFitter):
 class FitMCMC(BaseFitter):
     """Class to create and run a MCMC sampler with emcee package."""
 
-    def __init__(self, covariance=None, data=None, likelihood=None, sampler='emcee', p0=None, **kwargs):
+    def __init__(
+        self,
+        covariance=None,
+        data=None,
+        likelihood=None,
+        sampler="emcee",
+        p0=None,
+        **kwargs,
+    ):
         """
         The __init__ function is called when the class is instantiated.
         It sets up the instance of the class, and defines all of its attributes.
@@ -334,7 +342,7 @@ class FitMCMC(BaseFitter):
             likelihood=likelihood,
         )
         if isinstance(sampler, str):
-            if sampler == 'emcee':
+            if sampler == "emcee":
                 sampler = EMCEESampler(get(), p0=p0, **kwargs)
 
         self.sampler = sampler
@@ -347,9 +355,9 @@ class FitMCMC(BaseFitter):
         parameter_dict,
         likelihood_type="multivariate_gaussian",
         likelihood_properties=None,
-        sampler='emcee',
+        sampler="emcee",
         nwalkers=None,
-        backend_file=None
+        backend_file=None,
     ):
         """
         The init_from_covariance function is a class method that initializes the MCMC fitter from a covariance matrix.
@@ -367,11 +375,7 @@ class FitMCMC(BaseFitter):
 
         """
 
-        mcmc_fitter = cls(
-            covariance=covariance,
-            data=data,
-            backend_file=backend_file
-        )
+        mcmc_fitter = cls(covariance=covariance, data=data, backend_file=backend_file)
 
         likelihood = mcmc_fitter.get_likelihood(
             parameter_dict,
@@ -379,20 +383,18 @@ class FitMCMC(BaseFitter):
             likelihood_properties=likelihood_properties,
         )
 
-
         mcmc_fitter.likelihood = likelihood
 
         if mcmc_fitter.backend_file is None:
-            mcmc_fitter.sampler.p0 = np.stack([
-                p["randfun"](size=nwalkers) 
-                for p in parameter_dict.values()]).T
+            mcmc_fitter.sampler.p0 = np.stack(
+                [p["randfun"](size=nwalkers) for p in parameter_dict.values()]
+            ).T
 
         return mcmc_fitter
 
     @property
     def ndim(self):
         return len(self.likelihood.parameter_names)
-
 
 
 class Sampler(abc.ABC):
@@ -403,11 +405,10 @@ class Sampler(abc.ABC):
         if p0 is not None:
             self.p0 = p0
 
-
     @abc.abstractmethod
     def run_chains(self, nsteps):
         return
-    
+
     @property
     def ndim(self):
         return len(self.likelihood.parameter_names)
@@ -419,7 +420,9 @@ class Sampler(abc.ABC):
     @p0.setter
     def p0(self, value):
         if value.shape[1] != self.ndim:
-            raise ValueError(f"p0.shape[1] is equal to ndim={self.ndim}, currently {value.shape[1]}")
+            raise ValueError(
+                f"p0.shape[1] is equal to ndim={self.ndim}, currently {value.shape[1]}"
+            )
         self._p0 = value
         self.nwalkers = value.shape[0]
 
@@ -430,21 +433,26 @@ class EMCEESampler(Sampler):
 
         self.backend = None
         if backend_file is not None:
-            self.backend =  emcee.backends.HDFBackend(backend_file)
+            self.backend = emcee.backends.HDFBackend(backend_file)
             if os.path.exists(backend_file):
-                log.add("File already exist" 
-                        "Initial size: {0}".format(self.backend.iteration))
+                log.add(
+                    "File already exist"
+                    "Initial size: {0}".format(self.backend.iteration)
+                )
                 self._p0 = None
                 self.ndim = self.backend.shape[1]
                 self.nwalkers = self.backend.shape[0]
             else:
                 log.add("Create new file to store chains")
-        
 
     def run_chains(self, nsteps, number_worker=1, progress=False):
         with mp.Pool(number_worker) as pool:
             sampler = emcee.EnsembleSampler(
-                self.nwalkers, self.ndim, self.likelihood, pool=pool, backend=self.backend
+                self.nwalkers,
+                self.ndim,
+                self.likelihood,
+                pool=pool,
+                backend=self.backend,
             )
             sampler.run_mcmc(self.p0, nsteps, progress=progress)
         return sampler
@@ -460,10 +468,14 @@ class EMCEESampler(Sampler):
         tau = np.inf
         with mp.Pool(number_worker) as pool:
             sampler = emcee.EnsembleSampler(
-                self.nwalkers, self.ndim, self.likelihood, pool=pool, backend=self.backend
+                self.nwalkers,
+                self.ndim,
+                self.likelihood,
+                pool=pool,
+                backend=self.backend,
             )
             for sample in sampler.sample(self.p0, iterations=nstep, progress=progress):
-                if (sampler.iteration % 500 == 0):
+                if sampler.iteration % 500 == 0:
                     # Compute tau
                     tau = sampler.get_autocorr_time(tol=0)
                     # Check convergence
@@ -473,5 +485,3 @@ class EMCEESampler(Sampler):
                         break
                     old_tau = tau
         return sampler
-    
-

@@ -18,7 +18,6 @@ class BaseFitter(object):
         self,
         covariance=None,
         data=None,
-        likelihood=None,
     ):
         """
         The __init__ function is called when the class is instantiated.
@@ -29,8 +28,6 @@ class BaseFitter(object):
             self: Represent the instance of the class
             covariance: Set the covariance matrix of the model
             data: Store the data that will be used to train the model
-            likelihood: Specify the likelihood function
-            : Initialize the covariance matrix
 
         Returns:
             The object itself
@@ -38,7 +35,6 @@ class BaseFitter(object):
         """
         self.covariance = covariance
         self.data = data
-        self.likelihood = likelihood
 
     @classmethod
     def init_from_covariance(
@@ -194,8 +190,8 @@ class FitMinuit(BaseFitter):
         super(FitMinuit, self).__init__(
             covariance=covariance,
             data=data,
-            likelihood=likelihood,
         )
+        self.likelihood = likelihood
         self.minuit = minuit
 
     @classmethod
@@ -313,7 +309,6 @@ class FitMCMC(BaseFitter):
         self,
         covariance=None,
         data=None,
-        likelihood=None,
         sampler="emcee",
         p0=None,
         **kwargs,
@@ -339,7 +334,6 @@ class FitMCMC(BaseFitter):
         super().__init__(
             covariance=covariance,
             data=data,
-            likelihood=likelihood,
         )
         if isinstance(sampler, str):
             if sampler == "emcee":

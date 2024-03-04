@@ -1,4 +1,5 @@
 import importlib
+import pickle
 import time
 
 import numpy as np
@@ -19,6 +20,7 @@ class CovMatrix:
         full_matrix=False,
         number_densities=None,
         number_velocities=None,
+        variant=None,
     ):
         """
         The __init__ function is called when the class is instantiated.
@@ -34,6 +36,7 @@ class CovMatrix:
             full_matrix: Determine whether the covariance matrix is stored as a full matrix or in sparse form
             number_densities: Set the number of density variables in the model
             number_velocities: Set the number of velocities in the model
+            variant: Name of the variation of the analysis
 
         Returns:
             An object of the class
@@ -46,6 +49,7 @@ class CovMatrix:
         self.full_matrix = full_matrix
         self.number_densities = number_densities
         self.number_velocities = number_velocities
+        self.variant = variant
 
     @classmethod
     def init_from_flip(
@@ -57,6 +61,7 @@ class CovMatrix:
         coordinates_velocity=None,
         additional_parameters_values=None,
         los_definition="bisector",
+        variant=None,
         **kwargs,
     ):
         """
@@ -76,7 +81,6 @@ class CovMatrix:
             coordinates_velocity: Define the velocity coordinates of the covariance matrix
             additional_parameters_values: Pass the values of additional parameters to the flip code
             **kwargs: Pass a variable number of keyword arguments to the function
-            : Generate the covariance matrix from a flip model
 
         Returns:
             A covariancematrix object
@@ -106,11 +110,12 @@ class CovMatrix:
         return cls(
             model_name=model_name,
             model_type=model_type,
+            los_definition=los_definition,
             covariance_dict=covariance_dict,
+            full_matrix=False,
             number_densities=number_densities,
             number_velocities=number_velocities,
-            full_matrix=False,
-            los_definition=los_definition,
+            variant=variant,
         )
 
     @classmethod
@@ -122,6 +127,7 @@ class CovMatrix:
         coordinates_velocity=None,
         coordinates_density=None,
         additional_parameters_values=None,
+        variant=None,
         **kwargs,
     ):
         """
@@ -170,35 +176,30 @@ class CovMatrix:
         return cls(
             model_name=model_name,
             model_type=model_type,
+            los_definition=los_definition,
             covariance_dict=covariance_dict,
+            full_matrix=False,
             number_densities=number_densities,
             number_velocities=number_velocities,
-            full_matrix=False,
-            los_definition=los_definition,
+            variant=variant,
         )
 
     @classmethod
     def init_from_file(
         cls,
-        model_name,
-        model_type,
         filename,
+        file_format,
     ):
-        """
-        The init_from_file function is used to initialize a model from a file.
-
-        Args:
-            cls: Create a new instance of the class
-            model_name: Name the model
-            model_type: Determine the type of model to be created
-            filename: Specify the file to read from
-            : Specify the name of the model
-
-        Returns:
-            A tuple of the model and a list of
-
-        """
-        log.add(f"Reading from filename not implemented yet")
+        if file_format == "parquet":
+            raise NotImplementedError(f"Reading from parquet not implemented yet")
+        if file_format == "pickle":
+            with open(f"{filename}.pickle", "rb") as file_read:
+                class_attrs_dictionary = pickle.load(file_read)
+        if file_format == "npz":
+            class_attrs_dictionary = dict(np.load(f"{filename}.npz", allow_pickle=True))
+            for key in class_attrs_dictionary.keys():
+                class_attrs_dictionary[key] = class_attrs_dictionary[key].item()
+        return cls(**class_attrs_dictionary)
 
     @property
     def type(self):
@@ -297,6 +298,7 @@ class CovMatrix:
         coefficients_dict = coefficients.get_coefficients(
             self.model_type,
             parameter_values_dict,
+            variant=self.variant,
         )
         coefficients_dict_diagonal = coefficients.get_diagonal_coefficients(
             self.model_type,
@@ -311,9 +313,7 @@ class CovMatrix:
                 ],
                 axis=0,
             )
-            covariance_sum += np.diag(
-                coefficients_dict_diagonal["gg"] + vector_err**2
-            )
+            covariance_sum += np.diag(coefficients_dict_diagonal["gg"] + vector_err**2)
 
         elif self.model_type == "velocity":
             covariance_sum = np.sum(
@@ -324,9 +324,7 @@ class CovMatrix:
                 axis=0,
             )
 
-            covariance_sum += np.diag(
-                coefficients_dict_diagonal["vv"] + vector_err**2
-            )
+            covariance_sum += np.diag(coefficients_dict_diagonal["vv"] + vector_err**2)
 
         elif self.model_type in ["density_velocity", "full"]:
             number_densities = self.number_densities
@@ -403,8 +401,6 @@ class CovMatrix:
         Returns:
             A dictionary with the full covariance matrices for each redshift bin
 
-        Doc Author:
-            Trelent
         """
         if self.full_matrix is False:
             for key in ["gg", "vv", "gv"]:
@@ -446,6 +442,7 @@ class CovMatrix:
     def write(
         self,
         filename,
+        file_format,
     ):
         """
         The write function writes the covariance matrix to a file.
@@ -459,5 +456,33 @@ class CovMatrix:
             Nothing
 
         """
-        np.savez(filename, **self.covariance_dict)
-        log.add(f"Cov written in {filename}.")
+        class_attrs_dictionary = {
+            key: eval(f"self.{key}", {"self": self}) for key in vars(self)
+        }
+        if file_format == "parquet":
+            import pyarrow
+
+            metadata = {}
+            for key in ["gg", "gv", "vv"]:
+                if key in self.covariance_dict:
+                    metadata[f"number_matrices_{key}"] = str(
+                        self.covariance_dict[key].shape[0]
+                    )
+
+            class_attrs_dictionary.pop("covariance_dict")
+            metadata.update(class_attrs_dictionary)
+            for key in metadata:
+                metadata[key] = str(metadata[key])
+            covariance_dict_flatten = self.covariance_dict.copy()
+            for key in covariance_dict_flatten:
+                covariance_dict_flatten[key] = covariance_dict_flatten[key].ravel()
+            pa_table = pyarrow.table(covariance_dict_flatten)
+            pa_table = pa_table.replace_schema_metadata(metadata)
+            pyarrow.parquet.write_table(pa_table, f"{filename}.parquet")
+
+        elif file_format == "pickle":
+            with open(f"{filename}.pickle", "wb") as file_save:
+                pickle.dump(class_attrs_dictionary, file_save)
+
+        elif file_format == "npz":
+            np.savez(f"{filename}.npz", **class_attrs_dictionary)

@@ -1,8 +1,13 @@
 import numpy as np
+
 from flip.covariance.lai22.flip_terms import dictionary_terms
 
 
-def get_coefficients(model_type, parameter_values_dict):
+def get_coefficients(
+    model_type,
+    parameter_values_dict,
+    variant=None,
+):
     coefficients_dict = {}
     if model_type in ["density", "full", "density_velocity"]:
         coefficients_dict["gg"] = []
@@ -15,15 +20,29 @@ def get_coefficients(model_type, parameter_values_dict):
                     parameter_values_dict["bs8"] ** 2 * sigg ** (2 * m_index)
                 )
             elif term_index == 1:
-                coefficients_dict["gg"].append(
-                    parameter_values_dict["bs8"]
-                    * parameter_values_dict["fs8"]
-                    * sigg ** (2 * m_index)
-                )
+                if variant == "nobeta":
+                    coefficients_dict["gg"].append(
+                        parameter_values_dict["bs8"]
+                        * parameter_values_dict["fs8"]
+                        * sigg ** (2 * m_index)
+                    )
+                else:
+                    coefficients_dict["gg"].append(
+                        parameter_values_dict["bs8"] ** 2
+                        * parameter_values_dict["beta_f"]
+                        * sigg ** (2 * m_index)
+                    )
             elif term_index == 2:
-                coefficients_dict["gg"].append(
-                    parameter_values_dict["fs8"] ** 2 * sigg ** (2 * m_index)
-                )
+                if variant == "nobeta":
+                    coefficients_dict["gg"].append(
+                        parameter_values_dict["fs8"] ** 2 * sigg ** (2 * m_index)
+                    )
+                else:
+                    coefficients_dict["gg"].append(
+                        parameter_values_dict["bs8"] ** 2
+                        * parameter_values_dict["beta_f"] ** 2
+                        * sigg ** (2 * m_index)
+                    )
     if model_type in ["full"]:
         coefficients_dict["gv"] = []
         gv_terms = dictionary_terms["gv"]
@@ -37,9 +56,18 @@ def get_coefficients(model_type, parameter_values_dict):
                     * sigg ** (2 * m_index)
                 )
             elif term_index == 1:
-                coefficients_dict["gv"].append(
-                    parameter_values_dict["fs8"] ** 2 * sigg ** (2 * m_index)
-                )
+                if variant == "nobeta":
+                    coefficients_dict["gv"].append(
+                        parameter_values_dict["fs8"] ** 2 * sigg ** (2 * m_index)
+                    )
+                else:
+                    coefficients_dict["gv"].append(
+                        parameter_values_dict["bs8"]
+                        * parameter_values_dict["fs8"]
+                        * parameter_values_dict["beta_f"]
+                        * sigg ** (2 * m_index)
+                    )
+
     if model_type in ["velocity", "full", "density_velocity"]:
         coefficients_dict["vv"] = [parameter_values_dict["fs8"] ** 2]
     return coefficients_dict

@@ -14,7 +14,7 @@ sn_data = pd.read_parquet(os.path.join(data_path, "velocity_data.parquet"))
 sn_data = sn_data[np.array(sn_data["status"]) != False]
 sn_data = sn_data[np.array(sn_data["status"]) != None]
 
-coordinates_velocity = np.array([sn_data["ra"], sn_data["dec"], sn_data["como_dist"]])
+coordinates_velocity = np.array([sn_data["ra"], sn_data["dec"], sn_data["rcom_zobs"]])
 
 data_velocity = sn_data.to_dict("list")
 for key in data_velocity.keys():

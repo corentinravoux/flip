@@ -255,6 +255,90 @@ def attribute_weight_density(
     return grid_val, grid_var, nobj_in_cell
 
 
+def define_randoms(
+    random_method,
+    xobj,
+    yobj,
+    zobj,
+    raobj,
+    decobj,
+    rcomobj,
+    Nrandom,
+    coord_randoms=None,
+):
+    N = xobj.size
+
+    # Uniform in X,Y,Z
+    if random_method == "cartesian":
+        xobj_random = (np.max(xobj) - np.min(xobj)) * np.random.random(
+            size=Nrandom * N
+        ) + np.min(xobj)
+        yobj_random = (np.max(yobj) - np.min(yobj)) * np.random.random(
+            size=Nrandom * N
+        ) + np.min(yobj)
+        zobj_random = (np.max(zobj) - np.min(zobj)) * np.random.random(
+            size=Nrandom * N
+        ) + np.min(zobj)
+
+    # Choice in the ra, dec, and redshift data coordinates to create the random.
+    elif random_method == "choice":
+        counts_ra, bins_ra = np.histogram(raobj, bins=1000)
+        ra_random = np.random.choice(
+            (bins_ra[1:] + bins_ra[:-1]) / 2,
+            p=counts_ra / float(counts_ra.sum()),
+            size=Nrandom * N,
+        )
+        counts_dec, bins_dec = np.histogram(decobj, bins=1000)
+        dec_random = np.random.choice(
+            (bins_dec[1:] + bins_dec[:-1]) / 2,
+            p=counts_dec / float(counts_dec.sum()),
+            size=Nrandom * N,
+        )
+        counts_rcom, bins_rcom = np.histogram(rcomobj, bins=1000)
+        rcom_random = np.random.choice(
+            (bins_rcom[1:] + bins_rcom[:-1]) / 2,
+            p=counts_rcom / float(counts_rcom.sum()),
+            size=Nrandom * N,
+        )
+
+        xobj_random, yobj_random, zobj_random = utils.radec2cart(
+            rcom_random, ra_random, dec_random
+        )
+
+    # Uniform in ra and dec. Choice in the redshift data coordinates.
+    elif random_method == "choice_redshift":
+        ra_random = (np.max(raobj) - np.min(raobj)) * np.random.random(
+            size=Nrandom * N
+        ) + np.min(raobj)
+        dec_random = (np.max(decobj) - np.min(decobj)) * np.random.random(
+            size=Nrandom * N
+        ) + np.min(decobj)
+        counts_rcom, bins_rcom = np.histogram(rcomobj, bins=1000)
+        rcom_random = np.random.choice(
+            (bins_rcom[1:] + bins_rcom[:-1]) / 2,
+            p=counts_rcom / float(counts_rcom.sum()),
+            size=Nrandom * N,
+        )
+
+        xobj_random, yobj_random, zobj_random = utils.radec2cart(
+            rcom_random, ra_random, dec_random
+        )
+
+    # Uniform in ra and dec based on a healpix footprint. Choice in the redshift data coordinates.
+    elif random_method == "file":
+        ra_random, dec_random, rcom_random = (
+            coord_randoms[0],
+            coord_randoms[1],
+            coord_randoms[2],
+        )
+
+        xobj_random, yobj_random, zobj_random = utils.radec2cart(
+            rcom_random, ra_random, dec_random
+        )
+
+    return xobj_random, yobj_random, zobj_random
+
+
 def grid_data_density(
     grid,
     grid_size,
@@ -268,6 +352,7 @@ def grid_data_density(
     compute_density=True,
     Nrandom=100,
     random_method="cartesian",
+    coord_randoms=None,
 ):
     """
     The grid_data_density function takes in the data and grids it using a given grid size.
@@ -314,62 +399,21 @@ def grid_data_density(
     grid["nincell"] = n_in_cell
 
     if compute_density:
-        N = ra.size
-        # Choice in the ra, dec, and redshift data coordinates to create the random.
-        if random_method == "choice":
-            counts_ra, bins_ra = np.histogram(ra, bins=1000)
-            ra_random = np.random.choice(
-                (bins_ra[1:] + bins_ra[:-1]) / 2,
-                p=counts_ra / float(counts_ra.sum()),
-                size=Nrandom * N,
-            )
-            counts_dec, bins_dec = np.histogram(dec, bins=1000)
-            dec_random = np.random.choice(
-                (bins_dec[1:] + bins_dec[:-1]) / 2,
-                p=counts_dec / float(counts_dec.sum()),
-                size=Nrandom * N,
-            )
-            counts_rcom, bins_rcom = np.histogram(rcom, bins=1000)
-            rcom_random = np.random.choice(
-                (bins_rcom[1:] + bins_rcom[:-1]) / 2,
-                p=counts_rcom / float(counts_rcom.sum()),
-                size=Nrandom * N,
-            )
-
-            xobj_random, yobj_random, zobj_random = utils.radec2cart(
-                rcom_random, ra_random, dec_random
-            )
-
-        # Uniform in ra and dec based on a healpix footprint. Choice in the redshift data coordinates.
-        elif random_method == "healpix":
-            ra_random = (np.max(ra) - np.min(ra)) * np.random.random(
-                size=Nrandom * N
-            ) + np.min(ra)
-            dec_random = (np.max(dec) - np.min(dec)) * np.random.random(
-                size=Nrandom * N
-            ) + np.min(dec)
-            counts_rcom, bins_rcom = np.histogram(rcom, bins=1000)
-            rcom_random = np.random.choice(
-                (bins_rcom[1:] + bins_rcom[:-1]) / 2,
-                p=counts_rcom / float(counts_rcom.sum()),
-                size=Nrandom * N,
-            )
-
-            xobj_random, yobj_random, zobj_random = utils.radec2cart(
-                rcom_random, ra_random, dec_random
-            )
-
-        # Uniform in X,Y,Z
-        elif random_method == "cartesian":
-            xobj_random = (np.max(xobj) - np.min(xobj)) * np.random.random(
-                size=Nrandom * N
-            ) + np.min(xobj)
-            yobj_random = (np.max(yobj) - np.min(yobj)) * np.random.random(
-                size=Nrandom * N
-            ) + np.min(yobj)
-            zobj_random = (np.max(zobj) - np.min(zobj)) * np.random.random(
-                size=Nrandom * N
-            ) + np.min(zobj)
+        (
+            xobj_random,
+            yobj_random,
+            zobj_random,
+        ) = define_randoms(
+            random_method,
+            xobj,
+            yobj,
+            zobj,
+            ra,
+            dec,
+            rcom,
+            Nrandom,
+            coord_randoms=coord_randoms,
+        )
 
         (
             sum_weights_random,
@@ -472,6 +516,8 @@ def grid_data_density_pypower(
     random_method="cartesian",
     interlacing=2,
     compensate=False,
+    coord_randoms=None,
+    min_count_random=0,
 ):
     """
     The grid_data_density_pypower function takes in the ra, dec, and rcom values of a galaxy catalog
@@ -504,62 +550,35 @@ def grid_data_density_pypower(
     xobj, yobj, zobj = xobj[mask], yobj[mask], zobj[mask]
     raobj, decobj, rcomobj = raobj[mask], decobj[mask], rcomobj[mask]
 
+    if coord_randoms is not None:
+        mask_random = np.abs(coord_randoms[0]) < rcom_max
+        mask_random &= np.abs(coord_randoms[1]) < rcom_max
+        mask_random &= np.abs(coord_randoms[2]) < rcom_max
+        coord_randoms_cut = [
+            coord_randoms[0][mask_random],
+            coord_randoms[1][mask_random],
+            coord_randoms[2][mask_random],
+        ]
+    else:
+        coord_randoms_cut = None
+
     N = raobj.size
     # Choice in the ra, dec, and redshift data coordinates to create the random.
-    if random_method == "choice":
-        counts_ra, bins_ra = np.histogram(raobj, bins=1000)
-        ra_random = np.random.choice(
-            (bins_ra[1:] + bins_ra[:-1]) / 2,
-            p=counts_ra / float(counts_ra.sum()),
-            size=Nrandom * N,
-        )
-        counts_dec, bins_dec = np.histogram(decobj, bins=1000)
-        dec_random = np.random.choice(
-            (bins_dec[1:] + bins_dec[:-1]) / 2,
-            p=counts_dec / float(counts_dec.sum()),
-            size=Nrandom * N,
-        )
-        counts_rcom, bins_rcom = np.histogram(rcomobj, bins=1000)
-        rcom_random = np.random.choice(
-            (bins_rcom[1:] + bins_rcom[:-1]) / 2,
-            p=counts_rcom / float(counts_rcom.sum()),
-            size=Nrandom * N,
-        )
-
-        xobj_random, yobj_random, zobj_random = utils.radec2cart(
-            rcom_random, ra_random, dec_random
-        )
-
-    # Uniform in ra and dec based on a healpix footprint. Choice in the redshift data coordinates.
-    elif random_method == "healpix":
-        ra_random = (np.max(raobj) - np.min(raobj)) * np.random.random(
-            size=Nrandom * N
-        ) + np.min(raobj)
-        dec_random = (np.max(decobj) - np.min(decobj)) * np.random.random(
-            size=Nrandom * N
-        ) + np.min(decobj)
-        counts_rcom, bins_rcom = np.histogram(rcomobj, bins=1000)
-        rcom_random = np.random.choice(
-            (bins_rcom[1:] + bins_rcom[:-1]) / 2,
-            p=counts_rcom / float(counts_rcom.sum()),
-            size=Nrandom * N,
-        )
-
-        xobj_random, yobj_random, zobj_random = utils.radec2cart(
-            rcom_random, ra_random, dec_random
-        )
-
-    # Uniform in X,Y,Z
-    elif random_method == "cartesian":
-        xobj_random = (np.max(xobj) - np.min(xobj)) * np.random.random(
-            size=Nrandom * N
-        ) + np.min(xobj)
-        yobj_random = (np.max(yobj) - np.min(yobj)) * np.random.random(
-            size=Nrandom * N
-        ) + np.min(yobj)
-        zobj_random = (np.max(zobj) - np.min(zobj)) * np.random.random(
-            size=Nrandom * N
-        ) + np.min(zobj)
+    (
+        xobj_random,
+        yobj_random,
+        zobj_random,
+    ) = define_randoms(
+        random_method,
+        xobj,
+        yobj,
+        zobj,
+        raobj,
+        decobj,
+        rcomobj,
+        Nrandom,
+        coord_randoms=coord_randoms_cut,
+    )
 
     data_positions = np.array([xobj, yobj, zobj]).T
     randoms_positions = np.array([xobj_random, yobj_random, zobj_random]).T
@@ -594,9 +613,7 @@ def grid_data_density_pypower(
     )
 
     mesh = catalog_mesh.to_mesh(field="normalized_data", compensate=compensate)
-    mesh_count = (
-        catalog_mesh_count.to_mesh(field="randoms", compensate=compensate) / Nrandom
-    )
+    mesh_count = catalog_mesh_count.to_mesh(field="randoms") / Nrandom
 
     coord_mesh = np.array(
         np.meshgrid(
@@ -614,9 +631,9 @@ def grid_data_density_pypower(
 
     density_contrast = np.ravel(mesh.value - 1)
 
-    count = np.ravel(mesh_count)
-    density_contrast_err = np.full_like(count, np.nan)
-    mask = count != 0.0
+    count = np.ravel(mesh_count).astype(int)
+    density_contrast_err = np.full(count.shape, np.nan)
+    mask = count > min_count_random
     density_contrast_err[mask] = np.sqrt(1 / count[mask])
 
     grid = {
@@ -628,6 +645,7 @@ def grid_data_density_pypower(
         "rcom": rcomgrid,
         "density": density_contrast,
         "density_err": density_contrast_err,
+        "count_random": count,
     }
 
     if grid_type == "rect":

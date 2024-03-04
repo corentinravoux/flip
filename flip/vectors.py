@@ -57,7 +57,7 @@ def load_velocity_vector(
             "cov_mb_c",
             "cov_x1_c",
             "zobs",
-            "como_dist",
+            "rcom_zobs",
         )
         if all(k in data for k in key_to_verify):
             velocity, velocity_error = get_velocity_from_salt_fit(
@@ -100,7 +100,7 @@ def get_velocity_from_salt_fit(
     )
     variance_mu += sigma_M**2
 
-    muth = 5 * np.log10((1 + data["zobs"]) * data["como_dist"]) + 25
+    muth = 5 * np.log10((1 + data["zobs"]) * data["rcom_zobs"]) + 25
     dmu = mu - muth
 
     redshift_dependence = redshift_dependence_velocity(
@@ -159,17 +159,17 @@ def redshift_dependence_velocity(
         redshift_dependence = prefactor * redshift_mod / (1 + redshift_obs)
 
     elif velocity_estimator == "full":
-        if "hubble" not in data:
+        # hubble_norm = H(z)/h = 100 E(z) with h = H0/100
+        if "hubble_norm" not in data:
             raise ValueError(
-                """ The "hubble" field is not present in the data"""
+                """ The "hubble_norm" field is not present in the data"""
                 """ Please add it or choose a different velocity_estimator from salt fit among {_avail_velocity_estimator}"""
             )
-        hubble_value = data["hubble"]
-        comoving_distance = data["como_dist"]
+
         redshift_dependence = prefactor / (
             (1 + redshift_obs)
             * utils._C_LIGHT_KMS_
-            / (hubble_value * comoving_distance)
+            / (data["hubble_norm"] * data["rcom_zobs"])
             - 1.0
         )
 

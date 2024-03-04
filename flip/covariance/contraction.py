@@ -17,6 +17,7 @@ class Contraction:
         coordinates_dict=None,
         basis_definition=None,
         endpoint_los_definition=None,
+        variant=None,
     ):
         self.model_name = model_name
         self.model_type = model_type
@@ -24,6 +25,7 @@ class Contraction:
         self.coordinates_dict = coordinates_dict
         self.basis_definition = basis_definition
         self.endpoint_los_definition = endpoint_los_definition
+        self.variant = variant
 
     @classmethod
     def init_from_flip(
@@ -39,6 +41,7 @@ class Contraction:
         additional_parameters_values=None,
         basis_definition="bisector",
         endpoint_los_definition="bisector",
+        variant=None,
         **kwargs,
     ):
         (
@@ -66,6 +69,7 @@ class Contraction:
             coordinates_dict=coordinates_dict,
             basis_definition=basis_definition,
             endpoint_los_definition=endpoint_los_definition,
+            variant=variant,
         )
 
     @property
@@ -121,6 +125,7 @@ class Contraction:
         coefficients_dict = coefficients.get_coefficients(
             self.model_type,
             parameter_values_dict,
+            self.variant,
         )
         contraction_covariance_sum_dict = {}
         if self.model_type == "density":

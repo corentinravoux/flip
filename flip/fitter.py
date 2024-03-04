@@ -100,7 +100,8 @@ class BaseFitter(abc.ABC):
         )
 
         return likelihood
-
+    
+    @staticmethod
     def select_likelihood(likelihood_type):
         """
         The select_likelihood function takes in a string, likelihood_type, and returns the corresponding class.
@@ -309,9 +310,7 @@ class FitMCMC(BaseFitter):
         self,
         covariance=None,
         data=None,
-        sampler="emcee",
-        p0=None,
-        **kwargs,
+        sampler_name="emcee",
     ):
         """
         The __init__ function is called when the class is instantiated.
@@ -335,11 +334,8 @@ class FitMCMC(BaseFitter):
             covariance=covariance,
             data=data,
         )
-        if isinstance(sampler, str):
-            if sampler == "emcee":
-                sampler = EMCEESampler(get(), p0=p0, **kwargs)
-
-        self.sampler = sampler
+        self.sampler_name = sampler_name
+        self.sampler = None
 
     @classmethod
     def init_from_covariance(
@@ -349,8 +345,8 @@ class FitMCMC(BaseFitter):
         parameter_dict,
         likelihood_type="multivariate_gaussian",
         likelihood_properties=None,
-        sampler="emcee",
-        nwalkers=None,
+        sampler_name="emcee",
+        nwalkers=1,
         backend_file=None,
     ):
         """
@@ -369,7 +365,7 @@ class FitMCMC(BaseFitter):
 
         """
 
-        mcmc_fitter = cls(covariance=covariance, data=data, backend_file=backend_file)
+        mcmc_fitter = cls(covariance=covariance, data=data, sampler_name=sampler_name)
 
         likelihood = mcmc_fitter.get_likelihood(
             parameter_dict,
@@ -377,18 +373,35 @@ class FitMCMC(BaseFitter):
             likelihood_properties=likelihood_properties,
         )
 
-        mcmc_fitter.likelihood = likelihood
-
-        if mcmc_fitter.backend_file is None:
-            mcmc_fitter.sampler.p0 = np.stack(
+        p0 = None
+        if backend_file is None:
+            p0 = np.stack(
                 [p["randfun"](size=nwalkers) for p in parameter_dict.values()]
             ).T
+        mcmc_fitter.set_sampler(likelihood, p0=p0, backend_file=backend_file)
 
         return mcmc_fitter
 
-    @property
-    def ndim(self):
-        return len(self.likelihood.parameter_names)
+    @classmethod
+    def init_from_file(
+        cls,
+    ):
+        """
+        The init_from_covariance function is a class method that initializes the
+            fitter from the a file containing covariance matrix. It is here an
+            abstract method that needs to be override
+
+        Args:
+            cls: Pass a class object into a method
+        """
+
+        raise NotImplementedError
+    
+    def set_sampler(self, likelihood, p0=None, **kwargs):
+        if self.sampler_name == 'emcee':
+            self.sampler = EMCEESampler(likelihood, p0=p0, **kwargs)
+        else:
+            raise ValueError('Only emcee is available now')
 
 
 class Sampler(abc.ABC):
@@ -422,8 +435,8 @@ class Sampler(abc.ABC):
 
 
 class EMCEESampler(Sampler):
-    def __init__(self, likelihood, backend_file=None, p0=None):
-        super().__init__(likelihood)
+    def __init__(self, likelihood, p0=None, backend_file=None):
+        super().__init__(likelihood, p0=p0)
 
         self.backend = None
         if backend_file is not None:
@@ -458,7 +471,7 @@ class EMCEESampler(Sampler):
         tau_conv=0.01,
         progress=False,
     ):
-        # Run chains until reaching auto correlation convergence criteria
+        """Run chains until reaching auto correlation convergence criteria."""
         tau = np.inf
         with mp.Pool(number_worker) as pool:
             sampler = emcee.EnsembleSampler(
@@ -468,7 +481,7 @@ class EMCEESampler(Sampler):
                 pool=pool,
                 backend=self.backend,
             )
-            for sample in sampler.sample(self.p0, iterations=nstep, progress=progress):
+            for sample in sampler.sample(self.p0, iterations=maxstep, progress=progress):
                 if sampler.iteration % 500 == 0:
                     # Compute tau
                     tau = sampler.get_autocorr_time(tol=0)

@@ -295,7 +295,7 @@ class FitMinuit(BaseFitter):
             for i in range(n_iter):
                 if n_iter != 1:
                     log.add(f"Iteration {i+1}/{n_iter}\n")
-                    log.add(self.minuit.migrad())
+                log.add(self.minuit.migrad())
         if hesse:
             log.add(self.minuit.hesse())
         if minos:

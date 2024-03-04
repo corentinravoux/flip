@@ -13,7 +13,7 @@ from flip.utils import create_log
 log = create_log()
 
 
-class BaseFitter(object):
+class BaseFitter(abc.ABC):
     def __init__(
         self,
         covariance=None,
@@ -36,72 +36,33 @@ class BaseFitter(object):
         self.covariance = covariance
         self.data = data
 
-    @classmethod
+    @abc.abstractmethod
     def init_from_covariance(
         cls,
-        covariance,
-        data,
-        parameter_dict,
-        likelihood_type=None,
-        likelihood_properties=None,
     ):
         """
-        The init_from_covariance function is used to initialize the parameters of a likelihood class.
-        It takes in a covariance matrix, data, and parameter dictionary as inputs. The covariance matrix
-        is used to calculate the inverse of it (the precision matrix) which is then passed into the
-        likelihood function along with the data and parameter dictionary. This allows for an initial guess
-        of what values should be passed into each parameter when running MCMC or Minuit.
+        The init_from_covariance function is a class method that initializes the
+            fitter from the covariance matrix. It is here an abstract method that
+            needs to be override
 
         Args:
-            cls: Call the class that is being used
-            covariance: Initialize the covariance matrix
-            data: Calculate the number of parameters in the model
-            parameter_dict: Pass the parameter dictionary to the
-            likelihood_type: Determine the type of likelihood to use
-            likelihood_properties: Pass specific properties to the likelihood
-
+            cls: Pass a class object into a method
         """
-        log.add("Method to override, no initialization is done in this super class")
-        raise RuntimeError("Ghost override method")
+        return
 
-    @classmethod
+    @abc.abstractmethod
     def init_from_file(
         cls,
-        model_name,
-        model_type,
-        filename,
-        data,
-        parameter_dict,
-        likelihood_type="multivariate_gaussian",
-        likelihood_properties=None,
     ):
         """
-        The init_from_file function is a class method that initializes the fitter object from a covariance matrix.
+        The init_from_covariance function is a class method that initializes the
+            fitter from the a file containing covariance matrix. It is here an
+            abstract method that needs to be override
 
         Args:
-            cls: Pass the class object to the function
-            model_name: Specify the name of the model
-            model_type: Specify the type of model
-            filename: Load the covariance matrix from a file
-            data: Initialize the fitter's data attribute
-            parameter_dict: Pass in the parameters that are used to
-            likelihood_type: Specify the type of likelihood function to use
-            : Specify the type of likelihood
-
-        Returns:
-            A fitter object
-
+            cls: Pass a class object into a method
         """
-        covariance = CovMatrix.init_from_file(model_name, model_type, filename)
-
-        fitter = cls.init_from_covariance(
-            covariance,
-            data,
-            parameter_dict,
-            likelihood_type=likelihood_type,
-            likelihood_properties=likelihood_properties,
-        )
-        return fitter
+        return
 
     def get_likelihood(
         self,
@@ -250,6 +211,44 @@ class FitMinuit(BaseFitter):
 
         return minuit_fitter
 
+    @classmethod
+    def init_from_file(
+        cls,
+        model_name,
+        model_type,
+        filename,
+        data,
+        parameter_dict,
+        likelihood_type="multivariate_gaussian",
+        likelihood_properties=None,
+    ):
+        """
+        The init_from_file function is a class method that initializes the fitter object from a covariance matrix.
+
+        Args:
+            cls: Pass the class object to the function
+            model_name: Specify the name of the model
+            model_type: Specify the type of model
+            filename: Load the covariance matrix from a file
+            data: Initialize the fitter's data attribute
+            parameter_dict: Pass in the parameters that are used to
+            likelihood_type: Specify the type of likelihood function to use
+            : Specify the type of likelihood
+
+        Returns:
+            A fitter object
+
+        """
+        covariance = CovMatrix.init_from_file(model_name, model_type, filename)
+
+        return cls.init_from_covariance(
+            covariance,
+            data,
+            parameter_dict,
+            likelihood_type=likelihood_type,
+            likelihood_properties=likelihood_properties,
+        )
+
     def setup_minuit(self, parameter_dict):
         """
         The setup_minuit function is used to set up the minuit object.
@@ -294,8 +293,9 @@ class FitMinuit(BaseFitter):
         """
         if migrad:
             for i in range(n_iter):
-                log.add(f"Iteration {i+1}/{n_iter}\n")
-                log.add(self.minuit.migrad())
+                if n_iter != 1:
+                    log.add(f"Iteration {i+1}/{n_iter}\n")
+                    log.add(self.minuit.migrad())
         if hesse:
             log.add(self.minuit.hesse())
         if minos:

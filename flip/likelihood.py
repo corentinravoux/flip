@@ -122,7 +122,7 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         data=None,
         parameter_names=None,
         likelihood_properties={},
-        negloglik=False,
+        negloglik=False
     ):
         super(MultivariateGaussianLikelihood, self).__init__(
             covariance=covariance,
@@ -130,7 +130,8 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
             parameter_names=parameter_names,
             likelihood_properties=likelihood_properties,
         )
-            
+
+
     def verify_covariance(self):
         if self.covariance.full_matrix is False:
             self.covariance.compute_full_matrix()
@@ -149,8 +150,8 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
         )
         if self.likelihood_properties['nloglik']:
-            return -likelihood_function(vector - parameter_values_dict["vmean"], covariance_sum)
-        return likelihood_function(vector - parameter_values_dict["vmean"], covariance_sum)
+            return -likelihood_function(vector, covariance_sum)
+        return likelihood_function(vector, covariance_sum)
 
 
 class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):

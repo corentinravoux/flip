@@ -24,10 +24,10 @@ def log_likelihood_gaussian_cholesky(vector, covariance_sum):
 class BaseLikelihood(object):
 
     _default_likelihood_properties = {
-            "inversion_method": "inverse",
-            "velocity_type": "direct",
-            "velocity_estimator": "full",
-        }
+        "inversion_method": "inverse",
+        "velocity_type": "direct",
+        "velocity_estimator": "full",
+    }
 
     def __init__(
         self,
@@ -40,7 +40,10 @@ class BaseLikelihood(object):
         self.data = data
         self.parameter_names = parameter_names
 
-        self.likelihood_properties =  {**self._default_likelihood_properties, **likelihood_properties}
+        self.likelihood_properties = {
+            **self._default_likelihood_properties,
+            **likelihood_properties,
+        }
 
     @classmethod
     def init_from_covariance(
@@ -112,9 +115,9 @@ class BaseLikelihood(object):
 
 class MultivariateGaussianLikelihood(BaseLikelihood):
     _default_likelihood_properties = {
-        'nloglik': False,
-        **BaseLikelihood._default_likelihood_properties
-        }
+        "nloglik": False,
+        **BaseLikelihood._default_likelihood_properties,
+    }
 
     def __init__(
         self,
@@ -130,7 +133,7 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
             parameter_names=parameter_names,
             likelihood_properties=likelihood_properties,
         )
-            
+
     def verify_covariance(self):
         if self.covariance.full_matrix is False:
             self.covariance.compute_full_matrix()
@@ -148,9 +151,13 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
         )
-        if self.likelihood_properties['nloglik']:
-            return -likelihood_function(vector - parameter_values_dict["vmean"], covariance_sum)
-        return likelihood_function(vector - parameter_values_dict["vmean"], covariance_sum)
+        if self.likelihood_properties["nloglik"]:
+            return -likelihood_function(
+                vector - parameter_values_dict["vmean"], covariance_sum
+            )
+        return likelihood_function(
+            vector - parameter_values_dict["vmean"], covariance_sum
+        )
 
 
 class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):

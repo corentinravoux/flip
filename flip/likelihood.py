@@ -152,12 +152,8 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
         )
         if self.likelihood_properties["nloglik"]:
-            return -likelihood_function(
-                vector - parameter_values_dict["vmean"], covariance_sum
-            )
-        return likelihood_function(
-            vector - parameter_values_dict["vmean"], covariance_sum
-        )
+            return -likelihood_function(vector, covariance_sum)
+        return likelihood_function(vector, covariance_sum)
 
 
 class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):

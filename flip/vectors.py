@@ -77,6 +77,9 @@ def load_velocity_vector(
             f"""Please choose a velocity_type among {_avail_velocity_type}"""
         )
 
+    if "vmean" in parameter_values_dict:
+        velocity = velocity - parameter_values_dict["vmean"]
+
     return velocity, velocity_error
 
 

@@ -27,6 +27,7 @@ class BaseLikelihood(object):
         "inversion_method": "inverse",
         "velocity_type": "direct",
         "velocity_estimator": "full",
+        "negloglik": True,
     }
 
     def __init__(
@@ -114,18 +115,12 @@ class BaseLikelihood(object):
 
 
 class MultivariateGaussianLikelihood(BaseLikelihood):
-    _default_likelihood_properties = {
-        "nloglik": False,
-        **BaseLikelihood._default_likelihood_properties,
-    }
-
     def __init__(
         self,
         covariance=None,
         data=None,
         parameter_names=None,
         likelihood_properties={},
-        negloglik=False,
     ):
         super(MultivariateGaussianLikelihood, self).__init__(
             covariance=covariance,
@@ -151,7 +146,7 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
         )
-        if self.likelihood_properties["nloglik"]:
+        if self.likelihood_properties["negloglik"]:
             return -likelihood_function(vector, covariance_sum)
         return likelihood_function(vector, covariance_sum)
 
@@ -249,6 +244,8 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
         )
+        if self.likelihood_properties["negloglik"]:
+            return -likelihood_function(vector, covariance_sum)
         return likelihood_function(vector, covariance_sum)
 
 
@@ -348,4 +345,6 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
         )
+        if self.likelihood_properties["negloglik"]:
+            return -likelihood_function(vector, covariance_sum)
         return likelihood_function(vector, covariance_sum)

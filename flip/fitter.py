@@ -194,7 +194,7 @@ class FitMinuit(BaseFitter):
         likelihood = minuit_fitter.get_likelihood(
             parameter_dict,
             likelihood_type=likelihood_type,
-            likelihood_properties={**likelihood_properties, 'nloglik': True},
+            likelihood_properties={**likelihood_properties, 'negative_log_likelihood': True},
             **kwargs,
         )
         minuit_fitter.likelihood = likelihood
@@ -247,7 +247,7 @@ class FitMinuit(BaseFitter):
             data,
             parameter_dict,
             likelihood_type=likelihood_type,
-            likelihood_properties={**likelihood_properties, 'nloglik': True},
+            likelihood_properties={**likelihood_properties, 'negative_log_likelihood': True},
         )
 
     def setup_minuit(self, parameter_dict):

@@ -195,6 +195,17 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         self.interpolation_value_range = interpolation_value_range
 
     def verify_covariance(self):
+        """
+        The verify_covariance function is used to ensure that the covariance matrix of each
+            parameter in the model has been computed. If it has not, then this function will compute
+            it and store it as a full matrix.
+
+        Args:
+            self: Bind the method to the object
+
+        Returns:
+            Nothing
+        """
         for i in range(len(self.covariance)):
             if self.covariance[i].full_matrix is False:
                 self.covariance[i].compute_full_matrix()

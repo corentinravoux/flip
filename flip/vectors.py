@@ -128,9 +128,7 @@ def compute_observed_distance_modulus(
     mu = data["mb"] + alpha * data["x1"] - beta * data["c"] - M0
 
     variance_mu = (
-        data["e_mb"] ** 2
-        + alpha**2 * data["e_x1"] ** 2
-        + beta**2 * data["e_c"] ** 2
+        data["e_mb"] ** 2 + alpha**2 * data["e_x1"] ** 2 + beta**2 * data["e_c"] ** 2
     )
     variance_mu += (
         2 * alpha * data["cov_mb_x1"]

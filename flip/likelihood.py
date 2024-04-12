@@ -11,41 +11,40 @@ def log_likelihood_gaussian_inverse(vector, covariance_sum):
     _, logdet = np.linalg.slogdet(covariance_sum)
     inverse_covariance_sum = np.linalg.inv(covariance_sum)
     chi2 = np.dot(vector, np.dot(inverse_covariance_sum, vector))
-    return 0.5 * (vector.size * np.log(2 * np.pi) + logdet + chi2)
+    return -0.5 * (vector.size * np.log(2 * np.pi) + logdet + chi2)
 
 
 def log_likelihood_gaussian_cholesky(vector, covariance_sum):
     cholesky = sc.linalg.cho_factor(covariance_sum)
     logdet = 2 * np.sum(np.log(np.diag(cholesky[0])))
     chi2 = np.dot(vector, sc.linalg.cho_solve(cholesky, vector))
-    return 0.5 * (vector.size * np.log(2 * np.pi) + logdet + chi2)
+    return -0.5 * (vector.size * np.log(2 * np.pi) + logdet + chi2)
 
 
 class BaseLikelihood(object):
+
+    _default_likelihood_properties = {
+        "inversion_method": "inverse",
+        "velocity_type": "direct",
+        "velocity_estimator": "full",
+        "negative_log_likelihood": True,
+    }
+
     def __init__(
         self,
         covariance=None,
         data=None,
         parameter_names=None,
-        likelihood_properties=None,
+        likelihood_properties={},
     ):
         self.covariance = covariance
         self.data = data
         self.parameter_names = parameter_names
 
-        _default_likelihood_properties = {
-            "inversion_method": "inverse",
-            "velocity_type": "direct",
-            "velocity_estimator": "full",
+        self.likelihood_properties = {
+            **self._default_likelihood_properties,
+            **likelihood_properties,
         }
-        if likelihood_properties == None:
-            likelihood_properties = _default_likelihood_properties
-        else:
-            for key in _default_likelihood_properties.keys():
-                if key not in likelihood_properties.keys():
-                    likelihood_properties[key] = _default_likelihood_properties[key]
-
-        self.likelihood_properties = likelihood_properties
 
     @classmethod
     def init_from_covariance(
@@ -53,7 +52,7 @@ class BaseLikelihood(object):
         covariance,
         data,
         parameter_names,
-        likelihood_properties=None,
+        likelihood_properties={},
         **kwargs,
     ):
         """
@@ -121,7 +120,7 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         covariance=None,
         data=None,
         parameter_names=None,
-        likelihood_properties=None,
+        likelihood_properties={},
     ):
         super(MultivariateGaussianLikelihood, self).__init__(
             covariance=covariance,
@@ -147,6 +146,8 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
         )
+        if self.likelihood_properties["negative_log_likelihood"]:
+            return -likelihood_function(vector, covariance_sum)
         return likelihood_function(vector, covariance_sum)
 
 
@@ -156,7 +157,7 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         covariance=None,
         data=None,
         parameter_names=None,
-        likelihood_properties=None,
+        likelihood_properties={},
         interpolation_value_name=None,
         interpolation_value_range=None,
     ):
@@ -189,6 +190,17 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         self.interpolation_value_range = interpolation_value_range
 
     def verify_covariance(self):
+        """
+        The verify_covariance function is used to ensure that the covariance matrix of each
+            parameter in the model has been computed. If it has not, then this function will compute
+            it and store it as a full matrix.
+
+        Args:
+            self: Bind the method to the object
+
+        Returns:
+            Nothing
+        """
         for i in range(len(self.covariance)):
             if self.covariance[i].full_matrix is False:
                 self.covariance[i].compute_full_matrix()
@@ -232,6 +244,8 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
         )
+        if self.likelihood_properties["negative_log_likelihood"]:
+            return -likelihood_function(vector, covariance_sum)
         return likelihood_function(vector, covariance_sum)
 
 
@@ -241,7 +255,7 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
         covariance=None,
         data=None,
         parameter_names=None,
-        likelihood_properties=None,
+        likelihood_properties={},
         interpolation_value_range_0=None,
         interpolation_value_range_1=None,
     ):
@@ -331,4 +345,6 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
         )
+        if self.likelihood_properties["negative_log_likelihood"]:
+            return -likelihood_function(vector, covariance_sum)
         return likelihood_function(vector, covariance_sum)

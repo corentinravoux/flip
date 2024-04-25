@@ -263,8 +263,9 @@ def define_randoms(
     raobj,
     decobj,
     rcomobj,
-    Nrandom,
+    Nrandom=None,
     coord_randoms=None,
+    max_coordinates = None,
 ):
     N = xobj.size
 
@@ -324,7 +325,7 @@ def define_randoms(
             rcom_random, ra_random, dec_random
         )
 
-    # Uniform in ra and dec based on a healpix footprint. Choice in the redshift data coordinates.
+    # From random file
     elif random_method == "file":
         ra_random, dec_random, rcom_random = (
             coord_randoms[0],
@@ -335,6 +336,13 @@ def define_randoms(
         xobj_random, yobj_random, zobj_random = utils.radec2cart(
             rcom_random, ra_random, dec_random
         )
+        if max_coordinates is not None:
+            mask_random = np.abs(xobj_random) < max_coordinates
+            mask_random &= np.abs(yobj_random) < max_coordinates
+            mask_random &= np.abs(zobj_random) < max_coordinates
+            xobj_random = xobj_random[mask_random]
+            yobj_random = yobj_random[mask_random]
+            zobj_random = zobj_random[mask_random]
 
     return xobj_random, yobj_random, zobj_random
 
@@ -350,7 +358,7 @@ def grid_data_density(
     weight_min=None,
     verbose=False,
     compute_density=True,
-    Nrandom=100,
+    Nrandom=10,
     random_method="cartesian",
     coord_randoms=None,
 ):
@@ -411,7 +419,7 @@ def grid_data_density(
             ra,
             dec,
             rcom,
-            Nrandom,
+            Nrandom=Nrandom,
             coord_randoms=coord_randoms,
         )
 
@@ -437,7 +445,10 @@ def grid_data_density(
             (sum_weights / np.sum(sum_weights))
             / (sum_weights_random / np.sum(sum_weights_random))
         ) - 1
-        grid["density_err"] = np.sqrt(Nrandom / n_in_cell_random)
+
+        grid["density_err"] = np.sqrt(
+            1 / (n_in_cell_random * (np.sum(n_in_cell) / np.sum(n_in_cell_random)))
+        )
 
         grid["density_nincell"] = (
             (n_in_cell / np.sum(n_in_cell))
@@ -518,6 +529,7 @@ def grid_data_density_pypower(
     compensate=False,
     coord_randoms=None,
     min_count_random=0,
+    overhead=20,
 ):
     """
     The grid_data_density_pypower function takes in the ra, dec, and rcom values of a galaxy catalog
@@ -544,26 +556,12 @@ def grid_data_density_pypower(
 
     """
     xobj, yobj, zobj = utils.radec2cart(rcomobj, raobj, decobj)
-    mask = np.abs(xobj) < rcom_max
-    mask &= np.abs(yobj) < rcom_max
-    mask &= np.abs(zobj) < rcom_max
+    mask = np.abs(xobj) < rcom_max + overhead
+    mask &= np.abs(yobj) < rcom_max + overhead
+    mask &= np.abs(zobj) < rcom_max + overhead
     xobj, yobj, zobj = xobj[mask], yobj[mask], zobj[mask]
     raobj, decobj, rcomobj = raobj[mask], decobj[mask], rcomobj[mask]
 
-    if coord_randoms is not None:
-        mask_random = np.abs(coord_randoms[0]) < rcom_max
-        mask_random &= np.abs(coord_randoms[1]) < rcom_max
-        mask_random &= np.abs(coord_randoms[2]) < rcom_max
-        coord_randoms_cut = [
-            coord_randoms[0][mask_random],
-            coord_randoms[1][mask_random],
-            coord_randoms[2][mask_random],
-        ]
-    else:
-        coord_randoms_cut = None
-
-    N = raobj.size
-    # Choice in the ra, dec, and redshift data coordinates to create the random.
     (
         xobj_random,
         yobj_random,
@@ -576,8 +574,9 @@ def grid_data_density_pypower(
         raobj,
         decobj,
         rcomobj,
-        Nrandom,
-        coord_randoms=coord_randoms_cut,
+        Nrandom=Nrandom,
+        coord_randoms=coord_randoms,
+        max_coordinates = rcom_max + overhead,
     )
 
     data_positions = np.array([xobj, yobj, zobj]).T
@@ -592,7 +591,7 @@ def grid_data_density_pypower(
         randoms_positions=randoms_positions,
         randoms_weights=randoms_weights,
         interlacing=interlacing,
-        boxsize=2 * rcom_max,
+        boxsize=2 * (rcom_max + overhead),
         boxcenter=0.0,
         cellsize=grid_size,
         resampler=kind,
@@ -605,36 +604,42 @@ def grid_data_density_pypower(
         randoms_positions=randoms_positions,
         randoms_weights=randoms_weights,
         interlacing=0,
-        boxsize=2 * rcom_max,
+        boxsize=2 * (rcom_max + overhead),
         boxcenter=0.0,
         cellsize=grid_size,
         resampler="ngp",
         position_type="pos",
     )
 
-    mesh = catalog_mesh.to_mesh(field="normalized_data", compensate=compensate)
-    mesh_count = catalog_mesh_count.to_mesh(field="randoms") / Nrandom
+    mesh_data = catalog_mesh.to_mesh(field="data", compensate=compensate)
+    mesh_randoms = catalog_mesh.to_mesh(
+        field="data-normalized_randoms", compensate=compensate
+    )
+
+    mesh_count_randoms = catalog_mesh_count.to_mesh(field="data-normalized_randoms")
+
+    density_contrast = np.ravel(mesh_data.value / mesh_randoms.value - 1)
+
+    count_randoms = np.ravel(mesh_count_randoms.value).astype(int)
+    density_contrast_err = np.full(count_randoms.shape, np.nan)
+    mask = count_randoms > min_count_random
+    density_contrast_err[mask] = np.sqrt(
+        1 / (count_randoms[mask])
+    )
 
     coord_mesh = np.array(
         np.meshgrid(
-            np.sort(mesh.x[0][:, 0, 0]),
-            np.sort(mesh.x[1][0, :, 0]),
-            np.sort(mesh.x[2][0, 0, :]),
+            np.sort(mesh_data.x[0][:, 0, 0]),
+            np.sort(mesh_data.x[1][0, :, 0]),
+            np.sort(mesh_data.x[2][0, 0, :]),
             indexing="ij",
         )
     )
-    xgrid = np.ravel(coord_mesh[0, :, :, :])
-    ygrid = np.ravel(coord_mesh[1, :, :, :])
-    zgrid = np.ravel(coord_mesh[2, :, :, :])
+    xgrid = np.ravel(coord_mesh[0, :, :, :]) + grid_size/2
+    ygrid = np.ravel(coord_mesh[1, :, :, :]) + grid_size/2
+    zgrid = np.ravel(coord_mesh[2, :, :, :]) + grid_size/2
 
     rcomgrid, ragrid, decgrid = utils.cart2radec(xgrid, ygrid, zgrid)
-
-    density_contrast = np.ravel(mesh.value - 1)
-
-    count = np.ravel(mesh_count).astype(int)
-    density_contrast_err = np.full(count.shape, np.nan)
-    mask = count > min_count_random
-    density_contrast_err[mask] = np.sqrt(1 / count[mask])
 
     grid = {
         "x": xgrid,
@@ -645,7 +650,7 @@ def grid_data_density_pypower(
         "rcom": rcomgrid,
         "density": density_contrast,
         "density_err": density_contrast_err,
-        "count_random": count,
+        "count_random": count_randoms,
     }
 
     if grid_type == "rect":

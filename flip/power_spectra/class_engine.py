@@ -138,27 +138,25 @@ def compute_power_spectrum(
         )
         raise error
 
-    power_spectrum_linear, power_spectrum_non_linear = [], []
+    power_spectrum_linear, power_spectrum_non_linear = np.empty((2, number_points))
 
-    if non_linear_model is None:
-        power_spectrum_non_linear = None
-
-    for k in wavenumber:
-        power_spectrum_linear.append(
-            model.pk_lin(k * model.h(), redshift) * model.h() ** 3
-        )
+    for i, k in enumerate(wavenumber):
+        power_spectrum_linear[i] = model.pk_lin(k * model.h(), redshift) * model.h()**3
+        
         if non_linear_model is not None:
-            power_spectrum_non_linear.append(
-                model.pk(k * model.h(), redshift) * model.h() ** 3
-            )
+            power_spectrum_non_linear[i] = model.pk(k * model.h(), redshift) * model.h()**3
+            
 
     fs8_fiducial = get_fiducial_fs8(model, redshift)
     s8_fiducial = get_fiducial_s8(model, redshift)
     fiducial = {"fsigma_8": fs8_fiducial, "sigma_8": s8_fiducial}
 
+    if non_linear_model is None:
+        power_spectrum_non_linear = None
+
     return (
         wavenumber,
-        np.array(power_spectrum_linear),
-        np.array(power_spectrum_non_linear),
+        power_spectrum_linear,
+        power_spectrum_non_linear,
         fiducial,
     )

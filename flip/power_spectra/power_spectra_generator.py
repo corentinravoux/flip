@@ -89,12 +89,6 @@ def compute_power_spectra(
         non_linear_model=power_spectrum_non_linear_model,
     )
 
-    if normalize_power_spectrum:
-        power_spectrum_linear = power_spectrum_linear / fiducial["sigma_8"] ** 2
-        if power_spectrum_non_linear is not None:
-            power_spectrum_non_linear = (
-                power_spectrum_non_linear / fiducial["sigma_8"] ** 2
-            )
 
     power_spectrum_mm, power_spectrum_mt, power_spectrum_tt = eval(
         f"models.get_{power_spectrum_model}_model"
@@ -104,6 +98,11 @@ def compute_power_spectra(
         power_spectrum_non_linear=power_spectrum_non_linear,
         **fiducial,
     )
+
+    if normalize_power_spectrum:
+        power_spectrum_mm = power_spectrum_mm / fiducial["sigma_8"]**2
+        power_spectrum_mt = power_spectrum_mt / (fiducial["fsigma_8"] * fiducial["sigma_8"])
+        power_spectrum_tt = power_spectrum_tt / fiducial["fsigma_8"]**2
 
     if save_path is not None:
         suffix = get_power_spectrum_suffix(

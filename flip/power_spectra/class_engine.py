@@ -117,7 +117,7 @@ def compute_power_spectrum(
     if non_linear_model is not None:
         power_spectrum_settings.update(
             {
-                "non_linear": non_linear_model,
+                "non linear": non_linear_model,
             }
         )
     power_spectrum_settings.update({"z_max_pk": redshift})
@@ -141,11 +141,14 @@ def compute_power_spectrum(
     power_spectrum_linear, power_spectrum_non_linear = np.empty((2, number_points))
 
     for i, k in enumerate(wavenumber):
-        power_spectrum_linear[i] = model.pk_lin(k * model.h(), redshift) * model.h()**3
-        
+        power_spectrum_linear[i] = (
+            model.pk_lin(k * model.h(), redshift) * model.h() ** 3
+        )
+
         if non_linear_model is not None:
-            power_spectrum_non_linear[i] = model.pk(k * model.h(), redshift) * model.h()**3
-            
+            power_spectrum_non_linear[i] = (
+                model.pk(k * model.h(), redshift) * model.h() ** 3
+            )
 
     fs8_fiducial = get_fiducial_fs8(model, redshift)
     s8_fiducial = get_fiducial_s8(model, redshift)

@@ -46,18 +46,12 @@ def get_bel_model(
 
     a1, a2, a3, invkdelta, b = bel_coefficients(kwargs["sigma_8"])
 
-    power_spectrum_tt = (
-        kwargs["fsigma_8"] ** 2
-        * power_spectrum_linear
-        / kwargs["sigma_8"] ** 2
-        * np.exp(-wavenumber * (a1 + a2 * wavenumber + a3 * wavenumber**2))
+    power_spectrum_tt = power_spectrum_linear * np.exp(
+        -wavenumber * (a1 + a2 * wavenumber + a3 * wavenumber**2)
     )
 
-    power_spectrum_mt = (
-        kwargs["fsigma_8"]
-        / kwargs["sigma_8"]
-        * power_spectrum_linear
-        * np.exp(-invkdelta * wavenumber - b * wavenumber**6)
+    power_spectrum_mt = power_spectrum_linear * np.exp(
+        -invkdelta * wavenumber - b * wavenumber**6
     )
 
     return power_spectrum_mt, power_spectrum_tt

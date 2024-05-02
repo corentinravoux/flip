@@ -116,7 +116,7 @@ def compute_power_spectra(
         power_spectrum_mt = power_spectrum_mt / fiducial["sigma_8"] ** 2
         power_spectrum_tt = power_spectrum_tt / fiducial["sigma_8"] ** 2
     elif normalization_power_spectrum == "no_normalization":
-        True
+        pass
     else:
         raise ValueError(
             f"The normalization {normalization_power_spectrum} of the power spectrum is not available,"

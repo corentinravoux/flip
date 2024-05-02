@@ -6,7 +6,11 @@ from flip.power_spectra import class_engine, models
 
 _available_engines = ["class_engine"]
 _available_power_spectrum_model = ["linearbel", "nonlinearbel"]
-_available_power_spectrum_normalizaton = ["growth_rate", "growth_amplitude"]
+_available_power_spectrum_normalizaton = [
+    "no_normalization",
+    "growth_rate",
+    "growth_amplitude",
+]
 
 
 def get_power_spectrum_suffix(
@@ -57,7 +61,7 @@ def compute_power_spectra(
     maximal_wavenumber,
     number_points,
     logspace=True,
-    normalization_power_spectrum=None,
+    normalization_power_spectrum="no_normalization",
     power_spectrum_non_linear_model=None,
     power_spectrum_model="linearbel",
     save_path=None,
@@ -111,6 +115,8 @@ def compute_power_spectra(
         power_spectrum_mm = power_spectrum_mm / fiducial["sigma_8"] ** 2
         power_spectrum_mt = power_spectrum_mt / fiducial["sigma_8"] ** 2
         power_spectrum_tt = power_spectrum_tt / fiducial["sigma_8"] ** 2
+    elif normalization_power_spectrum == "no_normalization":
+        True
     else:
         raise ValueError(
             f"The normalization {normalization_power_spectrum} of the power spectrum is not available,"

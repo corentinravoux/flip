@@ -1,4 +1,4 @@
-from flip import power_spectra_generator
+from flip.power_spectra import generator
 
 power_spectrum_engine = "class_engine"
 
@@ -29,7 +29,7 @@ save_path = "./"  # If not None, will save all calculated power spectra in this 
     power_spectrum_mm,
     power_spectrum_mt,
     power_spectrum_tt,
-) = power_spectra_generator.compute_power_spectra(
+) = generator.compute_power_spectra(
     power_spectrum_engine,
     power_spectrum_settings,
     redshift,

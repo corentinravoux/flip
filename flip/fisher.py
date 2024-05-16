@@ -3,6 +3,7 @@ import time
 
 import numpy as np
 
+from flip import vectors
 from flip.utils import create_log
 
 log = create_log()
@@ -12,6 +13,7 @@ class FisherMatrix:
     def __init__(
         self,
         covariance=None,
+        data=None,
         fisher_matrix=None,
     ):
         self.covariance = covariance
@@ -21,20 +23,23 @@ class FisherMatrix:
     def init_from_covariance(
         cls,
         covariance,
+        data,
         parameter_values_dict,
+        fisher_properties,
         **kwargs,
     ):
 
-        # CR - Fisher matrix from https://arxiv.org/pdf/astro-ph/9603021 to implement
-
-        vector_error = load_error_vector(
+        vector_error = cls.load_error_vector(
             covariance.model_type,
+            data,
             parameter_values_dict,
+            fisher_properties,
         )
 
         covariance_sum = covariance.compute_covariance_sum(
             parameter_values_dict, vector_error
         )
+
         covariance_coefficients, covariance_derivatives = (
             cls.compute_covariance_derivatives(
                 covariance,
@@ -58,9 +63,7 @@ class FisherMatrix:
             fisher_matrix=fisher_matrix,
         )
 
-    @classmethod
     def compute_covariance_derivatives(
-        cls,
         covariance,
         parameter_values_dict,
     ):
@@ -92,3 +95,31 @@ class FisherMatrix:
                 covariance.covariance_dict["gv"],
                 covariance.covariance_dict["vv"],
             ]
+
+    @classmethod
+    def load_error_vector(
+        cls,
+        model_type,
+        data,
+        parameter_values_dict,
+        fisher_properties,
+    ):
+        if model_type in ["velocity", "density_velocity", "full"]:
+            velocity_error = vectors.load_velocity_error(
+                data,
+                parameter_values_dict,
+                velocity_type=fisher_properties["velocity_type"],
+                velocity_estimator=fisher_properties["velocity_estimator"],
+            )
+
+        if model_type in ["density", "density_velocity", "full"]:
+            density_error = vectors.load_density_error(data)
+
+        if model_type == "density":
+            return density_error
+        elif model_type == "velocity":
+            return velocity_error
+        elif model_type in ["density_velocity", "full"]:
+            return np.concatenate([density_error, velocity_error], axis=0)
+        else:
+            log.add(f"Wrong model type in the loaded covariance.")

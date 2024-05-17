@@ -637,6 +637,454 @@ def generate_generalized_ravouxcarreres_functions(
     )
 
 
+def compute_partial_derivative_dictionnary(
+    name_models,
+    components,
+    parameter_models,
+    all_parameters,
+    coefficient_models,
+):
+    """
+    The compute_partial_derivatiove_dictionnary function computes the partial derivatives of each component of the model with respect to each parameter.
+    The output is a list containing dictionnaries, one for each model. Each dictionnary contains as keys all parameters and as values another dictionnary which contains as keys all components and as values lists containing the partial derivatives.
+
+    Args:
+        name_models: Name the models
+        parameter_models: Get the parameters of each model
+        components: Create the keys of the dictionnaries in compute_partial_derivatiove_dictionnary
+        coefficient_models: Compute the partial derivatives of each component with respect to each parameter
+        : Create the keys of the dictionnaries in compute_partial_derivatiove_dictionnary
+
+    Returns:
+        A list containing dictionnaries, one for each model
+
+    Doc Author:
+        Trelent
+    """
+
+    for param in all_parameters:
+        locals()[param] = sy.symbols(
+            f'parameter_values_dict["{param}"]', positive=True, finite=True, real=True
+        )
+
+    partial_derivative_dictionnary_list = []
+    for i in range(len(name_models)):
+        partial_derivative_dictionnary = {}
+        for parameter in parameter_models[i]:
+            partial_derivative_dictionnary[parameter] = {}
+            for component in components:
+                derivative = "["
+                model = eval(coefficient_models[i][component])
+                for j in range(len(model)):
+                    derivative = (
+                        derivative + pycode(sy.diff(model[j], eval(parameter))) + ","
+                    )
+                derivative = derivative + "]"
+                partial_derivative_dictionnary[parameter][component] = derivative
+        partial_derivative_dictionnary_list.append(partial_derivative_dictionnary)
+
+    return partial_derivative_dictionnary_list
+
+
+def write_partial_derivatives(
+    filename,
+    name_models,
+    components,
+    parameter_models,
+    all_parameters,
+    coefficient_models,
+):
+
+    f = open(filename, "w")
+    f.write("import numpy as np\n")
+    f.write("\n")
+    f.write("\n")
+    if len(components) == 1:
+
+        partial_derivative_dictionnary_list = compute_partial_derivative_dictionnary(
+            name_models,
+            components,
+            parameter_models,
+            all_parameters,
+            coefficient_models,
+        )
+
+        f.write(
+            "def get_partial_derivative_coefficients(model_type,parameter_values_dict,variant=None,):\n"
+        )
+        write_one_function(
+            f,
+            name_models,
+            components,
+            parameter_models,
+            partial_derivative_dictionnary_list,
+        )
+    else:
+        f.write(
+            "def get_partial_derivative_coefficients(model_type,parameter_values_dict,variant=None,):\n"
+        )
+        f.write("    if model_type == 'density':\n")
+        f.write(
+            "        return get_partial_derivative_coefficients_density(parameter_values_dict,variant=variant,)\n"
+        )
+        f.write("    elif model_type == 'velocity':\n")
+        f.write(
+            "        return get_partial_derivative_coefficients_velocity(parameter_values_dict,variant=variant,)\n"
+        )
+        f.write("    elif model_type == 'density_velocity':\n")
+        f.write(
+            "        return get_partial_derivative_coefficients_density_velocity(parameter_values_dict,variant=variant,)\n"
+        )
+        f.write("    elif model_type == 'full':\n")
+        f.write(
+            "        return get_partial_derivative_coefficients_full(parameter_values_dict,variant=variant,)\n"
+        )
+        f.write("\n")
+
+        components_to_treat = [["vv"], ["gg"], ["gg", "vv"], ["gg", "gv", "vv"]]
+        component_names = ["velocity", "density", "density_velocity", "full"]
+        for i in range(len(components_to_treat)):
+            partial_derivative_dictionnary_list = (
+                compute_partial_derivative_dictionnary(
+                    name_models,
+                    components_to_treat[i],
+                    parameter_models,
+                    all_parameters,
+                    coefficient_models,
+                )
+            )
+
+            f.write(
+                f"def get_partial_derivative_coefficients_{component_names[i]}(parameter_values_dict,variant=None,):\n"
+            )
+            write_one_function(
+                f,
+                name_models,
+                components_to_treat[i],
+                parameter_models,
+                partial_derivative_dictionnary_list,
+            )
+
+    f.write("\n")
+    f.close()
+
+
+def write_one_function(
+    f,
+    name_models,
+    components,
+    parameter_models,
+    partial_derivative_dictionnary_list,
+):
+    if len(name_models) == 1:
+        f.write("    partial_coefficients_dict = {\n")
+        for parameter in parameter_models:
+            f.write("'" + parameter + "': {\n")
+            for component in components:
+                f.write(
+                    "'"
+                    + component
+                    + "':"
+                    + partial_derivative_dictionnary_list[0][parameter][
+                        component
+                    ].replace("math.", "np.")
+                    + ",\n"
+                )
+            f.write("},\n")
+        f.write("}\n")
+    else:
+        for i_model, name in enumerate(name_models):
+            if name is None:
+                f.write(f"    else:\n")
+            elif i_model > 0:
+                f.write(f"    elif variant == '{name}':\n")
+            else:
+                f.write(f"    if variant == '{name}':\n")
+            f.write("        partial_coefficients_dict = {\n")
+            for parameter in parameter_models[i_model]:
+                f.write("'" + parameter + "': {\n")
+                for component in components:
+                    f.write(
+                        "'"
+                        + component
+                        + "':"
+                        + partial_derivative_dictionnary_list[i_model][parameter][
+                            component
+                        ].replace("math.", "np.")
+                        + ",\n"
+                    )
+                f.write("},\n")
+            f.write("}\n")
+    f.write("    return partial_coefficients_dict")
+    f.write("\n")
+
+
+def generate_fisher_coefficients_dictionnary_carreres23(
+    filename="./carreres23/fisher_terms.py",
+):
+
+    name_models = ["growth_index", None]
+    components = ["vv"]
+    parameter_models = [["Omegam", "gamma", "s8"], ["fs8"]]
+    all_parameters = ["Omegam", "gamma", "s8", "fs8"]
+    coefficient_models = [{"vv": "[(Omegam**gamma * s8)**2]"}, {"vv": "[fs8**2]"}]
+
+    write_partial_derivatives(
+        filename,
+        name_models,
+        components,
+        parameter_models,
+        all_parameters,
+        coefficient_models,
+    )
+
+
+def generate_fisher_coefficients_dictionnary_adamsblake17plane(
+    filename="./adamsblake17plane/fisher_terms.py",
+):
+
+    name_models = ["growth_index", None]
+    components = ["gg", "gv", "vv"]
+    parameter_models = [
+        ["Omegam", "gamma", "s8", "bs8"],
+        ["fs8", "bs8"],
+    ]
+    all_parameters = ["Omegam", "gamma", "s8", "fs8", "bs8"]
+    coefficient_models = [
+        {
+            "gg": "[bs8**2]",
+            "gv": "[bs8*Omegam**gamma*s8]",
+            "vv": "[(Omegam**gamma*s8)**2]",
+        },
+        {
+            "gg": "[bs8**2]",
+            "gv": "[bs8*fs8]",
+            "vv": "[fs8**2]",
+        },
+    ]
+
+    write_partial_derivatives(
+        filename,
+        name_models,
+        components,
+        parameter_models,
+        all_parameters,
+        coefficient_models,
+    )
+
+
+def generate_fisher_coefficients_dictionnary_full_nosigmag(
+    filename,
+):
+
+    name_models = ["growth_index", "growth_index_nobeta", "nobeta", None]
+    components = ["gg", "gv", "vv"]
+    parameter_models = [
+        ["Omegam", "gamma", "s8", "bs8", "beta_f"],
+        ["Omegam", "gamma", "s8", "bs8"],
+        ["fs8", "bs8"],
+        ["fs8", "bs8", "beta_f"],
+    ]
+    all_parameters = ["Omegam", "gamma", "s8", "fs8", "bs8", "beta_f"]
+    coefficient_models = [
+        {
+            "gg": "[bs8**2, bs8**2*beta_f, bs8**2*beta_f**2]",
+            "gv": "[bs8*Omegam**gamma*s8, bs8*Omegam**gamma*s8*beta_f]",
+            "vv": "[(Omegam**gamma*s8)**2]",
+        },
+        {
+            "gg": "[bs8**2, bs8*Omegam**gamma*s8, (Omegam**gamma*s8)**2]",
+            "gv": "[bs8*Omegam**gamma*s8, (Omegam**gamma*s8)**2]",
+            "vv": "[(Omegam**gamma*s8)**2]",
+        },
+        {
+            "gg": "[bs8**2, bs8*fs8, fs8**2]",
+            "gv": "[bs8*fs8, fs8**2]",
+            "vv": "[fs8**2]",
+        },
+        {
+            "gg": "[bs8**2, bs8**2*beta_f, bs8**2*beta_f**2]",
+            "gv": "[bs8*fs8, bs8*fs8*beta_f]",
+            "vv": "[fs8**2]",
+        },
+    ]
+
+    write_partial_derivatives(
+        filename,
+        name_models,
+        components,
+        parameter_models,
+        all_parameters,
+        coefficient_models,
+    )
+
+
+def generate_fisher_coefficients_dictionnary_lai22(
+    filename="./lai22/fisher_terms.py",
+):
+    from flip.covariance.lai22.flip_terms import dictionary_terms
+
+    name_models = ["growth_index", "growth_index_nobeta", "nobeta", None]
+    components = ["gg", "gv", "vv"]
+    parameter_models = [
+        ["Omegam", "gamma", "s8", "bs8", "beta_f", "sigg"],
+        ["Omegam", "gamma", "s8", "bs8", "sigg"],
+        ["fs8", "bs8", "sigg"],
+        ["fs8", "bs8", "beta_f", "sigg"],
+    ]
+    all_parameters = ["Omegam", "gamma", "s8", "fs8", "bs8", "beta_f", "sigg"]
+
+    gg_terms = dictionary_terms["gg"]
+    gv_terms = dictionary_terms["gv"]
+
+    coefficient_models = []
+
+    coefficient_model_gg = "["
+    for gg_term in gg_terms:
+        term_index, m_index = np.array(gg_term.split("_")).astype(int)
+        if term_index == 0:
+            coefficient_model_gg = coefficient_model_gg + f"bs8**2*sigg**({2*m_index}),"
+        elif term_index == 1:
+            coefficient_model_gg = (
+                coefficient_model_gg + f"bs8**2*beta_f*sigg**({2*m_index}),"
+            )
+        elif term_index == 2:
+            coefficient_model_gg = (
+                coefficient_model_gg + f"bs8**2*beta_f**2*sigg**({2*m_index}),"
+            )
+    coefficient_model_gg = coefficient_model_gg + "]"
+
+    coefficient_model_gv = "["
+    for gv_term in gv_terms:
+        term_index, m_index = np.array(gv_term.split("_")).astype(int)
+        if term_index == 0:
+            coefficient_model_gv = (
+                coefficient_model_gv + f"bs8*(Omegam**gamma*s8)*sigg**({2*m_index}),"
+            )
+        elif term_index == 1:
+            coefficient_model_gv = (
+                coefficient_model_gv + f"bs8**2*beta_f**2*sigg**({2*m_index}),"
+            )
+    coefficient_model_gv = coefficient_model_gv + "]"
+    coefficient_models.append(
+        {
+            "gg": coefficient_model_gg,
+            "gv": coefficient_model_gv,
+            "vv": "[(Omegam**gamma*s8)**2]",
+        }
+    )
+
+    coefficient_model_gg = "["
+    for gg_term in gg_terms:
+        term_index, m_index = np.array(gg_term.split("_")).astype(int)
+        if term_index == 0:
+            coefficient_model_gg = coefficient_model_gg + f"bs8**2*sigg**({2*m_index}),"
+        elif term_index == 1:
+            coefficient_model_gg = (
+                coefficient_model_gg + f"bs8*(Omegam**gamma*s8)*sigg**({2*m_index}),"
+            )
+        elif term_index == 2:
+            coefficient_model_gg = (
+                coefficient_model_gg + f"(Omegam**gamma*s8)**2*sigg**({2*m_index}),"
+            )
+    coefficient_model_gg = coefficient_model_gg + "]"
+
+    coefficient_model_gv = "["
+    for gv_term in gv_terms:
+        term_index, m_index = np.array(gv_term.split("_")).astype(int)
+        if term_index == 0:
+            coefficient_model_gv = (
+                coefficient_model_gv + f"bs8*(Omegam**gamma*s8)*sigg**({2*m_index}),"
+            )
+        elif term_index == 1:
+            coefficient_model_gv = (
+                coefficient_model_gv + f"(Omegam**gamma*s8)**2*sigg**({2*m_index}),"
+            )
+    coefficient_model_gv = coefficient_model_gv + "]"
+    coefficient_models.append(
+        {
+            "gg": coefficient_model_gg,
+            "gv": coefficient_model_gv,
+            "vv": "[(Omegam**gamma*s8)**2]",
+        }
+    )
+
+    coefficient_model_gg = "["
+    for gg_term in gg_terms:
+        term_index, m_index = np.array(gg_term.split("_")).astype(int)
+        if term_index == 0:
+            coefficient_model_gg = coefficient_model_gg + f"bs8**2*sigg**({2*m_index}),"
+        elif term_index == 1:
+            coefficient_model_gg = (
+                coefficient_model_gg + f"bs8*fs8*sigg**({2*m_index}),"
+            )
+        elif term_index == 2:
+            coefficient_model_gg = coefficient_model_gg + f"fs8**2*sigg**({2*m_index}),"
+    coefficient_model_gg = coefficient_model_gg + "]"
+
+    coefficient_model_gv = "["
+    for gv_term in gv_terms:
+        term_index, m_index = np.array(gv_term.split("_")).astype(int)
+        if term_index == 0:
+            coefficient_model_gv = (
+                coefficient_model_gv + f"bs8*fs8*sigg**({2*m_index}),"
+            )
+        elif term_index == 1:
+            coefficient_model_gv = coefficient_model_gv + f"fs8**2*sigg**({2*m_index}),"
+    coefficient_model_gv = coefficient_model_gv + "]"
+    coefficient_models.append(
+        {
+            "gg": coefficient_model_gg,
+            "gv": coefficient_model_gv,
+            "vv": "[fs8**2]",
+        }
+    )
+
+    coefficient_model_gg = "["
+    for gg_term in gg_terms:
+        term_index, m_index = np.array(gg_term.split("_")).astype(int)
+        if term_index == 0:
+            coefficient_model_gg = coefficient_model_gg + f"bs8**2*sigg**({2*m_index}),"
+        elif term_index == 1:
+            coefficient_model_gg = (
+                coefficient_model_gg + f"bs8**2*beta_f*sigg**({2*m_index}),"
+            )
+        elif term_index == 2:
+            coefficient_model_gg = (
+                coefficient_model_gg + f"bs8**2*beta_f**2*sigg**({2*m_index}),"
+            )
+    coefficient_model_gg = coefficient_model_gg + "]"
+
+    coefficient_model_gv = "["
+    for gv_term in gv_terms:
+        term_index, m_index = np.array(gv_term.split("_")).astype(int)
+        if term_index == 0:
+            coefficient_model_gv = (
+                coefficient_model_gv + f"bs8*fs8*sigg**({2*m_index}),"
+            )
+        elif term_index == 1:
+            coefficient_model_gv = (
+                coefficient_model_gv + f"bs8**2*beta_f**2*sigg**({2*m_index}),"
+            )
+    coefficient_model_gv = coefficient_model_gv + "]"
+    coefficient_models.append(
+        {
+            "gg": coefficient_model_gg,
+            "gv": coefficient_model_gv,
+            "vv": "[fs8**2]",
+        }
+    )
+
+    write_partial_derivatives(
+        filename,
+        name_models,
+        components,
+        parameter_models,
+        all_parameters,
+        coefficient_models,
+    )
+
+
 def generate_files():
     """
     The generate_files function generates the following files:
@@ -652,6 +1100,19 @@ def generate_files():
 
     """
     generate_generalized_carreres23_functions()
+    generate_generalized_adamsblake17plane_functions()
     generate_generalized_adamsblake20_functions()
     generate_generalized_lai22_functions()
     generate_generalized_ravouxcarreres_functions()
+
+
+def generate_fisher_files():
+    generate_fisher_coefficients_dictionnary_carreres23()
+    generate_fisher_coefficients_dictionnary_adamsblake17plane()
+    generate_fisher_coefficients_dictionnary_full_nosigmag(
+        "./adamsblake20/fisher_terms.py"
+    )
+    generate_fisher_coefficients_dictionnary_full_nosigmag(
+        "./ravouxcarreres/fisher_terms.py"
+    )
+    generate_fisher_coefficients_dictionnary_lai22()

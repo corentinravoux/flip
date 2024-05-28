@@ -5,6 +5,7 @@ from flip import vectors
 from flip.utils import create_log
 
 log = create_log()
+_available_priors = ["gaussian"]
 
 
 def log_likelihood_gaussian_inverse(vector, covariance_sum):
@@ -35,11 +36,13 @@ class BaseLikelihood(object):
         covariance=None,
         data=None,
         parameter_names=None,
+        prior=None,
         likelihood_properties={},
     ):
         self.covariance = covariance
         self.data = data
         self.parameter_names = parameter_names
+        self.prior = prior
 
         self.likelihood_properties = {
             **self._default_likelihood_properties,
@@ -83,6 +86,8 @@ class BaseLikelihood(object):
 
         likelihood.verify_covariance()
 
+        likelihood.prior = likelihood.initialize_prior()
+
         return likelihood
 
     def load_data_vector(
@@ -113,6 +118,33 @@ class BaseLikelihood(object):
         else:
             log.add(f"Wrong model type in the loaded covariance.")
 
+    def initialize_prior(
+        self,
+    ):
+        if "prior" not in self.likelihood_properties.keys():
+            return lambda x: 0
+        else:
+            prior_dict = self.likelihood_properties["prior"]
+            priors = []
+            for parameter_name, prior_properties in prior_dict.items():
+                if prior_properties["type"].lower() not in _available_priors:
+                    raise ValueError(
+                        f"""The prior type {prior_properties["type"]} is not available"""
+                        f"""Please choose between {_available_priors}"""
+                    )
+                elif prior_properties["type"].lower() == "gaussian":
+                    prior = GaussianPrior(
+                        parameter_name=parameter_name.lower(),
+                        prior_mean=prior_properties["mean"],
+                        prior_standard_deviation=prior_properties["standard_deviation"],
+                    )
+                priors.append(prior)
+
+            def prior_sum(x):
+                return sum(prior(x) for prior in priors)
+
+            return prior_sum
+
 
 class MultivariateGaussianLikelihood(BaseLikelihood):
     def __init__(
@@ -120,12 +152,14 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         covariance=None,
         data=None,
         parameter_names=None,
+        prior=None,
         likelihood_properties={},
     ):
         super(MultivariateGaussianLikelihood, self).__init__(
             covariance=covariance,
             data=data,
             parameter_names=parameter_names,
+            prior=prior,
             likelihood_properties=likelihood_properties,
         )
 
@@ -146,9 +180,12 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
         )
+        prior_value = self.prior(parameter_values_dict)
+
         if self.likelihood_properties["negative_log_likelihood"]:
-            return -likelihood_function(vector, covariance_sum)
-        return likelihood_function(vector, covariance_sum)
+            return -likelihood_function(vector, covariance_sum) - prior_value
+
+        return likelihood_function(vector, covariance_sum) + prior_value
 
 
 class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
@@ -157,6 +194,7 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         covariance=None,
         data=None,
         parameter_names=None,
+        prior=None,
         likelihood_properties={},
         interpolation_value_name=None,
         interpolation_value_range=None,
@@ -184,6 +222,7 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
             covariance=covariance,
             data=data,
             parameter_names=parameter_names,
+            prior=prior,
             likelihood_properties=likelihood_properties,
         )
         self.interpolation_value_name = interpolation_value_name
@@ -244,9 +283,12 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
         )
+        prior_value = self.prior(parameter_values_dict)
+
         if self.likelihood_properties["negative_log_likelihood"]:
-            return -likelihood_function(vector, covariance_sum)
-        return likelihood_function(vector, covariance_sum)
+            return -likelihood_function(vector, covariance_sum) - prior_value
+
+        return likelihood_function(vector, covariance_sum) + prior_value
 
 
 class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
@@ -255,6 +297,7 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
         covariance=None,
         data=None,
         parameter_names=None,
+        prior=None,
         likelihood_properties={},
         interpolation_value_range_0=None,
         interpolation_value_range_1=None,
@@ -281,6 +324,7 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
             covariance=covariance,
             data=data,
             parameter_names=parameter_names,
+            prior=prior,
             likelihood_properties=likelihood_properties,
         )
         self.interpolation_value_range_0 = interpolation_value_range_0
@@ -345,6 +389,40 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
         )
+
+        prior_value = self.prior(parameter_values_dict)
         if self.likelihood_properties["negative_log_likelihood"]:
-            return -likelihood_function(vector, covariance_sum)
-        return likelihood_function(vector, covariance_sum)
+            return -likelihood_function(vector, covariance_sum) - prior_value
+
+        return likelihood_function(vector, covariance_sum) + prior_value
+
+
+class Prior:
+    def __init__(
+        self,
+        parameter_name=None,
+    ):
+        self.parameter_name = parameter_name
+
+
+class GaussianPrior(Prior):
+
+    def __init__(
+        self,
+        parameter_name=None,
+        prior_mean=None,
+        prior_standard_deviation=None,
+    ):
+        super().__init__(parameter_name=parameter_name)
+        prior_mean = prior_mean
+        prior_standard_deviation = prior_standard_deviation
+
+    def __call__(
+        self,
+        parameter_values_dict,
+    ):
+        return -0.5 * (
+            np.log(2 * np.pi * self.prior_standard_deviation**2)
+            + (parameter_values_dict[self.parameter_name] - self.prior_mean) ** 2
+            / self.prior_standard_deviation**2
+        )

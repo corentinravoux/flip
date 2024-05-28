@@ -414,8 +414,8 @@ class GaussianPrior(Prior):
         prior_standard_deviation=None,
     ):
         super().__init__(parameter_name=parameter_name)
-        prior_mean = prior_mean
-        prior_standard_deviation = prior_standard_deviation
+        self.prior_mean = prior_mean
+        self.prior_standard_deviation = prior_standard_deviation
 
     def __call__(
         self,

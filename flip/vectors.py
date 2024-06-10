@@ -218,7 +218,7 @@ def get_velocity_error_from_salt_fit(
 
     velocity_error = redshift_dependence * np.sqrt(variance_mu)
 
-    return velocity_error, redshift_dependence
+    return velocity_error
 
 
 def get_velocity_from_salt_fit(

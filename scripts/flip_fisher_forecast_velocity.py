@@ -70,5 +70,5 @@ Fisher = fisher.FisherMatrix.init_from_covariance(
 )
 
 parameter_name_list, fisher_matrix = Fisher.compute_fisher_matrix(
-    parameter_dict, variant=None
+    parameter_dict, variant=variant
 )

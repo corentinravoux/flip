@@ -185,9 +185,11 @@ class FisherMatrix:
         ) in partial_coefficients_dict.items():
             parameter_name_list.append(parameter_name)
             covariance_derivative_sum_list.append(
-                self.inverse_covariance_sum
-                * self.compute_covariance_derivative(
-                    partial_coefficients_dict_param,
+                np.dot(
+                    self.inverse_covariance_sum,
+                    self.compute_covariance_derivative(
+                        partial_coefficients_dict_param,
+                    ),
                 )
             )
 

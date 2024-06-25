@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def get_coefficients(
     model_type,
     parameter_values_dict,

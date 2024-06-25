@@ -96,7 +96,7 @@ class BaseLikelihood(object):
         parameter_values_dict,
     ):
         if model_type in ["velocity", "density_velocity", "full"]:
-            velocity, velocity_error = vectors.load_velocity_vector(
+            velocity, velocity_error = vectors.load_velocity_vectors(
                 self.data,
                 parameter_values_dict,
                 velocity_type=self.likelihood_properties["velocity_type"],
@@ -104,7 +104,7 @@ class BaseLikelihood(object):
             )
 
         if model_type in ["density", "density_velocity", "full"]:
-            density, density_error = vectors.load_density_vector(self.data)
+            density, density_error = vectors.load_density_vectors(self.data)
 
         if model_type == "density":
             return density, density_error

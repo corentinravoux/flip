@@ -100,7 +100,7 @@ class BaseFitter(abc.ABC):
         )
 
         return likelihood
-    
+
     @staticmethod
     def select_likelihood(likelihood_type):
         """
@@ -194,7 +194,10 @@ class FitMinuit(BaseFitter):
         likelihood = minuit_fitter.get_likelihood(
             parameter_dict,
             likelihood_type=likelihood_type,
-            likelihood_properties={**likelihood_properties, 'negative_log_likelihood': True},
+            likelihood_properties={
+                **likelihood_properties,
+                "negative_log_likelihood": True,
+            },
             **kwargs,
         )
         minuit_fitter.likelihood = likelihood
@@ -247,7 +250,10 @@ class FitMinuit(BaseFitter):
             data,
             parameter_dict,
             likelihood_type=likelihood_type,
-            likelihood_properties={**likelihood_properties, 'negative_log_likelihood': True},
+            likelihood_properties={
+                **likelihood_properties,
+                "negative_log_likelihood": True,
+            },
         )
 
     def setup_minuit(self, parameter_dict):
@@ -301,6 +307,8 @@ class FitMinuit(BaseFitter):
             log.add(self.minuit.hesse())
         if minos:
             log.add(self.minuit.minos())
+
+        return self.minuit.values.to_dict()
 
 
 class FitMCMC(BaseFitter):
@@ -396,12 +404,12 @@ class FitMCMC(BaseFitter):
         """
 
         raise NotImplementedError
-    
+
     def set_sampler(self, likelihood, p0=None, **kwargs):
-        if self.sampler_name == 'emcee':
+        if self.sampler_name == "emcee":
             self.sampler = EMCEESampler(likelihood, p0=p0, **kwargs)
         else:
-            raise ValueError('Only emcee is available now')
+            raise ValueError("Only emcee is available now")
 
 
 class Sampler(abc.ABC):
@@ -481,7 +489,9 @@ class EMCEESampler(Sampler):
                 pool=pool,
                 backend=self.backend,
             )
-            for sample in sampler.sample(self.p0, iterations=maxstep, progress=progress):
+            for sample in sampler.sample(
+                self.p0, iterations=maxstep, progress=progress
+            ):
                 if sampler.iteration % 500 == 0:
                     # Compute tau
                     tau = sampler.get_autocorr_time(tol=0)

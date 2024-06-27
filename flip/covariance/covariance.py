@@ -21,6 +21,7 @@ class CovMatrix:
         number_densities=None,
         number_velocities=None,
         variant=None,
+        coordinates_velocity=None,
     ):
         """
         The __init__ function is called when the class is instantiated.
@@ -50,6 +51,7 @@ class CovMatrix:
         self.number_densities = number_densities
         self.number_velocities = number_velocities
         self.variant = variant
+        self.coordinates_velocity = coordinates_velocity
 
     @classmethod
     def init_from_flip(
@@ -116,6 +118,7 @@ class CovMatrix:
             number_densities=number_densities,
             number_velocities=number_velocities,
             variant=variant,
+            coordinates_velocity=coordinates_velocity,
         )
 
     @classmethod

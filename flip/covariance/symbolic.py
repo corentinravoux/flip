@@ -160,6 +160,7 @@ def write_output(
     l1max_list=None,
     l2max_list=None,
     multi_index_model=False,
+    redshift_dependent_model=False,
 ):
     """
     The write_output function takes the following arguments:
@@ -259,6 +260,8 @@ def write_output(
     f.write(f"multi_index_model = {multi_index_model}")
     f.write("\n")
 
+    f.write(f"redshift_dependent_model = {redshift_dependent_model}")
+    f.write("\n")
     f.close()
 
 
@@ -274,6 +277,7 @@ def write_M_N_functions(
     l1max_list=None,
     l2max_list=None,
     multi_index_model=False,
+    redshift_dependent_model=False,
 ):
     """
     The write_M_N_functions function is used to generate the M_N functions for a given model.
@@ -350,6 +354,7 @@ def write_M_N_functions(
         l1max_list=l1max_list,
         l2max_list=l2max_list,
         multi_index_model=multi_index_model,
+        redshift_dependent_model=redshift_dependent_model,
     )
 
 
@@ -634,6 +639,43 @@ def generate_generalized_ravouxcarreres_functions(
         wide_angle=True,
         l1max_list=l1max_list,
         l2max_list=l2max_list,
+    )
+
+
+def generate_generalized_rcrk24_functions(
+    filename="./rcrk24/flip_terms.py", number_worker=8
+):
+    """
+    The generate_generalized_rcrk24_functions function generates the flip_terms.py file in the carreres23 directory, which contains functions that calculate M and N terms for a generalized version of Carreres' (2012) model 2 and 3.
+
+    Args:
+        filename: Specify the name of the file that will be generated
+        number_worker: Determine the number of processes to use for multiprocessing
+
+    Returns:
+        A list of functions,
+
+    """
+    mu1, mu2 = sy.symbols("mu1 mu2")
+    k = sy.symbols("k", positive=True, finite=True, real=True)
+    type_list = ["vv"]
+    term_index_list = [["0"]]
+    lmax_list = [[2]]
+    l1max_list = [[1]]
+    l2max_list = [[1]]
+    dict_B = {"B_vv_0": 100**2 * mu1 * mu2 / k**2}
+
+    write_M_N_functions(
+        filename,
+        type_list,
+        term_index_list,
+        lmax_list,
+        dict_B,
+        number_worker=number_worker,
+        wide_angle=True,
+        l1max_list=l1max_list,
+        l2max_list=l2max_list,
+        redshift_dependent_model=True,
     )
 
 
@@ -1104,6 +1146,7 @@ def generate_files():
     generate_generalized_adamsblake20_functions()
     generate_generalized_lai22_functions()
     generate_generalized_ravouxcarreres_functions()
+    generate_generalized_rcrk24_functions()
 
 
 def generate_fisher_files():

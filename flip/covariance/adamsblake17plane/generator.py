@@ -253,5 +253,11 @@ def generate_covariance(
         )
 
     los_definition = "bisector"
-
-    return covariance_dict, number_densities, number_velocities, los_definition
+    redshift_dict = None
+    return (
+        covariance_dict,
+        number_densities,
+        number_velocities,
+        los_definition,
+        redshift_dict,
+    )

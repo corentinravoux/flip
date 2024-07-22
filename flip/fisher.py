@@ -97,7 +97,7 @@ class FisherMatrix:
 
     def compute_covariance_derivative(
         self,
-        partial_coefficients_dict_param, cov_factors = None,
+        partial_coefficients_dict_param,
     ):
 
         if self.covariance.model_type == "density":
@@ -110,14 +110,9 @@ class FisherMatrix:
             )
 
         elif self.covariance.model_type == "velocity":
-            if cov_factors is None:
-                cov_prefactor = 1.
-            else:
-                cov_prefactor = np.outer(cov_factors["v"],cov_factors["v"]) 
-
             covariance_derivative_sum = np.sum(
                 [
-                    partial_coefficients_dict_param["vv"][i] * cov_prefactor * cov
+                    partial_coefficients_dict_param["vv"][i] * cov
                     for i, cov in enumerate(self.covariance.covariance_dict["vv"])
                 ],
                 axis=0,
@@ -173,22 +168,13 @@ class FisherMatrix:
         variant=None,
     ):
 
-        if self.covariance.model_name == "agkim24":
-                FisherTerms = getattr(importlib.import_module(
-                f"flip.covariance.{self.covariance.model_name}.fisher_terms"),"FisherTerms")
-                coefficients = FisherTerms(self.covariance.coordinates_velocity)
-                cov_factors = coefficients.cov_factors
-        else:
-            coefficients = importlib.import_module(
-                f"flip.covariance.{self.covariance.model_name}.fisher_terms")
-            cov_factors = None
-
+        coefficients = importlib.import_module(
+            f"flip.covariance.{self.covariance.model_name}.fisher_terms"
+        )
         partial_coefficients_dict = coefficients.get_partial_derivative_coefficients(
             self.covariance.model_type,
             parameter_values_dict,
             variant=variant,
-            redshift_dict=self.covariance.redshift_dict,
-            power_spectrum_amplitude_function=self.covariance.power_spectrum_amplitude_function,
         )
         parameter_name_list = []
         covariance_derivative_sum_list = []
@@ -203,7 +189,6 @@ class FisherMatrix:
                     self.inverse_covariance_sum,
                     self.compute_covariance_derivative(
                         partial_coefficients_dict_param,
-                        cov_factors=cov_factors
                     ),
                 )
             )

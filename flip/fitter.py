@@ -352,10 +352,11 @@ class FitMCMC(BaseFitter):
         data,
         parameter_dict,
         likelihood_type="multivariate_gaussian",
-        likelihood_properties=None,
+        likelihood_properties={},
         sampler_name="emcee",
         nwalkers=1,
         backend_file=None,
+        **kwargs,
     ):
         """
         The init_from_covariance function is a class method that initializes the MCMC fitter from a covariance matrix.
@@ -373,19 +374,30 @@ class FitMCMC(BaseFitter):
 
         """
 
-        mcmc_fitter = cls(covariance=covariance, data=data, sampler_name=sampler_name)
-
+        mcmc_fitter = cls(
+            covariance=covariance,
+            data=data,
+            sampler_name=sampler_name,
+        )
         likelihood = mcmc_fitter.get_likelihood(
             parameter_dict,
             likelihood_type=likelihood_type,
-            likelihood_properties=likelihood_properties,
+            likelihood_properties={
+                **likelihood_properties,
+                "negative_log_likelihood": True,
+            },
+            **kwargs,
         )
-
         p0 = None
         if backend_file is None:
             p0 = np.stack(
                 [p["randfun"](size=nwalkers) for p in parameter_dict.values()]
             ).T
+        else:
+            if os.path.exists(backend_file):
+                p0 = np.stack(
+                    [p["randfun"](size=nwalkers) for p in parameter_dict.values()]
+                ).T
         mcmc_fitter.set_sampler(likelihood, p0=p0, backend_file=backend_file)
 
         return mcmc_fitter
@@ -455,7 +467,6 @@ class EMCEESampler(Sampler):
                     "Initial size: {0}".format(self.backend.iteration)
                 )
                 self._p0 = None
-                self.ndim = self.backend.shape[1]
                 self.nwalkers = self.backend.shape[0]
             else:
                 log.add("Create new file to store chains")
@@ -502,3 +513,16 @@ class EMCEESampler(Sampler):
                         break
                     old_tau = tau
         return sampler
+
+    # def return_results():
+    #     reader = emcee.backends.HDFBackend(backend_file, read_only=True)
+    #     try:
+    #         tau = reader.get_autocorr_time()
+    #         burnin = int(2 * np.max(tau))
+    #         thin = int(0.5 * np.min(tau))
+    #     except:
+    #         burnin = 0
+    #         thin = 1
+    #     samples = reader.get_chain(discard=burnin, thin=thin)
+    #     flat_samples = reader.get_chain(discard=burnin, flat=True, thin=thin)
+    #     logprob = reader.get_log_prob(discard=burnin, flat=True, thin=thin)

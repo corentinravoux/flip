@@ -1,3 +1,5 @@
+from functools import partial
+
 import numpy as np
 import scipy as sc
 
@@ -20,6 +22,14 @@ def log_likelihood_gaussian_cholesky(vector, covariance_sum):
     logdet = 2 * np.sum(np.log(np.diag(cholesky[0])))
     chi2 = np.dot(vector, sc.linalg.cho_solve(cholesky, vector))
     return -0.5 * (vector.size * np.log(2 * np.pi) + logdet + chi2)
+
+
+def no_prior(x):
+    return 0
+
+
+def prior_sum(priors, x):
+    return sum(prior(x) for prior in priors)
 
 
 class BaseLikelihood(object):
@@ -122,7 +132,7 @@ class BaseLikelihood(object):
         self,
     ):
         if "prior" not in self.likelihood_properties.keys():
-            return lambda x: 0
+            return no_prior
         else:
             prior_dict = self.likelihood_properties["prior"]
             priors = []
@@ -140,10 +150,8 @@ class BaseLikelihood(object):
                     )
                 priors.append(prior)
 
-            def prior_sum(x):
-                return sum(prior(x) for prior in priors)
-
-            return prior_sum
+            prior_function = partial(prior_sum, priors)
+            return prior_function
 
 
 class MultivariateGaussianLikelihood(BaseLikelihood):

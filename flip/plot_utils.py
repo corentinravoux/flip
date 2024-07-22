@@ -1,3 +1,7 @@
+import glob
+import os
+import pickle
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -173,3 +177,146 @@ def plot_correlation_from_likelihood(
     correlation_sum = cov_utils.return_correlation_matrix(covariance_sum)
     plt.imshow(correlation_sum, vmin=vmin, vmax=vmax)
     plt.colorbar()
+
+
+def plot_all_fits(
+    fit_output,
+    parameters,
+    fiducials=None,
+    **kwargs,
+):
+    figsize = utils.return_key(kwargs, "figsize", (10, 10))
+
+    all_fit = glob.glob(os.path.join(fit_output, "*"))
+    fig, ax = plt.subplots(len(parameters), 1, figsize=figsize, sharex=True)
+
+    for i, f in enumerate(all_fit):
+        fit = pickle.load(open(f, "rb"))
+        if fit[3] is False:
+            continue
+        elif fit[4] is False:
+            continue
+        for j, param in enumerate(parameters):
+            ax[j].errorbar(
+                i, fit[0][param], fit[2][param], marker=".", ls="None", color="C1"
+            )
+
+            ax[j].set_ylabel(param, fontsize=18)
+
+            if fiducials is not None:
+                if fiducials[j] is not None:
+                    ax[j].axhline(fiducials[j], ls=":", color="k")
+
+    ax[0].margins(x=0.005)
+    fig.tight_layout()
+
+
+def plot_all_mean_fits(
+    fit_output,
+    parameters,
+    fiducials=None,
+    **kwargs,
+):
+    figsize = utils.return_key(kwargs, "figsize", (10, 10))
+
+    all_fit = glob.glob(os.path.join(fit_output, "*"))
+
+    fit_to_plot = []
+    fit_name_to_plot = []
+    for f in all_fit:
+        fit = pickle.load(open(f, "rb"))
+        if fit[3] is False:
+            continue
+        elif fit[4] is False:
+            continue
+        fit_to_plot.append(fit)
+        fit_name_to_plot.append(f)
+
+    fit_prop = []
+    for i in range(len(fit_name_to_plot)):
+        fit_prop.append(
+            fit_name_to_plot[i].split("fitted_parameters_")[-1].split("_box")[0]
+        )
+
+    fit_prop = np.array(fit_prop)
+    unique_fit_prop = np.sort(np.unique(fit_prop))
+
+    fig, ax = plt.subplots(len(parameters), 1, figsize=figsize, sharex=True)
+
+    text = []
+    for i, fit_p in enumerate(unique_fit_prop):
+        mask = fit_prop == fit_p
+        fits = np.array(fit_to_plot)[mask]
+
+        for j, param in enumerate(parameters):
+            mean_param = np.mean([fits[i][0][param] for i in range(len(fits))])
+            mean_error_param = np.mean(
+                [fits[i][2][param] for i in range(len(fits))]
+            ) / np.sqrt(len(mask[mask]))
+
+            ax[j].errorbar(
+                i, mean_param, mean_error_param, marker=".", ls="None", color="C1"
+            )
+
+            ax[j].set_ylabel(param, fontsize=18)
+
+            if fiducials is not None:
+                if fiducials[j] is not None:
+                    ax[j].axhline(fiducials[j], ls=":", color="k")
+
+        text.append(fit_p)
+
+    j_index = np.arange(len(unique_fit_prop))
+    ax[-1].set_xticks(j_index, np.array(text), rotation=90, fontsize=10)
+    ax[0].margins(x=0.005)
+    fig.tight_layout()
+
+
+def plot_all_mean_error_fits(
+    fit_output,
+    parameters,
+    **kwargs,
+):
+    figsize = utils.return_key(kwargs, "figsize", (10, 10))
+
+    all_fit = glob.glob(os.path.join(fit_output, "*"))
+
+    fit_to_plot = []
+    fit_name_to_plot = []
+    for f in all_fit:
+        fit = pickle.load(open(f, "rb"))
+        if fit[3] is False:
+            continue
+        elif fit[4] is False:
+            continue
+        fit_to_plot.append(fit)
+        fit_name_to_plot.append(f)
+
+    fit_prop = []
+    for i in range(len(fit_name_to_plot)):
+        fit_prop.append(
+            fit_name_to_plot[i].split("fitted_parameters_")[-1].split("_box")[0]
+        )
+
+    fit_prop = np.array(fit_prop)
+    unique_fit_prop = np.sort(np.unique(fit_prop))
+
+    fig, ax = plt.subplots(len(parameters), 1, figsize=figsize, sharex=True)
+
+    text = []
+    for i, fit_p in enumerate(unique_fit_prop):
+        mask = fit_prop == fit_p
+        fits = np.array(fit_to_plot)[mask]
+
+        for j, param in enumerate(parameters):
+            mean_error_param = np.mean([fits[i][2][param] for i in range(len(fits))])
+
+            ax[j].plot(i, mean_error_param, marker=".", ls="None", color="C1")
+            ax[j].set_ylabel(param, fontsize=18)
+
+        text.append(fit_p)
+
+    j_index = np.arange(len(unique_fit_prop))
+    ax[-1].set_xticks(j_index, np.array(text), rotation=90, fontsize=10)
+    ax[0].margins(x=0.005)
+    fig.tight_layout()

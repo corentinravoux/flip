@@ -13,8 +13,10 @@ def get_coefficients(
     redshift_velocities = redshift_dict["v"]
     cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
 
+    # print(power_spectrum_amplitude_function)
+    # qwd
     coefficient_vector = (
-        cosmo.Om(redshift_velocities).value ** parameter_values_dict["gamma"]
+        np.array(cosmo.Om(redshift_velocities)) ** parameter_values_dict["gamma"]
         * cosmo.H(redshift_velocities).value
         / cosmo.H0
         * power_spectrum_amplitude_function(redshift_velocities)

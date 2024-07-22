@@ -16,8 +16,7 @@ def main():
 
     sn_data = sn_data[np.array(sn_data["status"]) != False]
     sn_data = sn_data[np.array(sn_data["status"]) != None]
-
-    coordinates_velocity = np.array([sn_data["ra"], sn_data["dec"], sn_data["rcom_zobs"]])
+    coordinates_velocity = np.array([sn_data["ra"], sn_data["dec"], sn_data["rcom_zobs"], sn_data["zobs"]])
 
     data_velocity = sn_data.to_dict("list")
     for key in data_velocity.keys():
@@ -38,16 +37,19 @@ def main():
     size_batch = 10_000
     number_worker = 16
 
+
+    from flip.covariance.rcrk24.flip_terms import power_spectrum_amplitude_function
     covariance_fit = covariance.CovMatrix.init_from_flip(
-        "agkim24",
+        "rcrk24",
+        # "agk24"
         # 'carreres23',
         "velocity",
         power_spectrum_dict,
         coordinates_velocity=coordinates_velocity,
         size_batch=size_batch,
         number_worker=number_worker,
+        power_spectrum_amplitude_function=power_spectrum_amplitude_function,
     )
-
 
     ### Load fitter
 
@@ -64,6 +66,13 @@ def main():
         "sigma_M": 0.12,
     }
 
+    parameter_dict = {
+        "Om0": 0.3,
+        "gamma": 0.55,
+        "sigv": 200,        
+        "sigma_M": 0.12,
+    }
+  
     Fisher = fisher.FisherMatrix.init_from_covariance(
         covariance_fit,
         data_velocity,
@@ -78,5 +87,17 @@ def main():
 
 
 if __name__ == "__main__":
+    parameter_dict = {
+        "Om0": 0.3,
+        "gamma": 0.55,
+        "sigv": 200,        
+        "sigma_M": 0.12,
+    }
     parameter_name_list, fisher_matrix = main()
     print(fisher_matrix)
+    cov = np.linalg.inv(fisher_matrix[0:2,0:2])
+    print(cov[0:2,0:2])
+
+    partials = np.array([parameter_dict['gamma']*parameter_dict['Om0']**(parameter_dict['gamma']-1),np.log(parameter_dict['Om0'])*parameter_dict['Om0']**parameter_dict['gamma']])
+    print(partials.T @ cov[0:2,0:2] @ partials)
+    print(np.sqrt(partials.T @ cov[0:2,0:2] @ partials))

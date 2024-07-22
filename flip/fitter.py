@@ -384,7 +384,7 @@ class FitMCMC(BaseFitter):
             likelihood_type=likelihood_type,
             likelihood_properties={
                 **likelihood_properties,
-                "negative_log_likelihood": True,
+                "negative_log_likelihood": False,
             },
             **kwargs,
         )
@@ -394,7 +394,7 @@ class FitMCMC(BaseFitter):
                 [p["randfun"](size=nwalkers) for p in parameter_dict.values()]
             ).T
         else:
-            if os.path.exists(backend_file):
+            if not (os.path.exists(backend_file)):
                 p0 = np.stack(
                     [p["randfun"](size=nwalkers) for p in parameter_dict.values()]
                 ).T
@@ -513,16 +513,3 @@ class EMCEESampler(Sampler):
                         break
                     old_tau = tau
         return sampler
-
-    # def return_results():
-    #     reader = emcee.backends.HDFBackend(backend_file, read_only=True)
-    #     try:
-    #         tau = reader.get_autocorr_time()
-    #         burnin = int(2 * np.max(tau))
-    #         thin = int(0.5 * np.min(tau))
-    #     except:
-    #         burnin = 0
-    #         thin = 1
-    #     samples = reader.get_chain(discard=burnin, thin=thin)
-    #     flat_samples = reader.get_chain(discard=burnin, flat=True, thin=thin)
-    #     logprob = reader.get_log_prob(discard=burnin, flat=True, thin=thin)

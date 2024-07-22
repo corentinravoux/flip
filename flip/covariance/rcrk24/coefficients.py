@@ -21,7 +21,7 @@ def get_coefficients(
         / (1 + redshift_velocities)
     )
 
-    coefficients_dict["vv"] = [np.outer(coefficient_vector)]
+    coefficients_dict["vv"] = [np.outer(coefficient_vector, coefficient_vector)]
     return coefficients_dict
 
 

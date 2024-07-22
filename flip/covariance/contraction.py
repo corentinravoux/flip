@@ -17,6 +17,8 @@ class Contraction:
         coordinates_dict=None,
         basis_definition=None,
         endpoint_los_definition=None,
+        redshift_dict=None,
+        power_spectrum_amplitude_function=None,
         variant=None,
     ):
         self.model_name = model_name
@@ -25,6 +27,8 @@ class Contraction:
         self.coordinates_dict = coordinates_dict
         self.basis_definition = basis_definition
         self.endpoint_los_definition = endpoint_los_definition
+        self.redshift_dict = redshift_dict
+        self.power_spectrum_amplitude_function = power_spectrum_amplitude_function
         self.variant = variant
 
     @classmethod
@@ -41,12 +45,15 @@ class Contraction:
         additional_parameters_values=None,
         basis_definition="bisector",
         endpoint_los_definition="bisector",
+        redshift=None,
+        power_spectrum_amplitude_function=None,
         variant=None,
         **kwargs,
     ):
         (
             contraction_dict,
             coordinates_dict,
+            redshift_dict,
         ) = contract_covariance(
             model_name,
             model_type,
@@ -59,6 +66,7 @@ class Contraction:
             additional_parameters_values=additional_parameters_values,
             basis_definition=basis_definition,
             endpoint_los_definition=endpoint_los_definition,
+            redshift=redshift,
             **kwargs,
         )
 
@@ -69,6 +77,8 @@ class Contraction:
             coordinates_dict=coordinates_dict,
             basis_definition=basis_definition,
             endpoint_los_definition=endpoint_los_definition,
+            redshift_dict=redshift_dict,
+            power_spectrum_amplitude_function=power_spectrum_amplitude_function,
             variant=variant,
         )
 
@@ -125,7 +135,9 @@ class Contraction:
         coefficients_dict = coefficients.get_coefficients(
             self.model_type,
             parameter_values_dict,
-            self.variant,
+            variant=self.variant,
+            redshift_dict=self.redshift_dict,
+            power_spectrum_amplitude_function=self.power_spectrum_amplitude_function,
         )
         contraction_covariance_sum_dict = {}
         if self.model_type == "density":
@@ -293,6 +305,7 @@ def contract_covariance(
     additional_parameters_values=None,
     basis_definition="bisector",
     endpoint_los_definition="bisector",
+    redshift=None,
     number_worker=8,
     hankel=True,
 ):
@@ -339,5 +352,10 @@ def contract_covariance(
             number_worker=number_worker,
             hankel=hankel,
         )[:, 1:].reshape(-1, len(coord_1), len(coord_2))
-
-    return contraction_dict, coordinates_dict
+    redshift_dict = generator_flip.generate_redshift_dict(
+        model_name,
+        model_type,
+        redshift_velocity=redshift,
+        redshift_density=redshift,
+    )
+    return contraction_dict, coordinates_dict, redshift_dict

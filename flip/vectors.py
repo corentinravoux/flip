@@ -61,7 +61,7 @@ def load_velocity_error(
             "zobs",
         )
         if all(k in data for k in key_to_verify):
-            velocity_error = get_velocity_error_from_salt_fit(
+            velocity_error, _ = get_velocity_error_from_salt_fit(
                 data,
                 parameter_values_dict,
                 velocity_estimator,
@@ -218,7 +218,7 @@ def get_velocity_error_from_salt_fit(
 
     velocity_error = redshift_dependence * np.sqrt(variance_mu)
 
-    return velocity_error
+    return velocity_error, redshift_dependence
 
 
 def get_velocity_from_salt_fit(

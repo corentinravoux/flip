@@ -1,6 +1,24 @@
 import numpy as np
 from astropy.cosmology import FlatLambdaCDM
 
+# The flip convention is to split the power spectrum into several terms
+# where linearity assumptions are made
+# P_ab = A * B * P0_xy
+#
+# A is the coefficients where
+# P_ab = A P_xy
+# B is the cofficient where
+# P_xy = B P0_xy
+# and
+# P0_xy is the power spectrum for a fiducial cosmology at z=0
+
+# The derivative cofficients we need are
+# dA/dp B + A dB/dp
+
+# for vv
+# A = (aHfs8)_1 * (aHfs8_1)
+# B = s8_1 * s8_2
+
 def get_partial_derivative_coefficients(
     model_type,
     parameter_values_dict,
@@ -9,35 +27,46 @@ def get_partial_derivative_coefficients(
     power_spectrum_amplitude_function=None,
 ):
 
-    # The convention is to split the power spectrum into several terms
-    # P_ab = A * B * P0_xy
-    # To first order and under certain conventions
-    # A is the coefficient that
-    # P_ab = A P_xy
-    # B is the cofficient that
-    # P_xy = P0_xy
-
-    # P0_xy is the power spectrum for a fiducial cosmology so has no parameter dependence
-    # The derivative cofficients we need are
-    # dA/dp B + A dB/dp
-
-    # for vv
-    # A = (aHfs8)_1 * (aHfs8_1)
-    # B = s8_1 * s8_2
-
-    redshift_velocities = redshift_dict["v"]
     cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
-    # calculate one a few things that are used repeatedly
+    redshift_velocities = redshift_dict["v"]
+
+    # The Om0-gamma model f=Omega(Om0)^gamma
+
+    # pre-calculate a few things that are used repeatedly
     cosmoOm=np.array(cosmo.Om(redshift_velocities))
     f = cosmoOm**parameter_values_dict["gamma"]
     f0 = parameter_values_dict["Om0"]**parameter_values_dict["gamma"]
 
-    s80 = 0.832  # from Planck for the fiducial model
+    # In the Om0-gamma parameterization fs80 is considered to be fixed by the CMB
+    # and is hence not a fit parameter
 
-   # D normalized so D(z=0)=1
+    s80 = 0.832
+
+    # Calculation of s8 and its derivatives requires an integral.  It is useful to
+    # expand Omega in terms of (1-a), which allows analytic solutions
+
+    # approximation
+    def lnD(a):
+        return np.log(a)*(f0+f0*3*parameter_values_dict["gamma"]*(1-parameter_values_dict["Om0"])) \
+            + (1-a)*f0*3*parameter_values_dict["gamma"]*(1-parameter_values_dict["Om0"])
+
+    def dlnDdOm0(a):
+        return parameter_values_dict["gamma"] *parameter_values_dict["Om0"]**(parameter_values_dict["gamma"]-1) \
+            * ( 3 * (a-1)*(parameter_values_dict["gamma"] * (parameter_values_dict["Om0"]-1) + parameter_values_dict["Om0"]) \
+                + np.log(a)*(-3*parameter_values_dict["gamma"] * (parameter_values_dict["Om0"]-1) - 3* parameter_values_dict["Om0"] +1 ))
+
+    def dlnDdgamma(a):
+        return 3*(1-a)*(1-parameter_values_dict["Om0"])*f0 \
+            + 3*(1-a)*parameter_values_dict["gamma"]*(1-parameter_values_dict["Om0"])*f0 *np.log(parameter_values_dict["Om0"]) \
+            + np.log(a) \
+                * ( \
+                    3*(1-parameter_values_dict["Om0"])*f0 \
+                    + 3 * parameter_values_dict["gamma"]*(1-parameter_values_dict["Om0"])*f0 *np.log(parameter_values_dict["Om0"]) \
+                    + f0*np.log(parameter_values_dict["Om0"]) \
+                )
+
     def s8(a):
-        return s80* a**(f0 + f0*3*parameter_values_dict["gamma"]*(1-parameter_values_dict["Om0"])) \
-            * np.exp((1-a)*f0*3* parameter_values_dict["gamma"]*(1-parameter_values_dict["Om0"]))
+        return s80 * np.exp(lnD(a))
 
     def aHfs8(a):
         return f * s8(a) / (1+redshift_velocities) * cosmo.H(redshift_velocities)/cosmo.H0 
@@ -55,18 +84,11 @@ def get_partial_derivative_coefficients(
     def dfdgamma(a):
         return np.log(cosmoOm)  * f
 
-    # for the following it is useful and fast to expand Omega in terms of (1-a)
     def ds8dOm0(a):
-        domegapgamma =  parameter_values_dict["gamma"] *parameter_values_dict["Om0"]**(parameter_values_dict["gamma"]-1)
-        domegapgammap1 =  (parameter_values_dict["gamma"]+1) *parameter_values_dict["Om0"]**parameter_values_dict["gamma"]
-        return s80* np.log(a)*(domegapgamma + 3*parameter_values_dict["gamma"]*(domegapgamma - domegapgammap1)) \
-            + (1-a)*3*parameter_values_dict["gamma"]*(domegapgamma-domegapgammap1)
+        return s8(a)*dlnDdOm0(a)
 
     def ds8dgamma(a):
-        omegapgamma = parameter_values_dict["Om0"]**parameter_values_dict["gamma"]
-        lnOm0 = np.log(parameter_values_dict["Om0"])
-        return s80*np.log(a) * (lnOm0 * omegapgamma * (1 + 3*parameter_values_dict["gamma"]*(1-parameter_values_dict["Om0"])) + omegapgamma*3) \
-            + 3*(1-a)*(1-parameter_values_dict["Om0"])*(lnOm0 * omegapgamma *parameter_values_dict["gamma"] + omegapgamma)
+        return s8(a)*dlnDdgamma(a)
 
     def dAdOm0(a):
         return a*cosmo.H(a)/cosmo.H0*(dfdOm0(a)*s8(a) + f*ds8dOm0(a))
@@ -86,6 +108,7 @@ def get_partial_derivative_coefficients(
         dAdgamma(a) * s8(a) + aHfs8(a) * ds8dgamma(a)
     )
 
+    # not yet vetted
     s8_partial_derivative_coefficients = (
         2
         * cosmoOm ** (2 * parameter_values_dict["gamma"])

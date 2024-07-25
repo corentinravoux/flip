@@ -296,13 +296,13 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
             parameter_values_dict,
         )
 
-        covariance_sum_list = []
-        for i in range(len(self.covariance)):
-            covariance_sum_list.append(
-                self.covariance[i].compute_covariance_sum(
-                    parameter_values_dict, vector_error
-                )
+        covariance_sum_list = [
+            self.covariance[i].compute_covariance_sum(
+                parameter_values_dict, vector_error
             )
+            for i in range(len(self.covariance))
+        ]
+
         covariance_sum_interpolated = sc.interpolate.interp1d(
             self.interpolation_value_range,
             covariance_sum_list,

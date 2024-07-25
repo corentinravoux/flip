@@ -1,5 +1,17 @@
 from functools import partial
 
+try:
+    import jax
+    import jax.numpy as jnp
+    import jax.scipy as jsc
+
+    jax_installed = True
+except:
+    import numpy as jnp
+    import scipy as jsc
+
+    jax_installed = False
+
 import numpy as np
 import scipy as sc
 
@@ -7,21 +19,38 @@ from flip import vectors
 from flip.utils import create_log
 
 log = create_log()
+
 _available_priors = ["gaussian", "positive", "uniform"]
 
+if jax_installed:
 
-def log_likelihood_gaussian_inverse(vector, covariance_sum):
-    _, logdet = np.linalg.slogdet(covariance_sum)
-    inverse_covariance_sum = np.linalg.inv(covariance_sum)
-    chi2 = np.dot(vector, np.dot(inverse_covariance_sum, vector))
-    return -0.5 * (vector.size * np.log(2 * np.pi) + logdet + chi2)
+    @jax.jit
+    def log_likelihood_gaussian_inverse(vector, covariance_sum):
+        _, logdet = jnp.linalg.slogdet(covariance_sum)
+        inverse_covariance_sum = jnp.linalg.inv(covariance_sum)
+        chi2 = jnp.dot(vector, jnp.dot(inverse_covariance_sum, vector))
+        return -0.5 * (vector.size * jnp.log(2 * np.pi) + logdet + chi2)
 
+    @jax.jit
+    def log_likelihood_gaussian_cholesky(vector, covariance_sum):
+        cholesky = jsc.linalg.cho_factor(covariance_sum)
+        logdet = 2 * jnp.sum(jnp.log(jnp.diag(cholesky[0])))
+        chi2 = jnp.dot(vector, jsc.linalg.cho_solve(cholesky, vector))
+        return -0.5 * (vector.size * jnp.log(2 * np.pi) + logdet + chi2)
 
-def log_likelihood_gaussian_cholesky(vector, covariance_sum):
-    cholesky = sc.linalg.cho_factor(covariance_sum)
-    logdet = 2 * np.sum(np.log(np.diag(cholesky[0])))
-    chi2 = np.dot(vector, sc.linalg.cho_solve(cholesky, vector))
-    return -0.5 * (vector.size * np.log(2 * np.pi) + logdet + chi2)
+else:
+
+    def log_likelihood_gaussian_inverse(vector, covariance_sum):
+        _, logdet = jnp.linalg.slogdet(covariance_sum)
+        inverse_covariance_sum = jnp.linalg.inv(covariance_sum)
+        chi2 = jnp.dot(vector, jnp.dot(inverse_covariance_sum, vector))
+        return -0.5 * (vector.size * jnp.log(2 * np.pi) + logdet + chi2)
+
+    def log_likelihood_gaussian_cholesky(vector, covariance_sum):
+        cholesky = jsc.linalg.cho_factor(covariance_sum)
+        logdet = 2 * jnp.sum(jnp.log(jnp.diag(cholesky[0])))
+        chi2 = jnp.dot(vector, jsc.linalg.cho_solve(cholesky, vector))
+        return -0.5 * (vector.size * jnp.log(2 * np.pi) + logdet + chi2)
 
 
 def no_prior(x):
@@ -39,6 +68,8 @@ class BaseLikelihood(object):
         "velocity_type": "direct",
         "velocity_estimator": "full",
         "negative_log_likelihood": True,
+        "use_jax": False,
+        "use_gradient": False,
     }
 
     def __init__(
@@ -117,16 +148,15 @@ class BaseLikelihood(object):
             density, density_error = vectors.load_density_vectors(self.data)
 
         if model_type == "density":
-            return density, density_error
+            vector, vector_error = density, density_error
         elif model_type == "velocity":
-            return velocity, velocity_error
+            vector, vector_error = velocity, velocity_error
         elif model_type in ["density_velocity", "full"]:
-            return (
-                np.concatenate([density, velocity], axis=0),
-                np.concatenate([density_error, velocity_error], axis=0),
-            )
+            vector = np.concatenate([density, velocity], axis=0)
+            vector_error = np.concatenate([density_error, velocity_error], axis=0)
         else:
             log.add(f"Wrong model type in the loaded covariance.")
+        return vector, vector_error
 
     def initialize_prior(
         self,
@@ -192,7 +222,9 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
             parameter_values_dict,
         )
         covariance_sum = self.covariance.compute_covariance_sum(
-            parameter_values_dict, vector_error
+            parameter_values_dict,
+            vector_error,
+            use_jax=self.likelihood_properties["use_jax"],
         )
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"

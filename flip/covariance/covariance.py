@@ -4,10 +4,167 @@ import time
 
 import numpy as np
 
-from flip.covariance import cov_utils
 from flip.utils import create_log
 
+try:
+    import jax
+    import jax.numpy as jnp
+
+    jax_installed = True
+except:
+    import numpy as jnp
+
+    jax_installed = False
+from flip.covariance import cov_utils
+
 log = create_log()
+
+
+def compute_covariance_sum_density(
+    coefficients_dict,
+    covariance_dict,
+    coefficients_dict_diagonal,
+    vector_err,
+    number_densities,
+    number_velocities,
+):
+    covariance_sum = jnp.sum(
+        jnp.array(
+            [
+                coefficients_dict["gg"][i] * cov
+                for i, cov in enumerate(covariance_dict["gg"])
+            ]
+        ),
+        axis=0,
+    )
+    covariance_sum += jnp.diag(coefficients_dict_diagonal["gg"] + vector_err**2)
+
+    return covariance_sum
+
+
+def compute_covariance_sum_velocity(
+    coefficients_dict,
+    covariance_dict,
+    coefficients_dict_diagonal,
+    vector_err,
+    number_densities,
+    number_velocities,
+):
+    covariance_sum = jnp.sum(
+        jnp.array(
+            [
+                coefficients_dict["vv"][i] * cov
+                for i, cov in enumerate(covariance_dict["vv"])
+            ]
+        ),
+        axis=0,
+    )
+
+    covariance_sum += jnp.diag(coefficients_dict_diagonal["vv"] + vector_err**2)
+
+    return covariance_sum
+
+
+def compute_covariance_sum_density_velocity(
+    coefficients_dict,
+    covariance_dict,
+    coefficients_dict_diagonal,
+    vector_err,
+    number_densities,
+    number_velocities,
+):
+
+    density_err = vector_err[:number_densities]
+    velocity_err = vector_err[number_densities : number_densities + number_velocities]
+
+    covariance_sum_gv = jnp.zeros((number_densities, number_velocities))
+    covariance_sum_gg = jnp.sum(
+        jnp.array(
+            [
+                coefficients_dict["gg"][i] * cov
+                for i, cov in enumerate(covariance_dict["gg"])
+            ]
+        ),
+        axis=0,
+    )
+    covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] + density_err**2)
+
+    covariance_sum_vv = jnp.sum(
+        jnp.array(
+            [
+                coefficients_dict["vv"][i] * cov
+                for i, cov in enumerate(covariance_dict["vv"])
+            ]
+        ),
+        axis=0,
+    )
+
+    covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] + velocity_err**2)
+
+    covariance_sum_vg = -covariance_sum_gv.T
+
+    covariance_sum = jnp.block(
+        [
+            [covariance_sum_gg, covariance_sum_gv],
+            [covariance_sum_vg, covariance_sum_vv],
+        ]
+    )
+    return covariance_sum
+
+
+def compute_covariance_sum_full(
+    coefficients_dict,
+    covariance_dict,
+    coefficients_dict_diagonal,
+    vector_err,
+    number_densities,
+    number_velocities,
+):
+
+    density_err = vector_err[:number_densities]
+    velocity_err = vector_err[number_densities : number_densities + number_velocities]
+
+    covariance_sum_gv = jnp.sum(
+        jnp.array(
+            [
+                coefficients_dict["gv"][i] * cov
+                for i, cov in enumerate(covariance_dict["gv"])
+            ]
+        ),
+        axis=0,
+    )
+    covariance_sum_gg = jnp.sum(
+        jnp.array(
+            [
+                coefficients_dict["gg"][i] * cov
+                for i, cov in enumerate(covariance_dict["gg"])
+            ]
+        ),
+        axis=0,
+    )
+    covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] + density_err**2)
+
+    covariance_sum_vv = jnp.sum(
+        jnp.array(
+            [
+                coefficients_dict["vv"][i] * cov
+                for i, cov in enumerate(covariance_dict["vv"])
+            ]
+        ),
+        axis=0,
+    )
+
+    covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] + velocity_err**2)
+
+    covariance_sum_vg = -covariance_sum_gv.T
+
+    covariance_sum = jnp.block(
+        [
+            [covariance_sum_gg, covariance_sum_gv],
+            [covariance_sum_vg, covariance_sum_vv],
+        ]
+    )
+    return covariance_sum
 
 
 class CovMatrix:
@@ -277,6 +434,7 @@ class CovMatrix:
         self,
         parameter_values_dict,
         vector_err,
+        use_jax=False,
     ):
         """
         The compute_covariance_sum function computes the sum of all covariance matrices
@@ -305,79 +463,17 @@ class CovMatrix:
             parameter_values_dict,
         )
 
-        if self.model_type == "density":
-            covariance_sum = np.sum(
-                [
-                    coefficients_dict["gg"][i] * cov
-                    for i, cov in enumerate(self.covariance_dict["gg"])
-                ],
-                axis=0,
-            )
-            covariance_sum += np.diag(coefficients_dict_diagonal["gg"] + vector_err**2)
-
-        elif self.model_type == "velocity":
-            covariance_sum = np.sum(
-                [
-                    coefficients_dict["vv"][i] * cov
-                    for i, cov in enumerate(self.covariance_dict["vv"])
-                ],
-                axis=0,
-            )
-
-            covariance_sum += np.diag(coefficients_dict_diagonal["vv"] + vector_err**2)
-
-        elif self.model_type in ["density_velocity", "full"]:
-            number_densities = self.number_densities
-            number_velocities = self.number_velocities
-            density_err = vector_err[:number_densities]
-            velocity_err = vector_err[
-                number_densities : number_densities + number_velocities
-            ]
-
-            if self.model_type == "density_velocity":
-                covariance_sum_gv = np.zeros((number_densities, number_velocities))
-            elif self.model_type == "full":
-                covariance_sum_gv = np.sum(
-                    [
-                        coefficients_dict["gv"][i] * cov
-                        for i, cov in enumerate(self.covariance_dict["gv"])
-                    ],
-                    axis=0,
-                )
-            covariance_sum_gg = np.sum(
-                [
-                    coefficients_dict["gg"][i] * cov
-                    for i, cov in enumerate(self.covariance_dict["gg"])
-                ],
-                axis=0,
-            )
-            covariance_sum_gg += np.diag(
-                coefficients_dict_diagonal["gg"] + density_err**2
-            )
-
-            covariance_sum_vv = np.sum(
-                [
-                    coefficients_dict["vv"][i] * cov
-                    for i, cov in enumerate(self.covariance_dict["vv"])
-                ],
-                axis=0,
-            )
-
-            covariance_sum_vv += np.diag(
-                coefficients_dict_diagonal["vv"] + velocity_err**2
-            )
-
-            covariance_sum_vg = -covariance_sum_gv.T
-
-            covariance_sum = np.block(
-                [
-                    [covariance_sum_gg, covariance_sum_gv],
-                    [covariance_sum_vg, covariance_sum_vv],
-                ]
-            )
-        else:
-            log.add(f"Wrong model type in the loaded covariance.")
-
+        covariance_sum_func = eval(f"compute_covariance_sum_{self.model_type}")
+        if jax_installed & use_jax:
+            covariance_sum_func = jax.jit(covariance_sum_func)
+        covariance_sum = covariance_sum_func(
+            coefficients_dict,
+            self.covariance_dict,
+            coefficients_dict_diagonal,
+            vector_err,
+            self.number_densities,
+            self.number_velocities,
+        )
         return covariance_sum
 
     def compute_covariance_sum_eigenvalues(

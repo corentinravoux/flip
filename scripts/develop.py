@@ -62,16 +62,18 @@ def main():
 
     parameter_dict = {
         "fs8": 0.4,
+        "Om0": 0.3,
+        "gamma": 0.55,        
         "sigv": 200,
         "sigma_M": 0.12,
     }
 
-    parameter_dict = {
-        "Om0": 0.3,
-        "gamma": 0.55,
-        "sigv": 200,        
-        "sigma_M": 0.12,
-    }
+    # parameter_dict = {
+    #     "Om0": 0.3,
+    #     "gamma": 0.55,
+    #     "sigv": 200,        
+    #     "sigma_M": 0.12,
+    # }
   
     Fisher = fisher.FisherMatrix.init_from_covariance(
         covariance_fit,
@@ -94,10 +96,9 @@ if __name__ == "__main__":
         "sigma_M": 0.12,
     }
     parameter_name_list, fisher_matrix = main()
-    print(fisher_matrix)
     cov = np.linalg.inv(fisher_matrix[0:2,0:2])
-    print(cov[0:2,0:2])
 
     partials = np.array([parameter_dict['gamma']*parameter_dict['Om0']**(parameter_dict['gamma']-1),np.log(parameter_dict['Om0'])*parameter_dict['Om0']**parameter_dict['gamma']])
-    print(partials.T @ cov[0:2,0:2] @ partials)
+
     print(np.sqrt(partials.T @ cov[0:2,0:2] @ partials))
+    print(1/np.sqrt(fisher_matrix[2,2]))

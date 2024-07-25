@@ -27,8 +27,14 @@ def get_partial_derivative_coefficients(
     power_spectrum_amplitude_function=None,
 ):
 
-    cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
+    # s80 is considered to be fixed by the CMB and is hence not a fit parameter
+
+    s80 = 0.832
     redshift_velocities = redshift_dict["v"]
+    a = 1/(1+redshift_velocities)
+
+    cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
+
 
     # The Om0-gamma model f=Omega(Om0)^gamma
 
@@ -37,10 +43,7 @@ def get_partial_derivative_coefficients(
     f = cosmoOm**parameter_values_dict["gamma"]
     f0 = parameter_values_dict["Om0"]**parameter_values_dict["gamma"]
 
-    # In the Om0-gamma parameterization fs80 is considered to be fixed by the CMB
-    # and is hence not a fit parameter
 
-    s80 = 0.832
 
     # Calculation of s8 and its derivatives requires an integral.  It is useful to
     # expand Omega in terms of (1-a), which allows analytic solutions
@@ -96,7 +99,6 @@ def get_partial_derivative_coefficients(
     def dAdgamma(a):
         return a*cosmo.H(a)/cosmo.H0*(dfdgamma(a)*s8(a) + f*ds8dgamma(a))
 
-    a = 1/(1+redshift_velocities)
 
     aHfs8s8 = aHfs8(a)*s8(a)
 
@@ -108,12 +110,19 @@ def get_partial_derivative_coefficients(
         dAdgamma(a) * s8(a) + aHfs8(a) * ds8dgamma(a)
     )
 
-    # not yet vetted
-    s8_partial_derivative_coefficients = (
-        2
-        * cosmoOm ** (2 * parameter_values_dict["gamma"])
-        * power_spectrum_amplitude_function(redshift_velocities)
+    # in the fs8 case
+    def s8_fs8(a):
+        return  s80 + parameter_values_dict["fs8"] * np.log(a)
+
+    def ds8dfs8(a):
+        return np.log(a)
+
+    fs8_partial_derivative_coefficients = (
+        a*cosmo.H(redshift_velocities)/cosmo.H0 \
+        *(s8_fs8(a) + parameter_values_dict["fs8"]*ds8dfs8(a))
     )
+
+    aHfs8s8_fs8 = a*cosmo.H(redshift_velocities)/cosmo.H0*parameter_values_dict["fs8"]*s8_fs8(a)
 
     partial_coefficients_dict = {
         "Omegam": {
@@ -140,11 +149,15 @@ def get_partial_derivative_coefficients(
                 ),
             ],
         },
-        "s8": {
+        "fs8": {
             "vv": [
                 np.outer(
-                    s8_partial_derivative_coefficients,
-                    s8_partial_derivative_coefficients,
+                    fs8_partial_derivative_coefficients,
+                    aHfs8s8_fs8,
+                ) +
+                np.outer(
+                    aHfs8s8_fs8,
+                    fs8_partial_derivative_coefficients,
                 ),
             ],
         },

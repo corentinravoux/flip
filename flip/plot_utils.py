@@ -183,25 +183,55 @@ def plot_all_fits(
     fit_output,
     parameters,
     fiducials=None,
+    compute_fs8_from_beta=False,
+    subset_plot=None,
     **kwargs,
 ):
     figsize = utils.return_key(kwargs, "figsize", (10, 10))
 
     all_fit = glob.glob(os.path.join(fit_output, "*"))
     fig, ax = plt.subplots(len(parameters), 1, figsize=figsize, sharex=True)
-
+    fit_names, param_dict, error_dict = [], {}, {}
+    for j, param_name in enumerate(parameters):
+        param_dict[param_name] = []
+        error_dict[param_name] = []
     for i, f in enumerate(all_fit):
+        if subset_plot is not None:
+            if subset_plot not in f:
+                continue
         fit = pickle.load(open(f, "rb"))
         if fit[3] is False:
             continue
         elif fit[4] is False:
             continue
-        for j, param in enumerate(parameters):
+
+        fit_names.append(f)
+        for j, param_name in enumerate(parameters):
+            if (param_name == "fs8") & (compute_fs8_from_beta):
+                param = fit[0]["beta_f"] * fit[0]["bs8"]
+                error = (
+                    fit[0]["beta_f"]
+                    * fit[0]["bs8"]
+                    * np.sqrt(
+                        (fit[2]["bs8"] / fit[0]["bs8"]) ** 2
+                        + (fit[2]["beta_f"] / fit[0]["beta_f"]) ** 2
+                    )
+                )
+            else:
+                param = fit[0][param_name]
+                error = fit[2][param_name]
+            param_dict[param_name].append(param)
+            error_dict[param_name].append(error)
             ax[j].errorbar(
-                i, fit[0][param], fit[2][param], marker=".", ls="None", color="C1"
+                i,
+                param,
+                error,
+                marker=".",
+                ls="None",
+                color="C1",
             )
 
-            ax[j].set_ylabel(param, fontsize=18)
+            ax[j].set_ylabel(param_name, fontsize=18)
 
             if fiducials is not None:
                 if fiducials[j] is not None:
@@ -209,12 +239,16 @@ def plot_all_fits(
 
     ax[0].margins(x=0.005)
     fig.tight_layout()
+    return fit_names, param_dict, error_dict
 
 
 def plot_all_mean_fits(
     fit_output,
     parameters,
     fiducials=None,
+    weighted_mean=True,
+    compute_fs8_from_beta=False,
+    subset_plot=None,
     **kwargs,
 ):
     figsize = utils.return_key(kwargs, "figsize", (10, 10))
@@ -224,6 +258,9 @@ def plot_all_mean_fits(
     fit_to_plot = []
     fit_name_to_plot = []
     for f in all_fit:
+        if subset_plot is not None:
+            if subset_plot not in f:
+                continue
         fit = pickle.load(open(f, "rb"))
         if fit[3] is False:
             continue
@@ -242,23 +279,60 @@ def plot_all_mean_fits(
     unique_fit_prop = np.sort(np.unique(fit_prop))
 
     fig, ax = plt.subplots(len(parameters), 1, figsize=figsize, sharex=True)
+    fig2, ax2 = plt.subplots(len(parameters), 1, figsize=figsize, sharex=True)
 
     text = []
+    mean_param_dict, mean_error_dict, error_mean_dict = {}, {}, {}
+    for j, param_name in enumerate(parameters):
+        mean_param_dict[param_name] = []
+        mean_error_dict[param_name] = []
+        error_mean_dict[param_name] = []
+
     for i, fit_p in enumerate(unique_fit_prop):
+
         mask = fit_prop == fit_p
         fits = np.array(fit_to_plot)[mask]
 
-        for j, param in enumerate(parameters):
-            mean_param = np.mean([fits[i][0][param] for i in range(len(fits))])
-            mean_error_param = np.mean(
-                [fits[i][2][param] for i in range(len(fits))]
-            ) / np.sqrt(len(mask[mask]))
+        for j, param_name in enumerate(parameters):
+            if (param_name == "fs8") & (compute_fs8_from_beta):
+                params = [
+                    fits[i][0]["beta_f"] * fits[i][0]["bs8"] for i in range(len(fits))
+                ]
+                errors = [
+                    (
+                        fits[i][0]["beta_f"]
+                        * fits[i][0]["bs8"]
+                        * np.sqrt(
+                            (fits[i][2]["bs8"] / fits[i][0]["bs8"]) ** 2
+                            + (fits[i][2]["beta_f"] / fits[i][0]["beta_f"]) ** 2
+                        )
+                    )
+                    for i in range(len(fits))
+                ]
+            else:
+                params = [fits[i][0][param_name] for i in range(len(fits))]
+                errors = [fits[i][2][param_name] for i in range(len(fits))]
+            if weighted_mean:
+                mean_param = np.average(
+                    params, weights=[1 / (error**2) for error in errors]
+                )
+            else:
+                mean_param = np.mean(params)
+            error_mean_param = np.mean(errors) / np.sqrt(len(mask[mask]))
+            mean_error_param = np.mean(errors)
+
+            mean_param_dict[param_name].append(mean_param)
+            mean_error_dict[param_name].append(mean_error_param)
+            error_mean_dict[param_name].append(error_mean_param)
 
             ax[j].errorbar(
-                i, mean_param, mean_error_param, marker=".", ls="None", color="C1"
+                i, mean_param, error_mean_param, marker=".", ls="None", color="C1"
             )
 
-            ax[j].set_ylabel(param, fontsize=18)
+            ax[j].set_ylabel(param_name, fontsize=18)
+
+            ax2[j].plot(i, mean_error_param, marker=".", ls="None", color="C1")
+            ax2[j].set_ylabel(r"$\sigma$(" + param_name + ")", fontsize=18)
 
             if fiducials is not None:
                 if fiducials[j] is not None:
@@ -271,52 +345,8 @@ def plot_all_mean_fits(
     ax[0].margins(x=0.005)
     fig.tight_layout()
 
+    ax2[-1].set_xticks(j_index, np.array(text), rotation=90, fontsize=10)
+    ax2[0].margins(x=0.005)
+    fig2.tight_layout()
 
-def plot_all_mean_error_fits(
-    fit_output,
-    parameters,
-    **kwargs,
-):
-    figsize = utils.return_key(kwargs, "figsize", (10, 10))
-
-    all_fit = glob.glob(os.path.join(fit_output, "*"))
-
-    fit_to_plot = []
-    fit_name_to_plot = []
-    for f in all_fit:
-        fit = pickle.load(open(f, "rb"))
-        if fit[3] is False:
-            continue
-        elif fit[4] is False:
-            continue
-        fit_to_plot.append(fit)
-        fit_name_to_plot.append(f)
-
-    fit_prop = []
-    for i in range(len(fit_name_to_plot)):
-        fit_prop.append(
-            fit_name_to_plot[i].split("fitted_parameters_")[-1].split("_box")[0]
-        )
-
-    fit_prop = np.array(fit_prop)
-    unique_fit_prop = np.sort(np.unique(fit_prop))
-
-    fig, ax = plt.subplots(len(parameters), 1, figsize=figsize, sharex=True)
-
-    text = []
-    for i, fit_p in enumerate(unique_fit_prop):
-        mask = fit_prop == fit_p
-        fits = np.array(fit_to_plot)[mask]
-
-        for j, param in enumerate(parameters):
-            mean_error_param = np.mean([fits[i][2][param] for i in range(len(fits))])
-
-            ax[j].plot(i, mean_error_param, marker=".", ls="None", color="C1")
-            ax[j].set_ylabel(param, fontsize=18)
-
-        text.append(fit_p)
-
-    j_index = np.arange(len(unique_fit_prop))
-    ax[-1].set_xticks(j_index, np.array(text), rotation=90, fontsize=10)
-    ax[0].margins(x=0.005)
-    fig.tight_layout()
+    return unique_fit_prop, mean_param_dict, mean_error_dict, error_mean_dict

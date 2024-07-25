@@ -87,6 +87,32 @@ def main():
     )
     return parameter_name_list, fisher_matrix
 
+def dlnDdOm0(parameter_values_dict):
+    a=(1/(1+0.05))
+    lna=np.log(a)
+    return (
+        parameter_values_dict["gamma"] * parameter_values_dict["Om0"]**(parameter_values_dict["gamma"]-1) *
+            (
+                3 * parameter_values_dict["gamma"] * (parameter_values_dict["Om0"]-1) * (a - lna -1) +
+                3 * (a-1) * parameter_values_dict["Om0"] -
+                3 * np.log(a) * parameter_values_dict["Om0"] +  lna
+            )
+        )
+
+def dlnDdgamma(parameter_values_dict):
+    a=(1/(1+0.05))
+    lna=np.log(a)
+    f0 = parameter_values_dict["Om0"]**parameter_values_dict["gamma"]
+    return (
+            f0 *
+                (
+                    np.log(parameter_values_dict["Om0"]) *
+                        (
+                            3 * parameter_values_dict["gamma"] * (parameter_values_dict["Om0"]-1) * (a - lna -1) + lna
+                        ) +
+                    3 * (parameter_values_dict["Om0"]-1) * (a - lna -1)
+                )
+        )
 
 if __name__ == "__main__":
     parameter_dict = {
@@ -98,7 +124,9 @@ if __name__ == "__main__":
     parameter_name_list, fisher_matrix = main()
     cov = np.linalg.inv(fisher_matrix[0:2,0:2])
 
-    partials = np.array([parameter_dict['gamma']*parameter_dict['Om0']**(parameter_dict['gamma']-1),np.log(parameter_dict['Om0'])*parameter_dict['Om0']**parameter_dict['gamma']])
+    s80 = 0.832
+    partials = s80*np.array([parameter_dict['gamma']*parameter_dict['Om0']**(parameter_dict['gamma']-1),np.log(parameter_dict['Om0'])*parameter_dict['Om0']**parameter_dict['gamma']])
+    partials = partials + parameter_dict['Om0']**parameter_dict['gamma'] *s80 * np.array([dlnDdOm0(parameter_dict), dlnDdgamma(parameter_dict)])
 
     print(np.sqrt(partials.T @ cov[0:2,0:2] @ partials))
     print(1/np.sqrt(fisher_matrix[2,2]))

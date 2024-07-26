@@ -118,8 +118,8 @@ def get_partial_derivative_coefficients(
         return np.log(a)
 
     fs8_partial_derivative_coefficients = (
-        a*cosmo.H(redshift_velocities)/cosmo.H0 \
-        *(s8_fs8(a) + parameter_values_dict["fs8"]*ds8dfs8(a))
+        a*cosmo.H(redshift_velocities)/cosmo.H0 *
+        (s8_fs8(a) + parameter_values_dict["fs8"]*ds8dfs8(a))
     )
 
     aHfs8s8_fs8 = a*cosmo.H(redshift_velocities)/cosmo.H0*parameter_values_dict["fs8"]*s8_fs8(a)

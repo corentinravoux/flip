@@ -8,7 +8,6 @@ import numpy as np
 
 try:
     from jax import grad as jax_grad
-    from jax import jit
 
     jax_installed = True
 except:
@@ -216,13 +215,8 @@ class FitMinuit(BaseFitter):
             parameter_dict[parameters]["value"] for parameters in parameter_dict
         ]
 
-        if (
-            jax_installed
-            & likelihood.likelihood_properties["use_jax"]
-            & likelihood.likelihood_properties["use_gradient"]
-        ):
-            likelihood.__call__ = jit(likelihood.__call__)
-            grad = jit(jax_grad(likelihood))
+        if jax_installed & likelihood.likelihood_properties["use_gradient"]:
+            grad = jax_grad(likelihood)
         else:
             grad = None
         minuit_fitter.minuit = iminuit.Minuit(

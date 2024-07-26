@@ -61,39 +61,6 @@ def prior_sum(priors, x):
     return sum(prior(x) for prior in priors)
 
 
-if jax_installed:
-
-    @jit
-    def interpolate_covariance_sum_1d_jit(
-        interpolation_value_range,
-        interpolation_value,
-        covariance,
-        parameter_values_dict,
-        vector_error,
-    ):
-        upper_index_interpolation = jnp.searchsorted(
-            interpolation_value_range, interpolation_value
-        )
-        covariance_sum_upper = covariance[
-            upper_index_interpolation
-        ].compute_covariance_sum(parameter_values_dict, vector_error)
-
-        covariance_sum_lower = covariance[
-            upper_index_interpolation - 1
-        ].compute_covariance_sum(parameter_values_dict, vector_error)
-
-        fraction_interpolation = (
-            interpolation_value_range[upper_index_interpolation] - interpolation_value
-        ) / (
-            interpolation_value_range[upper_index_interpolation]
-            - interpolation_value_range[upper_index_interpolation - 1]
-        )
-        covariance_sum = (
-            1 - fraction_interpolation
-        ) * covariance_sum_upper + fraction_interpolation * covariance_sum_lower
-        return covariance_sum
-
-
 def interpolate_covariance_sum_1d(
     interpolation_value_range,
     interpolation_value,
@@ -101,7 +68,7 @@ def interpolate_covariance_sum_1d(
     parameter_values_dict,
     vector_error,
 ):
-    upper_index_interpolation = np.searchsorted(
+    upper_index_interpolation = jnp.searchsorted(
         interpolation_value_range, interpolation_value
     )
     covariance_sum_upper = covariance[upper_index_interpolation].compute_covariance_sum(
@@ -131,7 +98,7 @@ class BaseLikelihood(object):
         "velocity_type": "direct",
         "velocity_estimator": "full",
         "negative_log_likelihood": True,
-        "use_jax": False,
+        "use_jit": False,
         "use_gradient": False,
     }
 
@@ -287,11 +254,11 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         covariance_sum = self.covariance.compute_covariance_sum(
             parameter_values_dict,
             vector_error,
-            use_jax=self.likelihood_properties["use_jax"],
+            use_jit=self.likelihood_properties["use_jit"],
         )
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
-            + f"{'_jit' if jax_installed and self.likelihood_properties['use_jax'] else ''}"
+            + f"{'_jit' if jax_installed and self.likelihood_properties['use_jit'] else ''}"
         )
         prior_value = self.prior(parameter_values_dict)
 
@@ -395,10 +362,7 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
             parameter_values_dict,
         )
 
-        covariance_sum = eval(
-            "interpolate_covariance_sum_1d"
-            + +f"{'_jit' if jax_installed and self.likelihood_properties['use_jax'] else ''}"
-        )(
+        covariance_sum = interpolate_covariance_sum_1d(
             self.interpolation_value_range,
             interpolation_value,
             self.covariance,
@@ -407,7 +371,7 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         )
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
-            + f"{'_jit' if jax_installed and self.likelihood_properties['use_jax'] else ''}"
+            + f"{'_jit' if jax_installed and self.likelihood_properties['use_jit'] else ''}"
         )
         prior_value = self.prior(parameter_values_dict)
 

@@ -1,3 +1,5 @@
+from functools import partial
+
 import numpy as np
 import scipy as sc
 
@@ -5,7 +7,7 @@ from flip import vectors
 from flip.utils import create_log
 
 log = create_log()
-_available_priors = ["gaussian"]
+_available_priors = ["gaussian", "positive", "uniform"]
 
 
 def log_likelihood_gaussian_inverse(vector, covariance_sum):
@@ -20,6 +22,14 @@ def log_likelihood_gaussian_cholesky(vector, covariance_sum):
     logdet = 2 * np.sum(np.log(np.diag(cholesky[0])))
     chi2 = np.dot(vector, sc.linalg.cho_solve(cholesky, vector))
     return -0.5 * (vector.size * np.log(2 * np.pi) + logdet + chi2)
+
+
+def no_prior(x):
+    return 0
+
+
+def prior_sum(priors, x):
+    return sum(prior(x) for prior in priors)
 
 
 class BaseLikelihood(object):
@@ -122,7 +132,7 @@ class BaseLikelihood(object):
         self,
     ):
         if "prior" not in self.likelihood_properties.keys():
-            return lambda x: 0
+            return no_prior
         else:
             prior_dict = self.likelihood_properties["prior"]
             priors = []
@@ -138,12 +148,19 @@ class BaseLikelihood(object):
                         prior_mean=prior_properties["mean"],
                         prior_standard_deviation=prior_properties["standard_deviation"],
                     )
+                elif prior_properties["type"].lower() == "positive":
+                    prior = PositivePrior(
+                        parameter_name=parameter_name.lower(),
+                    )
+                elif prior_properties["type"].lower() == "uniform":
+                    prior = UniformPrior(
+                        parameter_name=parameter_name.lower(),
+                        range=prior_properties["range"],
+                    )
                 priors.append(prior)
 
-            def prior_sum(x):
-                return sum(prior(x) for prior in priors)
-
-            return prior_sum
+            prior_function = partial(prior_sum, priors)
+            return prior_function
 
 
 class MultivariateGaussianLikelihood(BaseLikelihood):
@@ -244,7 +261,10 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
             if self.covariance[i].full_matrix is False:
                 self.covariance[i].compute_full_matrix()
 
-    def __call__(self, parameter_values):
+    def __call__(
+        self,
+        parameter_values,
+    ):
         """
         The __call__ function is the function that is called when you call an instance of a class.
         For example, if you have a class named 'Foo' and create an instance of it like this:
@@ -261,24 +281,35 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         """
         parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
 
+        interpolation_value = parameter_values_dict[self.interpolation_value_name]
+
+        if (interpolation_value < self.interpolation_value_range[0]) | (
+            interpolation_value > self.interpolation_value_range[-1]
+        ):
+            if self.likelihood_properties["negative_log_likelihood"]:
+                return np.inf
+            else:
+                return -np.inf
+
         vector, vector_error = self.load_data_vector(
             self.covariance[0].model_type,
             parameter_values_dict,
         )
 
-        covariance_sum_list = []
-        for i in range(len(self.covariance)):
-            covariance_sum_list.append(
-                self.covariance[i].compute_covariance_sum(
-                    parameter_values_dict, vector_error
-                )
+        covariance_sum_list = [
+            self.covariance[i].compute_covariance_sum(
+                parameter_values_dict, vector_error
             )
+            for i in range(len(self.covariance))
+        ]
+
         covariance_sum_interpolated = sc.interpolate.interp1d(
-            self.interpolation_value_range, covariance_sum_list, copy=False, axis=0
+            self.interpolation_value_range,
+            covariance_sum_list,
+            copy=False,
+            axis=0,
         )
-        covariance_sum = covariance_sum_interpolated(
-            parameter_values_dict[self.interpolation_value_name]
-        )
+        covariance_sum = covariance_sum_interpolated(interpolation_value)
 
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
@@ -299,6 +330,8 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
         parameter_names=None,
         prior=None,
         likelihood_properties={},
+        interpolation_value_name_0=None,
+        interpolation_value_name_1=None,
         interpolation_value_range_0=None,
         interpolation_value_range_1=None,
     ):
@@ -327,6 +360,8 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
             prior=prior,
             likelihood_properties=likelihood_properties,
         )
+        self.interpolation_value_name_0 = interpolation_value_name_0
+        self.interpolation_value_name_1 = interpolation_value_name_1
         self.interpolation_value_range_0 = interpolation_value_range_0
         self.interpolation_value_range_1 = interpolation_value_range_1
 
@@ -339,8 +374,6 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
     def __call__(
         self,
         parameter_values,
-        interpolation_value_0,
-        interpolation_value_1,
     ):
         """
         The __call__ function is the function that will be called when the likelihood
@@ -359,6 +392,20 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
             The log-likelihood function
         """
         parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
+
+        interpolation_value_0 = parameter_values_dict[self.interpolation_value_name_0]
+        interpolation_value_1 = parameter_values_dict[self.interpolation_value_name_1]
+
+        if (
+            (interpolation_value_0 < self.interpolation_value_range_0[0])
+            | (interpolation_value_0 > self.interpolation_value_range_0[-1])
+            | (interpolation_value_1 < self.interpolation_value_range_1[0])
+            | (interpolation_value_1 > self.interpolation_value_range_1[-1])
+        ):
+            if self.likelihood_properties["negative_log_likelihood"]:
+                return np.inf
+            else:
+                return -np.inf
 
         vector, vector_error = self.load_data_vector(
             self.covariance[0][0].model_type,
@@ -393,7 +440,6 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
         prior_value = self.prior(parameter_values_dict)
         if self.likelihood_properties["negative_log_likelihood"]:
             return -likelihood_function(vector, covariance_sum) - prior_value
-
         return likelihood_function(vector, covariance_sum) + prior_value
 
 
@@ -426,3 +472,38 @@ class GaussianPrior(Prior):
             + (parameter_values_dict[self.parameter_name] - self.prior_mean) ** 2
             / self.prior_standard_deviation**2
         )
+
+
+class PositivePrior(Prior):
+
+    def __init__(
+        self,
+        parameter_name=None,
+    ):
+        super().__init__(parameter_name=parameter_name)
+
+    def __call__(
+        self,
+        parameter_values_dict,
+    ):
+        if parameter_values_dict[self.parameter_name] < 0:
+            return -np.inf
+        else:
+            return 0
+
+
+class UniformPrior(Prior):
+
+    def __init__(self, parameter_name=None, range=None):
+        super().__init__(parameter_name=parameter_name)
+        self.range = range
+
+    def __call__(
+        self,
+        parameter_values_dict,
+    ):
+        value = parameter_values_dict[self.parameter_name]
+        if (value < self.range[0]) | (value > self.range[1]):
+            return -np.inf
+        else:
+            return 0

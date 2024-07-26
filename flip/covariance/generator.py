@@ -45,10 +45,7 @@ def correlation_integration(l, r, k, integrand):
     """
     kr = np.outer(k, r)
     integrand = (
-        (-1) ** (l // 2)
-        * (k**2 / (2 * np.pi**2))
-        * integrand
-        * spherical_jn(l, kr).T
+        (-1) ** (l // 2) * (k**2 / (2 * np.pi**2)) * integrand * spherical_jn(l, kr).T
     )
     return (-1) ** (l % 2) * integrate.simps(integrand, x=k)
 

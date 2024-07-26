@@ -72,11 +72,7 @@ def M_gg_1_2_0(sig_g):
     def func(k):
         return (
             -5 * np.exp(-(k**2) * sig_g**2) / (k**2 * sig_g**2)
-            - 5
-            / 4
-            * np.sqrt(np.pi)
-            * scipy.special.erf(k * sig_g)
-            / (k**3 * sig_g**3)
+            - 5 / 4 * np.sqrt(np.pi) * scipy.special.erf(k * sig_g) / (k**3 * sig_g**3)
             - 45 / 4 * np.exp(-(k**2) * sig_g**2) / (k**4 * sig_g**4)
             + (45 / 8)
             * np.sqrt(np.pi)

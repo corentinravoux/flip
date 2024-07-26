@@ -47,7 +47,7 @@ def correlation_integration(l, r, k, integrand):
     integrand = (
         (-1) ** (l // 2) * (k**2 / (2 * np.pi**2)) * integrand * spherical_jn(l, kr).T
     )
-    return (-1) ** (l % 2) * integrate.simps(integrand, x=k)
+    return (-1) ** (l % 2) * integrate.simpson(integrand, x=k)
 
 
 def correlation_hankel(l, r, k, integrand, hankel_overhead_coefficient=2):

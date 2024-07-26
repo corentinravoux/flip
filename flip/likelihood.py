@@ -1,9 +1,9 @@
 from functools import partial
 
 try:
-    import jax
     import jax.numpy as jnp
     import jax.scipy as jsc
+    from jax import jit
 
     jax_installed = True
 except:
@@ -24,33 +24,33 @@ _available_priors = ["gaussian", "positive", "uniform"]
 
 if jax_installed:
 
-    @jax.jit
-    def log_likelihood_gaussian_inverse(vector, covariance_sum):
+    @jit
+    def log_likelihood_gaussian_inverse_jit(vector, covariance_sum):
         _, logdet = jnp.linalg.slogdet(covariance_sum)
         inverse_covariance_sum = jnp.linalg.inv(covariance_sum)
         chi2 = jnp.dot(vector, jnp.dot(inverse_covariance_sum, vector))
         return -0.5 * (vector.size * jnp.log(2 * np.pi) + logdet + chi2)
 
-    @jax.jit
-    def log_likelihood_gaussian_cholesky(vector, covariance_sum):
+    @jit
+    def log_likelihood_gaussian_cholesky_jit(vector, covariance_sum):
         cholesky = jsc.linalg.cho_factor(covariance_sum)
         logdet = 2 * jnp.sum(jnp.log(jnp.diag(cholesky[0])))
         chi2 = jnp.dot(vector, jsc.linalg.cho_solve(cholesky, vector))
         return -0.5 * (vector.size * jnp.log(2 * np.pi) + logdet + chi2)
 
-else:
 
-    def log_likelihood_gaussian_inverse(vector, covariance_sum):
-        _, logdet = jnp.linalg.slogdet(covariance_sum)
-        inverse_covariance_sum = jnp.linalg.inv(covariance_sum)
-        chi2 = jnp.dot(vector, jnp.dot(inverse_covariance_sum, vector))
-        return -0.5 * (vector.size * jnp.log(2 * np.pi) + logdet + chi2)
+def log_likelihood_gaussian_inverse(vector, covariance_sum):
+    _, logdet = jnp.linalg.slogdet(covariance_sum)
+    inverse_covariance_sum = jnp.linalg.inv(covariance_sum)
+    chi2 = jnp.dot(vector, jnp.dot(inverse_covariance_sum, vector))
+    return -0.5 * (vector.size * jnp.log(2 * np.pi) + logdet + chi2)
 
-    def log_likelihood_gaussian_cholesky(vector, covariance_sum):
-        cholesky = jsc.linalg.cho_factor(covariance_sum)
-        logdet = 2 * jnp.sum(jnp.log(jnp.diag(cholesky[0])))
-        chi2 = jnp.dot(vector, jsc.linalg.cho_solve(cholesky, vector))
-        return -0.5 * (vector.size * jnp.log(2 * np.pi) + logdet + chi2)
+
+def log_likelihood_gaussian_cholesky(vector, covariance_sum):
+    cholesky = jsc.linalg.cho_factor(covariance_sum)
+    logdet = 2 * jnp.sum(jnp.log(jnp.diag(cholesky[0])))
+    chi2 = jnp.dot(vector, jsc.linalg.cho_solve(cholesky, vector))
+    return -0.5 * (vector.size * jnp.log(2 * np.pi) + logdet + chi2)
 
 
 def no_prior(x):
@@ -59,6 +59,69 @@ def no_prior(x):
 
 def prior_sum(priors, x):
     return sum(prior(x) for prior in priors)
+
+
+if jax_installed:
+
+    @jit
+    def interpolate_covariance_sum_1d_jit(
+        interpolation_value_range,
+        interpolation_value,
+        covariance,
+        parameter_values_dict,
+        vector_error,
+    ):
+        upper_index_interpolation = jnp.searchsorted(
+            interpolation_value_range, interpolation_value
+        )
+        covariance_sum_upper = covariance[
+            upper_index_interpolation
+        ].compute_covariance_sum(parameter_values_dict, vector_error)
+
+        covariance_sum_lower = covariance[
+            upper_index_interpolation - 1
+        ].compute_covariance_sum(parameter_values_dict, vector_error)
+
+        fraction_interpolation = (
+            interpolation_value_range[upper_index_interpolation] - interpolation_value
+        ) / (
+            interpolation_value_range[upper_index_interpolation]
+            - interpolation_value_range[upper_index_interpolation - 1]
+        )
+        covariance_sum = (
+            1 - fraction_interpolation
+        ) * covariance_sum_upper + fraction_interpolation * covariance_sum_lower
+        return covariance_sum
+
+
+def interpolate_covariance_sum_1d(
+    interpolation_value_range,
+    interpolation_value,
+    covariance,
+    parameter_values_dict,
+    vector_error,
+):
+    upper_index_interpolation = np.searchsorted(
+        interpolation_value_range, interpolation_value
+    )
+    covariance_sum_upper = covariance[upper_index_interpolation].compute_covariance_sum(
+        parameter_values_dict, vector_error
+    )
+
+    covariance_sum_lower = covariance[
+        upper_index_interpolation - 1
+    ].compute_covariance_sum(parameter_values_dict, vector_error)
+
+    fraction_interpolation = (
+        interpolation_value_range[upper_index_interpolation] - interpolation_value
+    ) / (
+        interpolation_value_range[upper_index_interpolation]
+        - interpolation_value_range[upper_index_interpolation - 1]
+    )
+    covariance_sum = (
+        1 - fraction_interpolation
+    ) * covariance_sum_upper + fraction_interpolation * covariance_sum_lower
+    return covariance_sum
 
 
 class BaseLikelihood(object):
@@ -228,13 +291,17 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         )
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
+            + f"{'_jit' if jax_installed and self.likelihood_properties['use_jax'] else ''}"
         )
         prior_value = self.prior(parameter_values_dict)
 
         if self.likelihood_properties["negative_log_likelihood"]:
-            return -likelihood_function(vector, covariance_sum) - prior_value
-
-        return likelihood_function(vector, covariance_sum) + prior_value
+            likelihood_value = (
+                -likelihood_function(vector, covariance_sum) - prior_value
+            )
+        else:
+            likelihood_value = likelihood_function(vector, covariance_sum) + prior_value
+        return likelihood_value
 
 
 class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
@@ -328,30 +395,30 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
             parameter_values_dict,
         )
 
-        covariance_sum_list = [
-            self.covariance[i].compute_covariance_sum(
-                parameter_values_dict, vector_error
-            )
-            for i in range(len(self.covariance))
-        ]
-
-        covariance_sum_interpolated = sc.interpolate.interp1d(
+        covariance_sum = eval(
+            "interpolate_covariance_sum_1d"
+            + +f"{'_jit' if jax_installed and self.likelihood_properties['use_jax'] else ''}"
+        )(
             self.interpolation_value_range,
-            covariance_sum_list,
-            copy=False,
-            axis=0,
+            interpolation_value,
+            self.covariance,
+            parameter_values_dict,
+            vector_error,
         )
-        covariance_sum = covariance_sum_interpolated(interpolation_value)
-
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
+            + f"{'_jit' if jax_installed and self.likelihood_properties['use_jax'] else ''}"
         )
         prior_value = self.prior(parameter_values_dict)
 
         if self.likelihood_properties["negative_log_likelihood"]:
-            return -likelihood_function(vector, covariance_sum) - prior_value
+            likelihood_value = (
+                -likelihood_function(vector, covariance_sum) - prior_value
+            )
+        else:
+            likelihood_value = likelihood_function(vector, covariance_sum) + prior_value
 
-        return likelihood_function(vector, covariance_sum) + prior_value
+        return likelihood_value
 
 
 class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):

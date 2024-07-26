@@ -185,6 +185,7 @@ def plot_all_fits(
     fiducials=None,
     compute_fs8_from_beta=False,
     subset_plot=None,
+    remove_lower=None,
     **kwargs,
 ):
     figsize = utils.return_key(kwargs, "figsize", (10, 10))
@@ -204,7 +205,13 @@ def plot_all_fits(
             continue
         elif fit[4] is False:
             continue
-
+        if remove_lower is not None:
+            valid_fit = True
+            for param in remove_lower.keys():
+                if fit[0][param] < remove_lower[param]:
+                    valid_fit = False
+            if valid_fit is False:
+                continue
         fit_names.append(f)
         for j, param_name in enumerate(parameters):
             if (param_name == "fs8") & (compute_fs8_from_beta):
@@ -249,6 +256,7 @@ def plot_all_mean_fits(
     weighted_mean=True,
     compute_fs8_from_beta=False,
     subset_plot=None,
+    remove_lower=None,
     **kwargs,
 ):
     figsize = utils.return_key(kwargs, "figsize", (10, 10))
@@ -266,6 +274,13 @@ def plot_all_mean_fits(
             continue
         elif fit[4] is False:
             continue
+        if remove_lower is not None:
+            valid_fit = True
+            for param in remove_lower.keys():
+                if fit[0][param] < remove_lower[param]:
+                    valid_fit = False
+            if valid_fit is False:
+                continue
         fit_to_plot.append(fit)
         fit_name_to_plot.append(f)
 

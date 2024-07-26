@@ -7,8 +7,8 @@ import numpy as np
 from flip.utils import create_log
 
 try:
-    import jax
     import jax.numpy as jnp
+    from jax import jit
 
     jax_installed = True
 except:
@@ -465,7 +465,7 @@ class CovMatrix:
 
         covariance_sum_func = eval(f"compute_covariance_sum_{self.model_type}")
         if jax_installed & use_jax:
-            covariance_sum_func = jax.jit(covariance_sum_func)
+            covariance_sum_func = jit(covariance_sum_func)
         covariance_sum = covariance_sum_func(
             coefficients_dict,
             self.covariance_dict,

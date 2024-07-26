@@ -9,6 +9,8 @@ from . import covariance, fisher, fitter, gridding, likelihood, power_spectra, u
 
 try:
     import jax
+
+    jax.config.update("jax_enable_x64", True)
 except:
     log.add("Jax is not available, loading numpy and scipy instead")
 

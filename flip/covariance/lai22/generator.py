@@ -16,9 +16,7 @@ def compute_correlation_coefficient_simple_integration(p, q, l, r, k, pk):
     """ " Here the sigma_u is added to pk later.
     The (2*np.pi**2) is added here in the Lai et al. formalism."""
     kr = np.outer(k, r)
-    integrand = (
-        spherical_jn(l, kr).T * k**2 * k ** (2 * (p + q)) * pk / (2 * np.pi**2)
-    )
+    integrand = spherical_jn(l, kr).T * k**2 * k ** (2 * (p + q)) * pk / (2 * np.pi**2)
     return integrate.simps(integrand, x=k)
 
 
@@ -834,4 +832,12 @@ def generate_covariance(
             los_definition=los_definition,
             **kwargs,
         )
-    return covariance_dict, number_densities, number_velocities, los_definition
+
+    redshift_dict = None
+    return (
+        covariance_dict,
+        number_densities,
+        number_velocities,
+        los_definition,
+        redshift_dict,
+    )

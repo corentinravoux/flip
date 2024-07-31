@@ -12,6 +12,7 @@ from flip.covariance.adamsblake17plane import flip_terms as flip_terms_adamsblak
 from flip.covariance.adamsblake20 import flip_terms as flip_terms_adamsblake20
 from flip.covariance.carreres23 import flip_terms as flip_terms_carreres23
 from flip.covariance.lai22 import flip_terms as flip_terms_lai22
+from flip.covariance.rcrk24 import flip_terms as flip_terms_rcrk24
 from flip.covariance.ravouxcarreres import flip_terms as flip_terms_ravouxcarreres
 from flip.utils import create_log
 
@@ -22,6 +23,7 @@ _avail_models = [
     "lai22",
     "carreres23",
     "ravouxcarreres",
+    "rcrk24",
 ]
 
 
@@ -45,10 +47,7 @@ def correlation_integration(l, r, k, integrand):
     """
     kr = np.outer(k, r)
     integrand = (
-        (-1) ** (l // 2)
-        * (k**2 / (2 * np.pi**2))
-        * integrand
-        * spherical_jn(l, kr).T
+        (-1) ** (l // 2) * (k**2 / (2 * np.pi**2)) * integrand * spherical_jn(l, kr).T
     )
     return (-1) ** (l % 2) * integrate.simps(integrand, x=k)
 
@@ -409,6 +408,49 @@ def compute_cov(
     return covariance
 
 
+def generate_redshift_dict(
+    model_name,
+    model_type,
+    redshift_velocity=None,
+    redshift_density=None,
+    coordinates_velocity=None,
+    coordinates_density=None,
+):
+    redshift_dependent_model = eval(f"flip_terms_{model_name}.redshift_dependent_model")
+    if redshift_dependent_model:
+        redshift_dict = {}
+    else:
+        return None
+
+    if model_type in ["density", "full", "density_velocity"]:
+        if redshift_dependent_model:
+            if redshift_density is not None:
+                redshift_dict["g"] = redshift_density
+            else:
+                if len(coordinates_density) < 4:
+                    raise ValueError(
+                        "You are using a model which is redshift dependent."
+                        "Please provide redshifts as the fourth field"
+                        "of the coordinates_density value"
+                    )
+                else:
+                    redshift_dict["g"] = coordinates_density[3]
+    if model_type in ["velocity", "full", "density_velocity"]:
+        if redshift_dependent_model:
+            if redshift_velocity is not None:
+                redshift_dict["v"] = redshift_velocity
+            else:
+                if len(coordinates_velocity) < 4:
+                    raise ValueError(
+                        "You are using a model which is redshift dependent."
+                        "Please provide redshifts as the fourth field"
+                        "of the coordinates_velocity value"
+                    )
+                else:
+                    redshift_dict["v"] = coordinates_velocity[3]
+    return redshift_dict
+
+
 def generate_covariance(
     model_name,
     model_type,
@@ -446,6 +488,7 @@ def generate_covariance(
         coordinates_velocity,
     )
     covariance_dict = {}
+
     if model_type in ["density", "full", "density_velocity"]:
         covariance_dict["gg"] = compute_cov(
             model_name,
@@ -493,4 +536,11 @@ def generate_covariance(
             hankel=hankel,
             los_definition=los_definition,
         )
-    return covariance_dict, number_densities, number_velocities
+
+    redshift_dict = generate_redshift_dict(
+        model_name,
+        model_type,
+        coordinates_velocity=coordinates_velocity,
+        coordinates_density=coordinates_density,
+    )
+    return covariance_dict, number_densities, number_velocities, redshift_dict

@@ -17,7 +17,7 @@ def compute_correlation_coefficient_simple_integration(p, q, l, r, k, pk):
     The (2*np.pi**2) is added here in the Lai et al. formalism."""
     kr = np.outer(k, r)
     integrand = spherical_jn(l, kr).T * k**2 * k ** (2 * (p + q)) * pk / (2 * np.pi**2)
-    return integrate.simps(integrand, x=k)
+    return integrate.simpson(integrand, x=k)
 
 
 def compute_correlation_coefficient_hankel(

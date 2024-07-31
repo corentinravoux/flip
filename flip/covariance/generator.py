@@ -12,8 +12,8 @@ from flip.covariance.adamsblake17plane import flip_terms as flip_terms_adamsblak
 from flip.covariance.adamsblake20 import flip_terms as flip_terms_adamsblake20
 from flip.covariance.carreres23 import flip_terms as flip_terms_carreres23
 from flip.covariance.lai22 import flip_terms as flip_terms_lai22
-from flip.covariance.rcrk24 import flip_terms as flip_terms_rcrk24
 from flip.covariance.ravouxcarreres import flip_terms as flip_terms_ravouxcarreres
+from flip.covariance.rcrk24 import flip_terms as flip_terms_rcrk24
 from flip.utils import create_log
 
 log = create_log()
@@ -49,7 +49,7 @@ def correlation_integration(l, r, k, integrand):
     integrand = (
         (-1) ** (l // 2) * (k**2 / (2 * np.pi**2)) * integrand * spherical_jn(l, kr).T
     )
-    return (-1) ** (l % 2) * integrate.simps(integrand, x=k)
+    return (-1) ** (l % 2) * integrate.simpson(integrand, x=k)
 
 
 def correlation_hankel(l, r, k, integrand, hankel_overhead_coefficient=2):

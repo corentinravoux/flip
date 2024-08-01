@@ -12,8 +12,8 @@ from flip.covariance.adamsblake17plane import flip_terms as flip_terms_adamsblak
 from flip.covariance.adamsblake20 import flip_terms as flip_terms_adamsblake20
 from flip.covariance.carreres23 import flip_terms as flip_terms_carreres23
 from flip.covariance.lai22 import flip_terms as flip_terms_lai22
-from flip.covariance.rcrk24 import flip_terms as flip_terms_rcrk24
 from flip.covariance.ravouxcarreres import flip_terms as flip_terms_ravouxcarreres
+from flip.covariance.rcrk24 import flip_terms as flip_terms_rcrk24
 from flip.utils import create_log
 
 log = create_log()

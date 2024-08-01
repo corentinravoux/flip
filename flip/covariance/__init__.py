@@ -1,3 +1,4 @@
 """Init file of the flip.covariance package."""
-from . import carreres23, adamsblake20, lai22, ravouxcarreres
+
+from . import adamsblake17plane, adamsblake20, carreres23, lai22, ravouxcarreres, rcrk24
 from .covariance import CovMatrix

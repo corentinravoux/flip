@@ -3,6 +3,11 @@ import numpy as np
 from flip import utils
 from flip.utils import create_log
 
+try:
+    import jax.numpy as jnp
+except:
+    import numpy as jnp
+
 log = create_log()
 
 _avail_velocity_type = ["direct", "scatter", "saltfit"]
@@ -11,16 +16,16 @@ _avail_velocity_estimator = ["watkins", "lowz", "hubblehighorder", "full"]
 
 def load_density_error(data):
     if "density_error" in data.keys():
-        density_error = data["density_error"]
+        density_error = jnp.array(data["density_error"])
     else:
         log.add("""No density error in data, loading a null density error""")
-        density_error = np.zeros_like(data["density"])
+        density_error = jnp.zeros_like(data["density"])
     return density_error
 
 
 def load_density_vectors(data):
     if "density" in data.keys():
-        density = data["density"]
+        density = jnp.array(data["density"])
         density_error = load_density_error(data)
     else:
         raise ValueError("""The data does not contains a density field""")
@@ -151,15 +156,15 @@ def load_velocity_vectors(
 
 def get_velocity_error_directly(data):
     if "velocity_error" in data.keys():
-        velocity_error = data["velocity_error"]
+        velocity_error = jnp.array(data["velocity_error"])
     else:
         log.add("""No velocity error in data, loading a null velocity error""")
-        velocity_error = np.zeros_like(data["velocity"])
+        velocity_error = jnp.zeros_like(data["velocity"])
     return velocity_error
 
 
 def get_velocity_directly(data):
-    velocity = data["velocity"]
+    velocity = jnp.array(data["velocity"])
     velocity_error = get_velocity_error_directly(data)
     return velocity, velocity_error
 
@@ -186,7 +191,7 @@ def get_velocity_from_scatter(
     parameter_values_dict,
     velocity_estimator,
 ):
-    velocity = data["velocity"]
+    velocity = jnp.array(data["velocity"])
 
     velocity_error = get_velocity_error_from_scatter(
         data,
@@ -216,7 +221,7 @@ def get_velocity_error_from_salt_fit(
         velocity_estimator,
     )
 
-    velocity_error = redshift_dependence * np.sqrt(variance_mu)
+    velocity_error = redshift_dependence * jnp.sqrt(variance_mu)
 
     return velocity_error, redshift_dependence
 
@@ -239,7 +244,9 @@ def get_velocity_from_salt_fit(
         parameter_values_dict["beta"],
         parameter_values_dict["M_0"],
     )
-    muth = 5 * np.log10((1 + data["zobs"]) * data["rcom_zobs"]) + 25
+    muth = (
+        5 * jnp.log10((1 + jnp.array(data["zobs"])) * jnp.array(data["rcom_zobs"])) + 25
+    )
     dmu = mu - muth
 
     velocity = -redshift_dependence * dmu
@@ -253,7 +260,12 @@ def compute_observed_distance_modulus(
     beta,
     M0,
 ):
-    mu = data["mb"] + alpha * data["x1"] - beta * data["c"] - M0
+    mu = (
+        jnp.array(data["mb"])
+        + alpha * jnp.array(data["x1"])
+        - beta * jnp.array(data["c"])
+        - M0
+    )
 
     return mu
 
@@ -264,12 +276,14 @@ def compute_observed_distance_modulus_error(
     beta,
 ):
     variance_mu = (
-        data["e_mb"] ** 2 + alpha**2 * data["e_x1"] ** 2 + beta**2 * data["e_c"] ** 2
+        jnp.array(data["e_mb"]) ** 2
+        + alpha**2 * jnp.array(data["e_x1"]) ** 2
+        + beta**2 * jnp.array(data["e_c"]) ** 2
     )
     variance_mu += (
-        2 * alpha * data["cov_mb_x1"]
-        - 2 * beta * data["cov_mb_c"]
-        - 2 * alpha * beta * data["cov_x1_c"]
+        2 * alpha * jnp.array(data["cov_mb_x1"])
+        - 2 * beta * jnp.array(data["cov_mb_c"])
+        - 2 * alpha * beta * jnp.array(data["cov_x1_c"])
     )
     return variance_mu
 
@@ -279,8 +293,8 @@ def redshift_dependence_velocity(
     parameter_values_dict,
     velocity_estimator,
 ):
-    prefactor = utils._C_LIGHT_KMS_ * np.log(10) / 5
-    redshift_obs = data["zobs"]
+    prefactor = utils._C_LIGHT_KMS_ * jnp.log(10) / 5
+    redshift_obs = jnp.array(data["zobs"])
 
     if velocity_estimator == "watkins":
         redshift_dependence = prefactor * redshift_obs / (1 + redshift_obs)
@@ -311,7 +325,7 @@ def redshift_dependence_velocity(
         redshift_dependence = prefactor / (
             (1 + redshift_obs)
             * utils._C_LIGHT_KMS_
-            / (data["hubble_norm"] * data["rcom_zobs"])
+            / (jnp.array(data["hubble_norm"]) * jnp.array(data["rcom_zobs"]))
             - 1.0
         )
 

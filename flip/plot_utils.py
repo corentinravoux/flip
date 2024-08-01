@@ -185,6 +185,7 @@ def plot_all_fits(
     fiducials=None,
     compute_fs8_from_beta=False,
     subset_plot=None,
+    remove_lower=None,
     **kwargs,
 ):
     figsize = utils.return_key(kwargs, "figsize", (10, 10))
@@ -196,15 +197,22 @@ def plot_all_fits(
         param_dict[param_name] = []
         error_dict[param_name] = []
     for i, f in enumerate(all_fit):
+        valid_fit = True
         if subset_plot is not None:
-            if subset_plot not in f:
-                continue
+            for subset in subset_plot:
+                if subset not in f:
+                    valid_fit = False
         fit = pickle.load(open(f, "rb"))
         if fit[3] is False:
-            continue
+            valid_fit = False
         elif fit[4] is False:
+            valid_fit = False
+        if remove_lower is not None:
+            for param in remove_lower.keys():
+                if fit[0][param] < remove_lower[param]:
+                    valid_fit = False
+        if valid_fit is False:
             continue
-
         fit_names.append(f)
         for j, param_name in enumerate(parameters):
             if (param_name == "fs8") & (compute_fs8_from_beta):
@@ -249,6 +257,7 @@ def plot_all_mean_fits(
     weighted_mean=True,
     compute_fs8_from_beta=False,
     subset_plot=None,
+    remove_lower=None,
     **kwargs,
 ):
     figsize = utils.return_key(kwargs, "figsize", (10, 10))
@@ -258,13 +267,21 @@ def plot_all_mean_fits(
     fit_to_plot = []
     fit_name_to_plot = []
     for f in all_fit:
+        valid_fit = True
         if subset_plot is not None:
-            if subset_plot not in f:
-                continue
+            for subset in subset_plot:
+                if subset not in f:
+                    valid_fit = False
         fit = pickle.load(open(f, "rb"))
         if fit[3] is False:
-            continue
+            valid_fit = False
         elif fit[4] is False:
+            valid_fit = False
+        if remove_lower is not None:
+            for param in remove_lower.keys():
+                if fit[0][param] < remove_lower[param]:
+                    valid_fit = False
+        if valid_fit is False:
             continue
         fit_to_plot.append(fit)
         fit_name_to_plot.append(f)

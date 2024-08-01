@@ -6,11 +6,21 @@ import emcee
 import iminuit
 import numpy as np
 
-import flip.likelihood as flik
-from flip.covariance.covariance import CovMatrix
+try:
+    from jax import grad as jax_grad
+
+    jax_installed = True
+except:
+    jax_installed = False
+    pass
+
+
 from flip.utils import create_log
 
 log = create_log()
+
+import flip.likelihood as flik
+from flip.covariance.covariance import CovMatrix
 
 
 class BaseFitter(abc.ABC):
@@ -205,9 +215,14 @@ class FitMinuit(BaseFitter):
             parameter_dict[parameters]["value"] for parameters in parameter_dict
         ]
 
+        if jax_installed & likelihood.likelihood_properties["use_gradient"]:
+            grad = jax_grad(likelihood)
+        else:
+            grad = None
         minuit_fitter.minuit = iminuit.Minuit(
             likelihood,
             parameter_values,
+            grad=grad,
             name=likelihood.parameter_names,
         )
 

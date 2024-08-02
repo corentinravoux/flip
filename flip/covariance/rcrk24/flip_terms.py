@@ -25,7 +25,7 @@ def N_vv_0_2_0(theta, phi):
 
 
 def lnD(a, parameter_values_dict):
-    f0=parameter_values_dict["Om0"] ** parameter_values_dict["gamma"]
+    f0 = parameter_values_dict["Om0"] ** parameter_values_dict["gamma"]
     return np.log(a) * (
         f0
         + f0

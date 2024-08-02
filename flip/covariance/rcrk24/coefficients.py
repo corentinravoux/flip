@@ -17,7 +17,7 @@ def get_coefficients(
         np.array(cosmo.Om(redshift_velocities)) ** parameter_values_dict["gamma"]
         * cosmo.H(redshift_velocities).value
         / cosmo.H0
-        * power_spectrum_amplitude_function(redshift_velocities)
+        * power_spectrum_amplitude_function(redshift_velocities, parameter_values_dict)
         / (1 + redshift_velocities)
     )
 

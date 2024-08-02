@@ -1,5 +1,6 @@
 import numpy as np
 from astropy.cosmology import FlatLambdaCDM
+from flip.covariance.rcrk24.flip_terms import power_spectrum_amplitude_function as s8
 
 # The flip convention is to split the power spectrum into several terms
 # where linearity assumptions are made
@@ -46,17 +47,17 @@ def get_partial_derivative_coefficients(
     # Calculation of s8 and its derivatives requires an integral.  It is useful to
     # expand Omega in terms of (1-a), which allows analytic solutions
 
-    # approximation
-    def lnD(a):
-        return np.log(a) * (
-            f0
-            + f0
-            * 3
-            * parameter_values_dict["gamma"]
-            * (1 - parameter_values_dict["Om0"])
-        ) + (1 - a) * f0 * 3 * parameter_values_dict["gamma"] * (
-            1 - parameter_values_dict["Om0"]
-        )
+    # # approximation
+    # def lnD(a):
+    #     return np.log(a) * (
+    #         f0
+    #         + f0
+    #         * 3
+    #         * parameter_values_dict["gamma"]
+    #         * (1 - parameter_values_dict["Om0"])
+    #     ) + (1 - a) * f0 * 3 * parameter_values_dict["gamma"] * (
+    #         1 - parameter_values_dict["Om0"]
+    #     )
 
     def dlnDdOm0(a):
         return (
@@ -101,13 +102,13 @@ def get_partial_derivative_coefficients(
             )
         )
 
-    def s8(a):
-        return s80 * np.exp(lnD(a))
+    # def s8(a):
+    #     return s80 * np.exp(lnD(a))
 
     def aHfs8(a):
         return (
             f
-            * s8(a)
+            * s8(a, parameter_values_dict)
             / (1 + redshift_velocities)
             * cosmo.H(redshift_velocities)
             / cosmo.H0
@@ -127,22 +128,22 @@ def get_partial_derivative_coefficients(
         return np.log(cosmoOm) * f
 
     def ds8dOm0(a):
-        return s8(a) * dlnDdOm0(a)
+        return s8(a, parameter_values_dict) * dlnDdOm0(a)
 
     def ds8dgamma(a):
-        return s8(a) * dlnDdgamma(a)
+        return s8(a, parameter_values_dict) * dlnDdgamma(a)
 
     def dAdOm0(a):
-        return a * cosmo.H(a) / cosmo.H0 * (dfdOm0(a) * s8(a) + f * ds8dOm0(a))
+        return a * cosmo.H(a) / cosmo.H0 * (dfdOm0(a) * s8(a, parameter_values_dict) + f * ds8dOm0(a))
 
     def dAdgamma(a):
-        return a * cosmo.H(a) / cosmo.H0 * (dfdgamma(a) * s8(a) + f * ds8dgamma(a))
+        return a * cosmo.H(a) / cosmo.H0 * (dfdgamma(a) * s8(a, parameter_values_dict) + f * ds8dgamma(a))
 
-    aHfs8s8 = aHfs8(a) * s8(a)
+    aHfs8s8 = aHfs8(a) * s8(a, parameter_values_dict)
 
-    Omega_m_partial_derivative_coefficients = dAdOm0(a) * s8(a) + aHfs8(a) * ds8dOm0(a)
+    Omega_m_partial_derivative_coefficients = dAdOm0(a) * s8(a, parameter_values_dict) + aHfs8(a) * ds8dOm0(a)
 
-    gamma_partial_derivative_coefficients = dAdgamma(a) * s8(a) + aHfs8(a) * ds8dgamma(
+    gamma_partial_derivative_coefficients = dAdgamma(a) * s8(a, parameter_values_dict) + aHfs8(a) * ds8dgamma(
         a
     )
 

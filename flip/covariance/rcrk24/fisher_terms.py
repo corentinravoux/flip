@@ -1,6 +1,6 @@
 import numpy as np
 from astropy.cosmology import FlatLambdaCDM
-from flip.covariance.rcrk24.flip_terms import power_spectrum_amplitude_function as s8
+from flip.covariance.rcrk24.flip_terms import s8
 
 # The flip convention is to split the power spectrum into several terms
 # where linearity assumptions are made

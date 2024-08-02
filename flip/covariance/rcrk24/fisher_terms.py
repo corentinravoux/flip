@@ -1,6 +1,7 @@
 import numpy as np
 from astropy.cosmology import FlatLambdaCDM
 from flip.covariance.rcrk24.flip_terms import s8
+from flip.covariance.rcrk24.flip_terms import s80
 
 # The flip convention is to split the power spectrum into several terms
 # where linearity assumptions are made
@@ -31,7 +32,7 @@ def get_partial_derivative_coefficients(
 
     # s80 is considered to be fixed by the CMB and is hence not a fit parameter
 
-    s80 = 0.832
+    # s80 = 0.832
     redshift_velocities = redshift_dict["v"]
     a = 1 / (1 + redshift_velocities)
 

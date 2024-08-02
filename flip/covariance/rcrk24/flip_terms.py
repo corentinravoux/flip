@@ -36,9 +36,10 @@ def lnD(a, parameter_values_dict):
         1 - parameter_values_dict["Om0"]
     )
 
+# s80 is considered to be fixed by the CMB and is hence not a fit parameter
+s80 = 0.832
 
 def s8(a, parameter_values_dict):
-    s80 = 0.832
     return s80 * np.exp(lnD(a, parameter_values_dict))
 
 def power_spectrum_amplitude_function(r, parameter_values_dict):

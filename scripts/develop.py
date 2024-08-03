@@ -129,7 +129,7 @@ if __name__ == "__main__":
     parameter_dict = {
         "fs8": 0.4290817234945532,
         "Om0": 0.3,
-        "gamma": 0.55,
+        "gamma": 0.5,
         "sigv": 200,        
         "sigma_M": 0.12,
     }
@@ -140,7 +140,7 @@ if __name__ == "__main__":
 
     parameter_name_list, fisher_matrix = main()
     cov = np.linalg.inv(fisher_matrix[0:2,0:2])
-    s80=0.811
+    s80=0.832
     partials = s80*np.array([parameter_dict['gamma']*parameter_dict['Om0']**(parameter_dict['gamma']-1),np.log(parameter_dict['Om0'])*parameter_dict['Om0']**parameter_dict['gamma']])
     partials = partials + parameter_dict['Om0']**parameter_dict['gamma'] *s80 * np.array([dlnDdOm0(1., parameter_dict), dlnDdgamma(1., parameter_dict)])
     print(parameter_dict["Om0"]**parameter_dict['gamma'] * s80, np.sqrt(partials.T @ cov[0:2,0:2] @ partials))

@@ -39,7 +39,7 @@ def lnD(a, parameter_values_dict):
 
 
 # Normalization anchored to CMB
-s8_cmb= 0.811
+s8_cmb= 0.832/1.4242000876841536 # ref. PDG O0=0.3 and gamma=0.5 
 a_cmb = 1089.92
 lna_cmb = np.log(a_cmb)
 

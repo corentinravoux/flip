@@ -42,7 +42,7 @@ def get_partial_derivative_coefficients(
     cosmoOm = np.array(cosmo.Om(redshift_velocities))
     f = cosmoOm ** parameter_values_dict["gamma"]
     f0 = parameter_values_dict["Om0"] ** parameter_values_dict["gamma"]
-    s80 = power_spectrum_amplitude_function(0, parameter_values_dict)
+    s80 = power_spectrum_amplitude_function(1, parameter_values_dict)
 
     # Calculation of s8 and its derivatives requires an integral.  It is useful to
     # expand Omega in terms of (1-a), which allows analytic solutions

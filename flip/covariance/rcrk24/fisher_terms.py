@@ -42,7 +42,7 @@ def get_partial_derivative_coefficients(
     cosmoOm = np.array(cosmo.Om(redshift_velocities))
     f = cosmoOm ** parameter_values_dict["gamma"]
     f0 = parameter_values_dict["Om0"] ** parameter_values_dict["gamma"]
-    s80 = power_spectrum_amplitude_function(1, parameter_values_dict)
+    s80 = power_spectrum_amplitude_function(0, parameter_values_dict)
 
     # Calculation of s8 and its derivatives requires an integral.  It is useful to
     # expand Omega in terms of (1-a), which allows analytic solutions
@@ -139,15 +139,15 @@ def get_partial_derivative_coefficients(
     def dAdgamma(a):
         return a * cosmo.H(a) / cosmo.H0 * (dfdgamma(a) * s8(a) + f * ds8dgamma(a))
 
-    power_spectrum_amplitude_values = power_spectrum_amplitude_function(a, parameter_values_dict)
+    power_spectrum_amplitude_values = power_spectrum_amplitude_function(redshift_velocities, parameter_values_dict)
     aHfs8_values = aHfs8(a)
     aHfs8power_spectrum_amplitude = aHfs8_values * power_spectrum_amplitude_values
     Omega_m_partial_derivative_coefficients = ( dAdOm0(a) * power_spectrum_amplitude_values + 
-        aHfs8_values * dpsafdO0(a, parameter_values_dict, power_spectrum_amplitude_values=power_spectrum_amplitude_values)
+        aHfs8_values * dpsafdO0(redshift_velocities, parameter_values_dict, power_spectrum_amplitude_values=power_spectrum_amplitude_values)
         )
 
     gamma_partial_derivative_coefficients = ( dAdgamma(a) * power_spectrum_amplitude_values + 
-        aHfs8_values * dpsafdgamma(a, parameter_values_dict, power_spectrum_amplitude_values=power_spectrum_amplitude_values)
+        aHfs8_values * dpsafdgamma(redshift_velocities, parameter_values_dict, power_spectrum_amplitude_values=power_spectrum_amplitude_values)
         )
 
     # in the fs8 case

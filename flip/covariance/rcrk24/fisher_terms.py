@@ -1,16 +1,16 @@
 import numpy as np
 from astropy.cosmology import FlatLambdaCDM
 from flip.covariance.rcrk24.flip_terms import * #power_spectrum_amplitude_function, dpsafdO0, dpsafdgamma, lnD, dlnDdOm0, dlnDdgamma, dOmdOm0
-
+import matplotlib.pyplot as plt
 
 # The flip convention is to split the power spectrum into several terms
 # where linearity assumptions are made
-# P_ab = A * B * P0_xy
+# P_ab = AA * BB * P0_xy
 #
 # A is the coefficients where
-# P_ab = A P_xy
+# P_ab = AA P_xy
 # B is the cofficient where
-# P_xy = B P0_xy
+# P_xy = BB P0_xy
 # and
 # P0_xy is the power spectrum for a fiducial cosmology at z=0
 
@@ -18,9 +18,13 @@ from flip.covariance.rcrk24.flip_terms import * #power_spectrum_amplitude_functi
 # dA/dp B + A dB/dp
 
 # for vv
-# A = (aHfs8)_1 * (aHfs8_1)
-# B = psaf_1 * psaf_2
-
+# A = (aHfs8)_1
+# B = psaf_1 = s8_1
+#
+# B is "power_spectrum_amplitude_values" and it and its derivatives are calculated in flip_terms.py
+# as it is needed by coefficients.py
+# Note however that the derivatives of s8_1 in A and B are different!  A is normalized at z=0. B
+# is normalized a z=z_cmb
 
 def get_partial_derivative_coefficients(
     model_type,
@@ -30,23 +34,22 @@ def get_partial_derivative_coefficients(
     power_spectrum_amplitude_function=None,
 ):
 
-
     redshift_velocities = redshift_dict["v"]
     a = 1 / (1 + redshift_velocities)
 
     cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
+    cosmoOm = np.array(cosmo.Om(redshift_velocities))
+    H = cosmo.H(redshift_velocities)/cosmo.H0
 
     # The Om0-gamma model f=Omega(Om0)^gamma
 
     f0 = parameter_values_dict["Om0"] ** parameter_values_dict["gamma"]
-    s80 = power_spectrum_amplitude_function(0, parameter_values_dict)
-
-    cosmoOm = np.array(cosmo.Om(redshift_velocities))
     f = cosmoOm ** parameter_values_dict["gamma"]
-    s8 = s80 * np.exp(lnD(a, parameter_values_dict))
-    H = cosmo.H(redshift_velocities)/cosmo.H0
+    s80 = power_spectrum_amplitude_function(0, parameter_values_dict)
+    s8 = power_spectrum_amplitude_function(redshift_velocities, parameter_values_dict)
+    power_spectrum_amplitude_values = s8 # values are the same even though their derivatives are different
+
     aHfs8 = a * H * f * s8 # aka A
-    power_spectrum_amplitude_values = power_spectrum_amplitude_function(redshift_velocities, parameter_values_dict)
     aHfs8power_spectrum_amplitude = aHfs8  * power_spectrum_amplitude_values
 
     # now for the partials

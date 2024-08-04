@@ -139,7 +139,7 @@ if __name__ == "__main__":
     Om=cosmo.Om(z_mn)
 
     parameter_name_list, fisher_matrix = main()
-    cov = np.linalg.inv(fisher_matrix[0:2,0:2])
+    cov = np.linalg.inv(fisher_matrix[0:2,0:2]+np.array([[1/0.03**2,0],[0,0]]))
     s80=0.832
     partials = s80*np.array([parameter_dict['gamma']*parameter_dict['Om0']**(parameter_dict['gamma']-1),np.log(parameter_dict['Om0'])*parameter_dict['Om0']**parameter_dict['gamma']])
     partials = partials + parameter_dict['Om0']**parameter_dict['gamma'] *s80 * np.array([dlnDdOm0(1., parameter_dict), dlnDdgamma(1., parameter_dict)])

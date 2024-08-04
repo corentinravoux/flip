@@ -3,6 +3,8 @@ import scipy
 from astropy.cosmology import FlatLambdaCDM
 import scipy.integrate as integrate
 
+exact=False
+
 def M_vv_0_0_0():
     def func(k):
         return (10000 / 9) / k**2
@@ -34,9 +36,7 @@ def dOmdOm0(a, parameter_values_dict):
     denominator = numerator + 1 - parameter_values_dict["Om0"]
     return a ** (-3) / denominator - numerator / denominator**2 * (a ** (-3) - 1)
 
-# "Exact solution" for PSAF and its derivatives
-
-## Objective functions to integrate
+# objective functions needed for "exact" solution
 def psaf_objective(lna, parameter_values_dict):
     cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
     z=1/np.exp(lna)-1
@@ -56,69 +56,7 @@ def psaf_gamma_objective(lna, parameter_values_dict):
     Om = cosmo.Om(z)
     return np.log(Om) * Om ** parameter_values_dict["gamma"]
 
-## PSAF and its derivatives
-def power_spectrum_amplitude_function(r, parameter_values_dict):
-    r = np.asarray(r)
-    scalar_input = False
-    if r.ndim == 0:
-        r = r[None]  # Makes x 1D
-        scalar_input = True
-
-    ret=[]
-    a=1/(1+r)
-    for _a in a:
-        ret.append(integrate.quad(psaf_objective, lna_cmb, np.log(_a), args=parameter_values_dict)[0])
-
-    if scalar_input:
-        return np.squeeze(s8_cmb* np.exp(ret))
-
-    return s8_cmb * np.exp(ret)
-
-# Partials are 
-def dpsafdO0(r, parameter_values_dict, power_spectrum_amplitude_values=None):
-    r = np.asarray(r)
-    scalar_input = False
-    if r.ndim == 0:
-        r = r[None]  # Makes x 1D
-        scalar_input = True
-
-    ret=[]
-    a=1/(1+r)
-    for _a in a:
-        ret.append(integrate.quad(psaf_O0_objective, lna_cmb, np.log(_a), args=parameter_values_dict)[0])
-    ret = np.array(ret)
-
-    if power_spectrum_amplitude_values is None:
-        power_spectrum_amplitude_values = power_spectrum_amplitude_function(r, parameter_values_dict)
-
-    if scalar_input:
-        return power_spectrum_amplitude_values * np.squeeze(ret)
-    return power_spectrum_amplitude_values * ret
-
-def dpsafdgamma(r, parameter_values_dict, power_spectrum_amplitude_values=None):
-    r = np.asarray(r)
-    scalar_input = False
-    if r.ndim == 0:
-        r = r[None]  # Makes x 1D
-        scalar_input = True
-
-    a=1/(1+r)
-    ret=[]
-    for _a in a:
-        ret.append(integrate.quad(psaf_gamma_objective, lna_cmb, np.log(_a), args=parameter_values_dict)[0])
-    ret = np.array(ret)
-
-    if power_spectrum_amplitude_values is None:
-        power_spectrum_amplitude_values = power_spectrum_amplitude_function(r, parameter_values_dict)
-
-    if scalar_input:
-        return power_spectrum_amplitude_values * np.squeeze(ret)
-    return power_spectrum_amplitude_values * ret
-
-## "Approximate solution" for PSAF and its derivatives
-
 # First order expansion of scale factor and its deriviatves in (1-a)
-
 def lnD(a,parameter_values_dict):
     f0 = parameter_values_dict["Om0"] ** parameter_values_dict["gamma"]
     return np.log(a) * (
@@ -175,27 +113,90 @@ def dlnDdgamma(a,parameter_values_dict):
         )
     )
 
-def power_spectrum_amplitude_function(r, parameter_values_dict):
-    a=1/(1+r)
-    zero = integrate.quad(psaf_objective,  lna_cmb, 0, args=parameter_values_dict)[0]
-    return s8_cmb * np.exp(zero+lnD(a, parameter_values_dict))
+# "Exact solution" for PSAF and its derivatives
+if exact:
+    ## Objective functions to integrate
+    ## PSAF and its derivatives
+    def power_spectrum_amplitude_function(r, parameter_values_dict):
+        r = np.asarray(r)
+        scalar_input = False
+        if r.ndim == 0:
+            r = r[None]  # Makes x 1D
+            scalar_input = True
 
-# Partials are 
-def dpsafdO0(r, parameter_values_dict, power_spectrum_amplitude_values=None):
-    a=1/(1+r)
-    zero = integrate.quad(psaf_O0_objective, lna_cmb, 0, args=parameter_values_dict)[0]
-    if power_spectrum_amplitude_values is None:
-        power_spectrum_amplitude_values = power_spectrum_amplitude_function(r, parameter_values_dict)
+        ret=[]
+        a=1/(1+r)
+        for _a in a:
+            ret.append(integrate.quad(psaf_objective, lna_cmb, np.log(_a), args=parameter_values_dict)[0])
 
-    return power_spectrum_amplitude_values * (zero + dlnDdOm0(a,parameter_values_dict))
+        if scalar_input:
+            return np.squeeze(s8_cmb* np.exp(ret))
 
-def dpsafdgamma(r, parameter_values_dict, power_spectrum_amplitude_values=None):
-    a=1/(1+r)
-    zero = integrate.quad(psaf_gamma_objective, lna_cmb, 0, args=parameter_values_dict)[0]
-    if power_spectrum_amplitude_values is None:
-        power_spectrum_amplitude_values = power_spectrum_amplitude_function(r, parameter_values_dict)
+        return s8_cmb * np.exp(ret)
 
-    return power_spectrum_amplitude_values * (zero + dlnDdgamma(a,parameter_values_dict))
+    # Partials are 
+    def dpsafdO0(r, parameter_values_dict, power_spectrum_amplitude_values=None):
+        r = np.asarray(r)
+        scalar_input = False
+        if r.ndim == 0:
+            r = r[None]  # Makes x 1D
+            scalar_input = True
+
+        ret=[]
+        a=1/(1+r)
+        for _a in a:
+            ret.append(integrate.quad(psaf_O0_objective, lna_cmb, np.log(_a), args=parameter_values_dict)[0])
+        ret = np.array(ret)
+
+        if power_spectrum_amplitude_values is None:
+            power_spectrum_amplitude_values = power_spectrum_amplitude_function(r, parameter_values_dict)
+
+        if scalar_input:
+            return power_spectrum_amplitude_values * np.squeeze(ret)
+        return power_spectrum_amplitude_values * ret
+
+    def dpsafdgamma(r, parameter_values_dict, power_spectrum_amplitude_values=None):
+        r = np.asarray(r)
+        scalar_input = False
+        if r.ndim == 0:
+            r = r[None]  # Makes x 1D
+            scalar_input = True
+
+        a=1/(1+r)
+        ret=[]
+        for _a in a:
+            ret.append(integrate.quad(psaf_gamma_objective, lna_cmb, np.log(_a), args=parameter_values_dict)[0])
+        ret = np.array(ret)
+
+        if power_spectrum_amplitude_values is None:
+            power_spectrum_amplitude_values = power_spectrum_amplitude_function(r, parameter_values_dict)
+
+        if scalar_input:
+            return power_spectrum_amplitude_values * np.squeeze(ret)
+        return power_spectrum_amplitude_values * ret
+else:
+    ## "Approximate solution" for PSAF and its derivatives
+    def power_spectrum_amplitude_function(r, parameter_values_dict):
+        a=1/(1+r)
+        zero = integrate.quad(psaf_objective,  lna_cmb, 0, args=parameter_values_dict)[0]
+        return s8_cmb * np.exp(zero+lnD(a, parameter_values_dict))
+
+    # Partials are 
+    def dpsafdO0(r, parameter_values_dict, power_spectrum_amplitude_values=None):
+        a=1/(1+r)
+        zero = integrate.quad(psaf_O0_objective, lna_cmb, 0, args=parameter_values_dict)[0]
+        if power_spectrum_amplitude_values is None:
+            power_spectrum_amplitude_values = power_spectrum_amplitude_function(r, parameter_values_dict)
+
+        return power_spectrum_amplitude_values * (zero + dlnDdOm0(a,parameter_values_dict))
+
+    def dpsafdgamma(r, parameter_values_dict, power_spectrum_amplitude_values=None):
+        a=1/(1+r)
+        zero = integrate.quad(psaf_gamma_objective, lna_cmb, 0, args=parameter_values_dict)[0]
+        if power_spectrum_amplitude_values is None:
+            power_spectrum_amplitude_values = power_spectrum_amplitude_function(r, parameter_values_dict)
+
+        return power_spectrum_amplitude_values * (zero + dlnDdgamma(a,parameter_values_dict))
 
 dictionary_terms = {"vv": ["0"]}
 dictionary_lmax = {"vv": [2]}

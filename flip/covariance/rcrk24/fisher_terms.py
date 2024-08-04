@@ -1,6 +1,6 @@
 import numpy as np
 from astropy.cosmology import FlatLambdaCDM
-from flip.covariance.rcrk24.flip_terms import power_spectrum_amplitude_function, dpsafdO0, dpsafdgamma
+from flip.covariance.rcrk24.flip_terms import * #power_spectrum_amplitude_function, dpsafdO0, dpsafdgamma, lnD, dlnDdOm0, dlnDdgamma, dOmdOm0
 
 
 # The flip convention is to split the power spectrum into several terms
@@ -47,97 +47,37 @@ def get_partial_derivative_coefficients(
     # Calculation of s8 and its derivatives requires an integral.  It is useful to
     # expand Omega in terms of (1-a), which allows analytic solutions
 
-    # # approximation
-    def lnD(a):
-        return np.log(a) * (
-            f0
-            + f0
-            * 3
-            * parameter_values_dict["gamma"]
-            * (1 - parameter_values_dict["Om0"])
-        ) + (1 - a) * f0 * 3 * parameter_values_dict["gamma"] * (
-            1 - parameter_values_dict["Om0"]
-        )
-
-    def dlnDdOm0(a):
-        return (
-            parameter_values_dict["gamma"]
-            * parameter_values_dict["Om0"] ** (parameter_values_dict["gamma"] - 1)
-            * (
-                3
-                * (a - 1)
-                * (
-                    parameter_values_dict["gamma"] * (parameter_values_dict["Om0"] - 1)
-                    + parameter_values_dict["Om0"]
-                )
-                + np.log(a)
-                * (
-                    -3
-                    * parameter_values_dict["gamma"]
-                    * (parameter_values_dict["Om0"] - 1)
-                    - 3 * parameter_values_dict["Om0"]
-                    + 1
-                )
-            )
-        )
-
-    def dlnDdgamma(a):
-        return (
-            3 * (1 - a) * (1 - parameter_values_dict["Om0"]) * f0
-            + 3
-            * (1 - a)
-            * parameter_values_dict["gamma"]
-            * (1 - parameter_values_dict["Om0"])
-            * f0
-            * np.log(parameter_values_dict["Om0"])
-            + np.log(a)
-            * (
-                3 * (1 - parameter_values_dict["Om0"]) * f0
-                + 3
-                * parameter_values_dict["gamma"]
-                * (1 - parameter_values_dict["Om0"])
-                * f0
-                * np.log(parameter_values_dict["Om0"])
-                + f0 * np.log(parameter_values_dict["Om0"])
-            )
-        )
-
     def s8(a):
-        return s80 * np.exp(lnD(a))
+        return s80 * np.exp(lnD(a, parameter_values_dict))
 
     def aHfs8(a):
+        z = 1/a-1
         return (
-            f
-            * s8(a)
-            / (1 + redshift_velocities)
-            * cosmo.H(redshift_velocities)
-            / cosmo.H0
+            a
+            * cosmo.H(z) / cosmo.H0
+            * f * s8(a)
         )
 
     # now for the partials
 
-    def dOmdOm0(a):
-        numerator = parameter_values_dict["Om0"] * a ** (-3)
-        denominator = numerator + 1 - parameter_values_dict["Om0"]
-        return a ** (-3) / denominator - numerator / denominator**2 * (a ** (-3) - 1)
-
     def dfdOm0(a):
-        return parameter_values_dict["gamma"] * f / cosmoOm * dOmdOm0(a)
+        return parameter_values_dict["gamma"] * f / cosmoOm * dOmdOm0(a, parameter_values_dict)
 
     def dfdgamma(a):
         return np.log(cosmoOm) * f
 
     def ds8dOm0(a):
-        return s8(a) * dlnDdOm0(a)
+        return s8(a) * dlnDdOm0(a, parameter_values_dict)
 
     def ds8dgamma(a):
-        return s8(a) * dlnDdgamma(a)
+        return s8(a) * dlnDdgamma(a, parameter_values_dict)
 
+    # A = aHfs8
     def dAdOm0(a):
-        return a * cosmo.H(a) / cosmo.H0 * (dfdOm0(a) * s8(a) + f * ds8dOm0(a))
+        return a * cosmo.H(1/a-1) / cosmo.H0 * (dfdOm0(a) * s8(a) + f * ds8dOm0(a))
 
     def dAdgamma(a):
-        return a * cosmo.H(a) / cosmo.H0 * (dfdgamma(a) * s8(a) + f * ds8dgamma(a))
+        return a * cosmo.H(1/a-1) / cosmo.H0 * (dfdgamma(a) * s8(a) + f * ds8dgamma(a))
 
     power_spectrum_amplitude_values = power_spectrum_amplitude_function(redshift_velocities, parameter_values_dict)
     aHfs8_values = aHfs8(a)

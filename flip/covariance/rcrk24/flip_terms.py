@@ -24,31 +24,39 @@ def M_vv_0_2_0():
 def N_vv_0_2_0(theta, phi):
     return (9 / 2) * np.cos(2 * phi) + (3 / 2) * np.cos(theta)
 
-
-def lnD(a, parameter_values_dict):
-    f0 = parameter_values_dict["Om0"] ** parameter_values_dict["gamma"]
-    return np.log(a) * (
-        f0
-        + f0
-        * 3
-        * parameter_values_dict["gamma"]
-        * (1 - parameter_values_dict["Om0"])
-    ) + (1 - a) * f0 * 3 * parameter_values_dict["gamma"] * (
-        1 - parameter_values_dict["Om0"]
-    )
-
-
 # Normalization anchored to CMB
 s8_cmb= 0.832*0.001176774706956903 # ref. PDG O0=0.3 and gamma=0.5 
 a_cmb = 1/(1+1089.92)
 lna_cmb = np.log(a_cmb)
 
+def dOmdOm0(a, parameter_values_dict):
+    numerator = parameter_values_dict["Om0"] * a ** (-3)
+    denominator = numerator + 1 - parameter_values_dict["Om0"]
+    return a ** (-3) / denominator - numerator / denominator**2 * (a ** (-3) - 1)
+
+# "Exact solution" for PSAF and its derivatives
+
+## Objective functions to integrate
 def psaf_objective(lna, parameter_values_dict):
     cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
     z=1/np.exp(lna)-1
     return cosmo.Om(z) ** parameter_values_dict["gamma"]
 
-# "Exact solution"
+def psaf_O0_objective(lna, parameter_values_dict):
+    cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
+    a = np.exp(lna)
+    z=1/a-1
+    Om = cosmo.Om(z)
+    return parameter_values_dict["gamma"] * Om ** (parameter_values_dict["gamma"]-1) * dOmdOm0(a,parameter_values_dict)
+
+def psaf_gamma_objective(lna, parameter_values_dict):
+    cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
+    a = np.exp(lna)
+    z=1/a-1
+    Om = cosmo.Om(z)
+    return np.log(Om) * Om ** parameter_values_dict["gamma"]
+
+## PSAF and its derivatives
 def power_spectrum_amplitude_function(r, parameter_values_dict):
     r = np.asarray(r)
     scalar_input = False
@@ -65,18 +73,6 @@ def power_spectrum_amplitude_function(r, parameter_values_dict):
         return np.squeeze(s8_cmb* np.exp(ret))
 
     return s8_cmb * np.exp(ret)
-
-def dOmdOm0(a, parameter_values_dict):
-    numerator = parameter_values_dict["Om0"] * a ** (-3)
-    denominator = numerator + 1 - parameter_values_dict["Om0"]
-    return a ** (-3) / denominator - numerator / denominator**2 * (a ** (-3) - 1)
-
-def psaf_O0_objective(lna, parameter_values_dict):
-    cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
-    a = np.exp(lna)
-    z=1/a-1
-    Om = cosmo.Om(z)
-    return parameter_values_dict["gamma"] * Om ** (parameter_values_dict["gamma"]-1) * dOmdOm0(a,parameter_values_dict)
 
 # Partials are 
 def dpsafdO0(r, parameter_values_dict, power_spectrum_amplitude_values=None):
@@ -99,14 +95,6 @@ def dpsafdO0(r, parameter_values_dict, power_spectrum_amplitude_values=None):
         return power_spectrum_amplitude_values * np.squeeze(ret)
     return power_spectrum_amplitude_values * ret
 
-def psaf_gamma_objective(lna, parameter_values_dict):
-    cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
-    a = np.exp(lna)
-    z=1/a-1
-    Om = cosmo.Om(z)
-    return np.log(Om) * Om ** parameter_values_dict["gamma"]
-
-# Partials are 
 def dpsafdgamma(r, parameter_values_dict, power_spectrum_amplitude_values=None):
     r = np.asarray(r)
     scalar_input = False
@@ -127,7 +115,9 @@ def dpsafdgamma(r, parameter_values_dict, power_spectrum_amplitude_values=None):
         return power_spectrum_amplitude_values * np.squeeze(ret)
     return power_spectrum_amplitude_values * ret
 
-# approximative solution
+## "Approximate solution" for PSAF and its derivatives
+
+# First order expansion of scale factor and its deriviatves in (1-a)
 
 def lnD(a,parameter_values_dict):
     f0 = parameter_values_dict["Om0"] ** parameter_values_dict["gamma"]
@@ -189,11 +179,6 @@ def power_spectrum_amplitude_function(r, parameter_values_dict):
     a=1/(1+r)
     zero = integrate.quad(psaf_objective,  lna_cmb, 0, args=parameter_values_dict)[0]
     return s8_cmb * np.exp(zero+lnD(a, parameter_values_dict))
-
-def dOmdOm0(a, parameter_values_dict):
-    numerator = parameter_values_dict["Om0"] * a ** (-3)
-    denominator = numerator + 1 - parameter_values_dict["Om0"]
-    return a ** (-3) / denominator - numerator / denominator**2 * (a ** (-3) - 1)
 
 # Partials are 
 def dpsafdO0(r, parameter_values_dict, power_spectrum_amplitude_values=None):

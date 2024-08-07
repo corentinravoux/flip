@@ -10,7 +10,7 @@ from astropy.cosmology import FlatLambdaCDM
 
 import matplotlib.pyplot as plt
 
-from flip.covariance.rcrk24.flip_terms import power_spectrum_amplitude_function
+from flip.covariance.rcrk24fs8.flip_terms import power_spectrum_amplitude_function
 
 def main():
     flip_base = resource_filename("flip", ".")

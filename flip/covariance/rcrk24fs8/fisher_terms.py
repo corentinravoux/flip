@@ -1,6 +1,6 @@
 import numpy as np
 from astropy.cosmology import FlatLambdaCDM
-# from flip.covariance.rcrk24.flip_terms import * #power_spectrum_amplitude_function, dpsafdO0, dpsafdgamma, lnD, dlnDdOm0, dlnDdgamma, dOmdOm0
+from flip.covariance.rcrk24fs8.flip_terms import * #power_spectrum_amplitude_function, dpsafdO0, dpsafdgamma, lnD, dlnDdOm0, dlnDdgamma, dOmdOm0
 import matplotlib.pyplot as plt
 
 # The flip convention is to split the power spectrum into several terms
@@ -38,20 +38,13 @@ def get_partial_derivative_coefficients(
     a = 1 / (1 + redshift_velocities)
     cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
     H = cosmo.H(redshift_velocities)/cosmo.H0
-    s80 = 0.832
 
-    # in the fs8 case
-    def s8_fs8(a):
-        return s80 + parameter_values_dict["fs8"] * np.log(a)
-
-    def ds8dfs8(a):
-        return np.log(a)
 
     fs8_partial_derivative_coefficients = (
         a
         * cosmo.H(redshift_velocities)
         / cosmo.H0
-        * (s8_fs8(a) + parameter_values_dict["fs8"] * ds8dfs8(a))
+        * (s8_fs8(a,parameter_values_dict) + parameter_values_dict["fs8"] * ds8dfs8(a,parameter_values_dict))
     )
 
     aHfs8s8_fs8 = (
@@ -59,7 +52,7 @@ def get_partial_derivative_coefficients(
         * cosmo.H(redshift_velocities)
         / cosmo.H0
         * parameter_values_dict["fs8"]
-        * s8_fs8(a)
+        * s8_fs8(a,parameter_values_dict)
     )
     partial_coefficients_dict = {
         "fs8": {

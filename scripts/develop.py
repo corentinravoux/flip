@@ -46,7 +46,7 @@ def main():
     number_worker = 16
 
     covariance_fit = covariance.CovMatrix.init_from_flip(
-        "rcrk24",
+        "rcrk24fs8",
         # "agk24"
         # 'carreres23',
         "velocity",
@@ -139,10 +139,11 @@ if __name__ == "__main__":
     Om=cosmo.Om(z_mn)
 
     parameter_name_list, fisher_matrix = main()
-    cov = np.linalg.inv(fisher_matrix[0:2,0:2]+np.array([[1/0.03**2,0],[0,0]]))
-    s80=0.832
-    partials = s80*np.array([parameter_dict['gamma']*parameter_dict['Om0']**(parameter_dict['gamma']-1),np.log(parameter_dict['Om0'])*parameter_dict['Om0']**parameter_dict['gamma']])
-    partials = partials + parameter_dict['Om0']**parameter_dict['gamma'] *s80 * np.array([dlnDdOm0(1., parameter_dict), dlnDdgamma(1., parameter_dict)])
-    print(parameter_dict["Om0"]**parameter_dict['gamma'] * s80, np.sqrt(partials.T @ cov[0:2,0:2] @ partials))
-    # print((Om/parameter_dict["Om0"])**parameter_dict['gamma']*np.exp(lnD(1/(1+z_mn), parameter_dict)))
-    print(parameter_dict["fs8"], 1/np.sqrt(fisher_matrix[2,2]))
+    print(fisher_matrix)
+    # cov = np.linalg.inv(fisher_matrix[0:2,0:2]+np.array([[1/0.03**2,0],[0,0]]))
+    # s80=0.832
+    # partials = s80*np.array([parameter_dict['gamma']*parameter_dict['Om0']**(parameter_dict['gamma']-1),np.log(parameter_dict['Om0'])*parameter_dict['Om0']**parameter_dict['gamma']])
+    # partials = partials + parameter_dict['Om0']**parameter_dict['gamma'] *s80 * np.array([dlnDdOm0(1., parameter_dict), dlnDdgamma(1., parameter_dict)])
+    # print(parameter_dict["Om0"]**parameter_dict['gamma'] * s80, np.sqrt(partials.T @ cov[0:2,0:2] @ partials))
+    # # print((Om/parameter_dict["Om0"])**parameter_dict['gamma']*np.exp(lnD(1/(1+z_mn), parameter_dict)))
+    # print(parameter_dict["fs8"], 1/np.sqrt(fisher_matrix[2,2]))

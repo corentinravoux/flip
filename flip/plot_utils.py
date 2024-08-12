@@ -186,12 +186,14 @@ def plot_all_fits(
     compute_fs8_from_beta=False,
     subset_plot=None,
     remove_lower=None,
+    plot=True,
     **kwargs,
 ):
     figsize = utils.return_key(kwargs, "figsize", (10, 10))
 
     all_fit = glob.glob(os.path.join(fit_output, "*"))
-    fig, ax = plt.subplots(len(parameters), 1, figsize=figsize, sharex=True)
+    if plot:
+        fig, ax = plt.subplots(len(parameters), 1, figsize=figsize, sharex=True)
     fit_names, param_dict, error_dict = [], {}, {}
     for j, param_name in enumerate(parameters):
         param_dict[param_name] = []
@@ -230,23 +232,24 @@ def plot_all_fits(
                 error = fit[2][param_name]
             param_dict[param_name].append(param)
             error_dict[param_name].append(error)
-            ax[j].errorbar(
-                i,
-                param,
-                error,
-                marker=".",
-                ls="None",
-                color="C1",
-            )
+            if plot:
+                ax[j].errorbar(
+                    i,
+                    param,
+                    error,
+                    marker=".",
+                    ls="None",
+                    color="C1",
+                )
 
-            ax[j].set_ylabel(param_name, fontsize=18)
+                ax[j].set_ylabel(param_name, fontsize=18)
 
-            if fiducials is not None:
-                if fiducials[j] is not None:
-                    ax[j].axhline(fiducials[j], ls=":", color="k")
-
-    ax[0].margins(x=0.005)
-    fig.tight_layout()
+                if fiducials is not None:
+                    if fiducials[j] is not None:
+                        ax[j].axhline(fiducials[j], ls=":", color="k")
+    if plot:
+        ax[0].margins(x=0.005)
+        fig.tight_layout()
     return fit_names, param_dict, error_dict
 
 
@@ -258,6 +261,7 @@ def plot_all_mean_fits(
     compute_fs8_from_beta=False,
     subset_plot=None,
     remove_lower=None,
+    plot=True,
     **kwargs,
 ):
     figsize = utils.return_key(kwargs, "figsize", (10, 10))
@@ -294,12 +298,12 @@ def plot_all_mean_fits(
 
     fit_prop = np.array(fit_prop)
     unique_fit_prop = np.sort(np.unique(fit_prop))
-
-    fig, ax = plt.subplots(len(parameters), 1, figsize=figsize, sharex=True)
-    fig2, ax2 = plt.subplots(len(parameters), 1, figsize=figsize, sharex=True)
+    if plot:
+        fig, ax = plt.subplots(len(parameters), 1, figsize=figsize, sharex=True)
+        fig2, ax2 = plt.subplots(len(parameters), 1, figsize=figsize, sharex=True)
 
     text = []
-    mean_param_dict, mean_error_dict, error_mean_dict = {}, {}, {}
+    mean_param_dict, mean_error_dict, error_mean_dict, std_dict = {}, {}, {}, {}
     for j, param_name in enumerate(parameters):
         mean_param_dict[param_name] = []
         mean_error_dict[param_name] = []
@@ -337,33 +341,42 @@ def plot_all_mean_fits(
                 mean_param = np.mean(params)
             error_mean_param = np.mean(errors) / np.sqrt(len(mask[mask]))
             mean_error_param = np.mean(errors)
+            std_param = np.mean(params)
 
             mean_param_dict[param_name].append(mean_param)
             mean_error_dict[param_name].append(mean_error_param)
             error_mean_dict[param_name].append(error_mean_param)
+            std_dict[param_name].append(std_param)
+            if plot:
+                ax[j].errorbar(
+                    i, mean_param, error_mean_param, marker=".", ls="None", color="C1"
+                )
 
-            ax[j].errorbar(
-                i, mean_param, error_mean_param, marker=".", ls="None", color="C1"
-            )
+                ax[j].set_ylabel(param_name, fontsize=18)
 
-            ax[j].set_ylabel(param_name, fontsize=18)
+                ax2[j].plot(i, mean_error_param, marker=".", ls="None", color="C1")
+                ax2[j].set_ylabel(r"$\sigma$(" + param_name + ")", fontsize=18)
 
-            ax2[j].plot(i, mean_error_param, marker=".", ls="None", color="C1")
-            ax2[j].set_ylabel(r"$\sigma$(" + param_name + ")", fontsize=18)
-
-            if fiducials is not None:
-                if fiducials[j] is not None:
-                    ax[j].axhline(fiducials[j], ls=":", color="k")
+                if fiducials is not None:
+                    if fiducials[j] is not None:
+                        ax[j].axhline(fiducials[j], ls=":", color="k")
 
         text.append(fit_p)
 
     j_index = np.arange(len(unique_fit_prop))
-    ax[-1].set_xticks(j_index, np.array(text), rotation=90, fontsize=10)
-    ax[0].margins(x=0.005)
-    fig.tight_layout()
+    if plot:
+        ax[-1].set_xticks(j_index, np.array(text), rotation=90, fontsize=10)
+        ax[0].margins(x=0.005)
+        fig.tight_layout()
 
-    ax2[-1].set_xticks(j_index, np.array(text), rotation=90, fontsize=10)
-    ax2[0].margins(x=0.005)
-    fig2.tight_layout()
+        ax2[-1].set_xticks(j_index, np.array(text), rotation=90, fontsize=10)
+        ax2[0].margins(x=0.005)
+        fig2.tight_layout()
 
-    return unique_fit_prop, mean_param_dict, mean_error_dict, error_mean_dict
+    return (
+        unique_fit_prop,
+        mean_param_dict,
+        mean_error_dict,
+        error_mean_dict,
+        std_dict,
+    )

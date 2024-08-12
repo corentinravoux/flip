@@ -10,7 +10,7 @@ from astropy.cosmology import FlatLambdaCDM
 
 import matplotlib.pyplot as plt
 
-from flip.covariance.rcrk24fs8.flip_terms import power_spectrum_amplitude_function
+from flip.covariance.rcrk24.flip_terms import *
 
 def main():
     flip_base = resource_filename("flip", ".")
@@ -44,9 +44,18 @@ def main():
     ### Compute covariance
     size_batch = 10_000
     number_worker = 16
+    variant = "growth_rate"  # can be replaced by growth_index
+
+    parameter_dict = {
+        "fs8": 0.4,
+        "Om0": 0.3,
+        "gamma": 0.55,        
+        "sigv": 200,
+        "sigma_M": 0.12,
+    }
 
     covariance_fit = covariance.CovMatrix.init_from_flip(
-        "rcrk24fs8",
+        "rcrk24",
         # "agk24"
         # 'carreres23',
         "velocity",
@@ -54,7 +63,8 @@ def main():
         coordinates_velocity=coordinates_velocity,
         size_batch=size_batch,
         number_worker=number_worker,
-        power_spectrum_amplitude_function=power_spectrum_amplitude_function,
+        power_spectrum_amplitude_function=power_spectrum_amplitude_function_growth_rate,
+        variant=variant,
     )
 
     ### Load fitter
@@ -64,15 +74,8 @@ def main():
         "velocity_type": "scatter",
     }
 
-    variant = None  # can be replaced by growth_index
 
-    parameter_dict = {
-        "fs8": 0.4,
-        "Om0": 0.3,
-        "gamma": 0.55,        
-        "sigv": 200,
-        "sigma_M": 0.12,
-    }
+
 
     # parameter_dict = {
     #     "Om0": 0.3,
@@ -140,10 +143,10 @@ if __name__ == "__main__":
 
     parameter_name_list, fisher_matrix = main()
     print(fisher_matrix)
-    # cov = np.linalg.inv(fisher_matrix[0:2,0:2]+np.array([[1/0.03**2,0],[0,0]]))
-    # s80=0.832
-    # partials = s80*np.array([parameter_dict['gamma']*parameter_dict['Om0']**(parameter_dict['gamma']-1),np.log(parameter_dict['Om0'])*parameter_dict['Om0']**parameter_dict['gamma']])
-    # partials = partials + parameter_dict['Om0']**parameter_dict['gamma'] *s80 * np.array([dlnDdOm0(1., parameter_dict), dlnDdgamma(1., parameter_dict)])
-    # print(parameter_dict["Om0"]**parameter_dict['gamma'] * s80, np.sqrt(partials.T @ cov[0:2,0:2] @ partials))
-    # # print((Om/parameter_dict["Om0"])**parameter_dict['gamma']*np.exp(lnD(1/(1+z_mn), parameter_dict)))
+    cov = np.linalg.inv(fisher_matrix[0:2,0:2]+np.array([[1/0.03**2,0],[0,0]]))
+    s80=0.832
+    partials = s80*np.array([parameter_dict['gamma']*parameter_dict['Om0']**(parameter_dict['gamma']-1),np.log(parameter_dict['Om0'])*parameter_dict['Om0']**parameter_dict['gamma']])
+    partials = partials + parameter_dict['Om0']**parameter_dict['gamma'] *s80 * np.array([dlnDdOm0(1., parameter_dict), dlnDdgamma(1., parameter_dict)])
+    print(parameter_dict["Om0"]**parameter_dict['gamma'] * s80, np.sqrt(partials.T @ cov[0:2,0:2] @ partials))
+    # print((Om/parameter_dict["Om0"])**parameter_dict['gamma']*np.exp(lnD(1/(1+z_mn), parameter_dict)))
     # print(parameter_dict["fs8"], 1/np.sqrt(fisher_matrix[2,2]))

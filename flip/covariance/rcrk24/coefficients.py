@@ -10,18 +10,32 @@ def get_coefficients(
     power_spectrum_amplitude_function=None,
 ):
     coefficients_dict = {}
-    redshift_velocities = redshift_dict["v"]
-    cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
+    if variant == "growth_rate":
+        redshift_velocities = redshift_dict["v"]
+        cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
 
-    coefficient_vector = (
-        np.array(cosmo.Om(redshift_velocities)) ** parameter_values_dict["gamma"]
-        * cosmo.H(redshift_velocities).value
-        / cosmo.H0
-        * power_spectrum_amplitude_function(redshift_velocities, parameter_values_dict)
-        / (1 + redshift_velocities)
-    )
+        coefficient_vector = (
+            np.array(cosmo.Om(redshift_velocities)) ** parameter_values_dict["gamma"]
+            * cosmo.H(redshift_velocities).value
+            / cosmo.H0
+            * power_spectrum_amplitude_function(redshift_velocities, parameter_values_dict)
+            / (1 + redshift_velocities)
+        )
 
-    coefficients_dict["vv"] = [np.outer(coefficient_vector, coefficient_vector)]
+        coefficients_dict["vv"] = [np.outer(coefficient_vector, coefficient_vector)]
+    elif variant == "growth_index":
+        redshift_velocities = redshift_dict["v"]
+        cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
+
+        coefficient_vector = (
+            np.array(cosmo.Om(redshift_velocities)) ** parameter_values_dict["gamma"]
+            * cosmo.H(redshift_velocities).value
+            / cosmo.H0
+            * power_spectrum_amplitude_function(redshift_velocities, parameter_values_dict)
+            / (1 + redshift_velocities)
+        )
+
+        coefficients_dict["vv"] = [np.outer(coefficient_vector, coefficient_vector)]
     return coefficients_dict
 
 

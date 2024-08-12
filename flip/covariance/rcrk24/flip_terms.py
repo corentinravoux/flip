@@ -26,8 +26,11 @@ def M_vv_0_2_0():
 def N_vv_0_2_0(theta, phi):
     return (9 / 2) * np.cos(2 * phi) + (3 / 2) * np.cos(theta)
 
+# functions for growth_rate
+
 # Normalization anchored to CMB
-s8_cmb= 0.832*0.001176774706956903 # ref. PDG O0=0.3 and gamma=0.5 
+s80 = 0.832
+s8_cmb= s80*0.001176774706956903 # ref. PDG O0=0.3 and gamma=0.5 
 a_cmb = 1/(1+1089.92)
 lna_cmb = np.log(a_cmb)
 
@@ -198,18 +201,18 @@ else:
 
         return power_spectrum_amplitude_values * (zero + dlnDdgamma(a,parameter_values_dict))
 
-s80 = 0.832
+# functions for growth index
+
 
 # in the fs8 case
-def s8_fs8(a, parameter_values_dict):
-    return s80 + parameter_values_dict["fs8"] * np.log(a)
+# def s8_fs8(a, parameter_values_dict):
+#     return s80 + parameter_values_dict["fs8"] * np.log(a)
 
-def ds8dfs8(a, parameter_values_dict):
-    return np.log(a)
+# def ds8dfs8(a, parameter_values_dict):
+#     return np.log(a)
 
 def power_spectrum_amplitude_function_growth_index(r, parameter_values_dict):
-    a=1/(1+r)
-    return s80 + parameter_values_dict["fs8"] * np.log(a)
+    return s80
 
 dictionary_terms = {"vv": ["0"]}
 dictionary_lmax = {"vv": [2]}

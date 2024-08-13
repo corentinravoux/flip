@@ -47,7 +47,8 @@ def main():
     variant = "growth_rate"  # can be replaced by growth_index
 
     parameter_dict = {
-        "fs8": 0.4,
+        # "fs8": 0.45570516784429815,
+        "f": 0.45570516784429815/0.832,
         "Om0": 0.3,
         "gamma": 0.55,        
         "sigv": 200,
@@ -74,16 +75,6 @@ def main():
         "velocity_type": "scatter",
     }
 
-
-
-
-    # parameter_dict = {
-    #     "Om0": 0.3,
-    #     "gamma": 0.55,
-    #     "sigv": 200,        
-    #     "sigma_M": 0.12,
-    # }
-  
     Fisher = fisher.FisherMatrix.init_from_covariance(
         covariance_fit,
         data_velocity,
@@ -128,14 +119,16 @@ def dlnDdgamma(a, parameter_values_dict):
 
 if __name__ == "__main__":
 
-
     parameter_dict = {
-        "fs8": 0.45570516784429815,
+        # "fs8": 0.45570516784429815,
+        "f": 0.45570516784429815/0.832,
         "Om0": 0.3,
-        "gamma": 0.5,
-        "sigv": 200,        
+        "gamma": 0.55,        
+        "sigv": 200,
         "sigma_M": 0.12,
     }
+
+
     z_mn=0.05
 
     cosmo = FlatLambdaCDM(H0=100, Om0=parameter_dict["Om0"])
@@ -143,7 +136,7 @@ if __name__ == "__main__":
 
     parameter_name_list, fisher_matrix = main()
     print(fisher_matrix)
-    cov = np.linalg.inv(fisher_matrix[0:2,0:2]+np.array([[1/0.03**2,0],[0,0]]))
+    cov = np.linalg.inv(fisher_matrix[0:2,0:2] +np.array([[1/0.1**2,0],[0,0]]))
     s80=0.832
     partials = s80*np.array([parameter_dict['gamma']*parameter_dict['Om0']**(parameter_dict['gamma']-1),np.log(parameter_dict['Om0'])*parameter_dict['Om0']**parameter_dict['gamma']])
     partials = partials + parameter_dict['Om0']**parameter_dict['gamma'] *s80 * np.array([dlnDdOm0(1., parameter_dict), dlnDdgamma(1., parameter_dict)])

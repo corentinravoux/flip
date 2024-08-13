@@ -34,7 +34,7 @@ def get_partial_derivative_coefficients(
     power_spectrum_amplitude_function=None,
 ):
     partial_coefficients_dict=None
-    if variant == "growth_rate":
+    if variant == "growth_index":
         redshift_velocities = redshift_dict["v"]
         a = 1 / (1 + redshift_velocities)
 
@@ -94,7 +94,7 @@ def get_partial_derivative_coefficients(
                 ],
             },
         }
-    elif variant == "growth_index":
+    elif variant == "growth_rate":
         redshift_velocities = redshift_dict["v"]
         a = 1 / (1 + redshift_velocities)
         cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
@@ -106,7 +106,7 @@ def get_partial_derivative_coefficients(
             / cosmo.H0 * power_spectrum_amplitude_function(None, None)
         )
 
-        aHfs8s8_fs8 = (
+        aHfs8 = (
             a
             * cosmo.H(redshift_velocities)
             / cosmo.H0
@@ -117,10 +117,10 @@ def get_partial_derivative_coefficients(
                 "vv": [
                     np.outer(
                         f_partial_derivative_coefficients,
-                        aHfs8s8_fs8,
+                        aHfs8,
                     )
                     + np.outer(
-                        aHfs8s8_fs8,
+                        aHfs8,
                         f_partial_derivative_coefficients,
                     ),
                 ],

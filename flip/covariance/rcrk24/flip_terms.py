@@ -179,7 +179,7 @@ if exact:
         return power_spectrum_amplitude_values * ret
 else:
     ## "Approximate solution" for PSAF and its derivatives
-    def power_spectrum_amplitude_function_growth_rate(r, parameter_values_dict):
+    def power_spectrum_amplitude_function_growth_index(r, parameter_values_dict):
         a=1/(1+r)
         zero = integrate.quad(psaf_objective,  lna_cmb, 0, args=parameter_values_dict)[0]
         return s8_cmb * np.exp(zero+lnD(a, parameter_values_dict))
@@ -211,7 +211,7 @@ else:
 # def ds8dfs8(a, parameter_values_dict):
 #     return np.log(a)
 
-def power_spectrum_amplitude_function_growth_index(r, parameter_values_dict):
+def power_spectrum_amplitude_function_growth_rate(r, parameter_values_dict):
     return s80
 
 dictionary_terms = {"vv": ["0"]}

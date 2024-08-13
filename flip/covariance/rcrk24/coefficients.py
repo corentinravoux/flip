@@ -10,7 +10,7 @@ def get_coefficients(
     power_spectrum_amplitude_function=None,
 ):
     coefficients_dict = {}
-    if variant == "growth_rate":
+    if variant == "growth_index":
         redshift_velocities = redshift_dict["v"]
         cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
 
@@ -23,7 +23,7 @@ def get_coefficients(
         )
 
         coefficients_dict["vv"] = [np.outer(coefficient_vector, coefficient_vector)]
-    elif variant == "growth_index":
+    elif variant == "growth_rate":
         redshift_velocities = redshift_dict["v"]
         cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
 

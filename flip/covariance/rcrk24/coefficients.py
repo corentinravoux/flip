@@ -1,6 +1,6 @@
 import numpy as np
 from astropy.cosmology import FlatLambdaCDM
-
+from flip.covariance.rcrk24.flip_terms import cosmo_background
 
 def get_coefficients(
     model_type,
@@ -12,12 +12,11 @@ def get_coefficients(
     coefficients_dict = {}
     if variant == "growth_index":
         redshift_velocities = redshift_dict["v"]
-        cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
 
         coefficient_vector = (
             np.array(cosmo.Om(redshift_velocities)) ** parameter_values_dict["gamma"]
-            * cosmo.H(redshift_velocities).value
-            / cosmo.H0
+            * cosmo_background.H(redshift_velocities)
+            / cosmo_background.H0
             * power_spectrum_amplitude_function(redshift_velocities, parameter_values_dict)
             / (1 + redshift_velocities)
         )
@@ -25,12 +24,11 @@ def get_coefficients(
         coefficients_dict["vv"] = [np.outer(coefficient_vector, coefficient_vector)]
     elif variant == "growth_rate":
         redshift_velocities = redshift_dict["v"]
-        cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
 
         coefficient_vector = (
             parameter_values_dict["f"]
-            * cosmo.H(redshift_velocities).value
-            / cosmo.H0
+            * cosmo_background.H(redshift_velocities)
+            / cosmo_background.H0
             * power_spectrum_amplitude_function(redshift_velocities, parameter_values_dict)
             / (1 + redshift_velocities)
         )

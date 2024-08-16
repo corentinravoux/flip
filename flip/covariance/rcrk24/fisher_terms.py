@@ -100,28 +100,28 @@ def get_partial_derivative_coefficients(
         cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
         H = cosmo.H(redshift_velocities)/cosmo.H0
 
-        f_partial_derivative_coefficients = (
+        fs8_partial_derivative_coefficients = (
             a
             * cosmo.H(redshift_velocities)
-            / cosmo.H0 * power_spectrum_amplitude_function(None, None)
+            / cosmo.H0
         )
 
         aHfs8 = (
             a
             * cosmo.H(redshift_velocities)
             / cosmo.H0
-            * parameter_values_dict["f"] * power_spectrum_amplitude_function(None, None)
+            * parameter_values_dict["fs8"]
         )
         partial_coefficients_dict = {
-            "f": {
+            "fs8": {
                 "vv": [
                     np.outer(
-                        f_partial_derivative_coefficients,
+                        fs8_partial_derivative_coefficients,
                         aHfs8,
                     )
                     + np.outer(
                         aHfs8,
-                        f_partial_derivative_coefficients,
+                        fs8_partial_derivative_coefficients,
                     ),
                 ],
             },

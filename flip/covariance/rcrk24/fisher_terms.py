@@ -40,7 +40,7 @@ def get_partial_derivative_coefficients(
 
         cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
         cosmoOm = np.array(cosmo.Om(redshift_velocities))
-        H = cosmo.H(redshift_velocities)/cosmo.H0
+        H = cosmo_background.H(redshift_velocities)/cosmo_background.H0
 
         # The Om0-gamma model f=Omega(Om0)^gamma
 
@@ -98,7 +98,7 @@ def get_partial_derivative_coefficients(
         redshift_velocities = redshift_dict["v"]
         a = 1 / (1 + redshift_velocities)
         cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
-        H = cosmo.H(redshift_velocities)/cosmo.H0
+        H = cosmo_background.H(redshift_velocities)/cosmo_background.H0
 
         fs8_partial_derivative_coefficients = (
             a

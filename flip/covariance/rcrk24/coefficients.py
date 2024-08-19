@@ -26,7 +26,7 @@ def get_coefficients(
         redshift_velocities = redshift_dict["v"]
 
         coefficient_vector = (
-            parameter_values_dict["f"]
+            parameter_values_dict["fs8"]
             * cosmo_background.H(redshift_velocities)
             / cosmo_background.H0
             * power_spectrum_amplitude_function(redshift_velocities, parameter_values_dict)

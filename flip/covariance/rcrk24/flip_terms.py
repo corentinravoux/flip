@@ -212,7 +212,7 @@ else:
 #     return np.log(a)
 
 def power_spectrum_amplitude_function_growth_rate(r, parameter_values_dict):
-    return s80
+    return 1
 
 dictionary_terms = {"vv": ["0"]}
 dictionary_lmax = {"vv": [2]}

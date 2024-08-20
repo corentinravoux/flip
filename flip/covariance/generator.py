@@ -77,6 +77,7 @@ def correlation_hankel(l, r, k, integrand, hankel_overhead_coefficient=2):
     Hankel.set_fft_engine("numpy")
     r_hankel, xi_hankel = Hankel(integrand)
     mask = r < np.min(r_hankel) * hankel_overhead_coefficient
+    mask |= r > np.max(r_hankel) * (1 - hankel_overhead_coefficient / 100)
     output = np.empty_like(r)
     output[mask] = correlation_integration(l, r[mask], k, integrand)
     output[~mask] = (-1) ** (l % 2) * interp1d(r_hankel, xi_hankel)(r[~mask])

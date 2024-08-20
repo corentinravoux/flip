@@ -1,4 +1,6 @@
 from functools import partial
+import numpy as np
+import scipy as sc
 
 try:
     import jax.numpy as jnp
@@ -6,37 +8,19 @@ try:
     from jax import jit
 
     jax_installed = True
-except:
+except ImportError:
     import numpy as jnp
     import scipy as jsc
 
     jax_installed = False
-
-import numpy as np
-import scipy as sc
 
 from flip import vectors
 from flip.utils import create_log
 
 log = create_log()
 
+
 _available_priors = ["gaussian", "positive", "uniform"]
-
-if jax_installed:
-
-    @jit
-    def log_likelihood_gaussian_inverse_jit(vector, covariance_sum):
-        _, logdet = jnp.linalg.slogdet(covariance_sum)
-        inverse_covariance_sum = jnp.linalg.inv(covariance_sum)
-        chi2 = jnp.dot(vector, jnp.dot(inverse_covariance_sum, vector))
-        return -0.5 * (vector.size * jnp.log(2 * np.pi) + logdet + chi2)
-
-    @jit
-    def log_likelihood_gaussian_cholesky_jit(vector, covariance_sum):
-        cholesky = jsc.linalg.cho_factor(covariance_sum)
-        logdet = 2 * jnp.sum(jnp.log(jnp.diag(cholesky[0])))
-        chi2 = jnp.dot(vector, jsc.linalg.cho_solve(cholesky, vector))
-        return -0.5 * (vector.size * jnp.log(2 * np.pi) + logdet + chi2)
 
 
 def log_likelihood_gaussian_inverse(vector, covariance_sum):
@@ -51,6 +35,11 @@ def log_likelihood_gaussian_cholesky(vector, covariance_sum):
     logdet = 2 * jnp.sum(jnp.log(jnp.diag(cholesky[0])))
     chi2 = jnp.dot(vector, jsc.linalg.cho_solve(cholesky, vector))
     return -0.5 * (vector.size * jnp.log(2 * np.pi) + logdet + chi2)
+
+
+if jax_installed:
+    log_likelihood_gaussian_inverse_jit = jit(log_likelihood_gaussian_inverse)
+    log_likelihood_gaussian_cholesky_jit = jit(log_likelihood_gaussian_cholesky)
 
 
 def no_prior(x):

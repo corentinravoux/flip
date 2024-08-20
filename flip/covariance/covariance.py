@@ -11,7 +11,7 @@ try:
     from jax import jit
 
     jax_installed = True
-except:
+except ImportError:
     import numpy as jnp
 
     jax_installed = False

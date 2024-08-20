@@ -11,7 +11,7 @@ try:
     from jax import jit
 
     jax_installed = True
-except:
+except ImportError:
     jax_installed = False
     pass
 

@@ -12,7 +12,7 @@ def get_coefficients(
     coefficients_dict = {}
     if variant == "growth_index":
         redshift_velocities = redshift_dict["v"]
-
+        cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
         coefficient_vector = (
             np.array(cosmo.Om(redshift_velocities)) ** parameter_values_dict["gamma"]
             * cosmo_background.H(redshift_velocities)

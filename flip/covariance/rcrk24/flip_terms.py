@@ -33,6 +33,7 @@ def N_vv_0_2_0(theta, phi):
 s80 = 0.832
 s8_cmb= s80*0.001176774706956903 # ref. PDG O0=0.3 and gamma=0.5 
 a_cmb = 1/(1+1089.92)
+lna_cmb = np.log(a_cmb)
 
 def dOmdOm0(a, parameter_values_dict):
     numerator = parameter_values_dict["Om0"] * a ** (-3)

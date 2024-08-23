@@ -4,7 +4,6 @@ from functools import partial
 import cosmoprimo
 import numpy as np
 from scipy import integrate
-from scipy.interpolate import interp1d
 from scipy.special import spherical_jn
 
 from flip.covariance import cov_utils
@@ -81,12 +80,14 @@ def correlation_hankel(l, r, k, integrand, hankel_overhead_coefficient=2, kmin=N
         raise ValueError('Min pw spectrum k is too high, please take a lower one. Use kmin parameter to lower bound integration.')
     output = np.empty_like(r)
     output[mask] = correlation_integration(l, r[mask], k, integrand)
-    output[~mask] = (-1) ** (l % 2) * interp1d(r_hankel, xi_hankel)(r[~mask])
-    
+    output[~mask] = (-1) ** (l % 2) * np.interp(r[~mask], r_hankel, xi_hankel)
+
     # Regularization
     if kmin is not None:
         kreg = np.geomspace(np.min(k), kmin, int(len(k) / 10))
-        output -= correlation_integration(l, r, kreg, np.interp(kreg, k, integrand))
+        integrand_reg = np.exp(np.interp(np.log(kreg), np.log(k), np.log(integrand)))
+        output -= correlation_integration(l, r, kreg, integrand_reg)
+
     return output
 
 
@@ -136,7 +137,7 @@ def coefficient_hankel(
                 coord[1], coord[2]
             )
             hankel_ab_i_l_j = correlation_hankel(
-                l, coord[0], wavenumber, M_ab_i_l_j(wavenumber) * power_spectrum, 
+                l, coord[0], wavenumber, M_ab_i_l_j(wavenumber) * power_spectrum,
                 kmin=kmin
             )
             cov_ab_i = cov_ab_i + N_ab_i_l_j * hankel_ab_i_l_j

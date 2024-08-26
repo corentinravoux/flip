@@ -7,7 +7,6 @@ def get_coefficients(
     parameter_values_dict,
     variant=None,
     redshift_dict=None,
-    power_spectrum_amplitude_function=None,
 ):
     coefficients_dict = {}
     if variant == "growth_index":
@@ -41,3 +40,6 @@ def get_diagonal_coefficients(model_type, parameter_values_dict):
     coefficients_dict = {}
     coefficients_dict["vv"] = parameter_values_dict["sigv"] ** 2
     return coefficients_dict
+
+def power_spectrum_amplitude_function(r, parameter_values_dict):
+    return 1

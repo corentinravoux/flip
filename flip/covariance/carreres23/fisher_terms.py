@@ -6,7 +6,6 @@ def get_partial_derivative_coefficients(
     parameter_values_dict,
     variant=None,
     redshift_dict=None,
-    power_spectrum_amplitude_function=None,
 ):
     if variant == "growth_index":
         partial_coefficients_dict = {

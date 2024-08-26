@@ -176,7 +176,6 @@ class FisherMatrix:
             parameter_values_dict,
             variant=variant,
             redshift_dict=self.covariance.redshift_dict,
-            power_spectrum_amplitude_function=self.covariance.power_spectrum_amplitude_function,
         )
         parameter_name_list = []
         covariance_derivative_sum_list = []

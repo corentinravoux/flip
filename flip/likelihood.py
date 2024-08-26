@@ -17,6 +17,28 @@ except ImportError:
 from flip import vectors
 from flip.utils import create_log
 
+
+# try:
+#     import jax, jaxlib
+#     import jax.numpy as jnp
+# except ImportError:
+#     jax = None
+#     import numpy as jnp
+
+
+# def use_jax(array):
+#     """Whether to use jax.numpy depending on whether array is jax's object"""
+#     return jax and isinstance(array, (jaxlib.xla_extension.DeviceArrayBase, jax.core.Tracer))
+
+
+# def np_jax(array):
+#     """Return numpy or jax.numpy depending on whether array is jax's object"""
+#     if use_jax(array):
+#         return jnp
+#     return np
+
+# CR - cool implementation - to test
+
 log = create_log()
 
 
@@ -57,6 +79,11 @@ def interpolate_covariance_sum_1d(
     parameter_values_dict,
     vector_error,
 ):
+    if np.isnan(interpolation_value):
+        return np.full_like(
+            covariance[0].compute_covariance_sum(parameter_values_dict, vector_error),
+            np.nan,
+        )
     upper_index_interpolation = jnp.searchsorted(
         interpolation_value_range, interpolation_value
     )
@@ -193,17 +220,17 @@ class BaseLikelihood(object):
                     )
                 elif prior_properties["type"].lower() == "gaussian":
                     prior = GaussianPrior(
-                        parameter_name=parameter_name.lower(),
+                        parameter_name=parameter_name,
                         prior_mean=prior_properties["mean"],
                         prior_standard_deviation=prior_properties["standard_deviation"],
                     )
                 elif prior_properties["type"].lower() == "positive":
                     prior = PositivePrior(
-                        parameter_name=parameter_name.lower(),
+                        parameter_name=parameter_name,
                     )
                 elif prior_properties["type"].lower() == "uniform":
                     prior = UniformPrior(
-                        parameter_name=parameter_name.lower(),
+                        parameter_name=parameter_name,
                         range=prior_properties["range"],
                     )
                 priors.append(prior)

@@ -2,6 +2,9 @@ import numpy as np
 from astropy.cosmology import FlatLambdaCDM
 from flip.covariance.rcrk24.flip_terms import cosmo_background
 
+def power_spectrum_amplitude_function(r, parameter_values_dict):
+    return 1
+
 def get_coefficients(
     model_type,
     parameter_values_dict,
@@ -33,6 +36,10 @@ def get_coefficients(
         )
 
         coefficients_dict["vv"] = [np.outer(coefficient_vector, coefficient_vector)]
+    else:
+        raise ValueError("For the rcrk24 model, "
+                         "you need to chose variant between growth_index and growth_rate "
+                         "when you initialize the covariance matrix ")
     return coefficients_dict
 
 
@@ -41,5 +48,3 @@ def get_diagonal_coefficients(model_type, parameter_values_dict):
     coefficients_dict["vv"] = parameter_values_dict["sigv"] ** 2
     return coefficients_dict
 
-def power_spectrum_amplitude_function(r, parameter_values_dict):
-    return 1

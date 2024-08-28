@@ -174,7 +174,7 @@ class FisherMatrix:
         partial_coefficients_dict = coefficients.get_partial_derivative_coefficients(
             self.covariance.model_type,
             parameter_values_dict,
-            variant=variant,
+            variant=self.covariance.variant,
             redshift_dict=self.covariance.redshift_dict,
         )
         parameter_name_list = []

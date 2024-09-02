@@ -678,42 +678,6 @@ def generate_generalized_rcrk24_functions(
         redshift_dependent_model=True,
     )
 
-def generate_generalized_rcrk24fs8_functions(
-    filename="./rcrk24fs8/flip_terms.py", number_worker=8
-):
-    """
-    The generate_generalized_rcrk24fs8_functions function generates the flip_terms.py file in the carreres23 directory, which contains functions that calculate M and N terms for a generalized version of Carreres' (2012) model 2 and 3.
-
-    Args:
-        filename: Specify the name of the file that will be generated
-        number_worker: Determine the number of processes to use for multiprocessing
-
-    Returns:
-        A list of functions,
-
-    """
-    mu1, mu2 = sy.symbols("mu1 mu2")
-    k = sy.symbols("k", positive=True, finite=True, real=True)
-    type_list = ["vv"]
-    term_index_list = [["0"]]
-    lmax_list = [[2]]
-    l1max_list = [[1]]
-    l2max_list = [[1]]
-    dict_B = {"B_vv_0": 100**2 * mu1 * mu2 / k**2}
-
-    write_M_N_functions(
-        filename,
-        type_list,
-        term_index_list,
-        lmax_list,
-        dict_B,
-        number_worker=number_worker,
-        wide_angle=True,
-        l1max_list=l1max_list,
-        l2max_list=l2max_list,
-        redshift_dependent_model=True,
-    )
-
 
 def compute_partial_derivative_dictionnary(
     name_models,

@@ -2,7 +2,7 @@ import numpy as np
 from astropy.cosmology import FlatLambdaCDM
 from flip.covariance.rcrk24.flip_terms import cosmo_background
 
-def power_spectrum_amplitude_function(r, parameter_values_dict):
+def power_spectrum_amplitude_function(redshift, parameter_values_dict):
     return 1
 
 def get_coefficients(

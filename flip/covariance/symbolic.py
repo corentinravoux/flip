@@ -752,7 +752,7 @@ def write_partial_derivatives(
         )
 
         f.write(
-            "def get_partial_derivative_coefficients(model_type,parameter_values_dict,variant=None,redshift_dict=None,power_spectrum_amplitude_function=None,):\n"
+            "def get_partial_derivative_coefficients(model_type,parameter_values_dict,variant=None,redshift_dict=None,):\n"
         )
         write_one_function(
             f,

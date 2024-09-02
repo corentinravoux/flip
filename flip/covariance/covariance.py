@@ -21,7 +21,6 @@ class CovMatrix:
         number_densities=None,
         number_velocities=None,
         redshift_dict=None,
-        power_spectrum_amplitude_function=None,
         variant=None,
     ):
         """
@@ -52,7 +51,6 @@ class CovMatrix:
         self.number_densities = number_densities
         self.number_velocities = number_velocities
         self.redshift_dict = redshift_dict
-        self.power_spectrum_amplitude_function = power_spectrum_amplitude_function
         self.variant = variant
 
     @classmethod
@@ -65,7 +63,6 @@ class CovMatrix:
         coordinates_velocity=None,
         additional_parameters_values=None,
         los_definition="bisector",
-        power_spectrum_amplitude_function=None,
         variant=None,
         **kwargs,
     ):
@@ -122,7 +119,6 @@ class CovMatrix:
             number_densities=number_densities,
             number_velocities=number_velocities,
             redshift_dict=redshift_dict,
-            power_spectrum_amplitude_function=power_spectrum_amplitude_function,
             variant=variant,
         )
 
@@ -135,7 +131,6 @@ class CovMatrix:
         coordinates_velocity=None,
         coordinates_density=None,
         additional_parameters_values=None,
-        power_spectrum_amplitude_function=None,
         variant=None,
         **kwargs,
     ):
@@ -192,7 +187,6 @@ class CovMatrix:
             number_densities=number_densities,
             number_velocities=number_velocities,
             redshift_dict=redshift_dict,
-            power_spectrum_amplitude_function=power_spectrum_amplitude_function,
             variant=variant,
         )
 
@@ -312,7 +306,6 @@ class CovMatrix:
             parameter_values_dict,
             variant=self.variant,
             redshift_dict=self.redshift_dict,
-            power_spectrum_amplitude_function=self.power_spectrum_amplitude_function,
         )
         coefficients_dict_diagonal = coefficients.get_diagonal_coefficients(
             self.model_type,

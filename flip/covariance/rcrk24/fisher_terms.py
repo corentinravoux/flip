@@ -1,14 +1,22 @@
 import numpy as np
 from astropy.cosmology import FlatLambdaCDM
+from astropy.cosmology import Planck18 as cosmo_background
+
+from flip.covariance.rcrk24.flip_terms import (
+    dOmdOm0,
+    dpsafdgamma,
+    dpsafdO0,
+    power_spectrum_amplitude_function_growth_index,
+)
 
 # The flip convention is to split the power spectrum into several terms
 # where linearity assumptions are made
-# P_ab = A * B * P0_xy
+# P_ab = AA * BB * P0_xy
 #
 # A is the coefficients where
-# P_ab = A P_xy
+# P_ab = AA P_xy
 # B is the cofficient where
-# P_xy = B P0_xy
+# P_xy = BB P0_xy
 # and
 # P0_xy is the power spectrum for a fiducial cosmology at z=0
 
@@ -16,8 +24,13 @@ from astropy.cosmology import FlatLambdaCDM
 # dA/dp B + A dB/dp
 
 # for vv
-# A = (aHfs8)_1 * (aHfs8_1)
-# B = s8_1 * s8_2
+# A = (aHfs8)_1
+# B = psaf_1 = s8_1
+#
+# B is "power_spectrum_amplitude_values" and it and its derivatives are calculated in flip_terms.py
+# as it is needed by coefficients.py
+# Note however that the derivatives of s8_1 in A and B are different!  A is normalized at z=0. B
+# is normalized a z=z_cmb
 
 
 def get_partial_derivative_coefficients(
@@ -25,185 +38,115 @@ def get_partial_derivative_coefficients(
     parameter_values_dict,
     variant=None,
     redshift_dict=None,
-    power_spectrum_amplitude_function=None,
 ):
+    partial_coefficients_dict = None
+    if variant == "growth_index":
+        redshift_velocities = redshift_dict["v"]
+        a = 1 / (1 + redshift_velocities)
 
-    # s80 is considered to be fixed by the CMB and is hence not a fit parameter
+        cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
+        cosmoOm = np.array(cosmo.Om(redshift_velocities))
+        H = cosmo_background.H(redshift_velocities) / cosmo_background.H0
 
-    s80 = 0.832
-    redshift_velocities = redshift_dict["v"]
-    a = 1 / (1 + redshift_velocities)
+        # The Om0-gamma model f=Omega(Om0)^gamma
 
-    cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
-
-    # The Om0-gamma model f=Omega(Om0)^gamma
-
-    # pre-calculate a few things that are used repeatedly
-    cosmoOm = np.array(cosmo.Om(redshift_velocities))
-    f = cosmoOm ** parameter_values_dict["gamma"]
-    f0 = parameter_values_dict["Om0"] ** parameter_values_dict["gamma"]
-
-    # Calculation of s8 and its derivatives requires an integral.  It is useful to
-    # expand Omega in terms of (1-a), which allows analytic solutions
-
-    # approximation
-    def lnD(a):
-        return np.log(a) * (
-            f0
-            + f0
-            * 3
-            * parameter_values_dict["gamma"]
-            * (1 - parameter_values_dict["Om0"])
-        ) + (1 - a) * f0 * 3 * parameter_values_dict["gamma"] * (
-            1 - parameter_values_dict["Om0"]
+        f0 = parameter_values_dict["Om0"] ** parameter_values_dict["gamma"]
+        f = cosmoOm ** parameter_values_dict["gamma"]
+        power_spectrum_amplitude_values = (
+            power_spectrum_amplitude_function_growth_index(
+                redshift_velocities, parameter_values_dict
+            )
         )
 
-    def dlnDdOm0(a):
-        return (
+        aHf = a * H * f  # aka A
+        aHfpower_spectrum_amplitude = aHf * power_spectrum_amplitude_values
+
+        # now for the partials
+        dfdOm0 = (
             parameter_values_dict["gamma"]
-            * parameter_values_dict["Om0"] ** (parameter_values_dict["gamma"] - 1)
-            * (
-                3
-                * (a - 1)
-                * (
-                    parameter_values_dict["gamma"] * (parameter_values_dict["Om0"] - 1)
-                    + parameter_values_dict["Om0"]
-                )
-                + np.log(a)
-                * (
-                    -3
-                    * parameter_values_dict["gamma"]
-                    * (parameter_values_dict["Om0"] - 1)
-                    - 3 * parameter_values_dict["Om0"]
-                    + 1
-                )
+            * f
+            / cosmoOm
+            * dOmdOm0(a, parameter_values_dict)
+        )
+        dfdgamma = np.log(cosmoOm) * f
+
+        # A = aHf
+
+        dAdOm0 = a * H * dfdOm0
+        dAdgamma = a * H * dfdgamma
+
+        Omega_m_partial_derivative_coefficients = (
+            dAdOm0 * power_spectrum_amplitude_values
+            + aHf
+            * dpsafdO0(
+                redshift_velocities,
+                parameter_values_dict,
+                power_spectrum_amplitude_values=power_spectrum_amplitude_values,
             )
         )
 
-    def dlnDdgamma(a):
-        return (
-            3 * (1 - a) * (1 - parameter_values_dict["Om0"]) * f0
-            + 3
-            * (1 - a)
-            * parameter_values_dict["gamma"]
-            * (1 - parameter_values_dict["Om0"])
-            * f0
-            * np.log(parameter_values_dict["Om0"])
-            + np.log(a)
-            * (
-                3 * (1 - parameter_values_dict["Om0"]) * f0
-                + 3
-                * parameter_values_dict["gamma"]
-                * (1 - parameter_values_dict["Om0"])
-                * f0
-                * np.log(parameter_values_dict["Om0"])
-                + f0 * np.log(parameter_values_dict["Om0"])
+        gamma_partial_derivative_coefficients = (
+            dAdgamma * power_spectrum_amplitude_values
+            + aHf
+            * dpsafdgamma(
+                redshift_velocities,
+                parameter_values_dict,
+                power_spectrum_amplitude_values=power_spectrum_amplitude_values,
             )
         )
 
-    def s8(a):
-        return s80 * np.exp(lnD(a))
+        partial_coefficients_dict = {
+            "Omegam": {
+                "vv": [
+                    np.outer(
+                        Omega_m_partial_derivative_coefficients,
+                        aHfpower_spectrum_amplitude,
+                    )
+                    + np.outer(
+                        aHfpower_spectrum_amplitude,
+                        Omega_m_partial_derivative_coefficients,
+                    ),
+                ],
+            },
+            "gamma": {
+                "vv": [
+                    np.outer(
+                        gamma_partial_derivative_coefficients,
+                        aHfpower_spectrum_amplitude,
+                    )
+                    + np.outer(
+                        aHfpower_spectrum_amplitude,
+                        gamma_partial_derivative_coefficients,
+                    ),
+                ],
+            },
+        }
+    elif variant == "growth_rate":
+        redshift_velocities = redshift_dict["v"]
+        a = 1 / (1 + redshift_velocities)
+        cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
+        H = cosmo_background.H(redshift_velocities) / cosmo_background.H0
 
-    def aHfs8(a):
-        return (
-            f
-            * s8(a)
-            / (1 + redshift_velocities)
-            * cosmo.H(redshift_velocities)
-            / cosmo.H0
+        fs8_partial_derivative_coefficients = (
+            a * cosmo.H(redshift_velocities) / cosmo.H0
         )
 
-    # now for the partials
-
-    def dOmdOm0(a):
-        numerator = parameter_values_dict["Om0"] * a ** (-3)
-        denominator = numerator + 1 - parameter_values_dict["Om0"]
-        return a ** (-3) / denominator - numerator / denominator**2 * (a ** (-3) - 1)
-
-    def dfdOm0(a):
-        return parameter_values_dict["gamma"] * f / cosmoOm * dOmdOm0(a)
-
-    def dfdgamma(a):
-        return np.log(cosmoOm) * f
-
-    def ds8dOm0(a):
-        return s8(a) * dlnDdOm0(a)
-
-    def ds8dgamma(a):
-        return s8(a) * dlnDdgamma(a)
-
-    def dAdOm0(a):
-        return a * cosmo.H(a) / cosmo.H0 * (dfdOm0(a) * s8(a) + f * ds8dOm0(a))
-
-    def dAdgamma(a):
-        return a * cosmo.H(a) / cosmo.H0 * (dfdgamma(a) * s8(a) + f * ds8dgamma(a))
-
-    aHfs8s8 = aHfs8(a) * s8(a)
-
-    Omega_m_partial_derivative_coefficients = dAdOm0(a) * s8(a) + aHfs8(a) * ds8dOm0(a)
-
-    gamma_partial_derivative_coefficients = dAdgamma(a) * s8(a) + aHfs8(a) * ds8dgamma(
-        a
-    )
-
-    # in the fs8 case
-    def s8_fs8(a):
-        return s80 + parameter_values_dict["fs8"] * np.log(a)
-
-    def ds8dfs8(a):
-        return np.log(a)
-
-    fs8_partial_derivative_coefficients = (
-        a
-        * cosmo.H(redshift_velocities)
-        / cosmo.H0
-        * (s8_fs8(a) + parameter_values_dict["fs8"] * ds8dfs8(a))
-    )
-
-    aHfs8s8_fs8 = (
-        a
-        * cosmo.H(redshift_velocities)
-        / cosmo.H0
-        * parameter_values_dict["fs8"]
-        * s8_fs8(a)
-    )
-    partial_coefficients_dict = {
-        "Omegam": {
-            "vv": [
-                np.outer(
-                    Omega_m_partial_derivative_coefficients,
-                    aHfs8s8,
-                )
-                + np.outer(
-                    aHfs8s8,
-                    Omega_m_partial_derivative_coefficients,
-                ),
-            ],
-        },
-        "gamma": {
-            "vv": [
-                np.outer(
-                    gamma_partial_derivative_coefficients,
-                    aHfs8s8,
-                )
-                + np.outer(
-                    aHfs8s8,
-                    gamma_partial_derivative_coefficients,
-                ),
-            ],
-        },
-        "fs8": {
-            "vv": [
-                np.outer(
-                    fs8_partial_derivative_coefficients,
-                    aHfs8s8_fs8,
-                )
-                + np.outer(
-                    aHfs8s8_fs8,
-                    fs8_partial_derivative_coefficients,
-                ),
-            ],
-        },
-    }
+        aHfs8 = (
+            a * cosmo.H(redshift_velocities) / cosmo.H0 * parameter_values_dict["fs8"]
+        )
+        partial_coefficients_dict = {
+            "fs8": {
+                "vv": [
+                    np.outer(
+                        fs8_partial_derivative_coefficients,
+                        aHfs8,
+                    )
+                    + np.outer(
+                        aHfs8,
+                        fs8_partial_derivative_coefficients,
+                    ),
+                ],
+            },
+        }
 
     return partial_coefficients_dict

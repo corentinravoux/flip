@@ -204,15 +204,16 @@ def plot_all_fits(
             for subset in subset_plot:
                 if subset not in f:
                     valid_fit = False
-        fit = pickle.load(open(f, "rb"))
-        if fit[3] is False:
-            valid_fit = False
-        elif fit[4] is False:
-            valid_fit = False
-        if remove_lower is not None:
-            for param in remove_lower.keys():
-                if fit[0][param] < remove_lower[param]:
-                    valid_fit = False
+        if valid_fit:
+            fit = pickle.load(open(f, "rb"))
+            if fit[3] is False:
+                valid_fit = False
+            elif fit[4] is False:
+                valid_fit = False
+            if remove_lower is not None:
+                for param in remove_lower.keys():
+                    if fit[0][param] < remove_lower[param]:
+                        valid_fit = False
         if valid_fit is False:
             continue
         fit_names.append(f)
@@ -276,15 +277,16 @@ def plot_all_mean_fits(
             for subset in subset_plot:
                 if subset not in f:
                     valid_fit = False
-        fit = pickle.load(open(f, "rb"))
-        if fit[3] is False:
-            valid_fit = False
-        elif fit[4] is False:
-            valid_fit = False
-        if remove_lower is not None:
-            for param in remove_lower.keys():
-                if fit[0][param] < remove_lower[param]:
-                    valid_fit = False
+        if valid_fit:
+            fit = pickle.load(open(f, "rb"))
+            if fit[3] is False:
+                valid_fit = False
+            elif fit[4] is False:
+                valid_fit = False
+            if remove_lower is not None:
+                for param in remove_lower.keys():
+                    if fit[0][param] < remove_lower[param]:
+                        valid_fit = False
         if valid_fit is False:
             continue
         fit_to_plot.append(fit)
@@ -308,6 +310,7 @@ def plot_all_mean_fits(
         mean_param_dict[param_name] = []
         mean_error_dict[param_name] = []
         error_mean_dict[param_name] = []
+        std_dict[param_name] = []
 
     for i, fit_p in enumerate(unique_fit_prop):
 

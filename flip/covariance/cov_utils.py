@@ -231,6 +231,21 @@ def return_full_cov(cov):
     return full_cov
 
 
+def return_flat_cov(cov):
+    variance_val = cov[0, 0]
+    flat_cov = cov[np.triu_indices_from(cov, k=1)]
+    flat_cov = np.insert(flat_cov, 0, variance_val)
+    return flat_cov
+
+
+def return_flat_cross_cov(cov):
+    flat_cov = cov[np.triu_indices_from(cov, k=0)]
+    
+    # TODO BC: Just remove this extra term in cross cov 
+    flat_cov = np.insert(flat_cov, 0, -9)
+    return flat_cov
+
+
 def return_full_cov_cross(cov, number_objects_g, number_objects_v):
     """
     The return_full_cov_cross function takes in a covariance matrix and the number of objects in each band.

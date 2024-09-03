@@ -521,42 +521,83 @@ class CovMatrix:
             A dictionary with the full covariance matrices for each redshift bin
 
         """
-        if self.full_matrix is False:
-            for key in ["gg", "vv", "gv"]:
-                if key in self.covariance_dict.keys():
-                    if key == "gg":
-                        new_shape = (
-                            self.covariance_dict[key].shape[0],
-                            self.number_densities,
-                            self.number_densities,
-                        )
-                    elif key == "gv":
-                        new_shape = (
-                            self.covariance_dict[key].shape[0],
-                            self.number_densities,
-                            self.number_velocities,
-                        )
-                    elif key == "vv":
-                        new_shape = (
-                            self.covariance_dict[key].shape[0],
-                            self.number_velocities,
-                            self.number_velocities,
-                        )
-                    new_cov = np.zeros(new_shape)
-                    for i, _ in enumerate(self.covariance_dict[key]):
-                        if key == "gv":
-                            new_cov[i] = cov_utils.return_full_cov_cross(
-                                self.covariance_dict[key][i],
-                                self.number_densities,
-                                self.number_velocities,
-                            )
-                        else:
-                            new_cov[i] = cov_utils.return_full_cov(
-                                self.covariance_dict[key][i]
-                            )
-                    self.covariance_dict[key] = new_cov
+        if self.full_matrix:
+            log.add('Full matrix already computed')
+            return 
+        
+        for key in self.covariance_dict.keys():
+            if key == "gg":
+                new_shape = (
+                    self.covariance_dict[key].shape[0],
+                    self.number_densities,
+                    self.number_densities,
+                )
+            elif key == "gv":
+                new_shape = (
+                    self.covariance_dict[key].shape[0],
+                    self.number_densities,
+                    self.number_velocities,
+                )
+            elif key == "vv":
+                new_shape = (
+                    self.covariance_dict[key].shape[0],
+                    self.number_velocities,
+                    self.number_velocities,
+                )
+            else:
+                log.warning(f"{key} != 'gg', 'gv' or 'vv' was ignored")
+                continue
+            
+            new_cov = np.zeros(new_shape)
+            for i, _ in enumerate(self.covariance_dict[key]):
+                if key == "gv":
+                    new_cov[i] = cov_utils.return_full_cov_cross(
+                        self.covariance_dict[key][i],
+                        self.number_densities,
+                        self.number_velocities,
+                    )
+                else:
+                    new_cov[i] = cov_utils.return_full_cov(
+                        self.covariance_dict[key][i]
+                    )
+            self.covariance_dict[key] = new_cov
 
             self.full_matrix = True
+
+    def compute_flat_matrix(self):
+        for key in self.covariance_dict.keys():
+            if key == "gg":
+                new_shape = (
+                    self.covariance_dict[key].shape[0], 
+                    int(self.number_densities * (self.number_densities - 1 ) / 2) + 1
+                    )
+            elif key == "gv":
+                new_shape = (
+                    self.covariance_dict[key].shape[0], 
+                    self.number_densities * self.number_velocities + 1 
+                )
+            elif key == "vv":
+                new_shape = (
+                    self.covariance_dict[key].shape[0],
+                    int(self.number_velocities * (self.number_velocities - 1 ) / 2) + 1
+                    )
+            else:
+                log.warning(f"{key} != 'gg', 'gv' or 'vv' was ignored")
+                continue
+
+            new_cov = np.zeros(new_shape)
+            for i, _ in enumerate(self.covariance_dict[key]):
+                if key == "gv":
+                    new_cov[i] = cov_utils.return_flat_cross_cov(
+                        self.covariance_dict[key][i],
+                        )
+                else:
+                    new_cov[i] = cov_utils.return_flat_cov(
+                        self.covariance_dict[key][i]
+                    )
+                    self.covariance_dict[key] = new_cov
+
+            self.full_matrix = False
 
     def write(
         self,
@@ -605,3 +646,74 @@ class CovMatrix:
 
         elif file_format == "npz":
             np.savez(f"{filename}.npz", **class_attrs_dictionary)
+
+    def mask(self, mask_vel=None, mask_dens=None):
+        
+        Ng = self.number_densities
+        Nv = self.number_velocities
+        
+        if mask_vel is None and mask_dens is None:
+            raise ValueError('No mask set')
+        
+        masked_cov_dic = {}
+        if mask_vel is not None:
+            if len(mask_vel) != self.number_velocities:
+                raise ValueError('Velocities mask size does not match vel cov size')
+            
+            Nv = np.sum(mask_vel)
+            cov_vv_mask = np.outer(mask_vel, mask_vel)
+
+            if self.full_matrix:
+                masked_cov_dic['vv'] = np.array([cov[cov_vv_mask].reshape((Nv, Nv)) for cov in self.covariance_dict['vv']])
+            else:
+                cov_vv_mask = cov_vv_mask[np.triu_indices(self.number_velocities, k=1)]
+                cov_vv_mask = np.insert(cov_vv_mask, 0, True)
+
+                masked_cov_dic['vv'] = np.array([cov[cov_vv_mask] for cov in self.covariance_dict['vv']])
+
+        if mask_dens is not None:
+            if len(mask_dens) != self.number_densities:
+                raise ValueError('Densities mask size does not match density cov size')
+            
+            Ng = np.sum(mask_dens)
+            cov_gg_mask = np.outer(mask_dens, mask_dens)
+            
+            if self.full_matrix:
+                masked_cov_dic['gg'] = np.array([cov[cov_gg_mask].reshape((Ng, Ng)) for cov in self.covariance_dict['gg']])
+            else:
+                cov_gg_mask = cov_gg_mask[np.triu_indices(self.number_densities, k=1)]
+                cov_gg_mask = np.insert(cov_gg_mask, 0, True)
+                masked_cov_dic['gg'] = np.array([cov[cov_gg_mask] for cov in self.covariance_dict['gg']])
+
+        if self.number_densities is not None and self.number_velocities is not None:
+            if mask_vel is None:
+                cov_gv_mask = np.outer(mask_dens, np.ones(self.number_velocities, dtype='bool'))
+            elif mask_dens is None:
+                cov_gv_mask = np.outer(np.ones(self.number_densities, dtype='bool'), mask_vel)
+            else:
+                cov_gv_mask = np.outer(mask_dens, mask_vel)
+
+            if self.full_matrix:
+                masked_cov_dic['gv'] = np.array([cov[cov_gv_mask].reshape((Ng, Nv)) for cov in self.covariance_dict['gv']])
+            else:
+                cov_gv_mask = cov_gv_mask[np.triu_indices(self.number_densities, k=0, m=self.number_velocities)]
+                cov_gv_mask = np.insert(cov_gvC2_mask, 0, True)
+                masked_cov_dic['gv'] = np.array([cov[cov_gv_mask] for cov in self.covariance_dict['gv']])
+            
+        for k in self.covariance_dict:
+            if k not in masked_cov_dic:
+                masked_cov_dic[k] = self.covariance_dict[k]
+    
+        return CovMatrix(
+            model_name=self.model_name,
+            model_type=self.model_type,
+            los_definition=self.los_definition,
+            covariance_dict=masked_cov_dic,
+            full_matrix=self.full_matrix,
+            number_densities=np.sum(mask_dens),
+            number_velocities=np.sum(mask_vel),
+            redshift_dict=self.redshift_dict,
+            power_spectrum_amplitude_function=self.power_spectrum_amplitude_function,
+            variant=self.variant,
+            )
+

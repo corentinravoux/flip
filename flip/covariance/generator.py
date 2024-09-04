@@ -335,7 +335,7 @@ def compute_coeficient(
                 locals()[f"cov_{index}"] = np.concatenate(
                     eval(f"map_async_{index}").get()
                 )
-
+    
     for i, index in enumerate(term_index_list):
         if multi_index_model:
             index_power_spectrum = int(index[0])

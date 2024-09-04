@@ -545,7 +545,7 @@ class CovMatrix:
 
             new_cov = np.zeros(new_shape)
             for i, _ in enumerate(self.covariance_dict[key]):
-                if key == "gv":
+                if key[0] != key[1]:
                     new_cov[i] = cov_utils.return_full_cov_cross(
                         self.covariance_dict[key][i],
                         self.number_densities,

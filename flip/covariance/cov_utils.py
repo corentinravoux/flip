@@ -240,9 +240,6 @@ def return_flat_cov(cov):
 
 def return_flat_cross_cov(cov):
     flat_cov = cov[np.triu_indices_from(cov, k=0)]
-    
-    # TODO BC: Just remove this extra term in cross cov 
-    flat_cov = np.insert(flat_cov, 0, -9)
     return flat_cov
 
 
@@ -260,7 +257,7 @@ def return_full_cov_cross(cov, number_objects_g, number_objects_v):
         The full covariance matrix
 
     """
-    full_cov = cov[1:].reshape((number_objects_g, number_objects_v))
+    full_cov = cov.reshape((number_objects_g, number_objects_v))
     return full_cov
 
 

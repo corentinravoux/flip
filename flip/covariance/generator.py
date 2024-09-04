@@ -77,7 +77,9 @@ def correlation_hankel(l, r, k, integrand, hankel_overhead_coefficient=2, kmin=N
     r_hankel, xi_hankel = Hankel(integrand)
     mask = r < np.min(r_hankel) * hankel_overhead_coefficient
     if np.any(r > np.max(r_hankel)):
-        raise ValueError('Min pw spectrum k is too high, please take a lower one. Use kmin parameter to lower bound integration.')
+        raise ValueError(
+            "Min pw spectrum k is too high, please take a lower one. Use kmin parameter to lower bound integration."
+        )
     output = np.empty_like(r)
     output[mask] = correlation_integration(l, r[mask], k, integrand)
     output[~mask] = (-1) ** (l % 2) * np.interp(r[~mask], r_hankel, xi_hankel)
@@ -100,7 +102,7 @@ def coefficient_hankel(
     power_spectrum,
     coord,
     additional_parameters_values=None,
-    kmin=None
+    kmin=None,
 ):
     """
     The coefficient_hankel function computes the covariance between two terms of a given model.
@@ -137,8 +139,11 @@ def coefficient_hankel(
                 coord[1], coord[2]
             )
             hankel_ab_i_l_j = correlation_hankel(
-                l, coord[0], wavenumber, M_ab_i_l_j(wavenumber) * power_spectrum,
-                kmin=kmin
+                l,
+                coord[0],
+                wavenumber,
+                M_ab_i_l_j(wavenumber) * power_spectrum,
+                kmin=kmin,
             )
             cov_ab_i = cov_ab_i + N_ab_i_l_j * hankel_ab_i_l_j
     return cov_ab_i
@@ -272,7 +277,7 @@ def compute_coeficient(
     additional_parameters_values=None,
     number_worker=8,
     hankel=True,
-    kmin=None
+    kmin=None,
 ):
     """
     The compute_coeficient function computes the covariance matrix for a given model.
@@ -316,9 +321,8 @@ def compute_coeficient(
             power_spectrum_list[index_power_spectrum][0],
             power_spectrum_list[index_power_spectrum][1],
             additional_parameters_values=additional_parameters_values,
-            kmin=kmin
+            kmin=kmin,
         )
-
     if number_worker == 1:
         for i, index in enumerate(term_index_list):
             loc = locals()
@@ -335,32 +339,31 @@ def compute_coeficient(
                 locals()[f"cov_{index}"] = np.concatenate(
                     eval(f"map_async_{index}").get()
                 )
-    
-    for i, index in enumerate(term_index_list):
-        if multi_index_model:
-            index_power_spectrum = int(index[0])
-        else:
-            index_power_spectrum = i
-        variance_t = coefficient(
-            model_name,
-            covariance_type,
-            index,
-            lmax_list[i],
-            power_spectrum_list[index_power_spectrum][0],
-            power_spectrum_list[index_power_spectrum][1],
-            np.zeros((3, 1)),
-            additional_parameters_values=additional_parameters_values,
-        )[0]
 
-        locals()[f"cov_{index}"] = np.insert(eval(f"cov_{index}"), 0, variance_t)
+    # In the case of autocorrelation, add the theoretical variance.
+    if covariance_type[0] == covariance_type[1]:
+        for i, index in enumerate(term_index_list):
+            if multi_index_model:
+                index_power_spectrum = int(index[0])
+            else:
+                index_power_spectrum = i
+            variance_t = coefficient(
+                model_name,
+                covariance_type,
+                index,
+                lmax_list[i],
+                power_spectrum_list[index_power_spectrum][0],
+                power_spectrum_list[index_power_spectrum][1],
+                np.zeros((3, 1)),
+                additional_parameters_values=additional_parameters_values,
+            )[0]
+
+            locals()[f"cov_{index}"] = np.insert(eval(f"cov_{index}"), 0, variance_t)
 
     loc = locals()
     return np.array(
         [eval(f"cov_{index}", loc) for _, index in enumerate(term_index_list)]
     )
-
-
-# CR - Need to remove variance at zero separation for vg
 
 
 def compute_cov(
@@ -374,7 +377,7 @@ def compute_cov(
     number_worker=8,
     hankel=True,
     los_definition="bisector",
-    kmin=None
+    kmin=None,
 ):
     """
     The compute_cov function computes the covariance matrix for a given model.
@@ -416,7 +419,7 @@ def compute_cov(
         additional_parameters_values=additional_parameters_values,
         number_worker=number_worker,
         hankel=hankel,
-        kmin=kmin
+        kmin=kmin,
     )
 
     return covariance
@@ -476,7 +479,7 @@ def generate_covariance(
     number_worker=8,
     hankel=True,
     los_definition="bisector",
-    kmin=None
+    kmin=None,
 ):
     """
     The generate_flip function computes the covariance matrix for a given model.
@@ -516,7 +519,7 @@ def generate_covariance(
             number_worker=number_worker,
             hankel=hankel,
             los_definition=los_definition,
-            kmin=kmin
+            kmin=kmin,
         )
         number_densities = len(coordinates_density[0])
     else:
@@ -534,7 +537,7 @@ def generate_covariance(
             number_worker=number_worker,
             hankel=hankel,
             los_definition=los_definition,
-            kmin=kmin
+            kmin=kmin,
         )
         number_velocities = len(coordinates_velocity[0])
     else:
@@ -552,7 +555,7 @@ def generate_covariance(
             number_worker=number_worker,
             hankel=hankel,
             los_definition=los_definition,
-            kmin=kmin
+            kmin=kmin,
         )
 
     redshift_dict = generate_redshift_dict(

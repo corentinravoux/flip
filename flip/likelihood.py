@@ -1,4 +1,5 @@
 from functools import partial
+
 import numpy as np
 import scipy as sc
 
@@ -16,7 +17,6 @@ except ImportError:
 
 from flip import vectors
 from flip.utils import create_log
-
 
 # try:
 #     import jax, jaxlib

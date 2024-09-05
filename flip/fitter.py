@@ -1,6 +1,7 @@
 import abc
 import multiprocessing as mp
 import os
+from contextlib import nullcontext
 
 import emcee
 import iminuit
@@ -8,7 +9,6 @@ import numpy as np
 
 try:
     from jax import grad as jax_grad
-    from jax import jit
 
     jax_installed = True
 except ImportError:
@@ -476,8 +476,9 @@ class EMCEESampler(Sampler):
 
         self.backend = None
         if backend_file is not None:
+            backend_file_exists = os.path.exists(backend_file)
             self.backend = emcee.backends.HDFBackend(backend_file)
-            if os.path.exists(backend_file):
+            if backend_file_exists:
                 log.add(
                     "File already exist"
                     "Initial size: {0}".format(self.backend.iteration)
@@ -485,10 +486,13 @@ class EMCEESampler(Sampler):
                 self._p0 = None
                 self.nwalkers = self.backend.shape[0]
             else:
-                log.add("Create new file to store chains")
+                log.add("No file initialize, will create a new one")
+            self.backend_file_exists = backend_file_exists
+        else:
+            self.backend_file_exists = False
 
     def run_chains(self, nsteps, number_worker=1, progress=False):
-        with mp.Pool(number_worker) as pool:
+        with mp.Pool(number_worker) if number_worker != 1 else nullcontext() as pool:
             sampler = emcee.EnsembleSampler(
                 self.nwalkers,
                 self.ndim,
@@ -496,7 +500,11 @@ class EMCEESampler(Sampler):
                 pool=pool,
                 backend=self.backend,
             )
-            sampler.run_mcmc(self.p0, nsteps, progress=progress)
+            sampler.run_mcmc(
+                self.p0,
+                nsteps,
+                progress=progress,
+            )
         return sampler
 
     def run_chains_untilconv(
@@ -507,8 +515,8 @@ class EMCEESampler(Sampler):
         progress=False,
     ):
         """Run chains until reaching auto correlation convergence criteria."""
-        tau = np.inf
-        with mp.Pool(number_worker) as pool:
+        old_tau = np.inf
+        with mp.Pool(number_worker) if number_worker != 1 else nullcontext() as pool:
             sampler = emcee.EnsembleSampler(
                 self.nwalkers,
                 self.ndim,
@@ -516,16 +524,23 @@ class EMCEESampler(Sampler):
                 pool=pool,
                 backend=self.backend,
             )
-            for sample in sampler.sample(
-                self.p0, iterations=maxstep, progress=progress
-            ):
-                if sampler.iteration % 500 == 0:
-                    # Compute tau
-                    tau = sampler.get_autocorr_time(tol=0)
-                    # Check convergence
-                    converged = np.all(tau * 100 < sampler.iteration)
-                    converged &= np.all(np.abs(old_tau - tau) / tau < tau_conv)
-                    if converged:
-                        break
-                    old_tau = tau
+            if not self.backend_file_exists:
+                for _ in sampler.sample(self.p0, iterations=maxstep, progress=progress):
+                    if sampler.iteration % 500 == 0:
+                        # Compute tau
+                        tau = sampler.get_autocorr_time(tol=0)
+                        # Check convergence
+                        converged = np.all(tau * 100 < sampler.iteration)
+                        converged &= np.all(np.abs(old_tau - tau) / tau < tau_conv)
+                        if converged:
+                            break
+                        old_tau = tau
+            else:
+                # If the file already exists run to max step.
+                sampler.run_mcmc(
+                    None,
+                    maxstep - self.backend.iteration,
+                    progress=progress,
+                )
+
         return sampler

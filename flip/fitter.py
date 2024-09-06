@@ -483,6 +483,8 @@ class EMCEESampler(Sampler):
                     "File already exist"
                     "Initial size: {0}".format(self.backend.iteration)
                 )
+                if self.backend.iteration == 0:
+                    log.add("Backend file is empty, please delete it and relaunch")
                 self._p0 = None
                 self.nwalkers = self.backend.shape[0]
             else:

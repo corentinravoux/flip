@@ -346,7 +346,7 @@ def contract_covariance(
             additional_parameters_values=additional_parameters_values,
             number_worker=number_worker,
             hankel=hankel,
-        )[:, 1:].reshape(-1, len(coord_1), len(coord_2))
+        )[:, :].reshape(-1, len(coord_1), len(coord_2))
     redshift_dict = generator_flip.generate_redshift_dict(
         model_name,
         model_type,

@@ -1,5 +1,5 @@
 from flip.utils import create_log
-from .basic import DataVector
+from .basic import DataVector, redshift_dependence_velocity
 
 try:
     import jax.numpy as jnp
@@ -16,7 +16,7 @@ except ImportError:
 
 class VelFromSALTfit(DataVector):
     _needed_keys = ["zobs", "mb", "x1", "c", "rcom_zobs"]
-    _free_par = ["alpha", "beta", "M0", "sigM"]
+    _free_par = ["alpha", "beta", "M_0", "sigma_M"]
 
     @property
     def conditional_needed_keys(self):
@@ -25,40 +25,47 @@ class VelFromSALTfit(DataVector):
             add_keys += ["e_mb", "e_x1", "e_c", "cov_mb_x1", "cov_mb_c", "cov_x1_c"]
         return add_keys
 
-    def _give_dmu(self, parameter_values_dict):
-        dmu = self._data["mb"]
-        dmu += parameter_values_dict["alpha"] * self._data["x1"]
-        dmu -= parameter_values_dict["beta"] * self._data["c"]
-        dmu -= parameter_values_dict["M0"]
+    def compute_observed_distance_modulus(self, parameter_values_dict):
+        mu = self._data["mb"]
+        mu += parameter_values_dict["alpha"] * self._data["x1"]
+        mu -= parameter_values_dict["beta"] * self._data["c"]
+        mu -= parameter_values_dict["M_0"]
+        return mu
+
+    def compute_dmu(self,parameter_values_dict):
+        dmu = self.compute_observed_distance_modulus(parameter_values_dict)
         dmu -= 5 * jnp.log10((1 + self._data["zobs"]) * self._data["rcom_zobs"]) + 25
         return dmu
 
-    def _give_var_mu(self, parameter_values_dict):
-        var_mu = (
-            self._data["e_mb"] ** 2
-            + parameter_values_dict["alpha"] ** 2 * self._data["e_x1"] ** 2
-            + parameter_values_dict["beta"] ** 2 * self._data["e_c"] ** 2
-        )
-        var_mu += (
-            2 * parameter_values_dict["alpha"] * self._data["cov_mb_x1"]
-            - 2 * parameter_values_dict["beta"] * self._data["cov_mb_c"]
-            - 2
-            * parameter_values_dict["alpha"]
-            * parameter_values_dict["beta"]
-            * self._data["cov_x1_c"]
-        )
-        var_mu += parameter_values_dict["sigM"] ** 2
+    def compute_observed_distance_modulus_error(self, parameter_values_dict):
+        if self._cov is None:
+            var_mu = (
+                self._data["e_mb"] ** 2
+                + parameter_values_dict["alpha"] ** 2 * self._data["e_x1"] ** 2
+                + parameter_values_dict["beta"] ** 2 * self._data["e_c"] ** 2
+            )
+            var_mu += (
+                2 * parameter_values_dict["alpha"] * self._data["cov_mb_x1"]
+                - 2 * parameter_values_dict["beta"] * self._data["cov_mb_c"]
+                - 2
+                * parameter_values_dict["alpha"]
+                * parameter_values_dict["beta"]
+                * self._data["cov_x1_c"]
+            )
+            var_mu += parameter_values_dict["sigma_M"]**2
+        else:
+            return self._cov + jnp.eye(self._cov.shape[0]) * parameter_values_dict["sigma_M"]**2
         return var_mu
 
     def _give_data_and_errors(self, parameter_values_dict):
+        var_vel = self.compute_observed_distance_modulus_error(parameter_values_dict)
         if self._cov is None:
-            var_dmu = self._give_var_mu(parameter_values_dict)
-            var_dmu *= self._dmu2vel**2
+            var_vel *= self._dmu2vel**2
         else:
             J = A[0] + alpha * A[1] - beta * A[2]
             J *= self._dmu2vel
-            var_dmu = J @ self._cov @ J.T
-        return self._dmu2vel * self._give_dmu(parameter_values_dict), var_dmu
+            var_vel = J @ var_vel @ J.T
+        return self._dmu2vel * self.compute_dmu(parameter_values_dict), jnp.sqrt(var_vel)
 
     def _init_dmu2vel(self, vel_estimator, **kwargs):
         return redshift_dependence_velocity(self._data, vel_estimator, **kwargs)

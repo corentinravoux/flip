@@ -15,7 +15,6 @@ except ImportError:
 
     jax_installed = False
 
-from flip import vectors
 from flip.utils import create_log
 
 # try:

@@ -1,4 +1,5 @@
 import abc
+import flip.utils as utils
 from flip.utils import create_log
 
 try:
@@ -81,6 +82,10 @@ class DataVector(abc.ABC):
     def needed_keys(self):
         return self._needed_keys + self.conditional_needed_keys
 
+    @property
+    def data(self):
+        return self._data
+
     @abc.abstractmethod
     def _give_data_and_errors(self, **kwargs):
         pass
@@ -94,21 +99,30 @@ class DataVector(abc.ABC):
         self._cov = cov
         self._check_keys(data)
         self._data = data
+        self._kwargs = kwargs
 
-        # Jaxify if needed
-        if jax_installed:
-            for k in self._data:
-                self._data[k] = jnp.array(self._data[k])
+        for k in self._data:
+            self._data[k] = jnp.array(self._data[k])
 
     def __call__(self, *args):
         return self._give_data_and_errors(*args)
+
+    def mask(self, bool_mask):
+        if len(bool_mask) != len(self.data[self.needed_keys[0]]):
+            raise ValueError('Boolean mask does not align with data')  
+        new_data = {k: v[bool_mask] for k, v in self._data.items()}
+        
+        new_cov = None
+        if self._cov is not None:
+            new_cov = sel._cov[np.outer(bool_mask, bool_mask)]   
+        return type(self)(new_data, cov=new_cov, **self._kwargs)
 
 class Density(DataVector):
     _kind = "densities"
     _needed_keys = ["density", "density_error"]
 
     def _give_data_and_errors(self, **kwargs):
-        return self._data["velocity"], self._data["velocity_error"]
+        return self._data["density"], self._data["density_error"]
 
 class DirectVel(DataVector):
     _kind = "velocities"
@@ -121,7 +135,7 @@ class DirectVel(DataVector):
             cond_keys += ["velocity_error"]
         return cond_keys
 
-    def _give_data_and_errors(self, **kwargs):
+    def _give_data_and_errors(self, *args):
         if self._cov is not None:
             return self._data["velocity"], self._cov
         return self._data["velocity"], self._data["velocity_error"]
@@ -175,4 +189,4 @@ class VelFromHDres(DirectVel):
         if self._cov is not None:
             self._cov = self._dmu2vel.T @ self._cov @ self._dmu2vel
         else:
-            self._data["velocity_error"] = self._dmu2vel**2 * self._data["dmu_error"]
+            self._data["velocity_error"] = self._dmu2vel * self._data["dmu_error"]

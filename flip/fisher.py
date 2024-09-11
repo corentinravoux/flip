@@ -3,7 +3,6 @@ import time
 
 import numpy as np
 
-from flip import vectors
 from flip.utils import create_log
 
 log = create_log()

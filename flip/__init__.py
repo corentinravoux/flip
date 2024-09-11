@@ -5,7 +5,7 @@ import os
 from flip.utils import create_log
 
 log = create_log()
-from . import covariance, fisher, fitter, gridding, likelihood, power_spectra, utils
+from . import covariance, fisher, fitter, gridding, likelihood, power_spectra, utils, data_vector
 
 try:
     import jax

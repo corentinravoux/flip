@@ -111,8 +111,6 @@ class BaseLikelihood(object):
 
     _default_likelihood_properties = {
         "inversion_method": "inverse",
-        "velocity_type": "direct",
-        "velocity_estimator": "full",
         "negative_log_likelihood": True,
         "use_jit": False,
         "use_gradient": False,
@@ -174,35 +172,8 @@ class BaseLikelihood(object):
         likelihood.verify_covariance()
 
         likelihood.prior = likelihood.initialize_prior()
-
         return likelihood
 
-    def load_data_vector(
-        self,
-        model_type,
-        parameter_values_dict,
-    ):
-        if model_type in ["velocity", "density_velocity", "full"]:
-            velocity, velocity_error = vectors.load_velocity_vectors(
-                self.data,
-                parameter_values_dict,
-                velocity_type=self.likelihood_properties["velocity_type"],
-                velocity_estimator=self.likelihood_properties["velocity_estimator"],
-            )
-
-        if model_type in ["density", "density_velocity", "full"]:
-            density, density_error = vectors.load_density_vectors(self.data)
-
-        if model_type == "density":
-            vector, vector_error = density, density_error
-        elif model_type == "velocity":
-            vector, vector_error = velocity, velocity_error
-        elif model_type in ["density_velocity", "full"]:
-            vector = np.concatenate([density, velocity], axis=0)
-            vector_error = np.concatenate([density_error, velocity_error], axis=0)
-        else:
-            log.add(f"Wrong model type in the loaded covariance.")
-        return vector, vector_error
 
     def initialize_prior(
         self,
@@ -263,10 +234,8 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
     def __call__(self, parameter_values):
         parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
 
-        vector, vector_error = self.load_data_vector(
-            self.covariance.model_type,
-            parameter_values_dict,
-        )
+        vector, vector_error = self.data(parameter_values_dict)
+        
         covariance_sum = self.covariance.compute_covariance_sum(
             parameter_values_dict,
             vector_error,
@@ -373,10 +342,7 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
             else:
                 return -np.inf
 
-        vector, vector_error = self.load_data_vector(
-            self.covariance[0].model_type,
-            parameter_values_dict,
-        )
+        vector, vector_error = self.data(parameter_values_dict)
 
         covariance_sum = interpolate_covariance_sum_1d(
             self.interpolation_value_range,
@@ -486,10 +452,7 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
             else:
                 return -np.inf
 
-        vector, vector_error = self.load_data_vector(
-            self.covariance[0][0].model_type,
-            parameter_values_dict,
-        )
+        vector, vector_error = self.data(parameter_values)
 
         covariance_sum_matrix = []
 

@@ -182,6 +182,7 @@ class CovMatrix:
         self,
         model_name=None,
         model_type=None,
+        free_par=None,
         los_definition=None,
         covariance_dict=None,
         full_matrix=False,
@@ -212,6 +213,7 @@ class CovMatrix:
 
         self.model_name = model_name
         self.model_type = model_type
+        self.free_par = free_par
         self.los_definition = los_definition
         self.covariance_dict = covariance_dict
         self.full_matrix = full_matrix
@@ -280,6 +282,7 @@ class CovMatrix:
         return cls(
             model_name=model_name,
             model_type=model_type,
+            free_par=eval(f'flip.covariance.{model_name}._free_par'),
             los_definition=los_definition,
             covariance_dict=covariance_dict,
             full_matrix=False,

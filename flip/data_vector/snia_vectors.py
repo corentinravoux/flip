@@ -20,10 +20,10 @@ class VelFromSALTfit(DataVector):
 
     @property
     def conditional_needed_keys(self):
-        add_keys = []
+        cond_keys = []
         if self._cov is None:
-            add_keys += ["e_mb", "e_x1", "e_c", "cov_mb_x1", "cov_mb_c", "cov_x1_c"]
-        return add_keys
+            cond_keys += ["e_mb", "e_x1", "e_c", "cov_mb_x1", "cov_mb_c", "cov_x1_c"]
+        return cond_keys
 
     def compute_observed_distance_modulus(self, parameter_values_dict):
         mu = self._data["mb"]
@@ -80,7 +80,6 @@ class VelFromSALTfit(DataVector):
 
     def __init__(self, data, cov=None, vel_estimator="full", **kwargs):
         super().__init__(data, cov=cov)
-        self._vel_estimator = vel_estimator
         self._dmu2vel = self._init_dmu2vel(vel_estimator, **kwargs)
 
         self._A = None

@@ -246,12 +246,11 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         )
         prior_value = self.prior(parameter_values_dict)
 
+        likelihood_value = likelihood_function(vector, covariance_sum) + prior_value
+
         if self.likelihood_properties["negative_log_likelihood"]:
-            likelihood_value = (
-                -likelihood_function(vector, covariance_sum) - prior_value
-            )
-        else:
-            likelihood_value = likelihood_function(vector, covariance_sum) + prior_value
+            likelihood_value *= -1
+            
         return likelihood_value
 
 
@@ -355,13 +354,11 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
             + f"{'_jit' if jax_installed and self.likelihood_properties['use_jit'] else ''}"
         )
         prior_value = self.prior(parameter_values_dict)
+        
+        likelihood_value = likelihood_function(vector, covariance_sum) + prior_value
 
         if self.likelihood_properties["negative_log_likelihood"]:
-            likelihood_value = (
-                -likelihood_function(vector, covariance_sum) - prior_value
-            )
-        else:
-            likelihood_value = likelihood_function(vector, covariance_sum) + prior_value
+            likelihood_value *= -1
 
         return likelihood_value
 

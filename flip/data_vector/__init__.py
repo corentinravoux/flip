@@ -2,4 +2,4 @@
 
 from .basic import *
 from . import snia_vectors
-from . import vector_utils
+from . import cosmo_utils

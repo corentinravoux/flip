@@ -1,6 +1,10 @@
 import abc
 import flip.utils as utils
+import numpy as np
 from flip.utils import create_log
+from flip.covariance import CovMatrix
+from inspect import getmembers, isfunction
+from . import cosmo_utils
 
 try:
     import jax.numpy as jnp
@@ -117,15 +121,30 @@ class DataVector(abc.ABC):
             new_cov = sel._cov[np.outer(bool_mask, bool_mask)]   
         return type(self)(new_data, cov=new_cov, **self._kwargs)
 
+    def compute_cov(self, model, power_spectrum_dict, **kwargs):
+        
+        coords = np.vstack((
+            self.data['ra'], 
+            self.data['dec'], 
+            self.data['rcom_zobs']
+            ))
+
+        return CovMatrix.init_from_flip(model,
+                                        self._kind,
+                                        power_spectrum_dict,
+                                        **{f'coordinates_{self._kind}': coords},
+                                        **kwargs)
+
+
 class Density(DataVector):
-    _kind = "densities"
+    _kind = "density"
     _needed_keys = ["density", "density_error"]
 
     def _give_data_and_errors(self, **kwargs):
         return self._data["density"], self._data["density_error"]
 
 class DirectVel(DataVector):
-    _kind = "velocities"
+    _kind = "velocity"
     _needed_keys = ["velocity"]
 
     @property
@@ -173,15 +192,12 @@ class VelFromHDres(DirectVel):
         cond_keys = []
         if self._cov is None:
             cond_keys += ["dmu_error"]
-        if self._vel_estimator == "full":
-            cond_keys += ["hubble_norm", "rcom_zobs"]
         return self._needed_keys + cond_keys
 
     def _init_dmu2vel(self, vel_estimator, **kwargs):
         return redshift_dependence_velocity(self._data, vel_estimator, **kwargs)
 
     def __init__(self, data, cov=None, vel_estimator="full", **kwargs):
-        self._vel_estimator = vel_estimator
         super().__init__(data, cov=cov)
         self._dmu2vel = self._init_dmu2vel(vel_estimator, **kwargs)
         self._data["velocity"] = self._dmu2vel * self._data["dmu"]

@@ -260,6 +260,12 @@ class CovMatrix:
         begin = time.time()
         from flip.covariance import generator as generator_flip
 
+        free_par_dic = importlib.import_module(f"flip.covariance.{model_name}")._free_par
+        if variant is None:
+            free_par = free_par_dic['baseline']
+        else:
+            free_par = free_par_dic[variant]
+
         (
             covariance_dict,
             number_densities,
@@ -282,7 +288,7 @@ class CovMatrix:
         return cls(
             model_name=model_name,
             model_type=model_type,
-            free_par=eval(f'flip.covariance.{model_name}._free_par'),
+            free_par=free_par,
             los_definition=los_definition,
             covariance_dict=covariance_dict,
             full_matrix=False,
@@ -330,6 +336,12 @@ class CovMatrix:
         """
         begin = time.time()
         generator = importlib.import_module(f"flip.covariance.{model_name}.generator")
+        
+        free_par_dic = importlib.import_module(f"flip.covariance.{model_name}")._free_par
+        if variant is None:
+            free_par = free_par_dic['baseline']
+        else:
+            free_par = free_par_dic[variant]
 
         (
             covariance_dict,
@@ -351,6 +363,7 @@ class CovMatrix:
         return cls(
             model_name=model_name,
             model_type=model_type,
+            free_par=free_par,
             los_definition=los_definition,
             covariance_dict=covariance_dict,
             full_matrix=False,

@@ -86,10 +86,8 @@ def correlation_hankel(l, r, k, integrand, hankel_overhead_coefficient=2, kmin=N
 
     # Regularization
     if kmin is not None:
-        kreg = np.geomspace(np.min(k), kmin, int(len(k) / 10))
-        integrand_reg = np.exp(np.interp(np.log(kreg), np.log(k), np.log(integrand)))
-        output -= correlation_integration(l, r, kreg, integrand_reg)
-
+        kreg = np.geomspace(np.min(k), kmin, int(len(k) / 20))
+        output -= correlation_integration(l, r, kreg, np.interp(kreg, k, integrand))
     return output
 
 
@@ -102,7 +100,7 @@ def coefficient_hankel(
     power_spectrum,
     coord,
     additional_parameters_values=None,
-    kmin=None,
+    **kwargs,
 ):
     """
     The coefficient_hankel function computes the covariance between two terms of a given model.
@@ -143,7 +141,7 @@ def coefficient_hankel(
                 coord[0],
                 wavenumber,
                 M_ab_i_l_j(wavenumber) * power_spectrum,
-                kmin=kmin,
+                **kwargs,
             )
             cov_ab_i = cov_ab_i + N_ab_i_l_j * hankel_ab_i_l_j
     return cov_ab_i
@@ -158,6 +156,7 @@ def coefficient_trapz(
     power_spectrum,
     coord,
     additional_parameters_values=None,
+    **kwargs,
 ):
     """
     The coefficient_trapz function computes the covariance matrix element for a given term.

@@ -52,6 +52,12 @@ def log_likelihood_gaussian_inverse(vector, covariance_sum):
     return -0.5 * (vector.size * jnp.log(2 * np.pi) + logdet + chi2)
 
 
+def log_likelihood_gaussian_solve(vector, covariance_sum):
+    _, logdet = np.linalg.slogdet(covariance_sum)
+    chi2 = np.dot(vector.T, np.linalg.solve(covariance_sum, vector))
+    return -0.5 * (vector.size * np.log(2 * np.pi) + logdet + chi2)
+
+
 def log_likelihood_gaussian_cholesky(vector, covariance_sum):
     cholesky = jsc.linalg.cho_factor(covariance_sum)
     logdet = 2 * jnp.sum(jnp.log(jnp.diag(cholesky[0])))

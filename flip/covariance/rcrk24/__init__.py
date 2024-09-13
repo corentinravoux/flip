@@ -1,4 +1,6 @@
 _free_par = {
-    'growth_index': ['Om0', 'gamma', 'sigv'],
-    'growth_rate': ['fs8', 'sigv']
+    'Om0': 'velocity@growth_index', 
+    'gamma': 'velocity@growth_index',
+    'fs8': 'velocity@growth_rate',
+    'sigv': 'velocity@all'
     }

@@ -1,4 +1,5 @@
-_free_par = {
-    'baseline' : ['fs8', 'sigv', 'bs8', 'beta_f'],
-    'nobeta': ['fs8', 'sigv', 'bs8']
-    }
+_free_par = {'fs8': ['velocity@all', 'density@nobeta'],
+             'bs8': 'density@all',
+             'sigv': 'velocity@all',
+             'beta_f': 'density@baseline'}
+

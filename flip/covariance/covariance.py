@@ -221,6 +221,26 @@ class CovMatrix:
         self.number_velocities = number_velocities
         self.redshift_dict = redshift_dict
         self.variant = variant
+    
+    @staticmethod
+    def _read_free_par(model_name, model_type, variant=None):
+        _free_par = importlib.import_module(f"flip.covariance.{model_name}")._free_par
+        model_type = model_type.split('_')
+        
+        if variant is None:
+            variant = 'baseline'
+        
+        free_par = [] 
+        for k, val in _free_par.items():
+            val = np.atleast_1d(val)
+            for v in val:
+                fp_def = v.split('@')
+                fp_model, fp_variant = fp_def[0], fp_def[1:]
+                if 'full' in model_type or fp_model == 'all' or fp_model in model_type:
+                    if 'all' in fp_variant or variant in fp_variant:
+                        free_par.append(k)
+                        continue
+        return list(set(free_par))
 
     @classmethod
     def init_from_flip(
@@ -260,11 +280,7 @@ class CovMatrix:
         begin = time.time()
         from flip.covariance import generator as generator_flip
 
-        free_par_dic = importlib.import_module(f"flip.covariance.{model_name}")._free_par
-        if variant is None:
-            free_par = free_par_dic['baseline']
-        else:
-            free_par = free_par_dic[variant]
+        free_par = cls._read_free_par(model_name, model_type, variant=variant)
 
         (
             covariance_dict,
@@ -337,11 +353,7 @@ class CovMatrix:
         begin = time.time()
         generator = importlib.import_module(f"flip.covariance.{model_name}.generator")
         
-        free_par_dic = importlib.import_module(f"flip.covariance.{model_name}")._free_par
-        if variant is None:
-            free_par = free_par_dic['baseline']
-        else:
-            free_par = free_par_dic[variant]
+        free_par = cls._read_free_par(model_name, model_type, variant=variant)
 
         (
             covariance_dict,

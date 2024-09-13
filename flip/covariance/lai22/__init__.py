@@ -1,2 +1,6 @@
-_free_par = {'baseline' : ['fs8', 'sigv', 'bs8', 'beta_f', 'sigg'],
-             'no_beta': ['fs8', 'sigv', 'bs8', 'sigg'] }
+_free_par = {'fs8': ['velocity@all', 'density@nobeta'],
+             'bs8': 'density@all',
+             'sigv': 'velocity@all',
+             'beta_f': 'density@baseline'}
+
+

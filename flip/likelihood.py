@@ -133,6 +133,13 @@ class BaseLikelihood(object):
         self.data = data
         self.parameter_names = parameter_names
         self.prior = prior
+        
+        self.free_par = self.data.free_par[:]
+        
+        if isinstance(self.covariance, list):
+            self.free_par += self.covariance[0].free_par
+        else:  
+            self.free_par += self.covariance.free_par
 
         self.likelihood_properties = {
             **self._default_likelihood_properties,
@@ -299,6 +306,8 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         )
         self.interpolation_value_name = interpolation_value_name
         self.interpolation_value_range = interpolation_value_range
+
+        self.free_par.append(interpolation_value_name)
 
     def verify_covariance(self):
         """

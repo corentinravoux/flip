@@ -72,7 +72,7 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
 
 class DataVector(abc.ABC):
     _free_par = []
-
+    
     @property
     def free_par(self):
         return self._free_par
@@ -141,7 +141,7 @@ class Density(DataVector):
     _kind = "density"
     _needed_keys = ["density", "density_error"]
 
-    def _give_data_and_errors(self, **kwargs):
+    def _give_data_and_errors(self, *args):
         return self._data["density"], self._data["density_error"]
 
 
@@ -173,9 +173,12 @@ class DensVel(DataVector):
     def free_par(self):
         return self.densities.free_par + self.velocities.free_par
 
-    def _give_data_and_errors(self):
-        data = np.vstack(self._data["density"], self._data["velocity"])
-        errors = np.vstack(self._data["density_errors"], self._data["velocity_error"])
+    def _give_data_and_errors(self, *args):
+        data_dens, err_dens = self.densities._give_data_and_errors(*args)
+        data_vel, err_vel = self.velocities._give_data_and_errors(*args)
+        
+        data = np.hstack((data_dens, data_vel))
+        errors = np.hstack((err_dens, err_vel))
         return data, errors
 
     def __init__(self, DensityVector, VelocityVector):
@@ -184,7 +187,24 @@ class DensVel(DataVector):
 
         if self.velocities._cov is not None:
             raise NotImplementedError("Vel with cov + density not implemented yet")
+        
+    def compute_cov(self, model, power_spectrum_dict, **kwargs):
 
+        coords_dens = np.vstack((self.densities.data["ra"], 
+                                 self.densities.data["dec"], 
+                                 self.densities.data["rcom_zobs"]))
+        
+        coords_vel = np.vstack((self.velocities.data["ra"], 
+                                 self.velocities.data["dec"], 
+                                 self.velocities.data["rcom_zobs"]))
+        return CovMatrix.init_from_flip(
+            model,
+            "full",
+            power_spectrum_dict,
+            coordinates_density=coords_dens,
+            coordinates_velocity=coords_vel,
+            **kwargs,
+        )
 
 class VelFromHDres(DirectVel):
     _needed_keys = ["dmu", "zobs"]

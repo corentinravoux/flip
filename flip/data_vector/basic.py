@@ -1,9 +1,12 @@
 import abc
-import flip.utils as utils
-import numpy as np
-from flip.utils import create_log
-from flip.covariance import CovMatrix
 from inspect import getmembers, isfunction
+
+import numpy as np
+
+import flip.utils as utils
+from flip.covariance import CovMatrix
+from flip.utils import create_log
+
 from . import cosmo_utils
 
 try:
@@ -113,27 +116,25 @@ class DataVector(abc.ABC):
 
     def mask(self, bool_mask):
         if len(bool_mask) != len(self.data[self.needed_keys[0]]):
-            raise ValueError('Boolean mask does not align with data')  
+            raise ValueError("Boolean mask does not align with data")
         new_data = {k: v[bool_mask] for k, v in self._data.items()}
-        
+
         new_cov = None
         if self._cov is not None:
-            new_cov = sel._cov[np.outer(bool_mask, bool_mask)]   
+            new_cov = self._cov[np.outer(bool_mask, bool_mask)]
         return type(self)(new_data, cov=new_cov, **self._kwargs)
 
     def compute_cov(self, model, power_spectrum_dict, **kwargs):
-        
-        coords = np.vstack((
-            self.data['ra'], 
-            self.data['dec'], 
-            self.data['rcom_zobs']
-            ))
 
-        return CovMatrix.init_from_flip(model,
-                                        self._kind,
-                                        power_spectrum_dict,
-                                        **{f'coordinates_{self._kind}': coords},
-                                        **kwargs)
+        coords = np.vstack((self.data["ra"], self.data["dec"], self.data["rcom_zobs"]))
+
+        return CovMatrix.init_from_flip(
+            model,
+            self._kind,
+            power_spectrum_dict,
+            **{f"coordinates_{self._kind}": coords},
+            **kwargs,
+        )
 
 
 class Density(DataVector):
@@ -142,6 +143,7 @@ class Density(DataVector):
 
     def _give_data_and_errors(self, **kwargs):
         return self._data["density"], self._data["density_error"]
+
 
 class DirectVel(DataVector):
     _kind = "velocity"
@@ -162,11 +164,11 @@ class DirectVel(DataVector):
 
 class DensVel(DataVector):
     _kind = "cross"
-    
+
     @property
     def needed_keys(self):
         return self.densities.needed_keys + self.velocities.needed_keys
-    
+
     @property
     def free_par(self):
         return self.densities.free_par + self.velocities.free_par
@@ -181,7 +183,7 @@ class DensVel(DataVector):
         self.velocities = VelocityVector
 
         if self.velocities._cov is not None:
-            raise NotImplementedError('Vel with cov + density not implemented yet')
+            raise NotImplementedError("Vel with cov + density not implemented yet")
 
 
 class VelFromHDres(DirectVel):

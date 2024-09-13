@@ -65,6 +65,15 @@ def log_likelihood_gaussian_cholesky(vector, covariance_sum):
     return -0.5 * (vector.size * jnp.log(2 * np.pi) + logdet + chi2)
 
 
+def log_likelihood_gaussian_cholesky_regularized(vector, covariance_sum):
+    eigval, eigvec = jnp.linalg.eig(covariance_sum)
+    cov_sum_regularized = eigvec @ jnp.abs(np.diag(eigval)) @ jnp.linalg.inv(eigvec)
+    cholesky = jsc.linalg.cho_factor(cov_sum_regularized)
+    logdet = 2 * jnp.sum(jnp.log(jnp.diag(cholesky[0])))
+    chi2 = jnp.dot(vector, jsc.linalg.cho_solve(cholesky, vector))
+    return -0.5 * (vector.size * jnp.log(2 * np.pi) + logdet + chi2)
+
+
 if jax_installed:
     log_likelihood_gaussian_inverse_jit = jit(log_likelihood_gaussian_inverse)
     log_likelihood_gaussian_cholesky_jit = jit(log_likelihood_gaussian_cholesky)

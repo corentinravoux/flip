@@ -6,11 +6,11 @@ to easily handle the data you want to use and to pass them to one of the differe
 implemented in the :py:mod:`flip.likelihood` module.
 
 
-Using the :py:class:`~flip.data_vector.basic.DataVector` class you can obtain data and errors:
+Using the :py:class:`~flip.data_vector.basic.DataVector` class you can obtain data and variance / covariance:
 
 .. code-block:: python 
 
-    data, data_err = DataVector(parameter_dic, **kwargs)
+    data, var_data = DataVector(parameter_dic)
 
 
 You also can compute covariance:

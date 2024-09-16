@@ -37,7 +37,7 @@ class VelFromSALTfit(DataVector):
         dmu -= 5 * jnp.log10((1 + self._data["zobs"]) * self._data["rcom_zobs"]) + 25
         return dmu
 
-    def compute_observed_distance_modulus_error(self, parameter_values_dict):
+    def compute_observed_distance_modulus_var(self, parameter_values_dict):
         if self._cov is None:
             var_mu = (
                 self._data["e_mb"] ** 2
@@ -54,19 +54,18 @@ class VelFromSALTfit(DataVector):
             )
             var_mu += parameter_values_dict["sigma_M"]**2
         else:
-            return self._cov + jnp.eye(self._cov.shape[0]) * parameter_values_dict["sigma_M"]**2
+            var_mu = self._cov + jnp.eye(self._cov.shape[0]) * parameter_values_dict["sigma_M"]**2
         return var_mu
 
-    def _give_data_and_errors(self, parameter_values_dict):
-        vel_err = self.compute_observed_distance_modulus_error(parameter_values_dict)
+    def _give_data_and_var(self, parameter_values_dict):
+        var_vel = self.compute_observed_distance_modulus_var(parameter_values_dict)
         if self._cov is None:
-            vel_err *= self._dmu2vel**2
-            vel_err = jnp.sqrt(vel_err)
+            var_vel *= self._dmu2vel**2
         else:
             J = A[0] + alpha * A[1] - beta * A[2]
             J *= self._dmu2vel
-            vel_err = J @ var_vel @ J.T
-        return self._dmu2vel * self.compute_dmu(parameter_values_dict), vel_err
+            var_vel = J @ var_vel @ J.T
+        return self._dmu2vel * self.compute_dmu(parameter_values_dict), var_vel
 
     def _init_dmu2vel(self, vel_estimator, **kwargs):
         return redshift_dependence_velocity(self._data, vel_estimator, **kwargs)

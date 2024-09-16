@@ -94,7 +94,7 @@ class DataVector(abc.ABC):
         return self._data
 
     @abc.abstractmethod
-    def _give_data_and_errors(self, **kwargs):
+    def _give_data_and_var(self, **kwargs):
         pass
 
     def _check_keys(self, data):
@@ -112,7 +112,7 @@ class DataVector(abc.ABC):
             self._data[k] = jnp.array(self._data[k])
 
     def __call__(self, *args):
-        return self._give_data_and_errors(*args)
+        return self._give_data_and_var(*args)
 
     def mask(self, bool_mask):
         if len(bool_mask) != len(self.data[self.needed_keys[0]]):
@@ -141,8 +141,8 @@ class Density(DataVector):
     _kind = "density"
     _needed_keys = ["density", "density_error"]
 
-    def _give_data_and_errors(self, *args):
-        return self._data["density"], self._data["density_error"]
+    def _give_data_and_var(self, *args):
+        return self._data["density"], self._data["density_error"]**2
 
 
 class DirectVel(DataVector):
@@ -156,10 +156,10 @@ class DirectVel(DataVector):
             cond_keys += ["velocity_error"]
         return cond_keys
 
-    def _give_data_and_errors(self, *args):
+    def _give_data_and_var(self, *args):
         if self._cov is not None:
             return self._data["velocity"], self._cov
-        return self._data["velocity"], self._data["velocity_error"]
+        return self._data["velocity"], self._data["velocity_error"]**2
 
 
 class DensVel(DataVector):
@@ -173,13 +173,13 @@ class DensVel(DataVector):
     def free_par(self):
         return self.densities.free_par + self.velocities.free_par
 
-    def _give_data_and_errors(self, *args):
-        data_dens, err_dens = self.densities._give_data_and_errors(*args)
-        data_vel, err_vel = self.velocities._give_data_and_errors(*args)
+    def _give_data_and_var(self, *args):
+        data_dens, var_dens = self.densities._give_data_and_var(*args)
+        data_vel, var_vel = self.velocities._give_data_and_var(*args)
         
         data = np.hstack((data_dens, data_vel))
-        errors = np.hstack((err_dens, err_vel))
-        return data, errors
+        var = np.hstack((var_dens, var_vel))
+        return data, var
 
     def __init__(self, DensityVector, VelocityVector):
         self.densities = DensityVector

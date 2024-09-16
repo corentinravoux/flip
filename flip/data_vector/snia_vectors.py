@@ -58,14 +58,15 @@ class VelFromSALTfit(DataVector):
         return var_mu
 
     def _give_data_and_errors(self, parameter_values_dict):
-        var_vel = self.compute_observed_distance_modulus_error(parameter_values_dict)
+        vel_err = self.compute_observed_distance_modulus_error(parameter_values_dict)
         if self._cov is None:
-            var_vel *= self._dmu2vel**2
+            vel_err *= self._dmu2vel**2
+            vel_err = jnp.sqrt(vel_err)
         else:
             J = A[0] + alpha * A[1] - beta * A[2]
             J *= self._dmu2vel
-            var_vel = J @ var_vel @ J.T
-        return self._dmu2vel * self.compute_dmu(parameter_values_dict), jnp.sqrt(var_vel)
+            vel_err = J @ var_vel @ J.T
+        return self._dmu2vel * self.compute_dmu(parameter_values_dict), vel_err
 
     def _init_dmu2vel(self, vel_estimator, **kwargs):
         return redshift_dependence_velocity(self._data, vel_estimator, **kwargs)

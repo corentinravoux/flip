@@ -3,25 +3,19 @@ Getting started
 
 Example notebooks are given on Google Collab:
 
-* Velocity fit: 
+.. |vel-GCollab| image:: https://colab.research.google.com/assets/colab-badge.svg
+   :target: https://colab.research.google.com/github/corentinravoux/flip/blob/main/notebook/fit_velocity.ipynb
 
-.. raw:: html 
+.. |dens-GCollab| image:: https://colab.research.google.com/assets/colab-badge.svg
+   :target: https://colab.research.google.com/github/corentinravoux/flip/blob/main/notebook/fit_density.ipynb
 
-    <a target="_blank" href="https://colab.research.google.com/github/corentinravoux/flip/blob/main/notebook/fit_velocity.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+.. |densvel-GCollab| image:: https://colab.research.google.com/assets/colab-badge.svg
+   :target: https://colab.research.google.com/github/corentinravoux/flip/blob/main/notebook/fit_joint.ipynb
 
-*  Density fit:
+* Velocity fit: |vel-GCollab|
 
-.. raw:: html 
+*  Density fit: |dens-GCollab|
 
-    <a target="_blank" href="https://colab.research.google.com/github/corentinravoux/flip/blob/main/notebook/fit_density.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
-
-* Joint fit: 
-
-.. raw:: html 
-
-    <a target="_blank" href="https://colab.research.google.com/github/corentinravoux/flip/blob/main/notebook/fit_joint.ipynb">
-    <img src="https://colab.research.google.com/assets/colab-badge.svg" alt="Open In Colab"/></a>
+* Joint fit: |densvel-GCollab|
 
 

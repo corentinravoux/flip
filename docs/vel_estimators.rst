@@ -57,6 +57,6 @@ The Full estimator need to assume a cosmology it is such as:
 where :math:`r(z)` is the comoving distance and :math:`H(z)` the hubble function.
 
 When using this estimator your data need to contain 
-the :code:`hubble_norm` and :code:`rcom_zobs` fields such that `hubble_norm` is :math:`h(z) = H(z) / 100` and `rcom_zobs` is the comoving distance in Mpc :math:`h^{-1}`.
+the :code:`hubble_norm` and :code:`rcom_zobs` fields such that :code:`hubble_norm` is :math:`h(z) = H(z) / 100` and :code:`rcom_zobs` is the comoving distance in Mpc :math:`h^{-1}`.
 
 

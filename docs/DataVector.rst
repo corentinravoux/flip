@@ -117,7 +117,7 @@ The DataVector is initialised as:
     mu = DataVel.compute_observed_distance_modulus(test_parameters)
     variance_mu = DataVel.compute_observed_distance_modulus_error(test_parameters)
 
-When using the :code:`__call__` method the SNe Ia HD parameters need to be pass:
+When using the :code:`__call__` method the SNe Ia HD parameters need to be passed:
 
 .. code-block:: python 
 
@@ -134,7 +134,7 @@ When using the :code:`__call__` method the SNe Ia HD parameters need to be pass:
 Density X Velocity
 ------------------
 
-The py:class:`~flip.data_vector.basic.DensVel` class allows to init a DataVector with density and velocity. 
+The :py:class:`~flip.data_vector.basic.DensVel` class allows to init a DataVector with density and velocity. 
 It is initialised as:
 
 .. code-block:: python 

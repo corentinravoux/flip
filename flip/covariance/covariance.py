@@ -24,7 +24,7 @@ def compute_covariance_sum_density(
     coefficients_dict,
     covariance_dict,
     coefficients_dict_diagonal,
-    vector_err,
+    vector_var,
     number_densities,
     number_velocities,
 ):
@@ -37,7 +37,7 @@ def compute_covariance_sum_density(
         ),
         axis=0,
     )
-    covariance_sum += jnp.diag(coefficients_dict_diagonal["gg"] + vector_err**2)
+    covariance_sum += jnp.diag(coefficients_dict_diagonal["gg"] + vector_var)
 
     return covariance_sum
 
@@ -46,7 +46,7 @@ def compute_covariance_sum_velocity(
     coefficients_dict,
     covariance_dict,
     coefficients_dict_diagonal,
-    vector_err,
+    vector_var,
     number_densities,
     number_velocities,
 ):
@@ -60,7 +60,7 @@ def compute_covariance_sum_velocity(
         axis=0,
     )
 
-    covariance_sum += jnp.diag(coefficients_dict_diagonal["vv"] + vector_err**2)
+    covariance_sum += jnp.diag(coefficients_dict_diagonal["vv"] + vector_var)
 
     return covariance_sum
 
@@ -69,13 +69,13 @@ def compute_covariance_sum_density_velocity(
     coefficients_dict,
     covariance_dict,
     coefficients_dict_diagonal,
-    vector_err,
+    vector_var,
     number_densities,
     number_velocities,
 ):
 
-    density_err = vector_err[:number_densities]
-    velocity_err = vector_err[number_densities : number_densities + number_velocities]
+    density_var = vector_var[:number_densities]
+    velocity_var = vector_var[number_densities : number_densities + number_velocities]
 
     covariance_sum_gv = jnp.zeros((number_densities, number_velocities))
     covariance_sum_gg = jnp.sum(
@@ -87,7 +87,7 @@ def compute_covariance_sum_density_velocity(
         ),
         axis=0,
     )
-    covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] + density_err**2)
+    covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] + density_var)
 
     covariance_sum_vv = jnp.sum(
         jnp.array(
@@ -99,7 +99,7 @@ def compute_covariance_sum_density_velocity(
         axis=0,
     )
 
-    covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] + velocity_err**2)
+    covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] + velocity_var)
 
     covariance_sum_vg = -covariance_sum_gv.T
 
@@ -116,13 +116,13 @@ def compute_covariance_sum_full(
     coefficients_dict,
     covariance_dict,
     coefficients_dict_diagonal,
-    vector_err,
+    vector_var,
     number_densities,
     number_velocities,
 ):
 
-    density_err = vector_err[:number_densities]
-    velocity_err = vector_err[number_densities : number_densities + number_velocities]
+    density_var = vector_var[:number_densities]
+    velocity_var = vector_var[number_densities : number_densities + number_velocities]
 
     covariance_sum_gv = jnp.sum(
         jnp.array(
@@ -142,7 +142,7 @@ def compute_covariance_sum_full(
         ),
         axis=0,
     )
-    covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] + density_err**2)
+    covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] + density_var)
 
     covariance_sum_vv = jnp.sum(
         jnp.array(
@@ -154,7 +154,7 @@ def compute_covariance_sum_full(
         axis=0,
     )
 
-    covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] + velocity_err**2)
+    covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] + velocity_var)
 
     covariance_sum_vg = -covariance_sum_gv.T
 
@@ -477,7 +477,7 @@ class CovMatrix:
     def compute_covariance_sum(
         self,
         parameter_values_dict,
-        vector_err,
+        vector_var,
         use_jit=False,
     ):
         """
@@ -516,7 +516,7 @@ class CovMatrix:
             coefficients_dict,
             self.covariance_dict,
             coefficients_dict_diagonal,
-            vector_err,
+            vector_var,
             self.number_densities,
             self.number_velocities,
         )
@@ -525,11 +525,11 @@ class CovMatrix:
     def compute_covariance_sum_eigenvalues(
         self,
         parameter_values_dict,
-        vector_err,
+        vector_var,
     ):
         covariance_sum = self.compute_covariance_sum(
             parameter_values_dict,
-            vector_err,
+            vector_var,
         )
         return np.linalg.eigvals(covariance_sum)
 

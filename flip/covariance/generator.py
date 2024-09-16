@@ -4,6 +4,8 @@ from functools import partial
 import cosmoprimo
 import numpy as np
 from scipy import integrate
+from scipy.ndimage import uniform_filter
+from scipy.signal import savgol_filter
 from scipy.special import spherical_jn
 
 from flip.covariance import cov_utils
@@ -93,7 +95,7 @@ def correlation_hankel(l, r, k, integrand, hankel_overhead_coefficient=2, kmin=N
 
 def coefficient_hankel(
     model_name,
-    type,
+    covariance_type,
     term_index,
     lmax,
     wavenumber,
@@ -112,7 +114,7 @@ def coefficient_hankel(
 
     Args:
         model_name: Call the dictionary_subterms function from the flip_terms file
-        type: Determine which subterms to use
+        covariance_type: Determine which subterms to use
         term_index: Select the term in the dictionary_subterms
         lmax: Determine the number of terms in the sum
         wavenumber: Calculate the hankel transform
@@ -127,20 +129,29 @@ def coefficient_hankel(
     """
     cov_ab_i = 0
     dictionary_subterms = eval(f"flip_terms_{model_name}.dictionary_subterms")
+    regularize_M_terms = eval(f"flip_terms_{model_name}.regularize_M_terms")
     for l in range(lmax + 1):
-        number_terms = dictionary_subterms[f"{type}_{term_index}_{l}"]
+        number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
         for j in range(number_terms):
-            M_ab_i_l_j = eval(f"flip_terms_{model_name}.M_{type}_{term_index}_{l}_{j}")(
-                *additional_parameters_values
-            )
-            N_ab_i_l_j = eval(f"flip_terms_{model_name}.N_{type}_{term_index}_{l}_{j}")(
-                coord[1], coord[2]
-            )
+            M_ab_i_l_j = eval(
+                f"flip_terms_{model_name}.M_{covariance_type}_{term_index}_{l}_{j}"
+            )(*additional_parameters_values)
+            N_ab_i_l_j = eval(
+                f"flip_terms_{model_name}.N_{covariance_type}_{term_index}_{l}_{j}"
+            )(coord[1], coord[2])
+            if regularize_M_terms is not None:
+                M_ab_i_l_j_evaluated = regularize_M(
+                    M_ab_i_l_j,
+                    wavenumber,
+                    regularize_M_terms[covariance_type],
+                )
+            else:
+                M_ab_i_l_j_evaluated = M_ab_i_l_j(wavenumber)
             hankel_ab_i_l_j = correlation_hankel(
                 l,
                 coord[0],
                 wavenumber,
-                M_ab_i_l_j(wavenumber) * power_spectrum,
+                M_ab_i_l_j_evaluated * power_spectrum,
                 **kwargs,
             )
             cov_ab_i = cov_ab_i + N_ab_i_l_j * hankel_ab_i_l_j
@@ -149,7 +160,7 @@ def coefficient_hankel(
 
 def coefficient_trapz(
     model_name,
-    type,
+    covariance_type,
     term_index,
     lmax,
     wavenumber,
@@ -163,7 +174,7 @@ def coefficient_trapz(
 
     Args:
         model_name: Call the dictionary_subterms function from the flip_terms file
-        type: Distinguish between the different terms in the covariance matrix
+        covariance_type: Distinguish between the different terms in the covariance matrix
         term_index: Specify which term of the model is being used
         lmax: Specify the maximum order of spherical harmonics
         wavenumber: Calculate the integrand
@@ -178,27 +189,88 @@ def coefficient_trapz(
     """
     cov_ab_i = 0
     dictionary_subterms = eval(f"flip_terms_{model_name}.dictionary_subterms")
+    regularize_M_terms = eval(f"flip_terms_{model_name}.regularize_M_terms")
     for l in range(lmax + 1):
-        number_terms = dictionary_subterms[f"{type}_{term_index}_{l}"]
+        number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
         for j in range(number_terms):
-            M_ab_i_l_j = eval(f"flip_terms_{model_name}.M_{type}_{term_index}_{l}_{j}")(
-                *additional_parameters_values
-            )
-            N_ab_i_l_j = eval(f"flip_terms_{model_name}.N_{type}_{term_index}_{l}_{j}")(
-                coord[1], coord[2]
-            )
-
+            M_ab_i_l_j = eval(
+                f"flip_terms_{model_name}.M_{covariance_type}_{term_index}_{l}_{j}"
+            )(*additional_parameters_values)
+            N_ab_i_l_j = eval(
+                f"flip_terms_{model_name}.N_{covariance_type}_{term_index}_{l}_{j}"
+            )(coord[1], coord[2])
+            if regularize_M_terms is not None:
+                M_ab_i_l_j_evaluated = regularize_M(
+                    M_ab_i_l_j,
+                    wavenumber,
+                    regularize_M_terms,
+                    covariance_type,
+                )
+            else:
+                M_ab_i_l_j_evaluated = M_ab_i_l_j(wavenumber)
             kr = np.outer(wavenumber, coord[0])
             integrand = (
                 (-1) ** (l // 2)
                 * (wavenumber**2 / (2 * np.pi**2))
-                * M_ab_i_l_j(wavenumber)
+                * M_ab_i_l_j_evaluated
                 * power_spectrum
                 * spherical_jn(l, kr).T
             )
             hankel_ab_i_l_j = (-1) ** (l % 2) * np.trapz(integrand, x=wavenumber)
             cov_ab_i = cov_ab_i + N_ab_i_l_j * hankel_ab_i_l_j
     return cov_ab_i
+
+
+def regularize_M(
+    M_function,
+    wavenumber,
+    regularization_option,
+    savgol_window=50,
+    savgol_polynomial=3,
+    running_std_window=10,
+    unstable_level_detection=10,
+    unstable_overhead=2,
+):
+    M_function_evaluated = M_function(wavenumber)
+
+    if regularization_option == "savgol":
+        M_function_evaluated = savgol_filter(
+            M_function_evaluated,
+            savgol_window,
+            savgol_polynomial,
+        )
+
+    elif regularization_option == "lowk_asymptote":
+        M_function_evaluated = savgol_filter(
+            M_function_evaluated,
+            savgol_window,
+            savgol_polynomial,
+        )
+
+        simple = uniform_filter(
+            M_function_evaluated,
+            running_std_window * 2,
+            mode="constant",
+            origin=-running_std_window,
+        )
+        square = uniform_filter(
+            M_function_evaluated * M_function_evaluated,
+            running_std_window * 2,
+            mode="constant",
+            origin=-running_std_window,
+        )
+        running_std = np.sqrt((square - simple * simple))
+        mask_unstable = (
+            running_std > unstable_level_detection * running_std[len(running_std) // 2]
+        ) & (wavenumber < wavenumber[len(wavenumber) // 2])
+        if len(mask_unstable[mask_unstable]) == 0:
+            return M_function_evaluated
+
+        k_unstable = wavenumber[mask_unstable][-1]
+        mask = wavenumber < unstable_overhead * k_unstable
+        M_function_evaluated[mask] = M_function_evaluated[~mask][0]
+
+    return M_function_evaluated
 
 
 def compute_coordinates(

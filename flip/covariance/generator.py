@@ -227,9 +227,8 @@ def regularize_M(
     regularization_option,
     savgol_window=50,
     savgol_polynomial=3,
-    running_std_window=10,
-    unstable_level_detection=10,
-    unstable_overhead=2,
+    lowk_unstable_threshold=0.1,
+    lowk_unstable_mean_filtering=10,
 ):
     M_function_evaluated = M_function(wavenumber)
 
@@ -241,34 +240,36 @@ def regularize_M(
         )
 
     elif regularization_option == "lowk_asymptote":
-        M_function_evaluated = savgol_filter(
-            M_function_evaluated,
-            savgol_window,
-            savgol_polynomial,
+        # The low k region presents numerical instabilities for density models.
+        # All the M density function should present and asymptotic behaviour at low k.
+        # This method select the best k that we can consider as asymptotic.
+        diff = np.diff(M_function_evaluated, append=[M_function_evaluated[-1]])
+        mask_asymptote = np.abs(diff) < lowk_unstable_threshold * np.mean(
+            np.abs(diff[wavenumber > wavenumber[len(wavenumber) // 2]])
         )
+        mask_asymptote &= wavenumber < wavenumber[3 * len(wavenumber) // 4]
 
-        simple = uniform_filter(
-            M_function_evaluated,
-            running_std_window * 2,
-            mode="constant",
-            origin=-running_std_window,
-        )
-        square = uniform_filter(
-            M_function_evaluated * M_function_evaluated,
-            running_std_window * 2,
-            mode="constant",
-            origin=-running_std_window,
-        )
-        running_std = np.sqrt((square - simple * simple))
-        mask_unstable = (
-            running_std > unstable_level_detection * running_std[len(running_std) // 2]
-        ) & (wavenumber < wavenumber[len(wavenumber) // 2])
-        if len(mask_unstable[mask_unstable]) == 0:
-            return M_function_evaluated
-
-        k_unstable = wavenumber[mask_unstable][-1]
-        mask = wavenumber < unstable_overhead * k_unstable
-        M_function_evaluated[mask] = M_function_evaluated[~mask][0]
+        if len(mask_asymptote[mask_asymptote]) > 0:
+            index_mask_asymptote = np.argwhere(mask_asymptote)[:, 0]
+            if index_mask_asymptote[0] != 0:
+                diff_index = np.diff(
+                    index_mask_asymptote, prepend=[index_mask_asymptote[0]]
+                )
+                mean_diff_index = np.convolve(
+                    diff_index,
+                    np.ones(lowk_unstable_mean_filtering)
+                    / lowk_unstable_mean_filtering,
+                    mode="same",
+                )
+                mask_best_value_asymptote = np.abs(mean_diff_index - 1.0) < 10**-5
+                if len(mask_best_value_asymptote[mask_best_value_asymptote]) == 0:
+                    index_asymptote = index_mask_asymptote[-1]
+                else:
+                    index_asymptote = index_mask_asymptote[mask_best_value_asymptote][0]
+                mask_unstable_region = wavenumber < wavenumber[index_asymptote]
+                M_function_evaluated[mask_unstable_region] = M_function_evaluated[
+                    index_asymptote
+                ]
 
     return M_function_evaluated
 

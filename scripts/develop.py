@@ -63,7 +63,7 @@ def main():
         coordinates_velocity=coordinates_velocity,
         size_batch=size_batch,
         number_worker=number_worker,
-        power_spectrum_amplitude_function=power_spectrum_amplitude_function_growth_rate,
+        # power_spectrum_amplitude_function=power_spectrum_amplitude_function_growth_rate,
         variant=variant,
     )
 

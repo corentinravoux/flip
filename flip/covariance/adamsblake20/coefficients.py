@@ -3,7 +3,6 @@ def get_coefficients(
     parameter_values_dict,
     variant=None,
     redshift_dict=None,
-    power_spectrum_amplitude_function=None,
 ):
     coefficients_dict = {}
     if model_type in ["density", "full", "density_velocity"]:

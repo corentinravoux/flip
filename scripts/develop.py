@@ -47,8 +47,7 @@ def main():
     variant = "growth_rate"  # can be replaced by growth_index
 
     parameter_dict = {
-        # "fs8": 0.45570516784429815,
-        "f": 0.45570516784429815/0.832,
+        "fs8": 0.45570516784429815,
         "Om0": 0.3,
         "gamma": 0.55,        
         "sigv": 200,

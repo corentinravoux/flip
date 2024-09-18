@@ -19,6 +19,24 @@ from flip.covariance import cov_utils
 
 log = create_log()
 
+def _read_free_par(model_name, model_type, variant=None):
+    _free_par = importlib.import_module(f"flip.covariance.{model_name}")._free_par
+    model_type = model_type.split("_")
+
+    if variant is None:
+        variant = "baseline"
+
+    free_par = []
+    for k, val in _free_par.items():
+        val = np.atleast_1d(val)
+        for v in val:
+            fp_def = v.split("@")
+            fp_model, fp_variant = fp_def[0], fp_def[1:]
+            if "full" in model_type or fp_model == "all" or fp_model in model_type:
+                if "all" in fp_variant or variant in fp_variant:
+                    free_par.append(k)
+                    continue
+    return list(set(free_par))
 
 def compute_covariance_sum_density(
     coefficients_dict,
@@ -38,7 +56,7 @@ def compute_covariance_sum_density(
         axis=0,
     )
 
-    if len(vector_var.shape) == 1:
+    if len(vector_variance.shape) == 1:
         covariance_sum += jnp.diag(coefficients_dict_diagonal["gg"] + vector_variance)
     else:
         covariance_sum += jnp.diag(coefficients_dict_diagonal["gg"] ) + vector_variance
@@ -64,7 +82,7 @@ def compute_covariance_sum_velocity(
         axis=0,
     )
 
-    if len(vector_var.shape) == 1:
+    if len(vector_variance.shape) == 1:
         covariance_sum += jnp.diag(coefficients_dict_diagonal["vv"] + vector_variance)
     else:
         covariance_sum += jnp.diag(coefficients_dict_diagonal["vv"] ) + vector_variance
@@ -247,26 +265,6 @@ class CovMatrix:
         self.redshift_dict = redshift_dict
         self.variant = variant
 
-    @staticmethod
-    def _read_free_par(model_name, model_type, variant=None):
-        _free_par = importlib.import_module(f"flip.covariance.{model_name}")._free_par
-        model_type = model_type.split("_")
-
-        if variant is None:
-            variant = "baseline"
-
-        free_par = []
-        for k, val in _free_par.items():
-            val = np.atleast_1d(val)
-            for v in val:
-                fp_def = v.split("@")
-                fp_model, fp_variant = fp_def[0], fp_def[1:]
-                if "full" in model_type or fp_model == "all" or fp_model in model_type:
-                    if "all" in fp_variant or variant in fp_variant:
-                        free_par.append(k)
-                        continue
-        return list(set(free_par))
-
     @classmethod
     def init_from_flip(
         cls,
@@ -304,8 +302,12 @@ class CovMatrix:
         """
         begin = time.time()
         from flip.covariance import generator as generator_flip
+        
+        _available_variants = importlib.import_module(f"flip.covariance.{model_name}")._variant
+        if variant not in _available_variants:
+            raise ValueError(f"Variant is not in available variants: {_available_variants}")
 
-        free_par = cls._read_free_par(model_name, model_type, variant=variant)
+        free_par = _read_free_par(model_name, model_type, variant=variant)
 
         (
             covariance_dict,
@@ -377,8 +379,12 @@ class CovMatrix:
         """
         begin = time.time()
         generator = importlib.import_module(f"flip.covariance.{model_name}.generator")
+        
+        _available_variants = importlib.import_module(f"flip.covariance.{model_name}")._variant
+        if variant not in _available_variants:
+            raise ValueError(f"Variant is not in available variants: {_available_variants}")
 
-        free_par = cls._read_free_par(model_name, model_type, variant=variant)
+        free_par = _read_free_par(model_name, model_type, variant=variant)
 
         (
             covariance_dict,

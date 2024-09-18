@@ -1,5 +1,6 @@
 import abc
 import copy
+import importlib
 from inspect import getmembers, isfunction
 
 import numpy as np
@@ -24,7 +25,7 @@ _avail_velocity_estimator = ["watkins", "lowz", "hubblehighorder", "full"]
 
 def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
     prefactor = utils._C_LIGHT_KMS_ * jnp.log(10) / 5
-    redshift_obs = jnp.array(data["zobs"])
+    redshift_obs = data["zobs"]
 
     if velocity_estimator == "watkins":
         redshift_dependence = prefactor * redshift_obs / (1 + redshift_obs)
@@ -46,10 +47,6 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
         redshift_dependence = prefactor * redshift_mod / (1 + redshift_obs)
 
     elif velocity_estimator == "full":
-        if "h" not in kwargs.keys():
-            raise ValueError(
-                "For the full velocity estimator please provide an h value"
-            )
         if ("hubble_norm" not in data) | ("rcom_zobs" not in data):
             raise ValueError(
                 """ The "hubble_norm" (H(z)/h = 100 E(z)) or "rcom_zobs" (Dm(z)) fields are not present in the data"""
@@ -60,9 +57,8 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
             (1 + redshift_obs)
             * utils._C_LIGHT_KMS_
             / (
-                jnp.array(data["hubble_norm"])
-                * jnp.array(data["rcom_zobs"])
-                / kwargs["h"]
+                data["hubble_norm"]
+                * data["rcom_zobs"]
             )
             - 1.0
         )
@@ -129,8 +125,10 @@ class DataVector(abc.ABC):
         return type(self)(new_data, cov=new_cov, **self._kwargs)
 
     def compute_cov(self, model, power_spectrum_dict, **kwargs):
+        
+        coordinate_keys = importlib.import_module(f"flip.covariance.{model}")._coordinate_keys
 
-        coords = np.vstack((self.data["ra"], self.data["dec"], self.data["rcom_zobs"]))
+        coords = np.vstack([self.data[k] for k in coordinate_keys])
 
         return CovMatrix.init_from_flip(
             model,
@@ -242,7 +240,6 @@ class VelFromHDres(DirectVel):
         else:
             self._data["velocity_error"] = self._dmu2vel * self._data["dmu_error"]
 
-   
 class FisherVelFromHDres(DataVector):
     _kind = 'velocity'
     _needed_keys = ["zobs", "ra", "dec"]

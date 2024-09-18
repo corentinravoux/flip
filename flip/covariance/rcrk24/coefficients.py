@@ -1,6 +1,6 @@
 import numpy as np
 from astropy.cosmology import FlatLambdaCDM
-from flip.covariance.rcrk24.flip_terms import cosmo_background
+from astropy.cosmology import Planck18 as cosmo_background
 
 def power_spectrum_amplitude_function(redshift, parameter_values_dict):
     return 1

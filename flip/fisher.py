@@ -23,10 +23,16 @@ class FisherMatrix:
         self,
         covariance=None,
         inverse_covariance_sum=None,
+        data_free_par=None,
+        parameter_values_dict=None,
     ):
 
         self.covariance = covariance
         self.inverse_covariance_sum = inverse_covariance_sum
+        self.parameter_values_dict = parameter_values_dict
+        self.free_par = self.covariance.free_par[:]
+        if data_free_par is not None:
+            self.free_par += data_free_par
 
     @classmethod
     def init_from_covariance(
@@ -57,8 +63,9 @@ class FisherMatrix:
         return cls(
             covariance=covariance,
             inverse_covariance_sum=inverse_covariance_sum,
+            data_free_par=data.free_par,
+            parameter_values_dict=parameter_values_dict,
         )
-
 
     def compute_covariance_derivative(
         self,
@@ -114,7 +121,7 @@ class FisherMatrix:
                 ],
                 axis=0,
             )
-            covariance_derivative_sum_vg = -covariance_derivative_sum_gv.T
+            covariance_derivative_sum_vg = covariance_derivative_sum_gv.T
 
             covariance_derivative_sum = np.block(
                 [
@@ -127,18 +134,14 @@ class FisherMatrix:
 
         return covariance_derivative_sum
 
-    def compute_fisher_matrix(
-        self,
-        parameter_values_dict,
-        variant=None,
-    ):
+    def compute_fisher_matrix(self):
 
         coefficients = importlib.import_module(
             f"flip.covariance.{self.covariance.model_name}.fisher_terms"
         )
         partial_coefficients_dict = coefficients.get_partial_derivative_coefficients(
             self.covariance.model_type,
-            parameter_values_dict,
+            self.parameter_values_dict,
             variant=self.covariance.variant,
             redshift_dict=self.covariance.redshift_dict,
         )
@@ -159,22 +162,24 @@ class FisherMatrix:
                 )
             )
 
-        fisher_matrix = np.zeros(
-            (
-                len(partial_coefficients_dict.keys()),
-                len(partial_coefficients_dict.keys()),
+        fisher_matrix_size = len(partial_coefficients_dict.keys())
+        fisher_matrix = np.zeros((fisher_matrix_size, fisher_matrix_size))
+
+        tri_i, tri_j = np.triu_indices_from(fisher_matrix)
+
+        for i, j in zip(tri_i, tri_j):
+            fisher_matrix[i][j] = 0.5 * np.trace(
+                covariance_derivative_sum_list[i] @ covariance_derivative_sum_list[j]
             )
-        )
-        for i in range(len(fisher_matrix)):
-            for j in range(i, len(fisher_matrix)):
-                fisher_matrix[i][j] = 0.5 * np.trace(
-                    np.dot(
-                        covariance_derivative_sum_list[i],
-                        covariance_derivative_sum_list[j],
-                    )
-                )
-        for i in range(len(fisher_matrix)):
-            for j in range(i):
-                fisher_matrix[i][j] = fisher_matrix[j][i]
+            if i != j:
+                fisher_matrix[j][i] = fisher_matrix[i][j]
+
+        # fisher_matrix_size = len(partial_coefficients_dict.keys()
+        # fisher_matrix = np.zeros((fisher_matrix_size,
+        #                           fisher_matrix_size))
+
+        # for i in range(len(fisher_matrix)):
+        #     for j in range(i):
+        #         fisher_matrix[i][j] = fisher_matrix[j][i]
 
         return parameter_name_list, fisher_matrix

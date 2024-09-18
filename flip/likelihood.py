@@ -82,23 +82,23 @@ def interpolate_covariance_sum_1d(
     interpolation_value,
     covariance,
     parameter_values_dict,
-    vector_var,
+    vector_variance,
 ):
     if np.isnan(interpolation_value):
         return np.full_like(
-            covariance[0].compute_covariance_sum(parameter_values_dict, vector_var),
+            covariance[0].compute_covariance_sum(parameter_values_dict, vector_variance),
             np.nan,
         )
     upper_index_interpolation = jnp.searchsorted(
         interpolation_value_range, interpolation_value
     )
     covariance_sum_upper = covariance[upper_index_interpolation].compute_covariance_sum(
-        parameter_values_dict, vector_var
+        parameter_values_dict, vector_variance
     )
 
     covariance_sum_lower = covariance[
         upper_index_interpolation - 1
-    ].compute_covariance_sum(parameter_values_dict, vector_var)
+    ].compute_covariance_sum(parameter_values_dict, vector_variance)
 
     fraction_interpolation = (
         interpolation_value_range[upper_index_interpolation] - interpolation_value
@@ -133,12 +133,12 @@ class BaseLikelihood(object):
         self.data = data
         self.parameter_names = parameter_names
         self.prior = prior
-        
+
         self.free_par = self.data.free_par[:]
-        
+
         if isinstance(self.covariance, list):
             self.free_par += self.covariance[0].free_par
-        else:  
+        else:
             self.free_par += self.covariance.free_par
 
         self.likelihood_properties = {
@@ -185,7 +185,6 @@ class BaseLikelihood(object):
 
         likelihood.prior = likelihood.initialize_prior()
         return likelihood
-
 
     def initialize_prior(
         self,
@@ -246,11 +245,11 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
     def __call__(self, parameter_values):
         parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
 
-        vector, vector_var = self.data(parameter_values_dict)
-        
+        vector, vector_variance = self.data(parameter_values_dict)
+
         covariance_sum = self.covariance.compute_covariance_sum(
             parameter_values_dict,
-            vector_var,
+            vector_variance,
             use_jit=self.likelihood_properties["use_jit"],
         )
         likelihood_function = eval(
@@ -263,7 +262,7 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
 
         if self.likelihood_properties["negative_log_likelihood"]:
             likelihood_value *= -1
-            
+
         return likelihood_value
 
 
@@ -355,21 +354,21 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
             else:
                 return -np.inf
 
-        vector, vector_var = self.data(parameter_values_dict)
+        vector, vector_variance = self.data(parameter_values_dict)
 
         covariance_sum = interpolate_covariance_sum_1d(
             self.interpolation_value_range,
             interpolation_value,
             self.covariance,
             parameter_values_dict,
-            vector_var,
+            vector_variance,
         )
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
             + f"{'_jit' if jax_installed and self.likelihood_properties['use_jit'] else ''}"
         )
         prior_value = self.prior(parameter_values_dict)
-        
+
         likelihood_value = likelihood_function(vector, covariance_sum) + prior_value
 
         if self.likelihood_properties["negative_log_likelihood"]:
@@ -463,7 +462,7 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
             else:
                 return -np.inf
 
-        vector, vector_var = self.data(parameter_values)
+        vector, vector_variance = self.data(parameter_values)
 
         covariance_sum_matrix = []
 
@@ -472,7 +471,7 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
             for j in range(len(self.covariance[i])):
                 covariance_sum_matrix_i.append(
                     self.covariance[i][j].compute_covariance_sum(
-                        parameter_values_dict, vector_var
+                        parameter_values_dict, vector_variance
                     )
                 )
             covariance_sum_matrix.append(covariance_sum_matrix_i)

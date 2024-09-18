@@ -1,15 +1,11 @@
-from flip.utils import create_log
 from .basic import DataVector, redshift_dependence_velocity
 
 try:
     import jax.numpy as jnp
-    import jax.scipy as jsc
-    from jax import jit
 
     jax_installed = True
 except ImportError:
     import numpy as jnp
-    import scipy as jsc
 
     jax_installed = False
 
@@ -32,7 +28,7 @@ class VelFromSALTfit(DataVector):
         mu -= parameter_values_dict["M_0"]
         return mu
 
-    def compute_dmu(self,parameter_values_dict):
+    def compute_dmu(self, parameter_values_dict):
         dmu = self.compute_observed_distance_modulus(parameter_values_dict)
         dmu -= 5 * jnp.log10((1 + self._data["zobs"]) * self._data["rcom_zobs"]) + 25
         return dmu
@@ -52,9 +48,12 @@ class VelFromSALTfit(DataVector):
                 * parameter_values_dict["beta"]
                 * self._data["cov_x1_c"]
             )
-            var_mu += parameter_values_dict["sigma_M"]**2
+            var_mu += parameter_values_dict["sigma_M"] ** 2
         else:
-            var_mu = self._cov + jnp.eye(self._cov.shape[0]) * parameter_values_dict["sigma_M"]**2
+            var_mu = (
+                self._cov
+                + jnp.eye(self._cov.shape[0]) * parameter_values_dict["sigma_M"] ** 2
+            )
         return var_mu
 
     def _give_data_and_var(self, parameter_values_dict):
@@ -62,7 +61,12 @@ class VelFromSALTfit(DataVector):
         if self._cov is None:
             var_vel *= self._dmu2vel**2
         else:
-            J = A[0] + alpha * A[1] - beta * A[2]
+            A = self._init_A()
+            J = (
+                A[0]
+                + parameter_values_dict["alpha"] * A[1]
+                - parameter_values_dict["beta"] * A[2]
+            )
             J *= self._dmu2vel
             var_vel = J @ var_vel @ J.T
         return self._dmu2vel * self.compute_dmu(parameter_values_dict), var_vel

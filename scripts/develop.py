@@ -12,7 +12,8 @@ import matplotlib.pyplot as plt
 
 from flip.covariance.rcrk24.flip_terms import *
 
-def main():
+
+def main(parameter_dict=None, fiducial_dict=None, variant="growth_rate"):
     flip_base = resource_filename("flip", ".")
     data_path = os.path.join(flip_base, "data")
 
@@ -41,18 +42,13 @@ def main():
 
     power_spectrum_dict = {"vv": [[ktt, ptt * utils.Du(ktt, sigmau_fiducial) ** 2]]}
 
+
     ### Compute covariance
     size_batch = 10_000
     number_worker = 16
-    variant = "growth_rate"  # can be replaced by growth_index
+    # variant = "growth_rate"  # can be replaced by growth_index
+    # variant = "growth_index"
 
-    parameter_dict = {
-        "fs8": 0.45570516784429815,
-        "Om0": 0.3,
-        "gamma": 0.55,        
-        "sigv": 200,
-        "sigma_M": 0.12,
-    }
 
     covariance_fit = covariance.CovMatrix.init_from_flip(
         "rcrk24",
@@ -64,6 +60,7 @@ def main():
         size_batch=size_batch,
         number_worker=number_worker,
         variant=variant,
+        fiducial_dict=fiducial_dict,
     )
 
     ### Load fitter
@@ -117,27 +114,59 @@ def dlnDdgamma(a, parameter_values_dict):
 
 if __name__ == "__main__":
 
-    parameter_dict = {
-        # "fs8": 0.45570516784429815,
-        "f": 0.45570516784429815/0.832,
+    # dictionary that describes the fiducial power spectrum
+    # should be specified by the
+    #
+    # parameters of the model
+    # s8 of the fiducial power spectrum
+    # z of the fiduccial power spectrum
+
+    # for now the dictionaries conflate the two models.
+    # Really should be for one model
+    fiducial_dict = {
+        "fs8": 0.45570516784429815,
+        "gamma": 0.55,
         "Om0": 0.3,
-        "gamma": 0.55,        
-        "sigv": 200,
-        "sigma_M": 0.12,
+        "s80": 0.832,
+        "s8_cmb": 0.832 * 0.001176774706956903,        
+        "z": 0,
     }
 
+    parameter_dict = {
+        "fs8": 0.45570516784429815,
+        "gamma": 0.55,
+        "Om0": 0.3,
+        "s80": 0.832,
+        "s8_cmb": 0.832 * 0.001176774706956903,     
+        "sigv": 200,
+        "sigma_M": 0.12,
+        "power_spectrum_z": 0.,
+    }
 
+    # parameter_dict = {
+    #     "s80": 0.832,
+    #     "Om0": 0.3,
+    #     "gamma": 0.55,
+    #     "fs8": 0.3**0.55*0.832,        
+    #     "sigv": 200,
+    #     "sigma_M": 0.12,
+    # }
+
+
+
+    s80=0.832
     z_mn=0.05
 
     cosmo = FlatLambdaCDM(H0=100, Om0=parameter_dict["Om0"])
     Om=cosmo.Om(z_mn)
 
-    parameter_name_list, fisher_matrix = main()
+    parameter_name_list, fisher_matrix = main(parameter_dict=parameter_dict, fiducial_dict=fiducial_dict, variant="growth_index")
     print(fisher_matrix)
     cov = np.linalg.inv(fisher_matrix[0:2,0:2] +np.array([[1/0.1**2,0],[0,0]]))
-    s80=0.832
+
     partials = s80*np.array([parameter_dict['gamma']*parameter_dict['Om0']**(parameter_dict['gamma']-1),np.log(parameter_dict['Om0'])*parameter_dict['Om0']**parameter_dict['gamma']])
     partials = partials + parameter_dict['Om0']**parameter_dict['gamma'] *s80 * np.array([dlnDdOm0(1., parameter_dict), dlnDdgamma(1., parameter_dict)])
     print(parameter_dict["Om0"]**parameter_dict['gamma'] * s80, np.sqrt(partials.T @ cov[0:2,0:2] @ partials))
-    # print((Om/parameter_dict["Om0"])**parameter_dict['gamma']*np.exp(lnD(1/(1+z_mn), parameter_dict)))
-    # print(parameter_dict["fs8"], 1/np.sqrt(fisher_matrix[2,2]))
+
+    parameter_name_list, fisher_matrix = main(parameter_dict=parameter_dict, fiducial_dict=fiducial_dict, variant="growth_rate")
+    print(parameter_dict["fs8"], 1/np.sqrt(fisher_matrix))

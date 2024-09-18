@@ -1,5 +1,4 @@
 import abc
-from inspect import getmembers, isfunction
 
 import numpy as np
 
@@ -7,17 +6,12 @@ import flip.utils as utils
 from flip.covariance import CovMatrix
 from flip.utils import create_log
 
-from . import cosmo_utils
-
 try:
     import jax.numpy as jnp
-    import jax.scipy as jsc
-    from jax import jit
 
     jax_installed = True
 except ImportError:
     import numpy as jnp
-    import scipy as jsc
 
     jax_installed = False
 

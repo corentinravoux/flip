@@ -97,7 +97,7 @@ class DataVector(abc.ABC):
                 raise ValueError(f"{k} field is needed in data")
 
     def __init__(self, data, cov=None, **kwargs):
-        self._cov = cov
+        self._covariance_observation = cov
         self._check_keys(data)
         self._data = data
         self._kwargs = kwargs
@@ -114,8 +114,8 @@ class DataVector(abc.ABC):
         new_data = {k: v[bool_mask] for k, v in self._data.items()}
 
         new_cov = None
-        if self._cov is not None:
-            new_cov = self._cov[np.outer(bool_mask, bool_mask)]
+        if self._covariance_observation is not None:
+            new_cov = self._covariance_observation[np.outer(bool_mask, bool_mask)]
         return type(self)(new_data, cov=new_cov, **self._kwargs)
 
     def compute_cov(self, model, power_spectrum_dict, **kwargs):
@@ -146,13 +146,13 @@ class DirectVel(DataVector):
     @property
     def conditional_needed_keys(self):
         cond_keys = []
-        if self._cov is None:
+        if self._covariance_observation is None:
             cond_keys += ["velocity_error"]
         return cond_keys
 
     def _give_data_and_var(self, *args):
-        if self._cov is not None:
-            return self._data["velocity"], self._cov
+        if self._covariance_observation is not None:
+            return self._data["velocity"], self._covariance_observation
         return self._data["velocity"], self._data["velocity_error"] ** 2
 
 
@@ -168,18 +168,18 @@ class DensVel(DataVector):
         return self.densities.free_par + self.velocities.free_par
 
     def _give_data_and_var(self, *args):
-        data_dens, var_dens = self.densities._give_data_and_var(*args)
-        data_vel, var_vel = self.velocities._give_data_and_var(*args)
+        data_density, density_variance = self.densities._give_data_and_var(*args)
+        data_velocity, velocity_variance = self.velocities._give_data_and_var(*args)
 
-        data = np.hstack((data_dens, data_vel))
-        var = np.hstack((var_dens, var_vel))
+        data = np.hstack((data_density, data_velocity))
+        var = np.hstack((density_variance, velocity_variance))
         return data, var
 
     def __init__(self, DensityVector, VelocityVector):
         self.densities = DensityVector
         self.velocities = VelocityVector
 
-        if self.velocities._cov is not None:
+        if self.velocities._covariance_observation is not None:
             raise NotImplementedError("Vel with cov + density not implemented yet")
 
     def compute_cov(self, model, power_spectrum_dict, **kwargs):
@@ -215,7 +215,7 @@ class VelFromHDres(DirectVel):
     @property
     def conditional_needed_keys(self):
         cond_keys = []
-        if self._cov is None:
+        if self._covariance_observation is None:
             cond_keys += ["dmu_error"]
         return self._needed_keys + cond_keys
 
@@ -227,7 +227,9 @@ class VelFromHDres(DirectVel):
         self._dmu2vel = self._init_dmu2vel(vel_estimator, **kwargs)
         self._data["velocity"] = self._dmu2vel * self._data["dmu"]
 
-        if self._cov is not None:
-            self._cov = self._dmu2vel.T @ self._cov @ self._dmu2vel
+        if self._covariance_observation is not None:
+            self._covariance_observation = (
+                self._dmu2vel.T @ self._covariance_observation @ self._dmu2vel
+            )
         else:
             self._data["velocity_error"] = self._dmu2vel * self._data["dmu_error"]

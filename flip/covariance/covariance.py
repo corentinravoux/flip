@@ -24,7 +24,7 @@ def compute_covariance_sum_density(
     coefficients_dict,
     covariance_dict,
     coefficients_dict_diagonal,
-    vector_var,
+    vector_variance,
     number_densities,
     number_velocities,
 ):
@@ -37,7 +37,7 @@ def compute_covariance_sum_density(
         ),
         axis=0,
     )
-    covariance_sum += jnp.diag(coefficients_dict_diagonal["gg"] + vector_var)
+    covariance_sum += jnp.diag(coefficients_dict_diagonal["gg"] + vector_variance)
 
     return covariance_sum
 
@@ -46,7 +46,7 @@ def compute_covariance_sum_velocity(
     coefficients_dict,
     covariance_dict,
     coefficients_dict_diagonal,
-    vector_var,
+    vector_variance,
     number_densities,
     number_velocities,
 ):
@@ -60,7 +60,7 @@ def compute_covariance_sum_velocity(
         axis=0,
     )
 
-    covariance_sum += jnp.diag(coefficients_dict_diagonal["vv"] + vector_var)
+    covariance_sum += jnp.diag(coefficients_dict_diagonal["vv"] + vector_variance)
 
     return covariance_sum
 
@@ -69,13 +69,15 @@ def compute_covariance_sum_density_velocity(
     coefficients_dict,
     covariance_dict,
     coefficients_dict_diagonal,
-    vector_var,
+    vector_variance,
     number_densities,
     number_velocities,
 ):
 
-    density_var = vector_var[:number_densities]
-    velocity_var = vector_var[number_densities : number_densities + number_velocities]
+    density_variance = vector_variance[:number_densities]
+    velocity_variance = vector_variance[
+        number_densities : number_densities + number_velocities
+    ]
 
     covariance_sum_gv = jnp.zeros((number_densities, number_velocities))
     covariance_sum_gg = jnp.sum(
@@ -87,7 +89,7 @@ def compute_covariance_sum_density_velocity(
         ),
         axis=0,
     )
-    covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] + density_var)
+    covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] + density_variance)
 
     covariance_sum_vv = jnp.sum(
         jnp.array(
@@ -99,7 +101,7 @@ def compute_covariance_sum_density_velocity(
         axis=0,
     )
 
-    covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] + velocity_var)
+    covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] + velocity_variance)
 
     covariance_sum_vg = -covariance_sum_gv.T
 
@@ -116,13 +118,15 @@ def compute_covariance_sum_full(
     coefficients_dict,
     covariance_dict,
     coefficients_dict_diagonal,
-    vector_var,
+    vector_variance,
     number_densities,
     number_velocities,
 ):
 
-    density_var = vector_var[:number_densities]
-    velocity_var = vector_var[number_densities : number_densities + number_velocities]
+    density_variance = vector_variance[:number_densities]
+    velocity_variance = vector_variance[
+        number_densities : number_densities + number_velocities
+    ]
 
     covariance_sum_gv = jnp.sum(
         jnp.array(
@@ -142,7 +146,7 @@ def compute_covariance_sum_full(
         ),
         axis=0,
     )
-    covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] + density_var)
+    covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] + density_variance)
 
     covariance_sum_vv = jnp.sum(
         jnp.array(
@@ -154,7 +158,7 @@ def compute_covariance_sum_full(
         axis=0,
     )
 
-    covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] + velocity_var)
+    covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] + velocity_variance)
 
     covariance_sum_vg = covariance_sum_gv.T
 
@@ -221,23 +225,23 @@ class CovMatrix:
         self.number_velocities = number_velocities
         self.redshift_dict = redshift_dict
         self.variant = variant
-    
+
     @staticmethod
     def _read_free_par(model_name, model_type, variant=None):
         _free_par = importlib.import_module(f"flip.covariance.{model_name}")._free_par
-        model_type = model_type.split('_')
-        
+        model_type = model_type.split("_")
+
         if variant is None:
-            variant = 'baseline'
-        
-        free_par = [] 
+            variant = "baseline"
+
+        free_par = []
         for k, val in _free_par.items():
             val = np.atleast_1d(val)
             for v in val:
-                fp_def = v.split('@')
+                fp_def = v.split("@")
                 fp_model, fp_variant = fp_def[0], fp_def[1:]
-                if 'full' in model_type or fp_model == 'all' or fp_model in model_type:
-                    if 'all' in fp_variant or variant in fp_variant:
+                if "full" in model_type or fp_model == "all" or fp_model in model_type:
+                    if "all" in fp_variant or variant in fp_variant:
                         free_par.append(k)
                         continue
         return list(set(free_par))
@@ -352,7 +356,7 @@ class CovMatrix:
         """
         begin = time.time()
         generator = importlib.import_module(f"flip.covariance.{model_name}.generator")
-        
+
         free_par = cls._read_free_par(model_name, model_type, variant=variant)
 
         (
@@ -477,7 +481,7 @@ class CovMatrix:
     def compute_covariance_sum(
         self,
         parameter_values_dict,
-        vector_var,
+        vector_variance,
         use_jit=False,
     ):
         """
@@ -516,7 +520,7 @@ class CovMatrix:
             coefficients_dict,
             self.covariance_dict,
             coefficients_dict_diagonal,
-            vector_var,
+            vector_variance,
             self.number_densities,
             self.number_velocities,
         )
@@ -525,11 +529,11 @@ class CovMatrix:
     def compute_covariance_sum_eigenvalues(
         self,
         parameter_values_dict,
-        vector_var,
+        vector_variance,
     ):
         covariance_sum = self.compute_covariance_sum(
             parameter_values_dict,
-            vector_var,
+            vector_variance,
         )
         return np.linalg.eigvals(covariance_sum)
 

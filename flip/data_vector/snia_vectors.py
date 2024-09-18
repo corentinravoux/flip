@@ -28,12 +28,12 @@ class VelFromSALTfit(DataVector):
         observed_distance_modulus -= parameter_values_dict["M_0"]
         return observed_distance_modulus
 
-    def compute_distance_modulus_difference(self, parameter_values_dict):
+    def compute_distance_modulus_difference(self, parameter_values_dict, h):
         distance_modulus_difference = self.compute_observed_distance_modulus(
             parameter_values_dict
         )
         distance_modulus_difference -= (
-            5 * jnp.log10((1 + self._data["zobs"]) * self._data["rcom_zobs"]) + 25
+            5 * jnp.log10((1 + self._data["zobs"]) * self._data["rcom_zobs"] / h) + 25
         )
         return distance_modulus_difference
 
@@ -78,7 +78,7 @@ class VelFromSALTfit(DataVector):
             velocity_variance = J @ velocity_variance @ J.T
         return (
             self._dmu2vel
-            * self.compute_distance_modulus_difference(parameter_values_dict),
+            * self.compute_distance_modulus_difference(parameter_values_dict, self.h),
             velocity_variance,
         )
 
@@ -93,10 +93,10 @@ class VelFromSALTfit(DataVector):
             A[k][ij[1] == 3 * ij[0] + k] = 1
         return A
 
-    def __init__(self, data, cov=None, vel_estimator="full", **kwargs):
+    def __init__(self, data, h, cov=None, vel_estimator="full", **kwargs):
         super().__init__(data, cov=cov)
-        self._dmu2vel = self._init_dmu2vel(vel_estimator, **kwargs)
-
+        self._dmu2vel = self._init_dmu2vel(vel_estimator, h=h, **kwargs)
+        self.h = h
         self._A = None
         if self._covariance_observation is not None:
             if self._covariance_observation.shape != (3 * len(data), 3 * len(data)):

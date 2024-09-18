@@ -44,6 +44,10 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
         redshift_dependence = prefactor * redshift_mod / (1 + redshift_obs)
 
     elif velocity_estimator == "full":
+        if "h" not in kwargs.keys():
+            raise ValueError(
+                "For the full velocity estimator please provide an h value"
+            )
         if ("hubble_norm" not in data) | ("rcom_zobs" not in data):
             raise ValueError(
                 """ The "hubble_norm" (H(z)/h = 100 E(z)) or "rcom_zobs" (Dm(z)) fields are not present in the data"""
@@ -53,7 +57,11 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
         redshift_dependence = prefactor / (
             (1 + redshift_obs)
             * utils._C_LIGHT_KMS_
-            / (jnp.array(data["hubble_norm"]) * jnp.array(data["rcom_zobs"]))
+            / (
+                jnp.array(data["hubble_norm"])
+                * jnp.array(data["rcom_zobs"])
+                / kwargs["h"]
+            )
             - 1.0
         )
 

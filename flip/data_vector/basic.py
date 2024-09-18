@@ -72,7 +72,7 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
 
 class DataVector(abc.ABC):
     _free_par = []
-    
+
     @property
     def free_par(self):
         return self._free_par
@@ -142,7 +142,7 @@ class Density(DataVector):
     _needed_keys = ["density", "density_error"]
 
     def _give_data_and_var(self, *args):
-        return self._data["density"], self._data["density_error"]**2
+        return self._data["density"], self._data["density_error"] ** 2
 
 
 class DirectVel(DataVector):
@@ -159,7 +159,7 @@ class DirectVel(DataVector):
     def _give_data_and_var(self, *args):
         if self._cov is not None:
             return self._data["velocity"], self._cov
-        return self._data["velocity"], self._data["velocity_error"]**2
+        return self._data["velocity"], self._data["velocity_error"] ** 2
 
 
 class DensVel(DataVector):
@@ -176,7 +176,7 @@ class DensVel(DataVector):
     def _give_data_and_var(self, *args):
         data_dens, var_dens = self.densities._give_data_and_var(*args)
         data_vel, var_vel = self.velocities._give_data_and_var(*args)
-        
+
         data = np.hstack((data_dens, data_vel))
         var = np.hstack((var_dens, var_vel))
         return data, var
@@ -187,16 +187,24 @@ class DensVel(DataVector):
 
         if self.velocities._cov is not None:
             raise NotImplementedError("Vel with cov + density not implemented yet")
-        
+
     def compute_cov(self, model, power_spectrum_dict, **kwargs):
 
-        coords_dens = np.vstack((self.densities.data["ra"], 
-                                 self.densities.data["dec"], 
-                                 self.densities.data["rcom_zobs"]))
-        
-        coords_vel = np.vstack((self.velocities.data["ra"], 
-                                 self.velocities.data["dec"], 
-                                 self.velocities.data["rcom_zobs"]))
+        coords_dens = np.vstack(
+            (
+                self.densities.data["ra"],
+                self.densities.data["dec"],
+                self.densities.data["rcom_zobs"],
+            )
+        )
+
+        coords_vel = np.vstack(
+            (
+                self.velocities.data["ra"],
+                self.velocities.data["dec"],
+                self.velocities.data["rcom_zobs"],
+            )
+        )
         return CovMatrix.init_from_flip(
             model,
             "full",
@@ -205,6 +213,7 @@ class DensVel(DataVector):
             coordinates_velocity=coords_vel,
             **kwargs,
         )
+
 
 class VelFromHDres(DirectVel):
     _needed_keys = ["dmu", "zobs"]

@@ -13,17 +13,16 @@ def get_coefficients(
     fiducial_dict=None,
 ):
     if fiducial_dict is None:
-        raise Exception("rcrk24 model requires fiducial_dict")
+        raise Exception("rcrk24 model requires fiducial_dict "
+                        "to be sure the user understands the "
+                        "the fiducial power spectrum")
 
     coefficients_dict = {}
     if variant == "growth_index":
+        # Omega - gamma parameterization 
 
         # vv
-        # for a parameterization Omega_gamma: 
-        #      P=(a H O**g s)(a H O**g s) (P_fid/s^2_fid)
-
-        if "D" not in fiducial_dict:
-            fiducial_dict["D"] = s8(fiducial_dict["z"], fiducial_dict)
+        #      P=(a H O**g s8)(a H O**g s8) (P_fid/s8^2_fid)
 
         redshift_velocities = redshift_dict["v"]
         cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
@@ -37,10 +36,10 @@ def get_coefficients(
 
         coefficients_dict["vv"] = [np.outer(coefficient_vector, coefficient_vector)]
     elif variant == "growth_rate":
+        # fs8 parameterization 
 
         # vv
-        # for a parameterization (fs)= constant: 
-        #      P = (aHfs)(aHfs) (P_fid/s^2_fid)
+        #      P = (aHfs8)(aHfs8) (P_fid/s8^2_fid)
 
         redshift_velocities = redshift_dict["v"]
 

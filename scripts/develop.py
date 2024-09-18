@@ -124,49 +124,32 @@ if __name__ == "__main__":
     # for now the dictionaries conflate the two models.
     # Really should be for one model
     fiducial_dict = {
-        "fs8": 0.45570516784429815,
+        "fs8": 0.3**0.55*0.832,
         "gamma": 0.55,
         "Om0": 0.3,
         "s80": 0.832,
         "s8_cmb": 0.832 * 0.001176774706956903,        
-        "z": 0,
     }
 
     parameter_dict = {
-        "fs8": 0.45570516784429815,
         "gamma": 0.55,
         "Om0": 0.3,
         "s80": 0.832,
+        "fs8": 0.3**0.55*0.832,
         "s8_cmb": 0.832 * 0.001176774706956903,     
         "sigv": 200,
         "sigma_M": 0.12,
-        "power_spectrum_z": 0.,
     }
 
-    # parameter_dict = {
-    #     "s80": 0.832,
-    #     "Om0": 0.3,
-    #     "gamma": 0.55,
-    #     "fs8": 0.3**0.55*0.832,        
-    #     "sigv": 200,
-    #     "sigma_M": 0.12,
-    # }
+    Om0_prior = 0.1
 
-
-
-    s80=0.832
-    z_mn=0.05
-
-    cosmo = FlatLambdaCDM(H0=100, Om0=parameter_dict["Om0"])
-    Om=cosmo.Om(z_mn)
-
+    # growth index
     parameter_name_list, fisher_matrix = main(parameter_dict=parameter_dict, fiducial_dict=fiducial_dict, variant="growth_index")
-    print(fisher_matrix)
-    cov = np.linalg.inv(fisher_matrix[0:2,0:2] +np.array([[1/0.1**2,0],[0,0]]))
+    cov = np.linalg.inv(fisher_matrix+np.array([[1/Om0_prior**2,0],[0,0]]))
+    partials = fiducial_dict["s80"]*np.array([parameter_dict['gamma']*parameter_dict['Om0']**(parameter_dict['gamma']-1),np.log(parameter_dict['Om0'])*parameter_dict['Om0']**parameter_dict['gamma']])
+    partials = partials + parameter_dict['Om0']**parameter_dict['gamma'] *fiducial_dict["s80"] * np.array([dlnDdOm0(1., parameter_dict), dlnDdgamma(1., parameter_dict)])
+    print(parameter_dict["Om0"]**parameter_dict['gamma'] * fiducial_dict["s80"], np.sqrt(partials.T @ cov @ partials))
 
-    partials = s80*np.array([parameter_dict['gamma']*parameter_dict['Om0']**(parameter_dict['gamma']-1),np.log(parameter_dict['Om0'])*parameter_dict['Om0']**parameter_dict['gamma']])
-    partials = partials + parameter_dict['Om0']**parameter_dict['gamma'] *s80 * np.array([dlnDdOm0(1., parameter_dict), dlnDdgamma(1., parameter_dict)])
-    print(parameter_dict["Om0"]**parameter_dict['gamma'] * s80, np.sqrt(partials.T @ cov[0:2,0:2] @ partials))
-
+    # growth rate
     parameter_name_list, fisher_matrix = main(parameter_dict=parameter_dict, fiducial_dict=fiducial_dict, variant="growth_rate")
     print(parameter_dict["fs8"], 1/np.sqrt(fisher_matrix))

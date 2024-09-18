@@ -356,3 +356,4 @@ dictionary_subterms = {
 }
 multi_index_model = False
 redshift_dependent_model = False
+regularize_M_terms = {"gg": "lowk_asymptote", "gv": "savgol", "vv": None}

@@ -101,7 +101,7 @@ def compute_covariance_sum_density_velocity(
 
     covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] + velocity_err**2)
 
-    covariance_sum_vg = -covariance_sum_gv.T
+    covariance_sum_vg = covariance_sum_gv.T
 
     covariance_sum = jnp.block(
         [
@@ -156,7 +156,7 @@ def compute_covariance_sum_full(
 
     covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] + velocity_err**2)
 
-    covariance_sum_vg = -covariance_sum_gv.T
+    covariance_sum_vg = covariance_sum_gv.T
 
     covariance_sum = jnp.block(
         [

@@ -1,4 +1,5 @@
 import abc
+import copy
 from inspect import getmembers, isfunction
 
 import numpy as np
@@ -216,15 +217,26 @@ class VelFromHDres(DirectVel):
             cond_keys += ["dmu_error"]
         return self._needed_keys + cond_keys
 
-    def _init_dmu2vel(self, vel_estimator, **kwargs):
-        return redshift_dependence_velocity(self._data, vel_estimator, **kwargs)
-
     def __init__(self, data, cov=None, vel_estimator="full", **kwargs):
         super().__init__(data, cov=cov)
-        self._dmu2vel = self._init_dmu2vel(vel_estimator, **kwargs)
+        self._dmu2vel = redshift_dependence_velocity(self._data, vel_estimator, **kwargs)
+        
         self._data["velocity"] = self._dmu2vel * self._data["dmu"]
 
         if self._cov is not None:
             self._cov = self._dmu2vel.T @ self._cov @ self._dmu2vel
         else:
             self._data["velocity_error"] = self._dmu2vel * self._data["dmu_error"]
+
+   
+class FisherVelFromHDres(DataVector):
+    _kind = 'velocity'
+    _needed_keys = ["zobs", "ra", "dec"]
+    _free_par = ['sigma_M']
+    
+    def _give_data_and_var(self, parameter_values_dict):
+        return self._dmu2vel**2 * parameter_values_dict['sigma_M']**2
+
+    def __init__(self, data, vel_estimator="full", **kwargs):
+        super().__init__(data)
+        self._dmu2vel = redshift_dependence_velocity(self._data, vel_estimator, **kwargs)

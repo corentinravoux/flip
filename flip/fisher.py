@@ -16,8 +16,6 @@ class FisherMatrix:
 
     _default_fisher_properties = {
         "inversion_method": "inverse",
-        "velocity_type": "direct",
-        "velocity_estimator": "full",
         "negative_log_likelihood": True,
     }
 
@@ -46,12 +44,7 @@ class FisherMatrix:
             **fisher_properties,
         }
 
-        vector_error = cls.load_error_vector(
-            covariance.model_type,
-            data,
-            parameter_values_dict,
-            fisher_properties,
-        )
+        vector_error = data(parameter_values_dict)
 
         covariance_sum = covariance.compute_covariance_sum(
             parameter_values_dict, vector_error
@@ -66,33 +59,6 @@ class FisherMatrix:
             inverse_covariance_sum=inverse_covariance_sum,
         )
 
-    @classmethod
-    def load_error_vector(
-        cls,
-        model_type,
-        data,
-        parameter_values_dict,
-        fisher_properties,
-    ):
-        if model_type in ["velocity", "density_velocity", "full"]:
-            velocity_error = vectors.load_velocity_error(
-                data,
-                parameter_values_dict,
-                velocity_type=fisher_properties["velocity_type"],
-                velocity_estimator=fisher_properties["velocity_estimator"],
-            )
-
-        if model_type in ["density", "density_velocity", "full"]:
-            density_error = vectors.load_density_error(data)
-
-        if model_type == "density":
-            return density_error
-        elif model_type == "velocity":
-            return velocity_error
-        elif model_type in ["density_velocity", "full"]:
-            return np.concatenate([density_error, velocity_error], axis=0)
-        else:
-            log.add(f"Wrong model type in the loaded covariance.")
 
     def compute_covariance_derivative(
         self,

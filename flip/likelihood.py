@@ -250,7 +250,7 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         
         covariance_sum = self.covariance.compute_covariance_sum(
             parameter_values_dict,
-            vector_error,
+            vector_var,
             use_jit=self.likelihood_properties["use_jit"],
         )
         likelihood_function = eval(
@@ -362,7 +362,7 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
             interpolation_value,
             self.covariance,
             parameter_values_dict,
-            vector_error,
+            vector_var,
         )
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
@@ -472,7 +472,7 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
             for j in range(len(self.covariance[i])):
                 covariance_sum_matrix_i.append(
                     self.covariance[i][j].compute_covariance_sum(
-                        parameter_values_dict, vector_error
+                        parameter_values_dict, vector_var
                     )
                 )
             covariance_sum_matrix.append(covariance_sum_matrix_i)

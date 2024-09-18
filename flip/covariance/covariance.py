@@ -37,7 +37,11 @@ def compute_covariance_sum_density(
         ),
         axis=0,
     )
-    covariance_sum += jnp.diag(coefficients_dict_diagonal["gg"] + vector_var)
+
+    if len(vector_var.shape) == 1:
+        covariance_sum += jnp.diag(coefficients_dict_diagonal["gg"] + vector_var)
+    else:
+        covariance_sum += jnp.diag(coefficients_dict_diagonal["gg"] ) + vector_var
 
     return covariance_sum
 
@@ -60,8 +64,11 @@ def compute_covariance_sum_velocity(
         axis=0,
     )
 
-    covariance_sum += jnp.diag(coefficients_dict_diagonal["vv"] + vector_var)
-
+    if len(vector_var.shape) == 1:
+        covariance_sum += jnp.diag(coefficients_dict_diagonal["vv"] + vector_var)
+    else:
+        covariance_sum += jnp.diag(coefficients_dict_diagonal["vv"] ) + vector_var
+        
     return covariance_sum
 
 
@@ -78,6 +85,7 @@ def compute_covariance_sum_density_velocity(
     velocity_var = vector_var[number_densities : number_densities + number_velocities]
 
     covariance_sum_gv = jnp.zeros((number_densities, number_velocities))
+
     covariance_sum_gg = jnp.sum(
         jnp.array(
             [
@@ -87,7 +95,6 @@ def compute_covariance_sum_density_velocity(
         ),
         axis=0,
     )
-    covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] + density_var)
 
     covariance_sum_vv = jnp.sum(
         jnp.array(
@@ -99,16 +106,23 @@ def compute_covariance_sum_density_velocity(
         axis=0,
     )
 
-    covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] + velocity_var)
-
-    covariance_sum_vg = -covariance_sum_gv.T
+    if len(density_var.shape) == 1:
+        covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] + density_var)
+    else:
+        covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] ) + density_var
+    
+    if len(velocity_var.shape) == 1:
+        covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] + velocity_var)
+    else:
+        covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] ) + velocity_var
 
     covariance_sum = jnp.block(
         [
             [covariance_sum_gg, covariance_sum_gv],
-            [covariance_sum_vg, covariance_sum_vv],
+            [covariance_sum_vg.T, covariance_sum_vv],
         ]
     )
+
     return covariance_sum
 
 
@@ -133,6 +147,7 @@ def compute_covariance_sum_full(
         ),
         axis=0,
     )
+
     covariance_sum_gg = jnp.sum(
         jnp.array(
             [
@@ -142,8 +157,7 @@ def compute_covariance_sum_full(
         ),
         axis=0,
     )
-    covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] + density_var)
-
+    
     covariance_sum_vv = jnp.sum(
         jnp.array(
             [
@@ -153,15 +167,21 @@ def compute_covariance_sum_full(
         ),
         axis=0,
     )
-
-    covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] + velocity_var)
-
-    covariance_sum_vg = covariance_sum_gv.T
+    
+    if len(density_var.shape) == 1:
+        covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] + density_var)
+    else:
+        covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] ) + density_var
+    
+    if len(velocity_var.shape) == 1:
+        covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] + velocity_var)
+    else:
+        covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] ) + velocity_var
 
     covariance_sum = jnp.block(
         [
             [covariance_sum_gg, covariance_sum_gv],
-            [covariance_sum_vg, covariance_sum_vv],
+            [covariance_sum_vg.T, covariance_sum_vv],
         ]
     )
     return covariance_sum

@@ -15,6 +15,7 @@ except ImportError:
 
 
 class VelFromSALTfit(DataVector):
+    _kind = 'velocity'
     _needed_keys = ["zobs", "mb", "x1", "c", "rcom_zobs"]
     _free_par = ["alpha", "beta", "M_0", "sigma_M"]
 

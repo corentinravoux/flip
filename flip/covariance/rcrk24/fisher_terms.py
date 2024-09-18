@@ -4,9 +4,9 @@ from astropy.cosmology import Planck18 as cosmo_background
 
 from flip.covariance.rcrk24.flip_terms import (
     dOmdOm0,
-    dpsafdgamma,
-    dpsafdO0,
-    power_spectrum_amplitude_function_growth_index,
+    ds8dgamma,
+    ds8dO0,
+    s8,
 )
 
 # The flip convention is to split the power spectrum into several terms
@@ -33,6 +33,10 @@ from flip.covariance.rcrk24.flip_terms import (
 # is normalized a z=z_cmb
 
 
+# vv
+# for a parameterization Omega_gamma: 
+#      P=(a H O**g s)(a H O**g s) (P_fid/s^2_fid)
+
 def get_partial_derivative_coefficients(
     model_type,
     parameter_values_dict,
@@ -52,14 +56,10 @@ def get_partial_derivative_coefficients(
 
         f0 = parameter_values_dict["Om0"] ** parameter_values_dict["gamma"]
         f = cosmoOm ** parameter_values_dict["gamma"]
-        power_spectrum_amplitude_values = (
-            power_spectrum_amplitude_function_growth_index(
-                redshift_velocities, parameter_values_dict
-            )
-        )
+        s8_values  = s8(redshift_velocities, parameter_values_dict)
 
         aHf = a * H * f  # aka A
-        aHfpower_spectrum_amplitude = aHf * power_spectrum_amplitude_values
+        aHfs8 = aHf * s8_values
 
         # now for the partials
         dfdOm0 = (
@@ -76,22 +76,22 @@ def get_partial_derivative_coefficients(
         dAdgamma = a * H * dfdgamma
 
         Omega_m_partial_derivative_coefficients = (
-            dAdOm0 * power_spectrum_amplitude_values
+            dAdOm0 * s8_values
             + aHf
-            * dpsafdO0(
+            * ds8dO0(
                 redshift_velocities,
                 parameter_values_dict,
-                power_spectrum_amplitude_values=power_spectrum_amplitude_values,
+                s8_values=s8_values,
             )
         )
 
         gamma_partial_derivative_coefficients = (
-            dAdgamma * power_spectrum_amplitude_values
+            dAdgamma * s8_values
             + aHf
-            * dpsafdgamma(
+            * ds8dgamma(
                 redshift_velocities,
                 parameter_values_dict,
-                power_spectrum_amplitude_values=power_spectrum_amplitude_values,
+                s8_values=s8_values,
             )
         )
 
@@ -100,10 +100,10 @@ def get_partial_derivative_coefficients(
                 "vv": [
                     np.outer(
                         Omega_m_partial_derivative_coefficients,
-                        aHfpower_spectrum_amplitude,
+                        aHfs8,
                     )
                     + np.outer(
-                        aHfpower_spectrum_amplitude,
+                        aHfs8,
                         Omega_m_partial_derivative_coefficients,
                     ),
                 ],
@@ -112,10 +112,10 @@ def get_partial_derivative_coefficients(
                 "vv": [
                     np.outer(
                         gamma_partial_derivative_coefficients,
-                        aHfpower_spectrum_amplitude,
+                        aHfs8,
                     )
                     + np.outer(
-                        aHfpower_spectrum_amplitude,
+                        aHfs8,
                         gamma_partial_derivative_coefficients,
                     ),
                 ],

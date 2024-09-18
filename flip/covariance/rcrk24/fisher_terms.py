@@ -6,7 +6,6 @@ from flip.covariance.rcrk24.flip_terms import (
     dOmdOm0,
     ds8dgamma,
     ds8dO0,
-    # power_spectrum_amplitude_function_growth_index,
     s8,
 )
 
@@ -58,11 +57,6 @@ def get_partial_derivative_coefficients(
         f0 = parameter_values_dict["Om0"] ** parameter_values_dict["gamma"]
         f = cosmoOm ** parameter_values_dict["gamma"]
         s8_values  = s8(redshift_velocities, parameter_values_dict)
-        # power_spectrum_amplitude_values = (
-        #     power_spectrum_amplitude_function_growth_index(
-        #         redshift_velocities, parameter_values_dict
-        #     )
-        # )
 
         aHf = a * H * f  # aka A
         aHfs8 = aHf * s8_values

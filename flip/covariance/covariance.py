@@ -19,6 +19,7 @@ from flip.covariance import cov_utils
 
 log = create_log()
 
+
 def _read_free_par(model_name, model_type, variant=None):
     _free_par = importlib.import_module(f"flip.covariance.{model_name}")._free_par
     model_type = model_type.split("_")
@@ -37,6 +38,7 @@ def _read_free_par(model_name, model_type, variant=None):
                     free_par.append(k)
                     continue
     return list(set(free_par))
+
 
 def compute_covariance_sum_density(
     coefficients_dict,
@@ -59,7 +61,7 @@ def compute_covariance_sum_density(
     if len(vector_variance.shape) == 1:
         covariance_sum += jnp.diag(coefficients_dict_diagonal["gg"] + vector_variance)
     else:
-        covariance_sum += jnp.diag(coefficients_dict_diagonal["gg"] ) + vector_variance
+        covariance_sum += jnp.diag(coefficients_dict_diagonal["gg"]) + vector_variance
 
     return covariance_sum
 
@@ -85,8 +87,8 @@ def compute_covariance_sum_velocity(
     if len(vector_variance.shape) == 1:
         covariance_sum += jnp.diag(coefficients_dict_diagonal["vv"] + vector_variance)
     else:
-        covariance_sum += jnp.diag(coefficients_dict_diagonal["vv"] ) + vector_variance
-        
+        covariance_sum += jnp.diag(coefficients_dict_diagonal["vv"]) + vector_variance
+
     return covariance_sum
 
 
@@ -127,14 +129,22 @@ def compute_covariance_sum_density_velocity(
     )
 
     if len(density_var.shape) == 1:
-        covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] + density_variance)
+        covariance_sum_gg += jnp.diag(
+            coefficients_dict_diagonal["gg"] + density_variance
+        )
     else:
-        covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] ) + density_variance
-    
+        covariance_sum_gg += (
+            jnp.diag(coefficients_dict_diagonal["gg"]) + density_variance
+        )
+
     if len(velocity_var.shape) == 1:
-        covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] + velocity_variance)
+        covariance_sum_vv += jnp.diag(
+            coefficients_dict_diagonal["vv"] + velocity_variance
+        )
     else:
-        covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] ) + velocity_variance
+        covariance_sum_vv += (
+            jnp.diag(coefficients_dict_diagonal["vv"]) + velocity_variance
+        )
 
     covariance_sum = jnp.block(
         [
@@ -190,16 +200,24 @@ def compute_covariance_sum_full(
         ),
         axis=0,
     )
-    
+
     if len(density_var.shape) == 1:
-        covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] + density_variance)
+        covariance_sum_gg += jnp.diag(
+            coefficients_dict_diagonal["gg"] + density_variance
+        )
     else:
-        covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] ) + density_variance
-    
+        covariance_sum_gg += (
+            jnp.diag(coefficients_dict_diagonal["gg"]) + density_variance
+        )
+
     if len(velocity_var.shape) == 1:
-        covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] + velocity_variance)
+        covariance_sum_vv += jnp.diag(
+            coefficients_dict_diagonal["vv"] + velocity_variance
+        )
     else:
-        covariance_sum_vv += jnp.diag(coefficients_dict_diagonal["vv"] ) + velocity_variance
+        covariance_sum_vv += (
+            jnp.diag(coefficients_dict_diagonal["vv"]) + velocity_variance
+        )
 
     covariance_sum = jnp.block(
         [
@@ -302,10 +320,14 @@ class CovMatrix:
         """
         begin = time.time()
         from flip.covariance import generator as generator_flip
-        
-        _available_variants = importlib.import_module(f"flip.covariance.{model_name}")._variant
+
+        _available_variants = importlib.import_module(
+            f"flip.covariance.{model_name}"
+        )._variant
         if variant not in _available_variants:
-            raise ValueError(f"Variant is not in available variants: {_available_variants}")
+            raise ValueError(
+                f"Variant is not in available variants: {_available_variants}"
+            )
 
         free_par = _read_free_par(model_name, model_type, variant=variant)
 
@@ -379,10 +401,14 @@ class CovMatrix:
         """
         begin = time.time()
         generator = importlib.import_module(f"flip.covariance.{model_name}.generator")
-        
-        _available_variants = importlib.import_module(f"flip.covariance.{model_name}")._variant
+
+        _available_variants = importlib.import_module(
+            f"flip.covariance.{model_name}"
+        )._variant
         if variant not in _available_variants:
-            raise ValueError(f"Variant is not in available variants: {_available_variants}")
+            raise ValueError(
+                f"Variant is not in available variants: {_available_variants}"
+            )
 
         free_par = _read_free_par(model_name, model_type, variant=variant)
 

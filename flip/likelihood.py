@@ -86,7 +86,9 @@ def interpolate_covariance_sum_1d(
 ):
     if np.isnan(interpolation_value):
         return np.full_like(
-            covariance[0].compute_covariance_sum(parameter_values_dict, vector_variance),
+            covariance[0].compute_covariance_sum(
+                parameter_values_dict, vector_variance
+            ),
             np.nan,
         )
     upper_index_interpolation = jnp.searchsorted(

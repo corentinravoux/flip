@@ -56,10 +56,7 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
         redshift_dependence = prefactor / (
             (1 + redshift_obs)
             * utils._C_LIGHT_KMS_
-            / (
-                data["hubble_norm"]
-                * data["rcom_zobs"]
-            )
+            / (data["hubble_norm"] * data["rcom_zobs"])
             - 1.0
         )
 
@@ -125,8 +122,10 @@ class DataVector(abc.ABC):
         return type(self)(new_data, cov=new_cov, **self._kwargs)
 
     def compute_cov(self, model, power_spectrum_dict, **kwargs):
-        
-        coordinate_keys = importlib.import_module(f"flip.covariance.{model}")._coordinate_keys
+
+        coordinate_keys = importlib.import_module(
+            f"flip.covariance.{model}"
+        )._coordinate_keys
 
         coords = np.vstack([self.data[k] for k in coordinate_keys])
 
@@ -241,6 +240,7 @@ class VelFromHDres(DirectVel):
             )
         else:
             self._data["velocity_error"] = self._dmu2vel * self._data["dmu_error"]
+
 
 class FisherVelFromHDres(DataVector):
     _kind = "velocity"

@@ -21,8 +21,6 @@ def M_vv_0_2_0():
 def N_vv_0_2_0(theta, phi):
     return (9 / 2) * np.cos(2 * phi) + (3 / 2) * np.cos(theta)
 
-
-
 dictionary_terms = {"vv": ["0"]}
 dictionary_lmax = {"vv": [2]}
 dictionary_subterms = {"vv_0_0": 1, "vv_0_1": 0, "vv_0_2": 1}

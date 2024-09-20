@@ -221,6 +221,9 @@ def get_coefficients(
     variant=None,
     redshift_dict=None,
 ):
+    redshift_velocities = redshift_dict["v"]
+    a = 1/(1+redshift_velocities)
+
     coefficients_dict = {}
     if variant == "growth_index":
         # Omega - gamma parameterization 
@@ -228,12 +231,13 @@ def get_coefficients(
         # vv
         #      P=(a H O**g s8)(a H O**g s8) (P_fid/s8^2_fid)
 
-        redshift_velocities = redshift_dict["v"]
-        cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
+        Om0 = parameter_values_dict["Om0"]
+        gamma =  parameter_values_dict["gamma"]
+
         coefficient_vector = (
             aH(1/(1+redshift_velocities))
-            * np.array(cosmo.Om(redshift_velocities)) ** parameter_values_dict["gamma"]
-            * s8_approx(redshift_velocities, parameter_values_dict["Om0"],parameter_values_dict["gamma"])
+            * f(a, Om0, gamma)
+            * s8_approx(redshift_velocities, Om0, gamma)
         )
 
         coefficients_dict["vv"] = [np.outer(coefficient_vector, coefficient_vector)]
@@ -243,11 +247,10 @@ def get_coefficients(
         # vv
         #      P = (aHfs8)(aHfs8) (P_fid/s8^2_fid)
 
-        redshift_velocities = redshift_dict["v"]
-
+        fs8 = parameter_values_dict["fs8"]
         coefficient_vector = (
             aH(1/(1+redshift_velocities))
-            * parameter_values_dict["fs8"]
+            * fs8
         )
 
         coefficients_dict["vv"] = [np.outer(coefficient_vector, coefficient_vector)]

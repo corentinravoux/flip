@@ -1,18 +1,18 @@
 import numpy as np
-from astropy.cosmology import FlatLambdaCDM
-# from flip.covariance.rcrk24.flip_terms import s8
-# from flip.covariance.rcrk24.fisher_terms import cosmo_background
 import scipy.integrate as integrate
 from astropy.cosmology import FlatLambdaCDM
 from astropy.cosmology import Planck18 as cosmo_background
    
 a_cmb = 1 / (1 + 1089.92)
 lna_cmb = np.log(a_cmb)
-s8_cmb= 0.832 * 0.001176774706956903
+s8_cmb= 0.832 * 0.001176774706956903    # ref. PDG O0=0.3 and gamma=0.5
 
+# The Omega_M0 parameter is decoupled from the
+# cosmological background expansion.
 def aH(a):
     return a * cosmo_background.H(1/a-1) / cosmo_background.H0
 
+# Omega_M(a)
 def Om(a, Om0):
     numerator = Om0 * a ** (-3)
     denominator = numerator + 1 - Om0
@@ -46,17 +46,12 @@ def s8_objective(lna, Om0, gamma):
     z = 1 / np.exp(lna) - 1
     return cosmo.Om(z) ** gamma
 
-# "Exact solution" for PSAF and its derivatives
 def s8_O0_objective(lna, Om0, gamma):
     cosmo = FlatLambdaCDM(H0=100, Om0=Om0)
     a = np.exp(lna)
     z = 1 / a - 1
     Om = cosmo.Om(z)
-    return (
-        gamma
-        * Om ** (gamma - 1)
-        * dOmdOm0(a, Om0)
-    )
+    return gamma * Om ** (gamma - 1) * dOmdOm0(a, Om0)
 
 def s8_gamma_objective(lna, Om0, gamma):
     cosmo = FlatLambdaCDM(H0=100, Om0=Om0)
@@ -220,28 +215,12 @@ def ds8dgamma_approx(r, Om0, gamma, s8_values=None):
         zero + dlnDdgamma_approx(a, Om0, gamma)
     )
 
-
-    # vv model is (aHf)(aHf) P = (aHf)(aHf) (s^2 * P_fid/s^2_fid)
-
-    # functions for growth_rate
-
-    # Normalization anchored to CMB
-    # s80 = 0.832
-    # s8_cmb = s80 * 0.001176774706956903  # ref. PDG O0=0.3 and gamma=0.5
-
-
 def get_coefficients(
     model_type,
     parameter_values_dict,
     variant=None,
     redshift_dict=None,
-    fiducial_dict=None,
 ):
-    if fiducial_dict is None:
-        raise Exception("rcrk24 model requires fiducial_dict "
-                        "to be sure the user understands the "
-                        "the fiducial power spectrum")
-
     coefficients_dict = {}
     if variant == "growth_index":
         # Omega - gamma parameterization 
@@ -252,11 +231,9 @@ def get_coefficients(
         redshift_velocities = redshift_dict["v"]
         cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
         coefficient_vector = (
-            np.array(cosmo.Om(redshift_velocities)) ** parameter_values_dict["gamma"]
-            * cosmo_background.H(redshift_velocities)
-            / cosmo_background.H0
+            aH(1/(1+redshift_velocities))
+            * np.array(cosmo.Om(redshift_velocities)) ** parameter_values_dict["gamma"]
             * s8_approx(redshift_velocities, parameter_values_dict["Om0"],parameter_values_dict["gamma"])
-            / (1 + redshift_velocities)
         )
 
         coefficients_dict["vv"] = [np.outer(coefficient_vector, coefficient_vector)]
@@ -269,10 +246,8 @@ def get_coefficients(
         redshift_velocities = redshift_dict["v"]
 
         coefficient_vector = (
-            parameter_values_dict["fs8"]
-            * cosmo_background.H(redshift_velocities)
-            / cosmo_background.H0
-            / (1 + redshift_velocities)
+            aH(1/(1+redshift_velocities))
+            * parameter_values_dict["fs8"]
         )
 
         coefficients_dict["vv"] = [np.outer(coefficient_vector, coefficient_vector)]
@@ -282,122 +257,7 @@ def get_coefficients(
                          "when you initialize the covariance matrix ")
     return coefficients_dict
 
-
 def get_diagonal_coefficients(model_type, parameter_values_dict):
     coefficients_dict = {}
     coefficients_dict["vv"] = parameter_values_dict["sigv"] ** 2
     return coefficients_dict
-
-    # def get_partial_derivative_coefficients(
-    #     model_type,
-    #     parameter_values_dict,
-    #     variant=None,
-    #     redshift_dict=None,
-    # ):
-    #     partial_coefficients_dict = None
-    #     if variant == "growth_index":
-    #         redshift_velocities = redshift_dict["v"]
-    #         a = 1 / (1 + redshift_velocities)
-
-    #         # cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
-    #         # cosmoOm = np.array(cosmo.Om(redshift_velocities))
-    #         # H = cosmo_background.H(redshift_velocities) / cosmo_background.H0
-
-    #         # The Om0-gamma model f=Omega(Om0)^gamma
-
-    #         f0 = parameter_values_dict["Om0"] ** parameter_values_dict["gamma"]
-    #         f = cosmoOm ** parameter_values_dict["gamma"]
-    #         s8_values  = s8(redshift_velocities, parameter_values_dict)
-
-    #         aHf = a * H * f  # aka A
-    #         aHfs8 = aHf * s8_values
-
-    #         # # now for the partials
-    #         # dfdOm0 = (
-    #         #     parameter_values_dict["gamma"]
-    #         #     * f
-    #         #     / cosmoOm
-    #         #     * dOmdOm0(a, parameter_values_dict)
-    #         # )
-    #         # dfdgamma = np.log(cosmoOm) * f
-
-    #         # A = aHf
-
-    #         dAdOm0 = a * H * dfdOm0
-    #         dAdgamma = a * H * dfdgamma
-
-    #         Omega_m_partial_derivative_coefficients = (
-    #             dAdOm0 * s8_values
-    #             + aHf
-    #             * ds8dO0(
-    #                 redshift_velocities,
-    #                 parameter_values_dict,
-    #                 s8_values=s8_values,
-    #             )
-    #         )
-
-    #         gamma_partial_derivative_coefficients = (
-    #             dAdgamma * s8_values
-    #             + aHf
-    #             * ds8dgamma(
-    #                 redshift_velocities,
-    #                 parameter_values_dict,
-    #                 s8_values=s8_values,
-    #             )
-    #         )
-
-    #         partial_coefficients_dict = {
-    #             "Omegam": {
-    #                 "vv": [
-    #                     np.outer(
-    #                         Omega_m_partial_derivative_coefficients,
-    #                         aHfs8,
-    #                     )
-    #                     + np.outer(
-    #                         aHfs8,
-    #                         Omega_m_partial_derivative_coefficients,
-    #                     ),
-    #                 ],
-    #             },
-    #             "gamma": {
-    #                 "vv": [
-    #                     np.outer(
-    #                         gamma_partial_derivative_coefficients,
-    #                         aHfs8,
-    #                     )
-    #                     + np.outer(
-    #                         aHfs8,
-    #                         gamma_partial_derivative_coefficients,
-    #                     ),
-    #                 ],
-    #             },
-    #         }
-    #     elif variant == "growth_rate":
-    #         redshift_velocities = redshift_dict["v"]
-    #         a = 1 / (1 + redshift_velocities)
-    #         cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
-    #         H = cosmo_background.H(redshift_velocities) / cosmo_background.H0
-
-    #         fs8_partial_derivative_coefficients = (
-    #             a * cosmo.H(redshift_velocities) / cosmo.H0
-    #         )
-
-    #         aHfs8 = (
-    #             a * cosmo.H(redshift_velocities) / cosmo.H0 * parameter_values_dict["fs8"]
-    #         )
-    #         partial_coefficients_dict = {
-    #             "fs8": {
-    #                 "vv": [
-    #                     np.outer(
-    #                         fs8_partial_derivative_coefficients,
-    #                         aHfs8,
-    #                     )
-    #                     + np.outer(
-    #                         aHfs8,
-    #                         fs8_partial_derivative_coefficients,
-    #                     ),
-    #                 ],
-    #             },
-    #         }
-
-    #     return partial_coefficients_dict

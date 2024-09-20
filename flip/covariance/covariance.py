@@ -189,7 +189,6 @@ class CovMatrix:
         number_velocities=None,
         redshift_dict=None,
         variant=None,
-        fiducial_dict=None,
     ):
         """
         The __init__ function is called when the class is instantiated.
@@ -220,7 +219,6 @@ class CovMatrix:
         self.number_velocities = number_velocities
         self.redshift_dict = redshift_dict
         self.variant = variant
-        self.fiducial_dict=fiducial_dict
 
     @classmethod
     def init_from_flip(
@@ -233,7 +231,6 @@ class CovMatrix:
         additional_parameters_values=None,
         los_definition="bisector",
         variant=None,
-        fiducial_dict=None,
         **kwargs,
     ):
         """
@@ -274,7 +271,6 @@ class CovMatrix:
             coordinates_velocity=coordinates_velocity,
             additional_parameters_values=additional_parameters_values,
             los_definition=los_definition,
-            fiducial_dict = fiducial_dict,
             **kwargs,
         )
         end = time.time()
@@ -291,7 +287,6 @@ class CovMatrix:
             number_velocities=number_velocities,
             redshift_dict=redshift_dict,
             variant=variant,
-            fiducial_dict = fiducial_dict,
         )
 
     @classmethod
@@ -344,7 +339,6 @@ class CovMatrix:
             power_spectrum_dict,
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
-            fiducial_dict=fiducial_dict,
             **kwargs,
         )
         end = time.time()
@@ -361,7 +355,6 @@ class CovMatrix:
             number_velocities=number_velocities,
             redshift_dict=redshift_dict,
             variant=variant,
-            fiducial_dict=fiducial_dict,
         )
 
     @classmethod
@@ -481,7 +474,6 @@ class CovMatrix:
             parameter_values_dict,
             variant=self.variant,
             redshift_dict=self.redshift_dict,
-            fiducial_dict=self.fiducial_dict,
         )
         coefficients_dict_diagonal = coefficients.get_diagonal_coefficients(
             self.model_type,

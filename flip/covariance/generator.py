@@ -277,7 +277,6 @@ def compute_coeficient(
     number_worker=8,
     hankel=True,
     kmin=None,
-    fiducial_dict=None,
 ):
     """
     The compute_coeficient function computes the covariance matrix for a given model.
@@ -378,7 +377,6 @@ def compute_cov(
     hankel=True,
     los_definition="bisector",
     kmin=None,
-    fiducial_dict=None,
 ):
     """
     The compute_cov function computes the covariance matrix for a given model.
@@ -421,7 +419,6 @@ def compute_cov(
         number_worker=number_worker,
         hankel=hankel,
         kmin=kmin,
-        fiducial_dict=fiducial_dict,
     )
 
     return covariance
@@ -482,7 +479,6 @@ def generate_covariance(
     hankel=True,
     los_definition="bisector",
     kmin=None,
-    fiducial_dict=None,
 ):
     """
     The generate_flip function computes the covariance matrix for a given model.
@@ -541,7 +537,6 @@ def generate_covariance(
             hankel=hankel,
             los_definition=los_definition,
             kmin=kmin,
-            fiducial_dict=fiducial_dict,
         )
         number_velocities = len(coordinates_velocity[0])
     else:

@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from flip.covariance.rcrk24.flip_terms import *
 
 
-def main(parameter_dict=None, fiducial_dict=None, variant="growth_rate"):
+def main(parameter_dict=None, variant="growth_rate"):
     flip_base = resource_filename("flip", ".")
     data_path = os.path.join(flip_base, "data")
 
@@ -60,7 +60,6 @@ def main(parameter_dict=None, fiducial_dict=None, variant="growth_rate"):
         size_batch=size_batch,
         number_worker=number_worker,
         variant=variant,
-        fiducial_dict=fiducial_dict,
     )
 
     ### Load fitter
@@ -123,13 +122,6 @@ if __name__ == "__main__":
 
     # for now the dictionaries conflate the two models.
     # Really should be for one model
-    fiducial_dict = {
-        "fs8": 0.3**0.55*0.832,
-        "gamma": 0.55,
-        "Om0": 0.3,
-        "s80": 0.832,
-        "s8_cmb": 0.832 * 0.001176774706956903,        
-    }
 
     parameter_dict = {
         "gamma": 0.55,
@@ -144,12 +136,12 @@ if __name__ == "__main__":
     Om0_prior = 0.1
 
     # growth index
-    parameter_name_list, fisher_matrix = main(parameter_dict=parameter_dict, fiducial_dict=fiducial_dict, variant="growth_index")
+    parameter_name_list, fisher_matrix = main(parameter_dict=parameter_dict, variant="growth_index")
     cov = np.linalg.inv(fisher_matrix+np.array([[1/Om0_prior**2,0],[0,0]]))
-    partials = fiducial_dict["s80"]*np.array([parameter_dict['gamma']*parameter_dict['Om0']**(parameter_dict['gamma']-1),np.log(parameter_dict['Om0'])*parameter_dict['Om0']**parameter_dict['gamma']])
-    partials = partials + parameter_dict['Om0']**parameter_dict['gamma'] *fiducial_dict["s80"] * np.array([dlnDdOm0(1., parameter_dict), dlnDdgamma(1., parameter_dict)])
-    print(parameter_dict["Om0"]**parameter_dict['gamma'] * fiducial_dict["s80"], np.sqrt(partials.T @ cov @ partials))
+    partials = parameter_dict["s80"]*np.array([parameter_dict['gamma']*parameter_dict['Om0']**(parameter_dict['gamma']-1),np.log(parameter_dict['Om0'])*parameter_dict['Om0']**parameter_dict['gamma']])
+    partials = partials + parameter_dict['Om0']**parameter_dict['gamma'] *parameter_dict["s80"] * np.array([dlnDdOm0(1., parameter_dict), dlnDdgamma(1., parameter_dict)])
+    print(parameter_dict["Om0"]**parameter_dict['gamma'] * parameter_dict["s80"], np.sqrt(partials.T @ cov @ partials))
 
     # growth rate
-    parameter_name_list, fisher_matrix = main(parameter_dict=parameter_dict, fiducial_dict=fiducial_dict, variant="growth_rate")
+    parameter_name_list, fisher_matrix = main(parameter_dict=parameter_dict, variant="growth_rate")
     print(parameter_dict["fs8"], 1/np.sqrt(fisher_matrix))

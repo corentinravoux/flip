@@ -16,7 +16,7 @@ from flip.covariance.rcrk24.coefficients import (
     cosmo_background,
 )
 
-exact=True
+exact=False
 if exact:
     s8 =     s8_exact
     ds8dgamma =     ds8dgamma_exact

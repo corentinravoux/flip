@@ -38,7 +38,7 @@ class VelFromSALTfit(DataVector):
         )
         return distance_modulus_difference
 
-    def compute_observed_distance_modulus_var(self, parameter_values_dict):
+    def compute_observed_distance_modulus_variance(self, parameter_values_dict):
         if self._covariance_observation is None:
             variance_distance_modulus = (
                 self._data["e_mb"] ** 2
@@ -62,7 +62,7 @@ class VelFromSALTfit(DataVector):
             )
         return variance_distance_modulus
 
-    def _give_data_and_var(self, parameter_values_dict):
+    def _give_data_and_variance(self, parameter_values_dict):
         velocity_variance = self.compute_observed_distance_modulus_var(
             parameter_values_dict
         )

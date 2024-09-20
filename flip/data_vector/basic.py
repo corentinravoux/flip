@@ -91,7 +91,7 @@ class DataVector(abc.ABC):
         return self._data
 
     @abc.abstractmethod
-    def _give_data_and_var(self, **kwargs):
+    def _give_data_and_variance(self, **kwargs):
         pass
 
     def _check_keys(self, data):
@@ -109,7 +109,7 @@ class DataVector(abc.ABC):
             self._data[k] = jnp.array(self._data[k])
 
     def __call__(self, *args):
-        return self._give_data_and_var(*args)
+        return self._give_data_and_variance(*args)
 
     def mask(self, bool_mask):
         if len(bool_mask) != len(self.data[self.needed_keys[0]]):
@@ -142,7 +142,7 @@ class Density(DataVector):
     _kind = "density"
     _needed_keys = ["density", "density_error"]
 
-    def _give_data_and_var(self, *args):
+    def _give_data_and_variance(self, *args):
         return self._data["density"], self._data["density_error"] ** 2
 
 
@@ -157,7 +157,7 @@ class DirectVel(DataVector):
             cond_keys += ["velocity_error"]
         return cond_keys
 
-    def _give_data_and_var(self, *args):
+    def _give_data_and_variance(self, *args):
         if self._covariance_observation is not None:
             return self._data["velocity"], self._covariance_observation
         return self._data["velocity"], self._data["velocity_error"] ** 2
@@ -174,13 +174,15 @@ class DensVel(DataVector):
     def free_par(self):
         return self.densities.free_par + self.velocities.free_par
 
-    def _give_data_and_var(self, *args):
-        data_density, density_variance = self.densities._give_data_and_var(*args)
-        data_velocity, velocity_variance = self.velocities._give_data_and_var(*args)
+    def _give_data_and_variance(self, *args):
+        data_density, density_variance = self.densities._give_data_and_variance(*args)
+        data_velocity, velocity_variance = self.velocities._give_data_and_variance(
+            *args
+        )
 
         data = np.hstack((data_density, data_velocity))
-        var = np.hstack((density_variance, velocity_variance))
-        return data, var
+        variance = np.hstack((density_variance, velocity_variance))
+        return data, variance
 
     def __init__(self, DensityVector, VelocityVector):
         self.densities = DensityVector
@@ -247,11 +249,30 @@ class FisherVelFromHDres(DataVector):
     _needed_keys = ["zobs", "ra", "dec"]
     _free_par = ["sigma_M"]
 
-    def _give_data_and_var(self, parameter_values_dict):
-        return self._dmu2vel**2 * parameter_values_dict["sigma_M"] ** 2
+    def _give_data_and_variance(self, parameter_values_dict):
+
+        variance = parameter_values_dict["sigma_M"] ** 2
+        if "dmu_error" in self.data:
+            variance += self.data["dmu_error"] ** 2
+        return self._dmu2vel**2 * variance
 
     def __init__(self, data, vel_estimator="full", **kwargs):
         super().__init__(data)
         self._dmu2vel = redshift_dependence_velocity(
             self._data, vel_estimator, **kwargs
         )
+
+
+class FisherDensity(DataVector):
+    _kind = "density"
+    _needed_keys = ["ra", "dec", "rcom_zobs"]
+    _free_par = []
+
+    def _give_data_and_variance(self, parameter_values_dict):
+        variance = 0
+        if "density_error" in self.data:
+            variance += self.data["density_error"] ** 2
+        return variance
+
+    def __init__(self, data, vel_estimator="full", **kwargs):
+        super().__init__(data)

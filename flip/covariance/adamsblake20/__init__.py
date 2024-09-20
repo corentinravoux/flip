@@ -1,6 +1,5 @@
 _variant = [None, "baseline", "nobeta"]
 
-
 _free_par = {
     "fs8": ["velocity@all", "density@nobeta"],
     "bs8": "density@all",

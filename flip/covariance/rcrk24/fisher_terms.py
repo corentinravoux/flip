@@ -2,15 +2,29 @@ import numpy as np
 from astropy.cosmology import FlatLambdaCDM
 
 from flip.covariance.rcrk24.coefficients import (
+    aH,
     dOmdOm0,
     f,
     dfdOm0,
     dfdgamma,
+    s8_approx,
     ds8dgamma_approx,
     ds8dO0_approx,
-    s8_approx,
+    s8_exact,
+    ds8dgamma_exact,
+    ds8dO0_exact,
     cosmo_background,
 )
+
+exact=True
+if exact:
+    s8 =     s8_exact
+    ds8dgamma =     ds8dgamma_exact
+    ds8dO0 =     ds8dO0_exact
+else:
+    s8 =     s8_approx
+    ds8dgamma =     ds8dgamma_approx
+    ds8dO0 =     ds8dO0_approx
 
 # The flip convention is to split the power spectrum into several terms
 # where linearity assumptions are made
@@ -47,16 +61,16 @@ def get_partial_derivative_coefficients(
     redshift_dict=None,
 ):
     partial_coefficients_dict = None
-    Om0 = parameter_values_dict["Om0"]
-    gamma =  parameter_values_dict["gamma"]
     redshift_velocities = redshift_dict["v"]
     a = 1 / (1 + redshift_velocities)
-    cosmo = FlatLambdaCDM(H0=100, Om0=Om0)
-    cosmoOm = np.array(cosmo.Om(redshift_velocities))
-    H = cosmo_background.H(redshift_velocities) / cosmo_background.H0
+    # cosmo = FlatLambdaCDM(H0=100, Om0=Om0)
+    # cosmoOm = np.array(cosmo.Om(redshift_velocities))
+    # H = cosmo_background.H(redshift_velocities) / cosmo_background.H0
+    aH_values = aH(a)
 
     if variant == "growth_index":
-
+        Om0 = parameter_values_dict["Om0"]
+        gamma =  parameter_values_dict["gamma"]
 
         # cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
         # cosmoOm = np.array(cosmo.Om(redshift_velocities))
@@ -65,11 +79,11 @@ def get_partial_derivative_coefficients(
         # The Om0-gamma model f=Omega(Om0)^gamma
 
         f_values = f(a, Om0, gamma) #cosmoOm ** parameter_values_dict["gamma"]
-        s8_values  = s8_approx(redshift_velocities, Om0, gamma)
+        s8_values  = s8(redshift_velocities, Om0, gamma)
         dfdOm0_values = dfdOm0(a, Om0, gamma)
         dfdgamma_values = dfdgamma(a, Om0, gamma)
 
-        aHf = a * H * f_values  # aka A
+        aHf = aH_values * f_values  # aka A
         aHfs8 = aHf * s8_values
 
 
@@ -84,13 +98,13 @@ def get_partial_derivative_coefficients(
 
         # A = aHf
 
-        dAdOm0 = a * H * dfdOm0_values
-        dAdgamma = a * H * dfdgamma_values
+        dAdOm0 = aH_values * dfdOm0_values
+        dAdgamma = aH_values * dfdgamma_values
 
         Omega_m_partial_derivative_coefficients = (
             dAdOm0 * s8_values
             + aHf
-            * ds8dO0_approx(
+            * ds8dO0(
                 redshift_velocities,
                 Om0, gamma,
                 s8_values=s8_values,
@@ -100,7 +114,7 @@ def get_partial_derivative_coefficients(
         gamma_partial_derivative_coefficients = (
             dAdgamma * s8_values
             + aHf
-            * ds8dgamma_approx(
+            * ds8dgamma(
                 redshift_velocities,
                 Om0, gamma,
                 s8_values=s8_values,
@@ -134,17 +148,18 @@ def get_partial_derivative_coefficients(
             },
         }
     elif variant == "growth_rate":
-        redshift_velocities = redshift_dict["v"]
-        a = 1 / (1 + redshift_velocities)
-        cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
-        H = cosmo_background.H(redshift_velocities) / cosmo_background.H0
+        fs8 =  parameter_values_dict["fs8"]
+        # redshift_velocities = redshift_dict["v"]
+        # a = 1 / (1 + redshift_velocities)
+        # cosmo = FlatLambdaCDM(H0=100, Om0=parameter_values_dict["Om0"])
+        # H = cosmo_background.H(redshift_velocities) / cosmo_background.H0
 
         fs8_partial_derivative_coefficients = (
-            a * cosmo.H(redshift_velocities) / cosmo.H0
+            aH_values
         )
 
         aHfs8 = (
-            a * cosmo.H(redshift_velocities) / cosmo.H0 * parameter_values_dict["fs8"]
+            aH_values*fs8
         )
         partial_coefficients_dict = {
             "fs8": {

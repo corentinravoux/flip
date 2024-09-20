@@ -10,6 +10,9 @@ a_cmb = 1 / (1 + 1089.92)
 lna_cmb = np.log(a_cmb)
 s8_cmb= 0.832 * 0.001176774706956903
 
+def aH(a):
+    return a * cosmo_background.H(1/a-1) / cosmo_background.H0
+
 def Om(a, Om0):
     numerator = Om0 * a ** (-3)
     denominator = numerator + 1 - Om0
@@ -96,13 +99,13 @@ def ds8dO0_exact(r, Om0, gamma, s8_values=None):
     for _a in a:
         ret.append(
             integrate.quad(
-                s8_O0_objective, lna_cmb, np.log(_a), args=parameter_values_dict
+                s8_O0_objective, lna_cmb, np.log(_a), args=(Om0, gamma)
             )[0]
         )
     ret = np.array(ret)
 
     if s8_values is None:
-        s8_values =  s8(r, parameter_values_dict)
+        s8_values =  s8(r, Om0, gamma)
 
     if scalar_input:
         return s8_values * np.squeeze(ret)
@@ -123,13 +126,13 @@ def ds8dgamma_exact(r, Om0, gamma, s8_values=None):
                 s8_gamma_objective,
                 lna_cmb,
                 np.log(_a),
-                args=parameter_values_dict,
+                args=(Om0, gamma),
             )[0]
         )
     ret = np.array(ret)
 
     if s8_values is None:
-        s8_values = s8(r, parameter_values_dict)
+        s8_values = s8(r, Om0, gamma)
 
     if scalar_input:
         return s8_values * np.squeeze(ret)

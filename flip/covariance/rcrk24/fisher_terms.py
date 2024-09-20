@@ -3,7 +3,6 @@ from astropy.cosmology import FlatLambdaCDM
 
 from flip.covariance.rcrk24.coefficients import (
     aH,
-    dOmdOm0,
     f,
     dfdOm0,
     dfdgamma,
@@ -13,7 +12,6 @@ from flip.covariance.rcrk24.coefficients import (
     s8_exact,
     ds8dgamma_exact,
     ds8dO0_exact,
-    cosmo_background,
 )
 
 exact=False
@@ -52,7 +50,7 @@ def get_partial_derivative_coefficients(
 
         dfdOm0_values = dfdOm0(a, Om0, gamma)
         dfdgamma_values = dfdgamma(a, Om0, gamma)
-        
+
         ds8dO0_values = ds8dO0(
                 redshift_velocities,
                 Om0, gamma,

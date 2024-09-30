@@ -69,6 +69,7 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
 
 class DataVector(abc.ABC):
     _free_par = []
+    _kind = '' # 'velocity', 'density' or 'cross'
 
     @property
     def free_par(self):
@@ -121,7 +122,7 @@ class DataVector(abc.ABC):
             new_cov = self._covariance_observation[np.outer(bool_mask, bool_mask)]
         return type(self)(new_data, cov=new_cov, **self._kwargs)
 
-    def compute_cov(self, model, power_spectrum_dict, **kwargs):
+    def compute_covariance(self, model, power_spectrum_dict, **kwargs):
 
         coordinate_keys = importlib.import_module(
             f"flip.covariance.{model}"
@@ -191,7 +192,7 @@ class DensVel(DataVector):
         if self.velocities._covariance_observation is not None:
             raise NotImplementedError("Vel with cov + density not implemented yet")
 
-    def compute_cov(self, model, power_spectrum_dict, **kwargs):
+    def compute_covariance(self, model, power_spectrum_dict, **kwargs):
 
         coords_dens = np.vstack(
             (
@@ -246,7 +247,7 @@ class VelFromHDres(DirectVel):
 
 class FisherVelFromHDres(DataVector):
     _kind = "velocity"
-    _needed_keys = ["zobs", "ra", "dec"]
+    _needed_keys = ["zobs", "ra", "dec", "rcom_zobs"]
     _free_par = ["sigma_M"]
 
     def _give_data_and_variance(self, parameter_values_dict):
@@ -276,3 +277,49 @@ class FisherDensity(DataVector):
 
     def __init__(self, data, vel_estimator="full", **kwargs):
         super().__init__(data)
+
+
+class FisherDensVel(DataVector):
+    _kind = "cross"
+    
+    def _give_data_and_variance(self, *args):
+        density_variance = self.densities._give_data_and_variance(*args)
+        velocity_variance = self.velocities._give_data_and_variance(
+            *args
+        )
+        
+        variance = np.hstack((density_variance, velocity_variance))
+        return variance
+
+    def __init__(self, FisherDensity, FisherVel):
+        self.densities = FisherDensity
+        self.velocities = FisherVel
+
+        if self.velocities._covariance_observation is not None:
+            raise NotImplementedError("Vel with cov + density not implemented yet")
+
+    def compute_covariance(self, model, power_spectrum_dict, **kwargs):
+
+        coords_dens = np.vstack(
+            (
+                self.densities.data["ra"],
+                self.densities.data["dec"],
+                self.densities.data["rcom_zobs"],
+            )
+        )
+
+        coords_vel = np.vstack(
+            (
+                self.velocities.data["ra"],
+                self.velocities.data["dec"],
+                self.velocities.data["rcom_zobs"],
+            )
+        )
+        return CovMatrix.init_from_flip(
+            model,
+            "full",
+            power_spectrum_dict,
+            coordinates_density=coords_dens,
+            coordinates_velocity=coords_vel,
+            **kwargs,
+        )

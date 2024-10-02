@@ -1,3 +1,4 @@
+import numpy as np
 from .basic import DataVector, redshift_dependence_velocity
 
 try:
@@ -77,11 +78,24 @@ class VelFromSALTfit(DataVector):
             )
             J *= self._dmu2vel
             velocity_variance = J @ velocity_variance @ J.T
-        return (
-            self._dmu2vel
-            * self.compute_distance_modulus_difference(parameter_values_dict, self.h),
-            velocity_variance,
-        )
+            
+        velocities = self._dmu2vel * self.compute_distance_modulus_difference(parameter_values_dict, self.h)
+        
+        if self._host_matrix is not None:   
+            if len(velocity_variance.shape) == 1:
+                weights = self._host_matrix / velocity_variance
+            else:
+                weights = self._host_matrix / np.diag(velocity_variance)
+                
+            weigths_sum = weights.sum(axis=1)
+            velocities = weights @ velocities / weigths_sum
+            
+            if len(velocity_variance.shape) == 1:
+                velocity_variance = 1 / weigths_sum
+            else:
+                weights = weights / weigths_sum[:, jnp.newaxis]
+                velocity_variance = weights @ velocity_variance @ weights.T
+        return (velocities, velocity_variance)
 
     def _init_dmu2vel(self, vel_estimator, **kwargs):
         return redshift_dependence_velocity(self._data, vel_estimator, **kwargs)
@@ -93,12 +107,71 @@ class VelFromSALTfit(DataVector):
         for k in range(3):
             A[k][ij[1] == 3 * ij[0] + k] = 1
         return A
-
+    
+    
+    def _init_data_to_host(self):
+        host_list, host_list_index = np.unique(
+            self.data['host_group_id'], 
+            return_index=True)
+        self.n_host = len(host_list)
+        
+        host_matrix = np.empty((NHOST, len(idx)), dtype=bool)
+        
+        for i, h in enumerate(host_list):
+            host_matrix[i] = self.data['host_group_id']s == h
+        
+        # Change coordinates
+        self._data['ra_sn'] = self._data['ra'].copy()
+        self._data['dec_sn'] = self._data['dec'].copy()
+        self._data['zobs_sn'] = self._data['zobs'].copy()
+        
+        ra = np.ma.array(
+            host_matrix * self.data['ra'], 
+            dtype='float', 
+            mask=~host_matrix)
+        self._data['ra'] = np.arctan2(
+            np.nanmean(np.sin(ra), axis=1), 
+            np.nanmean(np.cos(ra), axis=1)
+            ).data
+        self._data['ra'] += 2 * np.pi * (self._data['ra'] < 0)
+        
+        self._data['dec'] = np.ma.array(
+            host_matrix * self.data['dec'], 
+            dtype='float', 
+            mask=~host_matrix).mean(axis=1)
+        
+        self._data['zobs'] =  np.ma.array(
+            host_matrix * self.data['zobs'], 
+            dtype='float', 
+            mask=~host_matrix).mean(axis=1)
+        
+        if 'rcom_zobs' in self.data:
+            self._data['rcom_zobs_sn'] = self._data['rcom_zobs'].copy()
+            
+            self._data['rcom_zobs'] =  np.ma.array(
+            host_matrix * self.data['rcom_zobs'], 
+            dtype='float', 
+            mask=~host_matrix).mean(axis=1)
+            
+        if 'hubble_norm' in self.data:
+            self._data['hubble_norm_sn'] = self._data['hubble_norm'].copy()
+            self._data['hubble_norm'] = np.ma.array(
+            host_matrix * self.data['hubble_norm'], 
+            dtype='float', 
+            mask=~host_matrix).mean(axis=1)
+        
+        return host_matrix
+    
+    
     def __init__(self, data, h, cov=None, vel_estimator="full", **kwargs):
         super().__init__(data, cov=cov)
         self._dmu2vel = self._init_dmu2vel(vel_estimator, h=h, **kwargs)
         self.h = h
         self._A = None
+        self._host_matrix = None
+        if 'host_group_id' in data:
+            self._host_matrix = self._init_data_to_host()
+            
         if self._covariance_observation is not None:
             if self._covariance_observation.shape != (3 * len(data), 3 * len(data)):
                 raise ValueError("Cov should be 3N x 3N")

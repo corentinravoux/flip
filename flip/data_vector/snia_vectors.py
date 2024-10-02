@@ -34,8 +34,16 @@ class VelFromSALTfit(DataVector):
         distance_modulus_difference = self.compute_observed_distance_modulus(
             parameter_values_dict
         )
+        
+        if self._host_matrix is not None:
+            zobs = self.data["zobs_sn"]
+            rcom_zobs = self.data["rcom_zobs_sn"]
+        else:
+            zobs = self.data["zobs"]
+            rcom_zobs = self.data["rcom_zobs"]
+            
         distance_modulus_difference -= (
-            5 * jnp.log10((1 + self._data["zobs"]) * self._data["rcom_zobs"] / h) + 25
+            5 * jnp.log10((1 + zobs) * rcom_zobs / h) + 25
         )
         return distance_modulus_difference
 
@@ -115,10 +123,10 @@ class VelFromSALTfit(DataVector):
             return_index=True)
         self.n_host = len(host_list)
         
-        host_matrix = np.empty((NHOST, len(idx)), dtype=bool)
+        host_matrix = np.empty((self.n_host, len(self.data['host_group_id'])), dtype=bool)
         
         for i, h in enumerate(host_list):
-            host_matrix[i] = self.data['host_group_id']s == h
+            host_matrix[i] = self.data['host_group_id'] == h
         
         # Change coordinates
         self._data['ra_sn'] = self._data['ra'].copy()
@@ -130,7 +138,7 @@ class VelFromSALTfit(DataVector):
             dtype='float', 
             mask=~host_matrix)
         self._data['ra'] = np.arctan2(
-            np.nanmean(np.sin(ra), axis=1), 
+            np.mean(np.sin(ra), axis=1), 
             np.nanmean(np.cos(ra), axis=1)
             ).data
         self._data['ra'] += 2 * np.pi * (self._data['ra'] < 0)
@@ -138,12 +146,12 @@ class VelFromSALTfit(DataVector):
         self._data['dec'] = np.ma.array(
             host_matrix * self.data['dec'], 
             dtype='float', 
-            mask=~host_matrix).mean(axis=1)
+            mask=~host_matrix).mean(axis=1).data
         
         self._data['zobs'] =  np.ma.array(
             host_matrix * self.data['zobs'], 
             dtype='float', 
-            mask=~host_matrix).mean(axis=1)
+            mask=~host_matrix).mean(axis=1).data
         
         if 'rcom_zobs' in self.data:
             self._data['rcom_zobs_sn'] = self._data['rcom_zobs'].copy()
@@ -151,14 +159,14 @@ class VelFromSALTfit(DataVector):
             self._data['rcom_zobs'] =  np.ma.array(
             host_matrix * self.data['rcom_zobs'], 
             dtype='float', 
-            mask=~host_matrix).mean(axis=1)
+            mask=~host_matrix).mean(axis=1).data
             
         if 'hubble_norm' in self.data:
             self._data['hubble_norm_sn'] = self._data['hubble_norm'].copy()
             self._data['hubble_norm'] = np.ma.array(
             host_matrix * self.data['hubble_norm'], 
             dtype='float', 
-            mask=~host_matrix).mean(axis=1)
+            mask=~host_matrix).mean(axis=1).data
         
         return host_matrix
     

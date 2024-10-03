@@ -234,7 +234,13 @@ class VelFromHDres(DirectVel):
         self._dmu2vel = redshift_dependence_velocity(
             self._data, vel_estimator, **kwargs
         )
-
+        
+        if 'host_group_id' in data:
+            self._host_matrix = vec_ut.compute_host_matrix(self._data['host_group_id'])
+            self._data  = vec_ut.format_data_multiple_host(self._data, self._host_matrix)
+            if jax_installed:
+                self._host_matrix = BCOO.from_scipy_sparse(self._host_matrix)
+            
         self._data["velocity"] = self._dmu2vel * self._data["dmu"]
 
         if self._covariance_observation is not None:
@@ -243,6 +249,23 @@ class VelFromHDres(DirectVel):
             )
         else:
             self._data["velocity_error"] = self._dmu2vel * self._data["dmu_error"]
+
+        if 'host_group_id' in data:
+            if self._covariance_observation is None:
+                weights = self._host_matrix / self._data["velocity_error"]**2
+            else:
+                weights = self._host_matrix / jnp.diag(self._covariance_observation)
+                
+            inverse_weigths_sum = 1 / weights.sum(axis=1).todense()
+            
+            self._data["velocity"] = weights @ self._data["velocity"] * inverse_weigths_sum
+            
+            if self._covariance_observation is None:
+                self._data["velocity_error"] = jnp.sqrt(inverse_weigths_sum)
+            else:
+                weights = weights * inverse_weigths_sum[:, jnp.newaxis]
+                self._covariance_observation = weights @ self._covariance_observation @ weights.T
+            
 
 
 class FisherVelFromHDres(DataVector):

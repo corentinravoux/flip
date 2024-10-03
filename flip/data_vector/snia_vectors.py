@@ -1,9 +1,10 @@
 import numpy as np
 from .basic import DataVector, redshift_dependence_velocity
+from . import vector_utils  as vec_ut
 
 try:
     import jax.numpy as jnp
-
+    from jax.experimental.sparse import BCOO
     jax_installed = True
 except ImportError:
     import numpy as jnp
@@ -36,8 +37,8 @@ class VelFromSALTfit(DataVector):
         )
         
         if self._host_matrix is not None:
-            zobs = self.data["zobs_sn"]
-            rcom_zobs = self.data["rcom_zobs_sn"]
+            zobs = self.data["zobs_full"]
+            rcom_zobs = self.data["rcom_zobs_full"]
         else:
             zobs = self.data["zobs"]
             rcom_zobs = self.data["rcom_zobs"]
@@ -90,18 +91,19 @@ class VelFromSALTfit(DataVector):
         velocities = self._dmu2vel * self.compute_distance_modulus_difference(parameter_values_dict, self.h)
         
         if self._host_matrix is not None:   
-            if len(velocity_variance.shape) == 1:
+            if velocity_variance.ndim == 1:
                 weights = self._host_matrix / velocity_variance
             else:
-                weights = self._host_matrix / np.diag(velocity_variance)
+                weights = self._host_matrix / jnp.diag(velocity_variance)
                 
-            weigths_sum = weights.sum(axis=1)
-            velocities = weights @ velocities / weigths_sum
+            inverse_weigths_sum = 1 / weights.sum(axis=1).todense()
             
-            if len(velocity_variance.shape) == 1:
-                velocity_variance = 1 / weigths_sum
+            velocities = weights @ velocities * inverse_weigths_sum
+            
+            if velocity_variance.ndim == 1:
+                velocity_variance = inverse_weigths_sum
             else:
-                weights = weights / weigths_sum[:, jnp.newaxis]
+                weights = weights * inverse_weigths_sum[:, jnp.newaxis]
                 velocity_variance = weights @ velocity_variance @ weights.T
         return (velocities, velocity_variance)
 
@@ -116,69 +118,18 @@ class VelFromSALTfit(DataVector):
             A[k][ij[1] == 3 * ij[0] + k] = 1
         return A
     
-    
-    def _init_data_to_host(self):
-        host_list, host_list_index = np.unique(
-            self.data['host_group_id'], 
-            return_index=True)
-        self.n_host = len(host_list)
-        
-        host_matrix = np.empty((self.n_host, len(self.data['host_group_id'])), dtype=bool)
-        
-        for i, h in enumerate(host_list):
-            host_matrix[i] = self.data['host_group_id'] == h
-        
-        # Change coordinates
-        self._data['ra_sn'] = self._data['ra'].copy()
-        self._data['dec_sn'] = self._data['dec'].copy()
-        self._data['zobs_sn'] = self._data['zobs'].copy()
-        
-        ra = np.ma.array(
-            host_matrix * self.data['ra'], 
-            dtype='float', 
-            mask=~host_matrix)
-        self._data['ra'] = np.arctan2(
-            np.mean(np.sin(ra), axis=1), 
-            np.nanmean(np.cos(ra), axis=1)
-            ).data
-        self._data['ra'] += 2 * np.pi * (self._data['ra'] < 0)
-        
-        self._data['dec'] = np.ma.array(
-            host_matrix * self.data['dec'], 
-            dtype='float', 
-            mask=~host_matrix).mean(axis=1).data
-        
-        self._data['zobs'] =  np.ma.array(
-            host_matrix * self.data['zobs'], 
-            dtype='float', 
-            mask=~host_matrix).mean(axis=1).data
-        
-        if 'rcom_zobs' in self.data:
-            self._data['rcom_zobs_sn'] = self._data['rcom_zobs'].copy()
-            
-            self._data['rcom_zobs'] =  np.ma.array(
-            host_matrix * self.data['rcom_zobs'], 
-            dtype='float', 
-            mask=~host_matrix).mean(axis=1).data
-            
-        if 'hubble_norm' in self.data:
-            self._data['hubble_norm_sn'] = self._data['hubble_norm'].copy()
-            self._data['hubble_norm'] = np.ma.array(
-            host_matrix * self.data['hubble_norm'], 
-            dtype='float', 
-            mask=~host_matrix).mean(axis=1).data
-        
-        return host_matrix
-    
-    
     def __init__(self, data, h, cov=None, vel_estimator="full", **kwargs):
         super().__init__(data, cov=cov)
         self._dmu2vel = self._init_dmu2vel(vel_estimator, h=h, **kwargs)
         self.h = h
         self._A = None
         self._host_matrix = None
+        
         if 'host_group_id' in data:
-            self._host_matrix = self._init_data_to_host()
+            self._host_matrix = vec_ut.compute_host_matrix(self._data['host_group_id'])
+            self._data  = vec_ut.format_data_multiple_host(self._data, self._host_matrix)
+            if jax_installed:
+                self._host_matrix = BCOO.from_scipy_sparse(self._host_matrix)
             
         if self._covariance_observation is not None:
             if self._covariance_observation.shape != (3 * len(data), 3 * len(data)):

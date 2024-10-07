@@ -261,16 +261,17 @@ class VelFromHDres(DirectVel):
         return self._needed_keys + cond_keys
 
     def __init__(self, data, cov=None, vel_estimator="full", **kwargs):
-        super().__init__(data, cov=cov)
 
         self._dmu2vel = redshift_dependence_velocity(data, vel_estimator, **kwargs)
 
-        self._data["velocity"] = self._dmu2vel * data["dmu"]
+        data["velocity"] = self._dmu2vel * data["dmu"]
 
         if cov is not None:
             cov = self._dmu2vel @ cov @ self._dmu2vel.T
         else:
-            self._data["velocity_error"] = self._dmu2vel *  self._data["dmu_error"]
+            data["velocity_error"] = self._dmu2vel *  data["dmu_error"]
+        
+        super().__init__(data, cov=cov)
 
 
 

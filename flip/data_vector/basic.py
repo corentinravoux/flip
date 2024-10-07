@@ -1,16 +1,15 @@
 import abc
-import copy
 import importlib
-from inspect import getmembers, isfunction
-
 import numpy as np
 
 import flip.utils as utils
 from flip.covariance import CovMatrix
 from flip.utils import create_log
+from . import vector_utils as vec_ut
 
 try:
     import jax.numpy as jnp
+    from jax.experimental.sparse import BCOO
 
     jax_installed = True
 except ImportError:
@@ -69,7 +68,7 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
 
 class DataVector(abc.ABC):
     _free_par = []
-    _kind = '' # 'velocity', 'density' or 'cross'
+    _kind = ""  # 'velocity', 'density' or 'cross'
 
     @property
     def free_par(self):
@@ -163,6 +162,37 @@ class DirectVel(DataVector):
             return self._data["velocity"], self._covariance_observation
         return self._data["velocity"], self._data["velocity_error"] ** 2
 
+    def __init__(self, data, cov=None):
+        super().__init__(data, cov=cov)
+
+        if "host_group_id" in self._data:
+            # Copy full length velocities and velocity errors
+            self._data["velocity_full"] = self._data["velocity"].copy()
+            self._data["velocity_error_full"] = self._data["velocity_error"].copy()
+
+            # Init host matrix
+            self._host_matrix, self._data_to_group_mapping = vec_ut.compute_host_matrix(
+                self._data["host_group_id"]
+            )
+            self._data = vec_ut.format_data_multiple_host(self._data, self._host_matrix)
+
+            if jax_installed:
+                self._host_matrix = BCOO.from_scipy_sparse(self._host_matrix)
+
+            if self._covariance_observation is None:
+                velocity_variance = self._data["velocity_error"] ** 2
+            else:
+                velocity_variance = self._covariance_observation
+
+            self._data["velocity"], velocity_variance = vec_ut.get_grouped_data_variance(
+                self._host_matrix, self._data["velocity"], velocity_variance
+            )
+
+            if self._covariance_observation is None:
+                self._data["velocity_error"] = jnp.sqrt(velocity_variance)
+            else:
+                self._covariance_observation = velocity_variance
+
 
 class DensVel(DataVector):
     _kind = "cross"
@@ -230,42 +260,18 @@ class VelFromHDres(DirectVel):
         return self._needed_keys + cond_keys
 
     def __init__(self, data, cov=None, vel_estimator="full", **kwargs):
-        super().__init__(data, cov=cov)
-        self._dmu2vel = redshift_dependence_velocity(
-            self._data, vel_estimator, **kwargs
-        )
-        
-        if 'host_group_id' in data:
-            self._host_matrix = vec_ut.compute_host_matrix(self._data['host_group_id'])
-            self._data  = vec_ut.format_data_multiple_host(self._data, self._host_matrix)
-            if jax_installed:
-                self._host_matrix = BCOO.from_scipy_sparse(self._host_matrix)
-            
-        self._data["velocity"] = self._dmu2vel * self._data["dmu"]
+        data = data.copy()
 
-        if self._covariance_observation is not None:
-            self._covariance_observation = (
-                self._dmu2vel.T @ self._covariance_observation @ self._dmu2vel
-            )
+        self._dmu2vel = redshift_dependence_velocity(data, vel_estimator, **kwargs)
+
+        data["velocity"] = self._dmu2vel * data["dmu"]
+
+        if cov is not None:
+            cov = self._dmu2vel @ cov @ self._dmu2vel.T
         else:
-            self._data["velocity_error"] = self._dmu2vel * self._data["dmu_error"]
+            data["velocity_error"] = self._dmu2vel * data["dmu_error"]
 
-        if 'host_group_id' in data:
-            if self._covariance_observation is None:
-                weights = self._host_matrix / self._data["velocity_error"]**2
-            else:
-                weights = self._host_matrix / jnp.diag(self._covariance_observation)
-                
-            inverse_weigths_sum = 1 / weights.sum(axis=1).todense()
-            
-            self._data["velocity"] = weights @ self._data["velocity"] * inverse_weigths_sum
-            
-            if self._covariance_observation is None:
-                self._data["velocity_error"] = jnp.sqrt(inverse_weigths_sum)
-            else:
-                weights = weights * inverse_weigths_sum[:, jnp.newaxis]
-                self._covariance_observation = weights @ self._covariance_observation @ weights.T
-            
+        super().__init__(data, cov=cov)
 
 
 class FisherVelFromHDres(DataVector):
@@ -304,13 +310,11 @@ class FisherDensity(DataVector):
 
 class FisherDensVel(DataVector):
     _kind = "cross"
-    
+
     def _give_data_and_variance(self, *args):
         density_variance = self.densities._give_data_and_variance(*args)
-        velocity_variance = self.velocities._give_data_and_variance(
-            *args
-        )
-        
+        velocity_variance = self.velocities._give_data_and_variance(*args)
+
         variance = np.hstack((density_variance, velocity_variance))
         return variance
 

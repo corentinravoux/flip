@@ -1,4 +1,5 @@
 import abc
+import copy
 import importlib
 import numpy as np
 
@@ -102,7 +103,7 @@ class DataVector(abc.ABC):
     def __init__(self, data, cov=None, **kwargs):
         self._covariance_observation = cov
         self._check_keys(data)
-        self._data = data
+        self._data = copy.copy(data)
         self._kwargs = kwargs
 
         for k in self._data:
@@ -167,8 +168,8 @@ class DirectVel(DataVector):
 
         if "host_group_id" in self._data:
             # Copy full length velocities and velocity errors
-            self._data["velocity_full"] = self._data["velocity"].copy()
-            self._data["velocity_error_full"] = self._data["velocity_error"].copy()
+            self._data["velocity_full"] = copy.copy(self._data["velocity"])
+            self._data["velocity_error_full"] = copy.copy(self._data["velocity_error"])
 
             # Init host matrix
             self._host_matrix, self._data_to_group_mapping = vec_ut.compute_host_matrix(
@@ -260,18 +261,17 @@ class VelFromHDres(DirectVel):
         return self._needed_keys + cond_keys
 
     def __init__(self, data, cov=None, vel_estimator="full", **kwargs):
-        data = data.copy()
+        super().__init__(data, cov=cov)
 
         self._dmu2vel = redshift_dependence_velocity(data, vel_estimator, **kwargs)
 
-        data["velocity"] = self._dmu2vel * data["dmu"]
+        self._data["velocity"] = self._dmu2vel * data["dmu"]
 
         if cov is not None:
             cov = self._dmu2vel @ cov @ self._dmu2vel.T
         else:
-            data["velocity_error"] = self._dmu2vel * data["dmu_error"]
+            self._data["velocity_error"] = self._dmu2vel *  self._data["dmu_error"]
 
-        super().__init__(data, cov=cov)
 
 
 class FisherVelFromHDres(DataVector):

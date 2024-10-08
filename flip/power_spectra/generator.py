@@ -89,7 +89,7 @@ def compute_power_spectra(
 
     Returns:
         _type_: _description_
-    """    
+    """
     if power_spectrum_engine not in _available_engines:
         raise ValueError(
             f"The engine {power_spectrum_engine} is not available"

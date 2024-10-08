@@ -265,7 +265,7 @@ def define_randoms(
     rcomobj,
     Nrandom=None,
     coord_randoms=None,
-    max_coordinates = None,
+    max_coordinates=None,
 ):
     N = xobj.size
 
@@ -576,7 +576,7 @@ def grid_data_density_pypower(
         rcomobj,
         Nrandom=Nrandom,
         coord_randoms=coord_randoms,
-        max_coordinates = rcom_max + overhead,
+        max_coordinates=rcom_max + overhead,
     )
 
     data_positions = np.array([xobj, yobj, zobj]).T
@@ -623,9 +623,7 @@ def grid_data_density_pypower(
     count_randoms = np.ravel(mesh_count_randoms.value).astype(int)
     density_contrast_err = np.full(count_randoms.shape, np.nan)
     mask = count_randoms > min_count_random
-    density_contrast_err[mask] = np.sqrt(
-        1 / (count_randoms[mask])
-    )
+    density_contrast_err[mask] = np.sqrt(1 / (count_randoms[mask]))
 
     coord_mesh = np.array(
         np.meshgrid(
@@ -635,9 +633,9 @@ def grid_data_density_pypower(
             indexing="ij",
         )
     )
-    xgrid = np.ravel(coord_mesh[0, :, :, :]) + grid_size/2
-    ygrid = np.ravel(coord_mesh[1, :, :, :]) + grid_size/2
-    zgrid = np.ravel(coord_mesh[2, :, :, :]) + grid_size/2
+    xgrid = np.ravel(coord_mesh[0, :, :, :]) + grid_size / 2
+    ygrid = np.ravel(coord_mesh[1, :, :, :]) + grid_size / 2
+    zgrid = np.ravel(coord_mesh[2, :, :, :]) + grid_size / 2
 
     rcomgrid, ragrid, decgrid = utils.cart2radec(xgrid, ygrid, zgrid)
 

@@ -1,5 +1,5 @@
 import numpy as np
-from .basic import DataVector, redshift_dependence_velocity
+from .basic import DataVector
 from . import vector_utils as vec_ut
 
 try:
@@ -101,7 +101,7 @@ class VelFromSALTfit(DataVector):
         return (velocities, velocity_variance)
 
     def _init_dmu2vel(self, vel_estimator, **kwargs):
-        return redshift_dependence_velocity(self._data, vel_estimator, **kwargs)
+        return vec_ut.redshift_dependence_velocity(self._data, vel_estimator, **kwargs)
 
     def _init_A(self):
         N = len(self._data)

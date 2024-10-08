@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+import flip.utils as utils
 from scipy.sparse import coo_array
 
 try:
@@ -11,6 +12,49 @@ except ImportError:
 
     jax_installed = False
 
+
+def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
+    prefactor = -1.0 * utils._C_LIGHT_KMS_ * jnp.log(10) / 5
+    redshift_obs = data["zobs"]
+
+    if velocity_estimator == "watkins":
+        redshift_dependence = prefactor * redshift_obs / (1 + redshift_obs)
+    elif velocity_estimator == "lowz":
+        redshift_dependence = prefactor / ((1 + redshift_obs) / redshift_obs - 1.0)
+    elif velocity_estimator == "hubblehighorder":
+        if ("q0" not in kwargs) & ("j0" not in kwargs):
+            raise ValueError(
+                """ The "q0" and "j0" parameters are not present in the **kwargs"""
+                f""" Please add it or choose a different velocity_estimator among {_avail_velocity_estimator}"""
+            )
+        q_0 = kwargs["q0"]
+        j_0 = kwargs["j0"]
+        redshift_mod = redshift_obs * (
+            1
+            + (1 / 2) * (1 - q_0) * redshift_obs
+            - (1 / 6) * (1 - q_0 - 3 * q_0**2 + j_0) * redshift_obs**2
+        )
+        redshift_dependence = prefactor * redshift_mod / (1 + redshift_obs)
+
+    elif velocity_estimator == "full":
+        if ("hubble_norm" not in data) | ("rcom_zobs" not in data):
+            raise ValueError(
+                """ The "hubble_norm" (H(z)/h = 100 E(z)) or "rcom_zobs" (Dm(z)) fields are not present in the data"""
+                f""" Please add it or choose a different velocity_estimator among {_avail_velocity_estimator}"""
+            )
+
+        redshift_dependence = prefactor / (
+            (1 + redshift_obs)
+            * utils._C_LIGHT_KMS_
+            / (data["hubble_norm"] * data["rcom_zobs"])
+            - 1.0
+        )
+
+    else:
+        raise ValueError(
+            f"""Please choose a velocity_estimator from salt fit among {_avail_velocity_estimator}"""
+        )
+    return redshift_dependence
 
 def compute_host_matrix(host_group_id):
     host_list, data_to_host_mapping = np.unique(host_group_id, return_inverse=True)

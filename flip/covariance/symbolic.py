@@ -133,10 +133,10 @@ def generate_MN_ab_i_l_function_parallel_plane(term_B, l):
     """
     phi = sy.symbols("phi")
     mu = sy.symbols("mu")
-    M_l = sy.Rational((2 * l + 1) / 2) * sy.integrate(
+    M_l = sy.Rational(1 / 2) * sy.integrate(
         term_B * legendre_poly(l, x=mu), (mu, -1, 1)
     )
-    N_l = legendre_poly(l, x=sy.cos(phi))
+    N_l = sy.Rational(2 * l + 1) * legendre_poly(l, x=sy.cos(phi))
     M_l = simplify_term(
         M_l.expand(func=True),
         simplification_method="simplify_iteration",

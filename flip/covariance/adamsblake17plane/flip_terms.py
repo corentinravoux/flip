@@ -15,13 +15,13 @@ def N_gg_0_0_0(theta, phi):
 
 def M_gv_0_1_0():
     def func(k):
-        return 100 / k
+        return (100 / 3) / k
 
     return func
 
 
 def N_gv_0_1_0(theta, phi):
-    return np.cos(phi)
+    return 3 * np.cos(phi)
 
 
 def M_vv_0_0_0():
@@ -37,13 +37,13 @@ def N_vv_0_0_0(theta, phi):
 
 def M_vv_0_2_0():
     def func(k):
-        return (20000 / 3) / k**2
+        return (4000 / 3) / k**2
 
     return func
 
 
 def N_vv_0_2_0(theta, phi):
-    return (3 / 4) * np.cos(2 * phi) + 1 / 4
+    return (15 / 4) * np.cos(2 * phi) + 5 / 4
 
 
 dictionary_terms = {"gg": ["0"], "gv": ["0"], "vv": ["0"]}

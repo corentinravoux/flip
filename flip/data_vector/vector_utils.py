@@ -20,7 +20,7 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
     if velocity_estimator == "watkins":
         redshift_dependence = prefactor * redshift_obs / (1 + redshift_obs)
     elif velocity_estimator == "lowz":
-        redshift_dependence = prefactor / ((1 + redshift_obs) / redshift_obs - 1.0)
+        redshift_dependence = prefactor * redshift_obs
     elif velocity_estimator == "hubblehighorder":
         if ("q0" not in kwargs) & ("j0" not in kwargs):
             raise ValueError(
@@ -44,9 +44,7 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
             )
 
         redshift_dependence = prefactor / (
-            (1 + redshift_obs)
-            * utils._C_LIGHT_KMS_
-            / (data["hubble_norm"] * data["rcom_zobs"])
+            (1 + redshift_obs) * utils._C_LIGHT_KMS_ / (data["hubble_norm"] * data["rcom_zobs"])
             - 1.0
         )
 

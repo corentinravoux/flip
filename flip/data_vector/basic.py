@@ -28,8 +28,12 @@ class DataVector(abc.ABC):
     _kind = ""  # 'velocity', 'density' or 'cross'
 
     @property
+    def conditional_free_par(self):
+        return []
+
+    @property
     def free_par(self):
-        return self._free_par
+        return self._free_par + self.conditional_free_par
 
     @property
     def kind(self):
@@ -38,7 +42,7 @@ class DataVector(abc.ABC):
     @property
     def conditional_needed_keys(self):
         return []
-
+    
     @property
     def needed_keys(self):
         return self._needed_keys + self.conditional_needed_keys
@@ -125,7 +129,6 @@ class DirectVel(DataVector):
         if "host_group_id" in self._data:
             # Copy full length velocities and velocity errors
             self._data["velocity_full"] = copy.copy(self._data["velocity"])
-            self._data["velocity_error_full"] = copy.copy(self._data["velocity_error"])
 
             # Init host matrix
             self._host_matrix, self._data_to_group_mapping = vec_ut.compute_host_matrix(
@@ -137,6 +140,7 @@ class DirectVel(DataVector):
                 self._host_matrix = BCOO.from_scipy_sparse(self._host_matrix)
 
             if self._covariance_observation is None:
+                self._data["velocity_error_full"] = copy.copy(self._data["velocity_error"])
                 velocity_variance = self._data["velocity_error"] ** 2
             else:
                 velocity_variance = self._covariance_observation
@@ -223,10 +227,10 @@ class VelFromHDres(DirectVel):
         data["velocity"] = self._dmu2vel * data["dmu"]
 
         if cov is not None:
-            cov = self._dmu2vel @ cov @ self._dmu2vel.T
+            J = jnp.diag(self._dmu2vel)
+            cov = J @ cov @ J.T
         else:
-            data["velocity_error"] = self._dmu2vel *  data["dmu_error"]
-        
+            data["velocity_error"] = self._dmu2vel * data["dmu_error"]
         super().__init__(data, cov=cov)
 
 

@@ -25,6 +25,13 @@ class VelFromSALTfit(DataVector):
             cond_keys += ["e_mb", "e_x1", "e_c", "cov_mb_x1", "cov_mb_c", "cov_x1_c"]
         return cond_keys
 
+    @property
+    def conditional_free_par(self):
+        _cond_fpar = []
+        if 'host_logmass' in self.data:
+            _cond_fpar += ['gamma']
+        return _cond_fpar
+
     def compute_observed_distance_modulus(self, parameter_values_dict):
         observed_distance_modulus = (
             self._data["mb"]
@@ -32,9 +39,15 @@ class VelFromSALTfit(DataVector):
             - parameter_values_dict["beta"] * self._data["c"]
             - parameter_values_dict["M_0"]
         )
+
+        if 'host_logmass' in self.data:
+            mask = self._data["host_logmass"] > 10
+            observed_distance_modulus[mask] += parameter_values_dict["gamma"] / 2
+            observed_distance_modulus[~mask] -= parameter_values_dict["gamma"] / 2
+
         return observed_distance_modulus
 
-    def compute_distance_modulus_difference(self, parameter_values_dict, h):
+    def compute_distance_modulus_difference(self, parameter_values_dict):
         distance_modulus_difference = self.compute_observed_distance_modulus(
             parameter_values_dict
         )
@@ -46,7 +59,7 @@ class VelFromSALTfit(DataVector):
             zobs = self.data["zobs"]
             rcom_zobs = self.data["rcom_zobs"]
 
-        distance_modulus_difference -= 5 * jnp.log10((1 + zobs) * rcom_zobs / h) + 25
+        distance_modulus_difference -= 5 * jnp.log10((1 + zobs) * rcom_zobs / self.h) + 25
         return distance_modulus_difference
 
     def compute_observed_distance_modulus_variance(self, parameter_values_dict):
@@ -86,11 +99,11 @@ class VelFromSALTfit(DataVector):
                 + parameter_values_dict["alpha"] * A[1]
                 - parameter_values_dict["beta"] * A[2]
             )
-            J *= self._dmu2vel
+            J = jnp.diag(self._dmu2vel) @ J
             velocity_variance = J @ velocity_variance @ J.T
 
         velocities = self._dmu2vel * self.compute_distance_modulus_difference(
-            parameter_values_dict, self.h
+            parameter_values_dict
         )
 
         if self._host_matrix is not None:
@@ -111,12 +124,13 @@ class VelFromSALTfit(DataVector):
             A[k][ij[1] == 3 * ij[0] + k] = 1
         return A
 
-    def __init__(self, data, h, cov=None, vel_estimator="full", **kwargs):
+    def __init__(self, data, h, cov=None, vel_estimator="full", mass_step=10,**kwargs):
         super().__init__(data, cov=cov)
         self._dmu2vel = self._init_dmu2vel(vel_estimator, h=h, **kwargs)
         self.h = h
         self._A = None
         self._host_matrix = None
+        self._mass_step = mass_step
 
         if "host_group_id" in data:
             self._host_matrix, self._data_to_group_mapping = vec_ut.compute_host_matrix(

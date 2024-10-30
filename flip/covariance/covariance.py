@@ -749,18 +749,15 @@ class CovMatrix:
             if len(mask_vel) != self.number_velocities:
                 raise ValueError("Velocities mask size does not match vel cov size")
 
-            Nv = np.sum(mask_vel)
-            cov_vv_mask = np.outer(mask_vel, mask_vel)
-
             if self.full_matrix:
                 masked_cov_dic["vv"] = np.array(
                     [
-                        cov[cov_vv_mask].reshape((Nv, Nv))
+                        cov[np.ix_(mask_vel, mask_vel)]
                         for cov in self.covariance_dict["vv"]
                     ]
                 )
             else:
-                cov_vv_mask = cov_vv_mask[np.triu_indices(self.number_velocities, k=1)]
+                cov_vv_mask = np.outer(mask_vel, mask_vel)[np.triu_indices(self.number_velocities, k=1)]
                 cov_vv_mask = np.insert(cov_vv_mask, 0, True)
 
                 masked_cov_dic["vv"] = np.array(
@@ -771,18 +768,15 @@ class CovMatrix:
             if len(mask_dens) != self.number_densities:
                 raise ValueError("Densities mask size does not match density cov size")
 
-            Ng = np.sum(mask_dens)
-            cov_gg_mask = np.outer(mask_dens, mask_dens)
-
             if self.full_matrix:
                 masked_cov_dic["gg"] = np.array(
                     [
-                        cov[cov_gg_mask].reshape((Ng, Ng))
+                        cov[np.ix_(mask_dens, mask_dens)]
                         for cov in self.covariance_dict["gg"]
                     ]
                 )
             else:
-                cov_gg_mask = cov_gg_mask[np.triu_indices(self.number_densities, k=1)]
+                cov_gg_mask = np.outer(mask_dens, mask_dens)[np.triu_indices(self.number_densities, k=1)]
                 cov_gg_mask = np.insert(cov_gg_mask, 0, True)
                 masked_cov_dic["gg"] = np.array(
                     [cov[cov_gg_mask] for cov in self.covariance_dict["gg"]]
@@ -790,25 +784,19 @@ class CovMatrix:
 
         if self.number_densities is not None and self.number_velocities is not None:
             if mask_vel is None:
-                cov_gv_mask = np.outer(
-                    mask_dens, np.ones(self.number_velocities, dtype="bool")
-                )
+                mask_vel = np.ones(self.number_velocities, dtype='bool')
             elif mask_dens is None:
-                cov_gv_mask = np.outer(
-                    np.ones(self.number_densities, dtype="bool"), mask_vel
-                )
-            else:
-                cov_gv_mask = np.outer(mask_dens, mask_vel)
+                mask_dens = np.ones(self.number_densities, dtype='bool')
 
             if self.full_matrix:
                 masked_cov_dic["gv"] = np.array(
                     [
-                        cov[cov_gv_mask].reshape((Ng, Nv))
+                        cov[np.ix_(mask_dens, mask_vel)]
                         for cov in self.covariance_dict["gv"]
                     ]
                 )
             else:
-                cov_gv_mask = cov_gv_mask.flatten()
+                cov_gv_mask = np.outer(mask_dens, mask_vel).flatten()
                 masked_cov_dic["gv"] = np.array(
                     [cov[cov_gv_mask] for cov in self.covariance_dict["gv"]]
                 )
@@ -820,12 +808,12 @@ class CovMatrix:
         return CovMatrix(
             model_name=self.model_name,
             model_type=self.model_type,
+            free_par=self.free_par,
             los_definition=self.los_definition,
             covariance_dict=masked_cov_dic,
             full_matrix=self.full_matrix,
             number_densities=np.sum(mask_dens),
             number_velocities=np.sum(mask_vel),
             redshift_dict=self.redshift_dict,
-            power_spectrum_amplitude_function=self.power_spectrum_amplitude_function,
             variant=self.variant,
         )

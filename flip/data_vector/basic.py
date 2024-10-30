@@ -79,7 +79,7 @@ class DataVector(abc.ABC):
 
         new_cov = None
         if self._covariance_observation is not None:
-            new_cov = self._covariance_observation[np.outer(bool_mask, bool_mask)]
+            new_cov = self._covariance_observation[np.ix_(bool_mask, bool_mask)]
         return type(self)(new_data, cov=new_cov, **self._kwargs)
 
     def compute_covariance(self, model, power_spectrum_dict, **kwargs):

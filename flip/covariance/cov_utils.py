@@ -190,7 +190,7 @@ def angle_separation(
     ) * np.sin(dec_1)
     theta = np.arccos(np.clip(cos_theta, -1, 1))
 
-    r = np.sqrt(r_0**2 + r_1**2 - 2 * r_0 * r_1 * np.clip(cos_theta, -1, 1))
+    r = np.sqrt(r_0**2 + r_1**2 - 2 * r_0 * r_1 * cos_theta)
     phi = compute_phi(ra_0, ra_1, dec_0, dec_1, r_0, r_1, los_definition)
     return r, theta, phi
 

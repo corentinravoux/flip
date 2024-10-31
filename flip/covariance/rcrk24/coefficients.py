@@ -2,7 +2,7 @@ import numpy as np
 import scipy.integrate as integrate
 from astropy.cosmology import FlatLambdaCDM
 from astropy.cosmology import Planck18 as cosmo_background
-   
+
 a_cmb = 1 / (1 + 1089.92)
 lna_cmb = np.log(a_cmb)
 s8_cmb= 0.832 * 0.001176774706956903    # ref. PDG O0=0.3 and gamma=0.5
@@ -215,6 +215,7 @@ def ds8dgamma_approx(r, Om0, gamma, s8_values=None):
         zero + dlnDdgamma_approx(a, Om0, gamma)
     )
 
+
 def get_coefficients(
     model_type,
     parameter_values_dict,
@@ -255,9 +256,11 @@ def get_coefficients(
 
         coefficients_dict["vv"] = [np.outer(coefficient_vector, coefficient_vector)]
     else:
-        raise ValueError("For the rcrk24 model, "
-                         "you need to chose variant between growth_index and growth_rate "
-                         "when you initialize the covariance matrix ")
+        raise ValueError(
+            "For the rcrk24 model, "
+            "you need to chose variant between growth_index and growth_rate "
+            "when you initialize the covariance matrix "
+        )
     return coefficients_dict
 
 def get_diagonal_coefficients(model_type, parameter_values_dict):

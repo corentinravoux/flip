@@ -46,11 +46,24 @@ intersphinx_mapping = {
 extensions = ['myst_parser', 'sphinx.ext.napoleon', 'sphinx_markdown_tables', 'sphinx.ext.autosectionlabel',
               'sphinx.ext.linkcode', 'sphinx.ext.intersphinx', 'sphinx.ext.autodoc', 'sphinx.ext.autosummary']
 extensions.append('autoapi.extension')
+
+# Auto-API config
 autoapi_dirs = ['../flip', '../flip/covariance']
+
+def skip_util_classes(app, what, name, obj, skip, options):
+    if name == "__init__":
+       skip = False
+    return skip
+
+def setup(sphinx):
+   sphinx.connect("autoapi-skip-member", skip_util_classes)
+   
+   
 
 napoleon_google_docstring = True
 myst_enable_extensions = ["dollarmath"]
 myst_dmath_double_inline = True
+
 
 autosectionlabel_prefix_document = True
 # Add any paths that contain templates here, relative to this directory.
@@ -71,7 +84,7 @@ source_suffix = {
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "furo"
+html_theme = "sphinx_book_theme"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -79,10 +92,21 @@ html_theme = "furo"
 html_static_path = ['_static']
 
 html_logo = "_static/flip_logo.webp"
-
+html_title = "FLIP"
 html_theme_options = {
-                        "sidebar_hide_name": True,
-                     }
+    "icon_links": [
+        {
+            # Label for this link
+            "name": "GitHub",
+            # URL where the link will redirect
+            "url": "https://github.com/corentinravoux/flip",  # required
+            # Icon class (if "type": "fontawesome"), or path to local image (if "type": "local")
+            "icon": "fa-brands fa-github",
+            # The type of image to be used (see below for details)
+            "type": "fontawesome",
+        }
+    ]
+}
 
 import inspect
 from os.path import relpath

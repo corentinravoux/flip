@@ -8,6 +8,8 @@ Welcome to flip's documentation!
 
    installation.rst
    basicusage.rst
+   DataVector.rst
+   vel_estimators.rst
 
 .. toctree::
    :hidden:

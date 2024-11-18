@@ -24,7 +24,7 @@ _class_setting_default = {
 
 _class_acuracy_setting_defaults = {
     "tau_reio": 0.0561,
-    "N_eff": 3.044,
+    # "N_eff": 3.044, cause a bug with class since Nov. 2024
     "YHe": 0.24,
     "halofit_k_per_decade": 3000.0,
     "l_switch_limber": 40.0,

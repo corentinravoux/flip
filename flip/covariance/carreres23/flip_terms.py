@@ -2,9 +2,6 @@ import mpmath
 import numpy
 import scipy
 
-np = None
-erf = None
-
 
 def set_backend(module):
     global np, erf
@@ -14,6 +11,9 @@ def set_backend(module):
     elif module == "mpmath":
         np = mpmath.mp
         erf = mpmath.erf
+
+
+set_backend("numpy")
 
 
 def M_vv_0_0_0():

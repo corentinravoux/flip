@@ -188,13 +188,9 @@ def write_output(
 
     """
     f = open(filename, "w")
-    f.write("import scipy\n")
     f.write("import mpmath\n")
     f.write("import numpy\n")
     f.write("import scipy\n")
-    f.write("\n")
-    f.write("np = None\n")
-    f.write("erf = None\n")
     f.write("\n")
     f.write("\n")
     f.write("def set_backend(module):\n")
@@ -205,6 +201,8 @@ def write_output(
     f.write("""    elif module == "mpmath":\n""")
     f.write("        np = mpmath.mp\n")
     f.write("        erf = mpmath.erf\n")
+    f.write("\n")
+    f.write("""set_backend("numpy")\n""")
     f.write("\n")
     f.write("\n")
     dict_terms = {}

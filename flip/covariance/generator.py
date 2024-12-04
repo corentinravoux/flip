@@ -2,9 +2,9 @@ import multiprocessing as mp
 from functools import partial
 
 import cosmoprimo
+import mpmath
 import numpy as np
 from scipy import integrate
-from scipy.ndimage import uniform_filter
 from scipy.signal import savgol_filter
 from scipy.special import spherical_jn
 
@@ -128,17 +128,22 @@ def coefficient_hankel(
 
     """
     cov_ab_i = 0
-    dictionary_subterms = eval(f"flip_terms_{model_name}.dictionary_subterms")
-    regularize_M_terms = eval(f"flip_terms_{model_name}.regularize_M_terms")
+    flip_terms = eval(f"flip_terms_{model_name}")
+    dictionary_subterms = flip_terms.dictionary_subterms
+    regularize_M_terms = flip_terms.regularize_M_terms
     for l in range(lmax + 1):
         number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
         for j in range(number_terms):
-            M_ab_i_l_j = eval(
-                f"flip_terms_{model_name}.M_{covariance_type}_{term_index}_{l}_{j}"
-            )(*additional_parameters_values)
-            N_ab_i_l_j = eval(
-                f"flip_terms_{model_name}.N_{covariance_type}_{term_index}_{l}_{j}"
-            )(coord[1], coord[2])
+            flip_terms.set_backend("numpy")
+            if regularize_M_terms is not None:
+                if regularize_M_terms[covariance_type] == "mpmath":
+                    flip_terms.set_backend("mpmath")
+            M_ab_i_l_j = eval(f"flip_terms.M_{covariance_type}_{term_index}_{l}_{j}")(
+                *additional_parameters_values
+            )
+            N_ab_i_l_j = eval(f"flip_terms.N_{covariance_type}_{term_index}_{l}_{j}")(
+                coord[1], coord[2]
+            )
             if regularize_M_terms is not None:
                 M_ab_i_l_j_evaluated = regularize_M(
                     M_ab_i_l_j,
@@ -188,17 +193,22 @@ def coefficient_trapz(
 
     """
     cov_ab_i = 0
-    dictionary_subterms = eval(f"flip_terms_{model_name}.dictionary_subterms")
-    regularize_M_terms = eval(f"flip_terms_{model_name}.regularize_M_terms")
+    flip_terms = eval(f"flip_terms_{model_name}")
+    dictionary_subterms = flip_terms.dictionary_subterms
+    regularize_M_terms = flip_terms.regularize_M_terms
     for l in range(lmax + 1):
         number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
         for j in range(number_terms):
-            M_ab_i_l_j = eval(
-                f"flip_terms_{model_name}.M_{covariance_type}_{term_index}_{l}_{j}"
-            )(*additional_parameters_values)
-            N_ab_i_l_j = eval(
-                f"flip_terms_{model_name}.N_{covariance_type}_{term_index}_{l}_{j}"
-            )(coord[1], coord[2])
+            flip_terms.set_backend("numpy")
+            if regularize_M_terms is not None:
+                if regularize_M_terms[covariance_type] == "mpmath":
+                    flip_terms.set_backend("mpmath")
+            M_ab_i_l_j = eval(f"flip_terms.M_{covariance_type}_{term_index}_{l}_{j}")(
+                *additional_parameters_values
+            )
+            N_ab_i_l_j = eval(f"flip_terms.N_{covariance_type}_{term_index}_{l}_{j}")(
+                coord[1], coord[2]
+            )
             if regularize_M_terms is not None:
                 M_ab_i_l_j_evaluated = regularize_M(
                     M_ab_i_l_j,
@@ -229,10 +239,20 @@ def regularize_M(
     savgol_polynomial=3,
     lowk_unstable_threshold=0.1,
     lowk_unstable_mean_filtering=10,
+    mpmmath_decimal_precision=50,
 ):
-    M_function_evaluated = M_function(wavenumber)
+
+    if regularization_option == "mpmath":
+        mpmath.mp.dps = mpmmath_decimal_precision
+        wavenumber_mpmath = wavenumber * mpmath.mpf(1)
+
+        M_function_evaluated = np.array(
+            np.frompyfunc(M_function, 1, 1)(wavenumber_mpmath).tolist(),
+            dtype=float,
+        )
 
     if regularization_option == "savgol":
+        M_function_evaluated = M_function(wavenumber)
         M_function_evaluated = savgol_filter(
             M_function_evaluated,
             savgol_window,
@@ -243,6 +263,7 @@ def regularize_M(
         # The low k region presents numerical instabilities for density models.
         # All the M density function should present and asymptotic behaviour at low k.
         # This method detect low k asymptote and force it for all M functions.
+        M_function_evaluated = M_function(wavenumber)
         diff = np.diff(M_function_evaluated, append=[M_function_evaluated[-1]])
         mask_asymptote = np.abs(diff) < lowk_unstable_threshold * np.mean(
             np.abs(diff[wavenumber > wavenumber[len(wavenumber) // 2]])

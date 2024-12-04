@@ -1,4 +1,20 @@
-import numpy as np
+import mpmath
+import numpy
+import scipy
+
+np = None
+erf = None
+
+
+def set_backend(module):
+    global np, erf
+    if module == "numpy":
+        np = numpy
+        erf = scipy.special.erf
+    elif module == "mpmath":
+        np = mpmath.mp
+        erf = mpmath.erf
+
 import scipy.integrate as integrate
 from astropy.cosmology import FlatLambdaCDM
 

@@ -161,6 +161,7 @@ def write_output(
     l2max_list=None,
     multi_index_model=False,
     redshift_dependent_model=False,
+    regularize_M_terms="None",
 ):
     """
     The write_output function takes the following arguments:
@@ -189,6 +190,22 @@ def write_output(
     f = open(filename, "w")
     f.write("import numpy as np\n")
     f.write("import scipy\n")
+    f.write("import mpmath\n")
+    f.write("import numpy\n")
+    f.write("import scipy\n")
+    f.write("\n")
+    f.write("np = None\n")
+    f.write("erf = None\n")
+    f.write("\n")
+    f.write("\n")
+    f.write("def set_backend(module):\n")
+    f.write("    global np, erf\n")
+    f.write("""    if module == "numpy":\n""")
+    f.write("        np = numpy\n")
+    f.write("        erf = scipy.special.erf\n")
+    f.write("""    elif module == "mpmath":\n""")
+    f.write("        np = mpmath.mp\n")
+    f.write("        erf = mpmath.erf\n")
     f.write("\n")
     f.write("\n")
     dict_terms = {}
@@ -221,12 +238,12 @@ def write_output(
                 for j in range(len(list_M_ab_i_l)):
                     M_ab_i_l_j = (
                         pycode(list_M_ab_i_l[j])
-                        .replace("math.erf", "scipy.special.erf")
+                        .replace("math.erf", "erf")
                         .replace("math.", "np.")
                     )
                     N_ab_i_l_j = (
                         pycode(list_N_ab_i_l[j])
-                        .replace("math.erf", "scipy.special.erf")
+                        .replace("math.erf", "erf")
                         .replace("math.", "np.")
                     )
 
@@ -262,6 +279,8 @@ def write_output(
 
     f.write(f"redshift_dependent_model = {redshift_dependent_model}")
     f.write("\n")
+    f.write(f"regularize_M_terms = {regularize_M_terms}")
+    f.write("\n")
     f.close()
 
 
@@ -278,6 +297,7 @@ def write_M_N_functions(
     l2max_list=None,
     multi_index_model=False,
     redshift_dependent_model=False,
+    regularize_M_terms="None",
 ):
     """
     The write_M_N_functions function is used to generate the M_N functions for a given model.
@@ -355,6 +375,7 @@ def write_M_N_functions(
         l2max_list=l2max_list,
         multi_index_model=multi_index_model,
         redshift_dependent_model=redshift_dependent_model,
+        regularize_M_terms=regularize_M_terms,
     )
 
 
@@ -371,6 +392,7 @@ def generate_generalized_adamsblake17plane_functions(
         "B_gv_0": 100 * (mu / k),
         "B_vv_0": 100**2 * mu**2 / k**2,
     }
+    regularize_M_terms = "None"
 
     write_M_N_functions(
         filename,
@@ -380,6 +402,7 @@ def generate_generalized_adamsblake17plane_functions(
         dict_B,
         number_worker=number_worker,
         wide_angle=False,
+        regularize_M_terms=regularize_M_terms,
     )
 
 
@@ -412,6 +435,7 @@ def generate_generalized_adamsblake20_functions(
         "B_gv_1": 100 * (mu**3 / k) * sy.exp(-((k * sig_g * mu) ** 2) / 2),
         "B_vv_0": 100**2 * mu**2 / k**2,
     }
+    regularize_M_terms = """{"gg": "mpmath", "gv": "mpmath", "vv": None}"""
 
     write_M_N_functions(
         filename,
@@ -422,6 +446,7 @@ def generate_generalized_adamsblake20_functions(
         additional_parameters=["sig_g"],
         number_worker=number_worker,
         wide_angle=False,
+        regularize_M_terms=regularize_M_terms,
     )
 
 
@@ -541,6 +566,7 @@ def generate_generalized_lai22_functions(
     l1max_list = [l1max_list_gg, l1max_list_gv, l1max_list_vv]
     l2max_list = [l2max_list_gg, l2max_list_gv, l2max_list_vv]
 
+    regularize_M_terms = "None"
     write_M_N_functions(
         filename,
         type_list,
@@ -553,6 +579,7 @@ def generate_generalized_lai22_functions(
         l1max_list=l1max_list,
         l2max_list=l2max_list,
         multi_index_model=True,
+        regularize_M_terms=regularize_M_terms,
     )
 
 
@@ -579,6 +606,7 @@ def generate_generalized_carreres23_functions(
     l2max_list = [[1]]
     dict_B = {"B_vv_0": 100**2 * mu1 * mu2 / k**2}
 
+    regularize_M_terms = "None"
     write_M_N_functions(
         filename,
         type_list,
@@ -589,6 +617,7 @@ def generate_generalized_carreres23_functions(
         wide_angle=True,
         l1max_list=l1max_list,
         l2max_list=l2max_list,
+        regularize_M_terms=regularize_M_terms,
     )
 
 
@@ -628,6 +657,7 @@ def generate_generalized_ravouxcarreres_functions(
         "B_vv_0": 100**2 * mu1 * mu2 / k**2,
     }
 
+    regularize_M_terms = """{"gg": "mpmath", "gv": "mpmath", "vv": None}"""
     write_M_N_functions(
         filename,
         type_list,
@@ -639,6 +669,7 @@ def generate_generalized_ravouxcarreres_functions(
         wide_angle=True,
         l1max_list=l1max_list,
         l2max_list=l2max_list,
+        regularize_M_terms=regularize_M_terms,
     )
 
 
@@ -665,6 +696,7 @@ def generate_generalized_rcrk24_functions(
     l2max_list = [[1]]
     dict_B = {"B_vv_0": 100**2 * mu1 * mu2 / k**2}
 
+    regularize_M_terms = "None"
     write_M_N_functions(
         filename,
         type_list,
@@ -676,6 +708,7 @@ def generate_generalized_rcrk24_functions(
         l1max_list=l1max_list,
         l2max_list=l2max_list,
         redshift_dependent_model=True,
+        regularize_M_terms=regularize_M_terms,
     )
 
 

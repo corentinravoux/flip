@@ -188,7 +188,6 @@ def write_output(
 
     """
     f = open(filename, "w")
-    f.write("import numpy as np\n")
     f.write("import scipy\n")
     f.write("import mpmath\n")
     f.write("import numpy\n")
@@ -402,6 +401,38 @@ def generate_generalized_adamsblake17plane_functions(
         dict_B,
         number_worker=number_worker,
         wide_angle=False,
+        regularize_M_terms=regularize_M_terms,
+    )
+
+
+def generate_generalized_adamsblake17_functions(
+    filename="./adamsblake17/flip_terms.py", number_worker=8
+):
+
+    mu1, mu2 = sy.symbols("mu1 mu2")
+    k = sy.symbols("k", positive=True, finite=True, real=True)
+    type_list = ["gg", "gv", "vv"]
+    term_index_list = [["0"], ["0"], ["0"]]
+    lmax_list = [[2], [2], [2]]
+    l1max_list = [[2], [2], [2]]
+    l2max_list = [[2], [2], [2]]
+    dict_B = {
+        "B_gg_0": 1,
+        "B_gv_0": 100 * (mu2 / k),
+        "B_vv_0": 100**2 * mu1 * mu2 / k**2,
+    }
+
+    regularize_M_terms = "None"
+    write_M_N_functions(
+        filename,
+        type_list,
+        term_index_list,
+        lmax_list,
+        dict_B,
+        number_worker=number_worker,
+        wide_angle=True,
+        l1max_list=l1max_list,
+        l2max_list=l2max_list,
         regularize_M_terms=regularize_M_terms,
     )
 
@@ -914,6 +945,40 @@ def generate_fisher_coefficients_dictionnary_carreres23(
     )
 
 
+def generate_fisher_coefficients_dictionnary_adamsblake17(
+    filename="./adamsblake17/fisher_terms.py",
+):
+
+    name_models = ["growth_index", None]
+    components = ["gg", "gv", "vv"]
+    parameter_models = [
+        ["Omegam", "gamma", "s8", "bs8"],
+        ["fs8", "bs8"],
+    ]
+    all_parameters = ["Omegam", "gamma", "s8", "fs8", "bs8"]
+    coefficient_models = [
+        {
+            "gg": "[bs8**2]",
+            "gv": "[bs8*Omegam**gamma*s8]",
+            "vv": "[(Omegam**gamma*s8)**2]",
+        },
+        {
+            "gg": "[bs8**2]",
+            "gv": "[bs8*fs8]",
+            "vv": "[fs8**2]",
+        },
+    ]
+
+    write_partial_derivatives(
+        filename,
+        name_models,
+        components,
+        parameter_models,
+        all_parameters,
+        coefficient_models,
+    )
+
+
 def generate_fisher_coefficients_dictionnary_adamsblake17plane(
     filename="./adamsblake17plane/fisher_terms.py",
 ):
@@ -1175,6 +1240,7 @@ def generate_files():
 
     """
     generate_generalized_carreres23_functions()
+    generate_generalized_adamsblake17_functions()
     generate_generalized_adamsblake17plane_functions()
     generate_generalized_adamsblake20_functions()
     generate_generalized_lai22_functions()
@@ -1184,6 +1250,7 @@ def generate_files():
 
 def generate_fisher_files():
     generate_fisher_coefficients_dictionnary_carreres23()
+    generate_fisher_coefficients_dictionnary_adamsblake17()
     generate_fisher_coefficients_dictionnary_adamsblake17plane()
     generate_fisher_coefficients_dictionnary_full_nosigmag(
         "./adamsblake20/fisher_terms.py"

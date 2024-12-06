@@ -2,12 +2,14 @@ import multiprocessing as mp
 from functools import partial
 
 import cosmoprimo
+import mpmath
 import numpy as np
 from scipy import integrate
+from scipy.signal import savgol_filter
 from scipy.special import spherical_jn
 
 from flip.covariance import cov_utils
-
+from flip.covariance.adamsblake17 import flip_terms as flip_terms_adamsblake17
 from flip.covariance.adamsblake17plane import flip_terms as flip_terms_adamsblake17plane
 from flip.covariance.adamsblake20 import flip_terms as flip_terms_adamsblake20
 from flip.covariance.carreres23 import flip_terms as flip_terms_carreres23
@@ -19,11 +21,17 @@ from flip.utils import create_log
 log = create_log()
 _avail_models = [
     "adamsblake17plane",
+    "adamsblake17",
     "adamsblake20",
     "lai22",
     "carreres23",
     "ravouxcarreres",
     "rcrk24",
+]
+_avail_regularization_option = [
+    "mpmath",
+    "savgol",
+    "lowk_asymptote",
 ]
 
 
@@ -94,7 +102,7 @@ def correlation_hankel(l, r, k, integrand, hankel_overhead_coefficient=2, kmin=N
 
 def coefficient_hankel(
     model_name,
-    type,
+    covariance_type,
     term_index,
     lmax,
     wavenumber,
@@ -127,21 +135,33 @@ def coefficient_hankel(
 
     """
     cov_ab_i = 0
-    dictionary_subterms = eval(f"flip_terms_{model_name}.dictionary_subterms")
+    flip_terms = eval(f"flip_terms_{model_name}")
+    flip_terms.set_backend("numpy")
+    dictionary_subterms = flip_terms.dictionary_subterms
+    regularize_M_terms = flip_terms.regularize_M_terms
     for l in range(lmax + 1):
-        number_terms = dictionary_subterms[f"{type}_{term_index}_{l}"]
+        number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
         for j in range(number_terms):
-            M_ab_i_l_j = eval(f"flip_terms_{model_name}.M_{type}_{term_index}_{l}_{j}")(
+            M_ab_i_l_j = eval(f"flip_terms.M_{covariance_type}_{term_index}_{l}_{j}")(
                 *additional_parameters_values
             )
-            N_ab_i_l_j = eval(f"flip_terms_{model_name}.N_{type}_{term_index}_{l}_{j}")(
+            M_ab_i_l_j_evaluated = M_ab_i_l_j(wavenumber)
+            if regularize_M_terms is not None:
+                if regularize_M_terms[covariance_type] is not None:
+                    M_ab_i_l_j_evaluated = regularize_M(
+                        M_ab_i_l_j,
+                        wavenumber,
+                        regularize_M_terms[covariance_type],
+                        flip_terms,
+                    )
+            N_ab_i_l_j = eval(f"flip_terms.N_{covariance_type}_{term_index}_{l}_{j}")(
                 coord[1], coord[2]
             )
             hankel_ab_i_l_j = correlation_hankel(
                 l,
                 coord[0],
                 wavenumber,
-                M_ab_i_l_j(wavenumber) * power_spectrum,
+                M_ab_i_l_j_evaluated * power_spectrum,
                 **kwargs,
             )
             cov_ab_i = cov_ab_i + N_ab_i_l_j * hankel_ab_i_l_j
@@ -150,7 +170,7 @@ def coefficient_hankel(
 
 def coefficient_trapz(
     model_name,
-    type,
+    covariance_type,
     term_index,
     lmax,
     wavenumber,
@@ -178,28 +198,108 @@ def coefficient_trapz(
 
     """
     cov_ab_i = 0
-    dictionary_subterms = eval(f"flip_terms_{model_name}.dictionary_subterms")
+    flip_terms = eval(f"flip_terms_{model_name}")
+    flip_terms.set_backend("numpy")
+    dictionary_subterms = flip_terms.dictionary_subterms
+    regularize_M_terms = flip_terms.regularize_M_terms
     for l in range(lmax + 1):
-        number_terms = dictionary_subterms[f"{type}_{term_index}_{l}"]
+        number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
         for j in range(number_terms):
-            M_ab_i_l_j = eval(f"flip_terms_{model_name}.M_{type}_{term_index}_{l}_{j}")(
+            M_ab_i_l_j = eval(f"flip_terms.M_{covariance_type}_{term_index}_{l}_{j}")(
                 *additional_parameters_values
             )
-            N_ab_i_l_j = eval(f"flip_terms_{model_name}.N_{type}_{term_index}_{l}_{j}")(
+            M_ab_i_l_j_evaluated = M_ab_i_l_j(wavenumber)
+            if regularize_M_terms is not None:
+                if regularize_M_terms[covariance_type] is not None:
+                    M_ab_i_l_j_evaluated = regularize_M(
+                        M_ab_i_l_j,
+                        wavenumber,
+                        regularize_M_terms[covariance_type],
+                        flip_terms,
+                    )
+            N_ab_i_l_j = eval(f"flip_terms.N_{covariance_type}_{term_index}_{l}_{j}")(
                 coord[1], coord[2]
             )
-
             kr = np.outer(wavenumber, coord[0])
             integrand = (
                 (-1) ** (l // 2)
                 * (wavenumber**2 / (2 * np.pi**2))
-                * M_ab_i_l_j(wavenumber)
+                * M_ab_i_l_j_evaluated
                 * power_spectrum
                 * spherical_jn(l, kr).T
             )
             hankel_ab_i_l_j = (-1) ** (l % 2) * np.trapz(integrand, x=wavenumber)
             cov_ab_i = cov_ab_i + N_ab_i_l_j * hankel_ab_i_l_j
     return cov_ab_i
+
+
+def regularize_M(
+    M_function,
+    wavenumber,
+    regularization_option,
+    flip_terms,
+    savgol_window=50,
+    savgol_polynomial=3,
+    lowk_unstable_threshold=0.1,
+    lowk_unstable_mean_filtering=10,
+    mpmmath_decimal_precision=50,
+):
+
+    if regularization_option == "mpmath":
+        flip_terms.set_backend("mpmath")
+        mpmath.mp.dps = mpmmath_decimal_precision
+        wavenumber_mpmath = wavenumber * mpmath.mpf(1)
+        M_function_evaluated = np.array(
+            np.frompyfunc(M_function, 1, 1)(wavenumber_mpmath).tolist(),
+            dtype=float,
+        )
+        flip_terms.set_backend("numpy")
+
+    elif regularization_option == "savgol":
+        M_function_evaluated = M_function(wavenumber)
+        M_function_evaluated = savgol_filter(
+            M_function_evaluated,
+            savgol_window,
+            savgol_polynomial,
+        )
+
+    elif regularization_option == "lowk_asymptote":
+        # The low k region presents numerical instabilities for density models.
+        # All the M density function should present and asymptotic behaviour at low k.
+        # This method detect low k asymptote and force it for all M functions.
+        M_function_evaluated = M_function(wavenumber)
+        diff = np.diff(M_function_evaluated, append=[M_function_evaluated[-1]])
+        mask_asymptote = np.abs(diff) < lowk_unstable_threshold * np.mean(
+            np.abs(diff[wavenumber > wavenumber[len(wavenumber) // 2]])
+        )
+        mask_asymptote &= wavenumber < wavenumber[3 * len(wavenumber) // 4]
+
+        if len(mask_asymptote[mask_asymptote]) > 0:
+            index_mask_asymptote = np.argwhere(mask_asymptote)[:, 0]
+            diff_index = np.diff(
+                index_mask_asymptote, prepend=[index_mask_asymptote[0]]
+            )
+            mean_diff_index = np.convolve(
+                diff_index,
+                np.ones(lowk_unstable_mean_filtering) / lowk_unstable_mean_filtering,
+                mode="same",
+            )
+            mask_best_value_asymptote = np.abs(mean_diff_index - 1.0) < 10**-5
+            if len(mask_best_value_asymptote[mask_best_value_asymptote]) == 0:
+                index_asymptote = index_mask_asymptote[-1]
+            else:
+                index_asymptote = index_mask_asymptote[mask_best_value_asymptote][0]
+            mask_unstable_region = wavenumber < wavenumber[index_asymptote]
+            M_function_evaluated[mask_unstable_region] = M_function_evaluated[
+                index_asymptote
+            ]
+    else:
+        raise ValueError(
+            f"regularization option {regularization_option} is not available"
+            f"Please choose in: {_avail_regularization_option}"
+        )
+
+    return M_function_evaluated
 
 
 def compute_coordinates(

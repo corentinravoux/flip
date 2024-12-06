@@ -60,8 +60,8 @@ class DataVector(abc.ABC):
             if k not in data:
                 raise ValueError(f"{k} field is needed in data")
 
-    def __init__(self, data, cov=None, **kwargs):
-        self._covariance_observation = cov
+    def __init__(self, data, covariance_observation=None, **kwargs):
+        self._covariance_observation = covariance_observation
         self._check_keys(data)
         self._data = copy.copy(data)
         self._kwargs = kwargs
@@ -80,7 +80,7 @@ class DataVector(abc.ABC):
         new_cov = None
         if self._covariance_observation is not None:
             new_cov = self._covariance_observation[np.ix_(bool_mask, bool_mask)]
-        return type(self)(new_data, cov=new_cov, **self._kwargs)
+        return type(self)(new_data, covariance_observation=new_cov, **self._kwargs)
 
     def compute_covariance(self, model, power_spectrum_dict, **kwargs):
 
@@ -99,7 +99,7 @@ class DataVector(abc.ABC):
         )
 
 
-class Density(DataVector):
+class Dens(DataVector):
     _kind = "density"
     _needed_keys = ["density", "density_error"]
 
@@ -123,8 +123,8 @@ class DirectVel(DataVector):
             return self._data["velocity"], self._covariance_observation
         return self._data["velocity"], self._data["velocity_error"] ** 2
 
-    def __init__(self, data, cov=None):
-        super().__init__(data, cov=cov)
+    def __init__(self, data, covariance_observation=None):
+        super().__init__(data, covariance_observation=covariance_observation)
 
         if "host_group_id" in self._data:
             # Copy full length velocities and velocity errors
@@ -180,12 +180,14 @@ class DensVel(DataVector):
         variance = np.hstack((density_variance, velocity_variance))
         return data, variance
 
-    def __init__(self, DensityVector, VelocityVector):
-        self.densities = DensityVector
-        self.velocities = VelocityVector
+    def __init__(self, density_vector, velocity_vector):
+        self.densities = density_vector
+        self.velocities = velocity_vector
 
         if self.velocities._covariance_observation is not None:
-            raise NotImplementedError("Vel with cov + density not implemented yet")
+            raise NotImplementedError(
+                "Velocity with observed covariance + density not implemented yet"
+            )
 
     def compute_covariance(self, model, power_spectrum_dict, **kwargs):
 
@@ -224,20 +226,24 @@ class VelFromHDres(DirectVel):
             cond_keys += ["dmu_error"]
         return self._needed_keys + cond_keys
 
-    def __init__(self, data, cov=None, vel_estimator="full", **kwargs):
+    def __init__(
+        self, data, covariance_observation=None, vel_estimator="full", **kwargs
+    ):
 
-        self._dmu2vel = vec_ut.redshift_dependence_velocity(
-            data, vel_estimator, **kwargs
+        self._distance_modulus_difference_to_velocity = (
+            vec_ut.redshift_dependence_velocity(data, vel_estimator, **kwargs)
         )
 
-        data["velocity"] = self._dmu2vel * data["dmu"]
+        data["velocity"] = self._distance_modulus_difference_to_velocity * data["dmu"]
 
-        if cov is not None:
-            J = jnp.diag(self._dmu2vel)
-            cov = J @ cov @ J.T
+        if covariance_observation is not None:
+            J = jnp.diag(self._distance_modulus_difference_to_velocity)
+            covariance_observation = J @ covariance_observation @ J.T
         else:
-            data["velocity_error"] = self._dmu2vel * data["dmu_error"]
-        super().__init__(data, cov=cov)
+            data["velocity_error"] = (
+                self._distance_modulus_difference_to_velocity * data["dmu_error"]
+            )
+        super().__init__(data, covariance_observation=covariance_observation)
 
 
 class FisherVelFromHDres(DataVector):
@@ -250,16 +256,16 @@ class FisherVelFromHDres(DataVector):
         variance = parameter_values_dict["sigma_M"] ** 2
         if "dmu_error" in self.data:
             variance += self.data["dmu_error"] ** 2
-        return self._dmu2vel**2 * variance
+        return self._distance_modulus_difference_to_velocity**2 * variance
 
     def __init__(self, data, vel_estimator="full", **kwargs):
         super().__init__(data)
-        self._dmu2vel = vec_ut.redshift_dependence_velocity(
-            self._data, vel_estimator, **kwargs
+        self._distance_modulus_difference_to_velocity = (
+            vec_ut.redshift_dependence_velocity(self._data, vel_estimator, **kwargs)
         )
 
 
-class FisherDensity(DataVector):
+class FisherDens(DataVector):
     _kind = "density"
     _needed_keys = ["ra", "dec", "rcom_zobs"]
     _free_par = []
@@ -284,9 +290,9 @@ class FisherDensVel(DataVector):
         variance = np.hstack((density_variance, velocity_variance))
         return variance
 
-    def __init__(self, FisherDensity, FisherVel):
-        self.densities = FisherDensity
-        self.velocities = FisherVel
+    def __init__(self, fisher_density, fisher_velocity):
+        self.densities = fisher_density
+        self.velocities = fisher_velocity
 
         if self.velocities._covariance_observation is not None:
             raise NotImplementedError("Vel with cov + density not implemented yet")

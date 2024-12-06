@@ -37,7 +37,7 @@ Density
 Direct Density
 ~~~~~~~~~~~~~~
 
-The :py:class:`~flip.data_vector.basic.Density` class is used on example data as:
+The :py:class:`~flip.data_vector.basic.Dens` class is used on example data as:
 
 .. code-block:: python 
 
@@ -47,7 +47,7 @@ The :py:class:`~flip.data_vector.basic.Density` class is used on example data as
     grid = pd.read_parquet("flip/flip/data/density_data.parquet")
     grid.rename(columns={'density_err': 'density_error', 
                         'rcom': 'rcom_zobs'}, inplace=True)
-    DataDensity = data_vector.Density(grid.to_dict(orient='list'))
+    DataDensity = data_vector.Dens(grid.to_dict(orient='list'))
 
 
 Velocity
@@ -146,7 +146,7 @@ It is initialised as:
     grid.rename(columns={'density_err': 'density_error', 
                         'rcom': 'rcom_zobs'}, inplace=True)
 
-    DataDensity = data_vector.Density(grid.to_dict(orient='list'))
+    DataDensity = data_vector.Dens(grid.to_dict(orient='list'))
 
     data_velocity = pd.read_parquet("flip/flip/data/velocity_data.parquet"))
     DataVel = data_vector.snia_vectors.VelFromSALTfit(

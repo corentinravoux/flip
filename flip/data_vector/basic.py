@@ -8,7 +8,7 @@ import flip.utils as utils
 from flip.covariance import CovMatrix
 from flip.utils import create_log
 
-from . import vector_utils as vec_ut
+from . import vector_utils
 
 try:
     import jax.numpy as jnp
@@ -131,10 +131,12 @@ class DirectVel(DataVector):
             self._data["velocity_full"] = copy.copy(self._data["velocity"])
 
             # Init host matrix
-            self._host_matrix, self._data_to_group_mapping = vec_ut.compute_host_matrix(
-                self._data["host_group_id"]
+            self._host_matrix, self._data_to_group_mapping = (
+                vector_utils.compute_host_matrix(self._data["host_group_id"])
             )
-            self._data = vec_ut.format_data_multiple_host(self._data, self._host_matrix)
+            self._data = vector_utils.format_data_multiple_host(
+                self._data, self._host_matrix
+            )
 
             if jax_installed:
                 self._host_matrix = BCOO.from_scipy_sparse(self._host_matrix)
@@ -148,7 +150,7 @@ class DirectVel(DataVector):
                 velocity_variance = self._covariance_observation
 
             self._data["velocity"], velocity_variance = (
-                vec_ut.get_grouped_data_variance(
+                vector_utils.get_grouped_data_variance(
                     self._host_matrix, self._data["velocity"], velocity_variance
                 )
             )
@@ -231,7 +233,9 @@ class VelFromHDres(DirectVel):
     ):
 
         self._distance_modulus_difference_to_velocity = (
-            vec_ut.redshift_dependence_velocity(data, velocity_estimator, **kwargs)
+            vector_utils.redshift_dependence_velocity(
+                data, velocity_estimator, **kwargs
+            )
         )
 
         data["velocity"] = self._distance_modulus_difference_to_velocity * data["dmu"]
@@ -261,7 +265,7 @@ class FisherVelFromHDres(DataVector):
     def __init__(self, data, velocity_estimator="full", **kwargs):
         super().__init__(data)
         self._distance_modulus_difference_to_velocity = (
-            vec_ut.redshift_dependence_velocity(
+            vector_utils.redshift_dependence_velocity(
                 self._data, velocity_estimator, **kwargs
             )
         )

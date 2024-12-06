@@ -1,6 +1,6 @@
 import numpy as np
 
-from . import vector_utils as vec_ut
+from . import vector_utils
 from .basic import DataVector
 
 try:
@@ -111,7 +111,7 @@ class VelFromSALTfit(DataVector):
         )
 
         if self._host_matrix is not None:
-            velocities, velocity_variance = vec_ut.get_grouped_data_variance(
+            velocities, velocity_variance = vector_utils.get_grouped_data_variance(
                 self._host_matrix, velocities, velocity_variance
             )
 
@@ -120,7 +120,7 @@ class VelFromSALTfit(DataVector):
     def _init_distance_modulus_difference_to_velocity(
         self, velocity_estimator, **kwargs
     ):
-        return vec_ut.redshift_dependence_velocity(
+        return vector_utils.redshift_dependence_velocity(
             self._data, velocity_estimator, **kwargs
         )
 
@@ -153,10 +153,12 @@ class VelFromSALTfit(DataVector):
         self._mass_step = mass_step
 
         if "host_group_id" in data:
-            self._host_matrix, self._data_to_group_mapping = vec_ut.compute_host_matrix(
-                self._data["host_group_id"]
+            self._host_matrix, self._data_to_group_mapping = (
+                vector_utils.compute_host_matrix(self._data["host_group_id"])
             )
-            self._data = vec_ut.format_data_multiple_host(self._data, self._host_matrix)
+            self._data = vector_utils.format_data_multiple_host(
+                self._data, self._host_matrix
+            )
             if jax_installed:
                 self._host_matrix = BCOO.from_scipy_sparse(self._host_matrix)
 

@@ -1,6 +1,7 @@
 import numpy as np
-from .basic import DataVector
+
 from . import vector_utils as vec_ut
+from .basic import DataVector
 
 try:
     import jax.numpy as jnp
@@ -28,8 +29,8 @@ class VelFromSALTfit(DataVector):
     @property
     def conditional_free_par(self):
         _cond_fpar = []
-        if 'host_logmass' in self.data:
-            _cond_fpar += ['gamma']
+        if "host_logmass" in self.data:
+            _cond_fpar += ["gamma"]
         return _cond_fpar
 
     def compute_observed_distance_modulus(self, parameter_values_dict):
@@ -40,7 +41,7 @@ class VelFromSALTfit(DataVector):
             - parameter_values_dict["M_0"]
         )
 
-        if 'host_logmass' in self.data:
+        if "host_logmass" in self.data:
             mask = self._data["host_logmass"] > 10
             observed_distance_modulus[mask] += parameter_values_dict["gamma"] / 2
             observed_distance_modulus[~mask] -= parameter_values_dict["gamma"] / 2
@@ -59,7 +60,9 @@ class VelFromSALTfit(DataVector):
             zobs = self.data["zobs"]
             rcom_zobs = self.data["rcom_zobs"]
 
-        distance_modulus_difference -= 5 * jnp.log10((1 + zobs) * rcom_zobs / self.h) + 25
+        distance_modulus_difference -= (
+            5 * jnp.log10((1 + zobs) * rcom_zobs / self.h) + 25
+        )
         return distance_modulus_difference
 
     def compute_observed_distance_modulus_variance(self, parameter_values_dict):
@@ -124,7 +127,7 @@ class VelFromSALTfit(DataVector):
             A[k][ij[1] == 3 * ij[0] + k] = 1
         return A
 
-    def __init__(self, data, h, cov=None, vel_estimator="full", mass_step=10,**kwargs):
+    def __init__(self, data, h, cov=None, vel_estimator="full", mass_step=10, **kwargs):
         super().__init__(data, cov=cov)
         self._dmu2vel = self._init_dmu2vel(vel_estimator, h=h, **kwargs)
         self.h = h

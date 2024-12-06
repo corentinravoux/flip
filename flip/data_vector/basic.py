@@ -1,11 +1,13 @@
 import abc
 import copy
 import importlib
+
 import numpy as np
 
 import flip.utils as utils
 from flip.covariance import CovMatrix
 from flip.utils import create_log
+
 from . import vector_utils as vec_ut
 
 try:
@@ -40,7 +42,7 @@ class DataVector(abc.ABC):
     @property
     def conditional_needed_keys(self):
         return []
-    
+
     @property
     def needed_keys(self):
         return self._needed_keys + self.conditional_needed_keys
@@ -138,13 +140,17 @@ class DirectVel(DataVector):
                 self._host_matrix = BCOO.from_scipy_sparse(self._host_matrix)
 
             if self._covariance_observation is None:
-                self._data["velocity_error_full"] = copy.copy(self._data["velocity_error"])
+                self._data["velocity_error_full"] = copy.copy(
+                    self._data["velocity_error"]
+                )
                 velocity_variance = self._data["velocity_error"] ** 2
             else:
                 velocity_variance = self._covariance_observation
 
-            self._data["velocity"], velocity_variance = vec_ut.get_grouped_data_variance(
-                self._host_matrix, self._data["velocity"], velocity_variance
+            self._data["velocity"], velocity_variance = (
+                vec_ut.get_grouped_data_variance(
+                    self._host_matrix, self._data["velocity"], velocity_variance
+                )
             )
 
             if self._covariance_observation is None:
@@ -220,7 +226,9 @@ class VelFromHDres(DirectVel):
 
     def __init__(self, data, cov=None, vel_estimator="full", **kwargs):
 
-        self._dmu2vel = vec_ut.redshift_dependence_velocity(data, vel_estimator, **kwargs)
+        self._dmu2vel = vec_ut.redshift_dependence_velocity(
+            data, vel_estimator, **kwargs
+        )
 
         data["velocity"] = self._dmu2vel * data["dmu"]
 
@@ -230,7 +238,6 @@ class VelFromHDres(DirectVel):
         else:
             data["velocity_error"] = self._dmu2vel * data["dmu_error"]
         super().__init__(data, cov=cov)
-
 
 
 class FisherVelFromHDres(DataVector):

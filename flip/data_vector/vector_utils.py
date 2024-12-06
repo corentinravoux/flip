@@ -1,7 +1,9 @@
-import numpy as np
 import copy
-import flip.utils as utils
+
+import numpy as np
 from scipy.sparse import coo_array
+
+import flip.utils as utils
 
 try:
     import jax.numpy as jnp
@@ -13,6 +15,7 @@ except ImportError:
     jax_installed = False
 
 _avail_velocity_estimator = ["watkins", "lowz", "hubblehighorder", "full"]
+
 
 def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
     prefactor = -1.0 * utils._C_LIGHT_KMS_ * jnp.log(10) / 5
@@ -45,7 +48,9 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
             )
 
         redshift_dependence = prefactor / (
-            (1 + redshift_obs) * utils._C_LIGHT_KMS_ / (data["hubble_norm"] * data["rcom_zobs"])
+            (1 + redshift_obs)
+            * utils._C_LIGHT_KMS_
+            / (data["hubble_norm"] * data["rcom_zobs"])
             - 1.0
         )
 
@@ -54,6 +59,7 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
             f"""Please choose a velocity_estimator from salt fit among {_avail_velocity_estimator}"""
         )
     return redshift_dependence
+
 
 def compute_host_matrix(host_group_id):
     host_list, data_to_host_mapping = np.unique(host_group_id, return_inverse=True)
@@ -76,7 +82,7 @@ def format_data_multiple_host(data, sparse_host_matrix):
 
     variable_to_process = (v for v in variable_to_mean if v in data)
     number_hosts = sparse_host_matrix.sum(axis=1)
-    
+
     for v in variable_to_process:
         data[f"{v}_full"] = copy.copy(data[v])
 

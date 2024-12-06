@@ -228,6 +228,11 @@ class VelFromHDres(DirectVel):
             cond_keys += ["dmu_error"]
         return self._needed_keys + cond_keys
 
+    def _give_data_and_variance(self, *args):
+        if self._covariance_observation is not None:
+            return self._data["velocity"], self._covariance_observation
+        return self._data["velocity"], self._data["velocity_error"] ** 2
+
     def __init__(
         self, data, covariance_observation=None, velocity_estimator="full", **kwargs
     ):

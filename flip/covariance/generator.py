@@ -136,6 +136,7 @@ def coefficient_hankel(
     """
     cov_ab_i = 0
     flip_terms = eval(f"flip_terms_{model_name}")
+    flip_terms.set_backend("numpy")
     dictionary_subterms = flip_terms.dictionary_subterms
     regularize_M_terms = flip_terms.regularize_M_terms
     for l in range(lmax + 1):
@@ -198,6 +199,7 @@ def coefficient_trapz(
     """
     cov_ab_i = 0
     flip_terms = eval(f"flip_terms_{model_name}")
+    flip_terms.set_backend("numpy")
     dictionary_subterms = flip_terms.dictionary_subterms
     regularize_M_terms = flip_terms.regularize_M_terms
     for l in range(lmax + 1):

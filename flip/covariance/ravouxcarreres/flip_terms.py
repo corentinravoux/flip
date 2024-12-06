@@ -1,5 +1,19 @@
-import numpy as np
+import mpmath
+import numpy
 import scipy
+
+
+def set_backend(module):
+    global np, erf
+    if module == "numpy":
+        np = numpy
+        erf = scipy.special.erf
+    elif module == "mpmath":
+        np = mpmath.mp
+        erf = mpmath.erf
+
+
+set_backend("numpy")
 
 
 def M_gg_0_0_0(sig_g):
@@ -7,7 +21,7 @@ def M_gg_0_0_0(sig_g):
         return (
             (1 / 2)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**2 * sig_g**2)
         )
 
@@ -23,18 +37,18 @@ def M_gg_0_0_1(sig_g):
         return (
             (1 / 8)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**2 * sig_g**2)
             + (3 / 4)
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**3 * sig_g**3)
             - 3
             / 4
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**4 * sig_g**4)
             + (9 / 4) * np.exp(-(k**2) * sig_g**2) / (k**4 * sig_g**4)
             - 9
@@ -42,11 +56,11 @@ def M_gg_0_0_1(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**5 * sig_g**5)
             + (9 / 8)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**6 * sig_g**6)
         )
 
@@ -63,18 +77,18 @@ def M_gg_0_2_0(sig_g):
             -1
             / 4
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**2 * sig_g**2)
             - 3
             / 4
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**3 * sig_g**3)
             + (3 / 4)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**4 * sig_g**4)
         )
 
@@ -91,18 +105,18 @@ def M_gg_0_2_1(sig_g):
             -1
             / 4
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**2 * sig_g**2)
             - 3
             / 4
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**3 * sig_g**3)
             + (3 / 4)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**4 * sig_g**4)
         )
 
@@ -118,18 +132,18 @@ def M_gg_0_2_2(sig_g):
         return (
             (1 / 8)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**2 * sig_g**2)
             + (3 / 4)
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**3 * sig_g**3)
             - 3
             / 4
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**4 * sig_g**4)
             + (9 / 4) * np.exp(-(k**2) * sig_g**2) / (k**4 * sig_g**4)
             - 9
@@ -137,11 +151,11 @@ def M_gg_0_2_2(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**5 * sig_g**5)
             + (9 / 8)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**6 * sig_g**6)
         )
 
@@ -162,18 +176,18 @@ def M_gg_0_4_0(sig_g):
         return (
             (1 / 8)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**2 * sig_g**2)
             + (3 / 4)
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**3 * sig_g**3)
             - 3
             / 4
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**4 * sig_g**4)
             + (9 / 4) * np.exp(-(k**2) * sig_g**2) / (k**4 * sig_g**4)
             - 9
@@ -181,11 +195,11 @@ def M_gg_0_4_0(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**5 * sig_g**5)
             + (9 / 8)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**6 * sig_g**6)
         )
 
@@ -206,9 +220,7 @@ def M_gg_1_0_0(sig_g):
     def func(k):
         return -np.sqrt(2) * np.sqrt(np.pi) * np.exp(
             -1 / 2 * k**2 * sig_g**2
-        ) * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) / (
-            k**3 * sig_g**3
-        ) + np.pi * scipy.special.erf(
+        ) * erf((1 / 2) * np.sqrt(2) * k * sig_g) / (k**3 * sig_g**3) + np.pi * erf(
             (1 / 2) * np.sqrt(2) * k * sig_g
         ) ** 2 / (
             k**4 * sig_g**4
@@ -228,34 +240,31 @@ def M_gg_1_0_1(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**3 * sig_g**3)
             + (1 / 4)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**4 * sig_g**4)
             + 3 * np.exp(-(k**2) * sig_g**2) / (k**4 * sig_g**4)
             + (3 / 2)
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**5 * sig_g**5)
-            - 3
-            * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
-            / (k**6 * sig_g**6)
+            - 3 * np.pi * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2 / (k**6 * sig_g**6)
             + (27 / 2) * np.exp(-(k**2) * sig_g**2) / (k**6 * sig_g**6)
             - 27
             / 2
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**7 * sig_g**7)
             + (27 / 4)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**8 * sig_g**8)
         )
 
@@ -274,12 +283,12 @@ def M_gg_1_2_0(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**3 * sig_g**3)
             - 1
             / 2
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**4 * sig_g**4)
             + (3 / 2) * np.exp(-(k**2) * sig_g**2) / (k**4 * sig_g**4)
             - 15
@@ -287,12 +296,9 @@ def M_gg_1_2_0(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**5 * sig_g**5)
-            + 3
-            * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
-            / (k**6 * sig_g**6)
+            + 3 * np.pi * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2 / (k**6 * sig_g**6)
         )
 
     return func
@@ -310,12 +316,12 @@ def M_gg_1_2_1(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**3 * sig_g**3)
             - 1
             / 2
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**4 * sig_g**4)
             + (3 / 2) * np.exp(-(k**2) * sig_g**2) / (k**4 * sig_g**4)
             - 15
@@ -323,12 +329,9 @@ def M_gg_1_2_1(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**5 * sig_g**5)
-            + 3
-            * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
-            / (k**6 * sig_g**6)
+            + 3 * np.pi * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2 / (k**6 * sig_g**6)
         )
 
     return func
@@ -345,34 +348,31 @@ def M_gg_1_2_2(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**3 * sig_g**3)
             + (1 / 4)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**4 * sig_g**4)
             + 3 * np.exp(-(k**2) * sig_g**2) / (k**4 * sig_g**4)
             + (3 / 2)
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**5 * sig_g**5)
-            - 3
-            * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
-            / (k**6 * sig_g**6)
+            - 3 * np.pi * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2 / (k**6 * sig_g**6)
             + (27 / 2) * np.exp(-(k**2) * sig_g**2) / (k**6 * sig_g**6)
             - 27
             / 2
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**7 * sig_g**7)
             + (27 / 4)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**8 * sig_g**8)
         )
 
@@ -395,34 +395,31 @@ def M_gg_1_4_0(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**3 * sig_g**3)
             + (1 / 4)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**4 * sig_g**4)
             + 3 * np.exp(-(k**2) * sig_g**2) / (k**4 * sig_g**4)
             + (3 / 2)
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**5 * sig_g**5)
-            - 3
-            * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
-            / (k**6 * sig_g**6)
+            - 3 * np.pi * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2 / (k**6 * sig_g**6)
             + (27 / 2) * np.exp(-(k**2) * sig_g**2) / (k**6 * sig_g**6)
             - 27
             / 2
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**7 * sig_g**7)
             + (27 / 4)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**8 * sig_g**8)
         )
 
@@ -446,11 +443,11 @@ def M_gg_2_0_0(sig_g):
             - np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**5 * sig_g**5)
             + (1 / 2)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**6 * sig_g**6)
         )
 
@@ -469,11 +466,11 @@ def M_gg_2_0_1(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**5 * sig_g**5)
             + (1 / 8)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**6 * sig_g**6)
             + 9 * np.exp(-(k**2) * sig_g**2) / (k**6 * sig_g**6)
             - 9
@@ -481,12 +478,12 @@ def M_gg_2_0_1(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**7 * sig_g**7)
             - 9
             / 4
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**8 * sig_g**8)
             + (81 / 4) * np.exp(-(k**2) * sig_g**2) / (k**8 * sig_g**8)
             - 81
@@ -494,11 +491,11 @@ def M_gg_2_0_1(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**9 * sig_g**9)
             + (81 / 8)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**10 * sig_g**10)
         )
 
@@ -518,12 +515,12 @@ def M_gg_2_2_0(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**5 * sig_g**5)
             - 1
             / 4
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**6 * sig_g**6)
             + (9 / 2) * np.exp(-(k**2) * sig_g**2) / (k**6 * sig_g**6)
             - 9
@@ -531,11 +528,11 @@ def M_gg_2_2_0(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**7 * sig_g**7)
             + (9 / 4)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**8 * sig_g**8)
         )
 
@@ -555,12 +552,12 @@ def M_gg_2_2_1(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**5 * sig_g**5)
             - 1
             / 4
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**6 * sig_g**6)
             + (9 / 2) * np.exp(-(k**2) * sig_g**2) / (k**6 * sig_g**6)
             - 9
@@ -568,11 +565,11 @@ def M_gg_2_2_1(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**7 * sig_g**7)
             + (9 / 4)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**8 * sig_g**8)
         )
 
@@ -591,11 +588,11 @@ def M_gg_2_2_2(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**5 * sig_g**5)
             + (1 / 8)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**6 * sig_g**6)
             + 9 * np.exp(-(k**2) * sig_g**2) / (k**6 * sig_g**6)
             - 9
@@ -603,12 +600,12 @@ def M_gg_2_2_2(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**7 * sig_g**7)
             - 9
             / 4
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**8 * sig_g**8)
             + (81 / 4) * np.exp(-(k**2) * sig_g**2) / (k**8 * sig_g**8)
             - 81
@@ -616,11 +613,11 @@ def M_gg_2_2_2(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**9 * sig_g**9)
             + (81 / 8)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**10 * sig_g**10)
         )
 
@@ -644,11 +641,11 @@ def M_gg_2_4_0(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**5 * sig_g**5)
             + (1 / 8)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**6 * sig_g**6)
             + 9 * np.exp(-(k**2) * sig_g**2) / (k**6 * sig_g**6)
             - 9
@@ -656,12 +653,12 @@ def M_gg_2_4_0(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**7 * sig_g**7)
             - 9
             / 4
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**8 * sig_g**8)
             + (81 / 4) * np.exp(-(k**2) * sig_g**2) / (k**8 * sig_g**8)
             - 81
@@ -669,11 +666,11 @@ def M_gg_2_4_0(sig_g):
             * np.sqrt(2)
             * np.sqrt(np.pi)
             * np.exp(-1 / 2 * k**2 * sig_g**2)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**9 * sig_g**9)
             + (81 / 8)
             * np.pi
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g) ** 2
             / (k**10 * sig_g**10)
         )
 
@@ -696,7 +693,7 @@ def M_gv_0_1_0(sig_g):
             (50 / 3)
             * np.sqrt(2)
             * np.sqrt(np.pi)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**2 * sig_g)
         )
 
@@ -714,13 +711,13 @@ def M_gv_0_1_1(sig_g):
             / 3
             * np.sqrt(2)
             * np.sqrt(np.pi)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**2 * sig_g)
             - 50 * np.exp(-1 / 2 * k**2 * sig_g**2) / (k**3 * sig_g**2)
             + 25
             * np.sqrt(2)
             * np.sqrt(np.pi)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**4 * sig_g**3)
         )
 
@@ -738,13 +735,13 @@ def M_gv_0_3_0(sig_g):
             / 3
             * np.sqrt(2)
             * np.sqrt(np.pi)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**2 * sig_g)
             - 50 * np.exp(-1 / 2 * k**2 * sig_g**2) / (k**3 * sig_g**2)
             + 25
             * np.sqrt(2)
             * np.sqrt(np.pi)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**4 * sig_g**3)
         )
 
@@ -763,7 +760,7 @@ def M_gv_1_1_0(sig_g):
     def func(k):
         return -100 / 3 * np.exp(-1 / 2 * k**2 * sig_g**2) / (
             k**3 * sig_g**2
-        ) + (50 / 3) * np.sqrt(2) * np.sqrt(np.pi) * scipy.special.erf(
+        ) + (50 / 3) * np.sqrt(2) * np.sqrt(np.pi) * erf(
             (1 / 2) * np.sqrt(2) * k * sig_g
         ) / (
             k**4 * sig_g**3
@@ -784,13 +781,13 @@ def M_gv_1_1_1(sig_g):
             / 3
             * np.sqrt(2)
             * np.sqrt(np.pi)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**4 * sig_g**3)
             - 150 * np.exp(-1 / 2 * k**2 * sig_g**2) / (k**5 * sig_g**4)
             + 75
             * np.sqrt(2)
             * np.sqrt(np.pi)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**6 * sig_g**5)
         )
 
@@ -809,13 +806,13 @@ def M_gv_1_3_0(sig_g):
             / 3
             * np.sqrt(2)
             * np.sqrt(np.pi)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**4 * sig_g**3)
             - 150 * np.exp(-1 / 2 * k**2 * sig_g**2) / (k**5 * sig_g**4)
             + 75
             * np.sqrt(2)
             * np.sqrt(np.pi)
-            * scipy.special.erf((1 / 2) * np.sqrt(2) * k * sig_g)
+            * erf((1 / 2) * np.sqrt(2) * k * sig_g)
             / (k**6 * sig_g**5)
         )
 
@@ -884,3 +881,4 @@ dictionary_subterms = {
 }
 multi_index_model = False
 redshift_dependent_model = False
+regularize_M_terms = {"gg": "mpmath", "gv": "mpmath", "vv": None}

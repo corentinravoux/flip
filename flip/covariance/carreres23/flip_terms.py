@@ -1,5 +1,19 @@
-import numpy as np
+import mpmath
+import numpy
 import scipy
+
+
+def set_backend(module):
+    global np, erf
+    if module == "numpy":
+        np = numpy
+        erf = scipy.special.erf
+    elif module == "mpmath":
+        np = mpmath.mp
+        erf = mpmath.erf
+
+
+set_backend("numpy")
 
 
 def M_vv_0_0_0():
@@ -29,3 +43,4 @@ dictionary_lmax = {"vv": [2]}
 dictionary_subterms = {"vv_0_0": 1, "vv_0_1": 0, "vv_0_2": 1}
 multi_index_model = False
 redshift_dependent_model = False
+regularize_M_terms = None

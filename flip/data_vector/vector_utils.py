@@ -12,6 +12,7 @@ except ImportError:
 
     jax_installed = False
 
+_avail_velocity_estimator = ["watkins", "lowz", "hubblehighorder", "full"]
 
 def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
     prefactor = -1.0 * utils._C_LIGHT_KMS_ * jnp.log(10) / 5

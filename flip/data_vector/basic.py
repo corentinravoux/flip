@@ -20,8 +20,6 @@ except ImportError:
 
 log = create_log()
 
-_avail_velocity_estimator = ["watkins", "lowz", "hubblehighorder", "full"]
-
 
 class DataVector(abc.ABC):
     _free_par = []

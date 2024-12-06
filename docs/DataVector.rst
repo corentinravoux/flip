@@ -85,7 +85,7 @@ The DataVector is initialised as:
 
     from flip import data_vector
 
-    DataVel = data_vector.VelFromHDres(data, vel_estimator=estimator_name, **kwargs)
+    DataVel = data_vector.VelFromHDres(data, velocity_estimator=estimator_name, **kwargs)
 
 
 Velocity from SNe Ia SALT2 parameters
@@ -111,7 +111,7 @@ The DataVector is initialised as:
     data_velocity = pd.read_parquet("flip/flip/data/velocity_data.parquet"))
     DataVel = data_vector.snia_vectors.VelFromSALTfit(
         data_velocity.to_dict(orient='list'), 
-        vel_estimator='full'
+        velocity_estimator='full'
         )
 
     mu = DataVel.compute_observed_distance_modulus(test_parameters)
@@ -151,7 +151,7 @@ It is initialised as:
     data_velocity = pd.read_parquet("flip/flip/data/velocity_data.parquet"))
     DataVel = data_vector.snia_vectors.VelFromSALTfit(
         data_velocity.to_dict(orient='list'), 
-        vel_estimator='full'
+        velocity_estimator='full'
         )
 
     DensCrossVel = data_vector.DensVel(DataDensity, DataTrueVel)

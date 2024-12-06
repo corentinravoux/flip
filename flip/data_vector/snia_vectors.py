@@ -117,8 +117,12 @@ class VelFromSALTfit(DataVector):
 
         return (velocities, velocity_variance)
 
-    def _init_distance_modulus_difference_to_velocity(self, vel_estimator, **kwargs):
-        return vec_ut.redshift_dependence_velocity(self._data, vel_estimator, **kwargs)
+    def _init_distance_modulus_difference_to_velocity(
+        self, velocity_estimator, **kwargs
+    ):
+        return vec_ut.redshift_dependence_velocity(
+            self._data, velocity_estimator, **kwargs
+        )
 
     def _init_A(self):
         N = len(self._data)
@@ -133,14 +137,14 @@ class VelFromSALTfit(DataVector):
         data,
         h,
         covariance_observation=None,
-        vel_estimator="full",
+        velocity_estimator="full",
         mass_step=10,
         **kwargs
     ):
         super().__init__(data, covariance_observation=covariance_observation)
         self._distance_modulus_difference_to_velocity = (
             self._init_distance_modulus_difference_to_velocity(
-                vel_estimator, h=h, **kwargs
+                velocity_estimator, h=h, **kwargs
             )
         )
         self.h = h

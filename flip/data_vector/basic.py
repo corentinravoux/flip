@@ -227,11 +227,11 @@ class VelFromHDres(DirectVel):
         return self._needed_keys + cond_keys
 
     def __init__(
-        self, data, covariance_observation=None, vel_estimator="full", **kwargs
+        self, data, covariance_observation=None, velocity_estimator="full", **kwargs
     ):
 
         self._distance_modulus_difference_to_velocity = (
-            vec_ut.redshift_dependence_velocity(data, vel_estimator, **kwargs)
+            vec_ut.redshift_dependence_velocity(data, velocity_estimator, **kwargs)
         )
 
         data["velocity"] = self._distance_modulus_difference_to_velocity * data["dmu"]
@@ -258,10 +258,12 @@ class FisherVelFromHDres(DataVector):
             variance += self.data["dmu_error"] ** 2
         return self._distance_modulus_difference_to_velocity**2 * variance
 
-    def __init__(self, data, vel_estimator="full", **kwargs):
+    def __init__(self, data, velocity_estimator="full", **kwargs):
         super().__init__(data)
         self._distance_modulus_difference_to_velocity = (
-            vec_ut.redshift_dependence_velocity(self._data, vel_estimator, **kwargs)
+            vec_ut.redshift_dependence_velocity(
+                self._data, velocity_estimator, **kwargs
+            )
         )
 
 
@@ -276,7 +278,7 @@ class FisherDens(DataVector):
             variance += self.data["density_error"] ** 2
         return variance
 
-    def __init__(self, data, vel_estimator="full", **kwargs):
+    def __init__(self, data, velocity_estimator="full", **kwargs):
         super().__init__(data)
 
 

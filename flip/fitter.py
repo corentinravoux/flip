@@ -286,7 +286,7 @@ class FitMinuit(BaseFitter):
             A minuit object
 
         """
-        self.minuit.errordef = 1.0
+        self.minuit.errordef = iminuit.Minuit.LIKELIHOOD
         for parameters in parameter_dict:
             d = parameter_dict[parameters]
             self.minuit.errors[parameters] = d["error"] if "error" in d else d["value"]

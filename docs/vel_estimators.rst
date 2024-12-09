@@ -42,7 +42,7 @@ Example with the :py:class:`~flip.data_vector.basic.VelFromHDres` class:
 
     from flip import data_vector
 
-    DataVel = data_vector.VelFromHDres(data, vel_estimator="hubble highorder", q0=-0.55,j0=-1)
+    DataVel = data_vector.VelFromHDres(data, velocity_estimator="hubble highorder", q0=-0.55,j0=-1)
 
 
 Full estimator

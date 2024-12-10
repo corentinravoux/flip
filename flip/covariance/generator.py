@@ -144,16 +144,14 @@ def coefficient_hankel(
         number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
         for j in range(number_terms):
             M_ab_i_l_j = eval(f"flip_terms.M_{covariance_type}_{term_index}_{l}_{j}")
-            if regularize_M_terms is not None:
-                if regularize_M_terms[covariance_type] is not None:
-                    M_ab_i_l_j_evaluated = regularize_M(
-                        M_ab_i_l_j,
-                        wavenumber,
-                        regularize_M_terms,
-                        covariance_type,
-                        flip_terms,
-                        additional_parameters_values,
-                    )
+            M_ab_i_l_j_evaluated = regularize_M(
+                M_ab_i_l_j,
+                wavenumber,
+                regularize_M_terms,
+                covariance_type,
+                flip_terms,
+                additional_parameters_values,
+            )
             N_ab_i_l_j = eval(f"flip_terms.N_{covariance_type}_{term_index}_{l}_{j}")(
                 coord[1], coord[2]
             )
@@ -206,16 +204,14 @@ def coefficient_trapz(
         number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
         for j in range(number_terms):
             M_ab_i_l_j = eval(f"flip_terms.M_{covariance_type}_{term_index}_{l}_{j}")
-            if regularize_M_terms is not None:
-                if regularize_M_terms[covariance_type] is not None:
-                    M_ab_i_l_j_evaluated = regularize_M(
-                        M_ab_i_l_j,
-                        wavenumber,
-                        regularize_M_terms,
-                        covariance_type,
-                        flip_terms,
-                        additional_parameters_values,
-                    )
+            M_ab_i_l_j_evaluated = regularize_M(
+                M_ab_i_l_j,
+                wavenumber,
+                regularize_M_terms,
+                covariance_type,
+                flip_terms,
+                additional_parameters_values,
+            )
             N_ab_i_l_j = eval(f"flip_terms.N_{covariance_type}_{term_index}_{l}_{j}")(
                 coord[1], coord[2]
             )

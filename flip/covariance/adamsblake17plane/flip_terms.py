@@ -35,7 +35,7 @@ def M_gv_0_1_0():
 
 
 def N_gv_0_1_0(theta, phi):
-    return 3 * np.cos(phi)
+    return -3 * np.cos(phi)
 
 
 def M_vv_0_0_0():

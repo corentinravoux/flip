@@ -218,7 +218,7 @@ def M_gv_0_1_0(sig_g):
 
 
 def N_gv_0_1_0(theta, phi):
-    return 3 * np.cos(phi)
+    return -3 * np.cos(phi)
 
 
 def M_gv_0_3_0(sig_g):
@@ -242,7 +242,7 @@ def M_gv_0_3_0(sig_g):
 
 
 def N_gv_0_3_0(theta, phi):
-    return (21 / 8) * np.cos(phi) + (35 / 8) * np.cos(3 * phi)
+    return -21 / 8 * np.cos(phi) - 35 / 8 * np.cos(3 * phi)
 
 
 def M_gv_1_1_0(sig_g):
@@ -261,7 +261,7 @@ def M_gv_1_1_0(sig_g):
 
 
 def N_gv_1_1_0(theta, phi):
-    return 3 * np.cos(phi)
+    return -3 * np.cos(phi)
 
 
 def M_gv_1_3_0(sig_g):
@@ -286,7 +286,7 @@ def M_gv_1_3_0(sig_g):
 
 
 def N_gv_1_3_0(theta, phi):
-    return (21 / 8) * np.cos(phi) + (35 / 8) * np.cos(3 * phi)
+    return -21 / 8 * np.cos(phi) - 35 / 8 * np.cos(3 * phi)
 
 
 def M_vv_0_0_0(sig_g):

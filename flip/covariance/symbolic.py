@@ -94,17 +94,17 @@ def generate_MN_ab_i_l_function_wide_angle(
         for m1 in range(-l1, l1 + 1):
             for m2 in range(-l2, l2 + 1):
                 term_N_l_l1_l2_m_m1_m2 = wigner.gaunt(l, l1, l2, m, m1, m2)
-                # The two comments are for the following line, they are the results of an intense
+                # The two comments are for the following line, they are the results of an intense
                 # head scratching and are quite important for all the modeling of flip.
 
                 # The spherical harmonic terms are taken from Lai et al. 2022 matematica notebook
                 # The sy.pi phase is put to l2 term instead of l1, to obtain the same results as Lai et al. 2022
                 # This is understood by the asymetry term inside the B_ab modeling.
-                # Changing this will have an impact on the modeling. 
+                # Changing this will have an impact on the modeling.
                 # Be sure to accord B_ab terms with sperical harmonic definition here.
 
-                # The sy.pi term with phi is directly linked to the definition of r chosen in flip.
-                # For the order of term chosen, the sy.pi must be added here.
+                # The sy.pi term with phi is directly linked to the definition of r chosen in flip.
+                # For the order of term chosen, the sy.pi must be added here.
                 # If not, it will give wrong results for cross-terms (gv).
                 term_N_l_l1_l2_m_m1_m2 *= (
                     sy.Ynm(l, m, sy.pi - phi, 0)
@@ -145,8 +145,8 @@ def generate_MN_ab_i_l_function_parallel_plane(term_B, l):
     M_l = sy.Rational(1 / 2) * sy.integrate(
         term_B * legendre_poly(l, x=mu), (mu, -1, 1)
     )
-    # The sy.pi term is directly linked to the definition of r chosen in flip.
-    # For the order of term chosen, the sy.pi must be added here.
+    # The sy.pi term is directly linked to the definition of r chosen in flip.
+    # For the order of term chosen, the sy.pi must be added here.
     # If not, it will give wrong results for cross-terms (gv).
     N_l = sy.Rational(2 * l + 1) * legendre_poly(l, x=sy.cos(sy.pi - phi))
     M_l = simplify_term(
@@ -1269,6 +1269,3 @@ def generate_fisher_files():
         "./ravouxcarreres/fisher_terms.py"
     )
     generate_fisher_coefficients_dictionnary_lai22()
-
-generate_generalized_adamsblake17plane_functions()
-generate_generalized_adamsblake20_functions()

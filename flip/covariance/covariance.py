@@ -467,7 +467,9 @@ class CovMatrix:
             class_attrs_dictionary = dict(np.load(f"{filename}.npz", allow_pickle=True))
             for key in class_attrs_dictionary.keys():
                 if class_attrs_dictionary[key].size == 1:
-                    class_attrs_dictionary[key] = class_attrs_dictionary[key].item()                    
+                    class_attrs_dictionary[key] = class_attrs_dictionary[key].item() 
+                else:
+                    class_attrs_dictionary[key] = list(class_attrs_dictionary[key])                   
         return cls(**class_attrs_dictionary)
 
     @property

@@ -187,4 +187,5 @@ def compute_power_spectra(
             save_path,
         )
 
-    return wavenumber, power_spectrum_mm, power_spectrum_mt, power_spectrum_tt
+
+    return wavenumber, power_spectrum_mm, power_spectrum_mt, power_spectrum_tt, fiducial

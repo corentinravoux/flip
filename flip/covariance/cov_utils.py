@@ -120,13 +120,14 @@ def compute_phi(ra_0, ra_1, dec_0, dec_1, r_0, r_1, los_definition):
     x_0, y_0, z_0 = utils.radec2cart(r_0, ra_0, dec_0)
     x_1, y_1, z_1 = utils.radec2cart(r_1, ra_1, dec_1)
 
-    r_x = x_1 - x_0
-    r_y = y_1 - y_0
-    r_z = z_1 - z_0
+    r_x = x_0 - x_1
+    r_y = y_0 - y_1
+    r_z = z_0 - z_1
 
-    # We chose here r = r1 - r0, this could be the other way.
-    # It should not change the maximum likelihood minimization.
-    # CR - Need to be verified at one point. It could only impact vg.
+    # We define r = r0 - r1 for all the flip package.
+    # This is directly linked with coordinate choice that we are making
+    # at the symbolic level. This have an impact on cross-correlation terms,
+    # especially for cross-terms (gv for example).
 
     r = np.sqrt(r_x**2 + r_y**2 + r_z**2)
     if los_definition == "mean":

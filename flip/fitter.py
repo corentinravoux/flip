@@ -322,7 +322,10 @@ class FitMinuit(BaseFitter):
         if hesse:
             log.add(self.minuit.hesse())
         if minos:
-            log.add(self.minuit.minos())
+            try:
+                log.add(self.minuit.minos())
+            except:
+                pass
 
         return self.minuit.values.to_dict()
 

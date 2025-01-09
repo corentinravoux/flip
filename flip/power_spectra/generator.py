@@ -2,10 +2,10 @@ import os
 
 import numpy as np
 
-from flip.power_spectra import class_engine, models
+from flip.power_spectra import class_engine, cosmoprimo_engine, models
 
-_available_engines = ["class_engine"]
-_available_power_spectrum_model = ["linearbel", "nonlinearbel"]
+_available_engines = ["class_engine", "cosmoprimo_engine"]
+_available_power_spectrum_model = ["linearbel", "nonlinearbel", "linear"]
 _available_power_spectrum_normalizaton = [
     "no_normalization",
     "growth_rate",
@@ -70,7 +70,7 @@ def compute_power_spectra(
 
     Args:
         power_spectrum_engine (str): engine to use to compute the power spectrum, see _available_engines.
-        power_spectrum_settings (dic): configuration for the engine.
+        power_spectrum_settings (dic or cosmo): configuration for the engine.
         redshift (float): the redshift at which compute the power spectrum.
         minimal_wavenumber (float): minimum k in h/Mpc.
         maximal_wavenumber (float): maximum k in h/Mpc.

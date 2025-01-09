@@ -8,7 +8,7 @@ try:
     from classy import Class
 except:
     log.add(
-        "Install CLASS https://github.com/lesgourg/class_public to use class.py module",
+        "Install CLASS https://github.com/lesgourg/class_public to use class_engine.py module",
         level="warning",
     )
 

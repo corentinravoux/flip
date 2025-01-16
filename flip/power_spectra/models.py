@@ -113,3 +113,12 @@ def get_linearbel_model(
     power_spectrum_mm = power_spectrum_linear
 
     return power_spectrum_mm, power_spectrum_mt, power_spectrum_tt
+
+
+def get_linear_model(
+    wavenumber,
+    power_spectrum_linear,
+    **kwargs,
+):
+
+    return power_spectrum_linear, power_spectrum_linear, power_spectrum_linear

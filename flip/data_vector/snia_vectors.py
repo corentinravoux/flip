@@ -1,6 +1,7 @@
 import numpy as np
+
+from . import vector_utils
 from .basic import DataVector
-from . import vector_utils as vec_ut
 
 try:
     import jax.numpy as jnp
@@ -28,8 +29,8 @@ class VelFromSALTfit(DataVector):
     @property
     def conditional_free_par(self):
         _cond_fpar = []
-        if 'host_logmass' in self.data:
-            _cond_fpar += ['gamma']
+        if "host_logmass" in self.data:
+            _cond_fpar += ["gamma"]
         return _cond_fpar
 
     def compute_observed_distance_modulus(self, parameter_values_dict):
@@ -40,7 +41,7 @@ class VelFromSALTfit(DataVector):
             - parameter_values_dict["M_0"]
         )
 
-        if 'host_logmass' in self.data:
+        if "host_logmass" in self.data:
             mask = self._data["host_logmass"] > 10
             observed_distance_modulus[mask] += parameter_values_dict["gamma"] / 2
             observed_distance_modulus[~mask] -= parameter_values_dict["gamma"] / 2
@@ -59,7 +60,9 @@ class VelFromSALTfit(DataVector):
             zobs = self.data["zobs"]
             rcom_zobs = self.data["rcom_zobs"]
 
-        distance_modulus_difference -= 5 * jnp.log10((1 + zobs) * rcom_zobs / self.h) + 25
+        distance_modulus_difference -= (
+            5 * jnp.log10((1 + zobs) * rcom_zobs / self.h) + 25
+        )
         return distance_modulus_difference
 
     def compute_observed_distance_modulus_variance(self, parameter_values_dict):
@@ -91,7 +94,7 @@ class VelFromSALTfit(DataVector):
             parameter_values_dict
         )
         if self._covariance_observation is None:
-            velocity_variance *= self._dmu2vel**2
+            velocity_variance *= self._distance_modulus_difference_to_velocity**2
         else:
             A = self._init_A()
             J = (
@@ -99,22 +102,27 @@ class VelFromSALTfit(DataVector):
                 + parameter_values_dict["alpha"] * A[1]
                 - parameter_values_dict["beta"] * A[2]
             )
-            J = jnp.diag(self._dmu2vel) @ J
+            J = jnp.diag(self._distance_modulus_difference_to_velocity) @ J
             velocity_variance = J @ velocity_variance @ J.T
 
-        velocities = self._dmu2vel * self.compute_distance_modulus_difference(
-            parameter_values_dict
+        velocities = (
+            self._distance_modulus_difference_to_velocity
+            * self.compute_distance_modulus_difference(parameter_values_dict)
         )
 
         if self._host_matrix is not None:
-            velocities, velocity_variance = vec_ut.get_grouped_data_variance(
+            velocities, velocity_variance = vector_utils.get_grouped_data_variance(
                 self._host_matrix, velocities, velocity_variance
             )
 
         return (velocities, velocity_variance)
 
-    def _init_dmu2vel(self, vel_estimator, **kwargs):
-        return vec_ut.redshift_dependence_velocity(self._data, vel_estimator, **kwargs)
+    def _init_distance_modulus_difference_to_velocity(
+        self, velocity_estimator, **kwargs
+    ):
+        return vector_utils.redshift_dependence_velocity(
+            self._data, velocity_estimator, **kwargs
+        )
 
     def _init_A(self):
         N = len(self._data)
@@ -124,19 +132,33 @@ class VelFromSALTfit(DataVector):
             A[k][ij[1] == 3 * ij[0] + k] = 1
         return A
 
-    def __init__(self, data, h, cov=None, vel_estimator="full", mass_step=10,**kwargs):
-        super().__init__(data, cov=cov)
-        self._dmu2vel = self._init_dmu2vel(vel_estimator, h=h, **kwargs)
+    def __init__(
+        self,
+        data,
+        h,
+        covariance_observation=None,
+        velocity_estimator="full",
+        mass_step=10,
+        **kwargs
+    ):
+        super().__init__(data, covariance_observation=covariance_observation)
+        self._distance_modulus_difference_to_velocity = (
+            self._init_distance_modulus_difference_to_velocity(
+                velocity_estimator, h=h, **kwargs
+            )
+        )
         self.h = h
         self._A = None
         self._host_matrix = None
         self._mass_step = mass_step
 
         if "host_group_id" in data:
-            self._host_matrix, self._data_to_group_mapping = vec_ut.compute_host_matrix(
-                self._data["host_group_id"]
+            self._host_matrix, self._data_to_group_mapping = (
+                vector_utils.compute_host_matrix(self._data["host_group_id"])
             )
-            self._data = vec_ut.format_data_multiple_host(self._data, self._host_matrix)
+            self._data = vector_utils.format_data_multiple_host(
+                self._data, self._host_matrix
+            )
             if jax_installed:
                 self._host_matrix = BCOO.from_scipy_sparse(self._host_matrix)
 

@@ -290,7 +290,7 @@ def plot_all_mean_fits(
     for i, fit_p in enumerate(unique_fit_prop):
 
         mask = fit_prop == fit_p
-        fits = np.array(fit_to_plot)[mask]
+        fits = np.array(fit_to_plot, dtype=object)[mask]
 
         for j, param_name in enumerate(parameters):
             if (param_name == "fs8") & (compute_fs8_from_beta):

@@ -16,7 +16,6 @@ class Contraction:
         contraction_dict=None,
         coordinates_dict=None,
         basis_definition=None,
-        endpoint_los_definition=None,
         redshift_dict=None,
         variant=None,
     ):
@@ -25,7 +24,6 @@ class Contraction:
         self.contraction_dict = contraction_dict
         self.coordinates_dict = coordinates_dict
         self.basis_definition = basis_definition
-        self.endpoint_los_definition = endpoint_los_definition
         self.redshift_dict = redshift_dict
         self.variant = variant
 
@@ -42,7 +40,6 @@ class Contraction:
         coordinate_type="rprt",
         additional_parameters_values=None,
         basis_definition="bisector",
-        endpoint_los_definition="bisector",
         redshift=None,
         variant=None,
         **kwargs,
@@ -62,7 +59,6 @@ class Contraction:
             coordinate_type=coordinate_type,
             additional_parameters_values=additional_parameters_values,
             basis_definition=basis_definition,
-            endpoint_los_definition=endpoint_los_definition,
             redshift=redshift,
             **kwargs,
         )
@@ -73,7 +69,6 @@ class Contraction:
             contraction_dict=contraction_dict,
             coordinates_dict=coordinates_dict,
             basis_definition=basis_definition,
-            endpoint_los_definition=endpoint_los_definition,
             redshift_dict=redshift_dict,
             variant=variant,
         )
@@ -190,7 +185,6 @@ def compute_contraction_coordinates(
     coord_2_reference,
     coordinate_type,
     basis_definition,
-    endpoint_los_definition,
 ):
     shape_coord_1_coord_2 = len(coord_1) * len(coord_2)
 
@@ -233,6 +227,7 @@ def compute_contraction_coordinates(
     r_reference = np.sqrt(r_perpendicular_reference**2 + r_parallel_reference**2)
     r = np.sqrt(coord_rper_rpar[0, :] ** 2 + coord_rper_rpar[1, :] ** 2)
 
+    phi = np.arccos(np.clip(coord_rper_rpar[1, :] / r, -1.0, 1.0))
     if basis_definition == "bisector":
         # r_perp, r_par and phi are defined with respect to the bisector between the two points.
         r_1 = np.sqrt(
@@ -250,27 +245,13 @@ def compute_contraction_coordinates(
             + (r_parallel_reference + coord_rper_rpar[1, :]) ** 2
         )
 
-        phi = np.arccos(np.clip(coord_rper_rpar[1, :] / r, -1.0, 1.0))
         theta = np.arcsin(
             np.clip(r * np.sin(phi) / (2 * r_reference), -1.0, 1.0)
         ) + np.arcsin(np.clip(r * np.sin(phi) / (2 * r_1), -1.0, 1.0))
     elif basis_definition == "endpoint":
-        # r_perp, r_par are defined with respect to r_reference. phi can be defined by mean or bisector.
+        # r_perp, r_par are defined with respect to r_reference = d.
         theta = np.arctan2(coord_rper_rpar[0, :], r_reference + coord_rper_rpar[1, :])
-        if endpoint_los_definition == "bisector":
-            phi = np.arcsin(
-                np.clip(
-                    ((r_reference / r) + (coord_rper_rpar[0, :] / (r * np.sin(theta))))
-                    * np.sin(theta / 2),
-                    -1.0,
-                    1.0,
-                )
-            )
-        elif endpoint_los_definition == "mean":
-            phi = np.arccos(
-                np.clip(r**2 / 2 + coord_rper_rpar[1, :] * r_reference, -1.0, 1.0)
-            )
-
+ 
     coordinates = np.zeros((3, shape_coord_1_coord_2))
     coordinates[0, :] = r
     coordinates[1, :] = theta
@@ -299,7 +280,6 @@ def contract_covariance(
     coordinate_type="rprt",
     additional_parameters_values=None,
     basis_definition="bisector",
-    endpoint_los_definition="bisector",
     redshift=None,
     number_worker=8,
     hankel=True,
@@ -312,7 +292,6 @@ def contract_covariance(
         coord_2_reference,
         coordinate_type,
         basis_definition,
-        endpoint_los_definition,
     )
     contraction_dict = {}
     if model_type in ["density", "full", "density_velocity"]:

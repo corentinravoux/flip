@@ -37,7 +37,7 @@ Density
 Direct Density
 ~~~~~~~~~~~~~~
 
-The :py:class:`~flip.data_vector.basic.Density` class is used on example data as:
+The :py:class:`~flip.data_vector.basic.Dens` class is used on example data as:
 
 .. code-block:: python 
 
@@ -47,7 +47,7 @@ The :py:class:`~flip.data_vector.basic.Density` class is used on example data as
     grid = pd.read_parquet("flip/flip/data/density_data.parquet")
     grid.rename(columns={'density_err': 'density_error', 
                         'rcom': 'rcom_zobs'}, inplace=True)
-    DataDensity = data_vector.Density(grid.to_dict(orient='list'))
+    DataDensity = data_vector.Dens(grid.to_dict(orient='list'))
 
 
 Velocity
@@ -85,7 +85,7 @@ The DataVector is initialised as:
 
     from flip import data_vector
 
-    DataVel = data_vector.VelFromHDres(data, vel_estimator=estimator_name, **kwargs)
+    DataVel = data_vector.VelFromHDres(data, velocity_estimator=estimator_name, **kwargs)
 
 
 Velocity from SNe Ia SALT2 parameters
@@ -111,7 +111,7 @@ The DataVector is initialised as:
     data_velocity = pd.read_parquet("flip/flip/data/velocity_data.parquet"))
     DataVel = data_vector.snia_vectors.VelFromSALTfit(
         data_velocity.to_dict(orient='list'), 
-        vel_estimator='full'
+        velocity_estimator='full'
         )
 
     mu = DataVel.compute_observed_distance_modulus(test_parameters)
@@ -146,12 +146,12 @@ It is initialised as:
     grid.rename(columns={'density_err': 'density_error', 
                         'rcom': 'rcom_zobs'}, inplace=True)
 
-    DataDensity = data_vector.Density(grid.to_dict(orient='list'))
+    DataDensity = data_vector.Dens(grid.to_dict(orient='list'))
 
     data_velocity = pd.read_parquet("flip/flip/data/velocity_data.parquet"))
     DataVel = data_vector.snia_vectors.VelFromSALTfit(
         data_velocity.to_dict(orient='list'), 
-        vel_estimator='full'
+        velocity_estimator='full'
         )
 
     DensCrossVel = data_vector.DensVel(DataDensity, DataTrueVel)

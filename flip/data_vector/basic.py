@@ -230,7 +230,9 @@ class VelFromHDres(DirectVel):
 
     def _give_data_and_variance(self, *args):
         if self._covariance_observation is not None:
-            return self._data["velocity"], self._covariance_observation
+            J = jnp.diag(self._log_distance_to_velocity)
+            velocity_variance = J @ self._covariance_observation @ J.T
+            return self._data["velocity"], velocity_variance
         return self._data["velocity"], self._data["velocity_error"] ** 2
 
     def __init__(
@@ -245,10 +247,7 @@ class VelFromHDres(DirectVel):
 
         data["velocity"] = self._distance_modulus_difference_to_velocity * data["dmu"]
 
-        if covariance_observation is not None:
-            J = jnp.diag(self._distance_modulus_difference_to_velocity)
-            covariance_observation = J @ covariance_observation @ J.T
-        else:
+        if covariance_observation is None:
             data["velocity_error"] = (
                 self._distance_modulus_difference_to_velocity * data["dmu_error"]
             )

@@ -47,7 +47,9 @@ class VelFromLogDist(DataVector):
 
         """
         if self._covariance_observation is not None:
-            return self._data["velocity"], self._covariance_observation
+            J = jnp.diag(self._log_distance_to_velocity)
+            velocity_variance = J @ self._covariance_observation @ J.T
+            return self._data["velocity"], velocity_variance
         return self._data["velocity"], self._data["velocity_error"] ** 2
 
     def __init__(
@@ -70,11 +72,9 @@ class VelFromLogDist(DataVector):
         )
         data["velocity"] = self._log_distance_to_velocity * data["eta"]
 
-        if covariance_observation is not None:
-            J = jnp.diag(self._log_distance_to_velocity)
-            covariance_observation = J @ covariance_observation @ J.T
-        else:
+        if covariance_observation is None:
             data["velocity_error"] = self._log_distance_to_velocity * data["eta_error"]
+
         super().__init__(
             data,
             covariance_observation=covariance_observation,
@@ -185,16 +185,16 @@ class VelFromTullyFisher(DataVector):
         Returns:
             tuple: A tuple containing the velocities and velocity variances.
         """
-        velocity_variance = self.compute_observed_distance_modulus_variance(
+        observed_distance_modulus_variance = self.compute_observed_distance_modulus_variance(
             parameter_values_dict
         )
         if self._covariance_observation is None:
-            velocity_variance *= self._distance_modulus_difference_to_velocity**2
+            velocity_variance = observed_distance_modulus_variance * self._distance_modulus_difference_to_velocity**2
         else:
             A = self._init_A()
             J = A[0] + parameter_values_dict["a"] * A[1]
             J = jnp.diag(self._distance_modulus_difference_to_velocity) @ J
-            velocity_variance = J @ velocity_variance @ J.T
+            velocity_variance = J @ observed_distance_modulus_variance @ J.T
 
         velocities = (
             self._distance_modulus_difference_to_velocity
@@ -391,11 +391,11 @@ class VelFromFundamentalPlane(DataVector):
         Returns:
             tuple: A tuple containing the velocities and velocity variances.
         """
-        velocity_variance = self.compute_observed_distance_modulus_variance(
+        observed_distance_modulus_variance = self.compute_observed_distance_modulus_variance(
             parameter_values_dict
         )
         if self._covariance_observation is None:
-            velocity_variance *= self._distance_modulus_difference_to_velocity**2
+            velocity_variance = observed_distance_modulus_variance * self._distance_modulus_difference_to_velocity**2
         else:
             A = self._init_A()
             J = (
@@ -404,7 +404,7 @@ class VelFromFundamentalPlane(DataVector):
                 + parameter_values_dict["b"] * A[2]
             )
             J = jnp.diag(self._distance_modulus_difference_to_velocity) @ J
-            velocity_variance = J @ velocity_variance @ J.T
+            velocity_variance = J @ observed_distance_modulus_variance @ J.T
 
         velocities = (
             self._distance_modulus_difference_to_velocity

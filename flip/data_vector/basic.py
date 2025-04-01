@@ -220,6 +220,7 @@ class DensVel(DataVector):
 
 class VelFromHDres(DirectVel):
     _needed_keys = ["dmu", "zobs"]
+    _free_par = ["M_0"]
 
     @property
     def conditional_needed_keys(self):
@@ -228,10 +229,13 @@ class VelFromHDres(DirectVel):
             cond_keys += ["dmu_error"]
         return self._needed_keys + cond_keys
 
-    def _give_data_and_variance(self, *args):
+    def _give_data_and_variance(self, parameter_values_dict):
+        velocity = self._data["velocity"] - self._distance_modulus_difference_to_velocity * parameter_values_dict["M_0"]
+        
         if self._covariance_observation is not None:
-            return self._data["velocity"], self._covariance_observation
-        return self._data["velocity"], self._data["velocity_error"] ** 2
+            return velocity, self._covariance_observation
+        
+        return velocity, self._data["velocity_error"] ** 2
 
     def __init__(
         self, data, covariance_observation=None, velocity_estimator="full", **kwargs
@@ -252,8 +256,15 @@ class VelFromHDres(DirectVel):
             data["velocity_error"] = (
                 self._distance_modulus_difference_to_velocity * data["dmu_error"]
             )
-        super().__init__(data, covariance_observation=covariance_observation)
 
+        super().__init__(data, covariance_observation=covariance_observation)
+        
+        if "host_group_id" in self._data:
+            self._distance_modulus_difference_to_velocity = (
+            vector_utils.redshift_dependence_velocity(
+                self._data, velocity_estimator, **kwargs
+            )
+            )
 
 class FisherVelFromHDres(DataVector):
     _kind = "velocity"

@@ -61,19 +61,6 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
     return redshift_dependence
 
 
-def redshift_dependence_log_distance(data):
-    redshift_obs = data["zobs"]
-    if ("hubble_norm" not in data) | ("rcom_zobs" not in data):
-        raise ValueError(
-            """ The "hubble_norm" (H(z)/h = 100 E(z)) or "rcom_zobs" (Dm(z)) fields"""
-            """ are not present in the data. Please add it"""
-        )
-    redshift_dependence = (jnp.log(10) * data["hubble_norm"] * data["rcom_zobs"]) / (
-        (1 + redshift_obs)
-    )
-    return redshift_dependence
-
-
 def compute_host_matrix(host_group_id):
     host_list, data_to_host_mapping = np.unique(host_group_id, return_inverse=True)
     if len(host_list) == len(host_group_id):

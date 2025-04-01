@@ -38,6 +38,7 @@ For a joint fit: <a target="_blank" href="https://colab.research.google.com/gith
 Documentation available on [ReadTheDoc](https://flip.readthedocs.io/) 
 
 ## How to cite
-This package was started on the previous work of [@bastiencarreres](https://github.com/bastiencarreres), for now, please cite [this article](https://arxiv.org/abs/2303.01198).
 
-A paper describing the concept of the code is in preparation.
+The full description of the core concepts of this package is given [here](https://arxiv.org/abs/2501.16852).
+This package was started on the previous work of [@bastiencarreres](https://github.com/bastiencarreres), detail in [this article](https://arxiv.org/abs/2303.01198).
+Please cite both paper when using the package.

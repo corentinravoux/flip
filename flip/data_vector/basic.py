@@ -230,39 +230,40 @@ class VelFromHDres(DirectVel):
         return self._needed_keys + cond_keys
 
     def _give_data_and_variance(self, parameter_values_dict):
-        velocity = self._data["velocity"] - self._distance_modulus_difference_to_velocity * parameter_values_dict["M_0"]
-        
+        distance_modulus_difference_to_velocity = (
+            vector_utils.redshift_dependence_velocity(
+                self._data, self.velocity_estimator, **parameter_values_dict
+            )
+        )
+        velocity = (
+            self._data["velocity"]
+            - distance_modulus_difference_to_velocity * parameter_values_dict["M_0"]
+        )
+
         if self._covariance_observation is not None:
             J = jnp.diag(self._log_distance_to_velocity)
             velocity_variance = J @ self._covariance_observation @ J.T
-            return self._data["velocity"], velocity_variance
-        return self._data["velocity"], self._data["velocity_error"] ** 2
+            return velocity, velocity_variance
+        return velocity, self._data["velocity_error"] ** 2
 
     def __init__(
         self, data, covariance_observation=None, velocity_estimator="full", **kwargs
     ):
 
-        self._distance_modulus_difference_to_velocity = (
-            vector_utils.redshift_dependence_velocity(
-                data, velocity_estimator, **kwargs
-            )
-        )
-
-        data["velocity"] = self._distance_modulus_difference_to_velocity * data["dmu"]
-
-        if covariance_observation is None:
-            data["velocity_error"] = (
-                self._distance_modulus_difference_to_velocity * data["dmu_error"]
-            )
-
-        super().__init__(data, covariance_observation=covariance_observation)
-        
-        if "host_group_id" in self._data:
-            self._distance_modulus_difference_to_velocity = (
+        distance_modulus_difference_to_velocity = (
             vector_utils.redshift_dependence_velocity(
                 self._data, velocity_estimator, **kwargs
             )
+        )
+        self.velocity_estimator = velocity_estimator
+        data["velocity"] = distance_modulus_difference_to_velocity * data["dmu"]
+
+        if covariance_observation is None:
+            data["velocity_error"] = (
+                distance_modulus_difference_to_velocity * data["dmu_error"]
             )
+        super().__init__(data, covariance_observation=covariance_observation)
+
 
 class FisherVelFromHDres(DataVector):
     _kind = "velocity"
@@ -270,19 +271,19 @@ class FisherVelFromHDres(DataVector):
     _free_par = ["sigma_M"]
 
     def _give_data_and_variance(self, parameter_values_dict):
-
+        distance_modulus_difference_to_velocity = (
+            vector_utils.redshift_dependence_velocity(
+                self._data, self.velocity_estimator, **parameter_values_dict
+            )
+        )
         variance = parameter_values_dict["sigma_M"] ** 2
         if "dmu_error" in self.data:
             variance += self.data["dmu_error"] ** 2
-        return self._distance_modulus_difference_to_velocity**2 * variance
+        return distance_modulus_difference_to_velocity**2 * variance
 
-    def __init__(self, data, velocity_estimator="full", **kwargs):
+    def __init__(self, data, velocity_estimator="full"):
         super().__init__(data)
-        self._distance_modulus_difference_to_velocity = (
-            vector_utils.redshift_dependence_velocity(
-                self._data, velocity_estimator, **kwargs
-            )
-        )
+        self.velocity_estimator = velocity_estimator
 
 
 class FisherDens(DataVector):

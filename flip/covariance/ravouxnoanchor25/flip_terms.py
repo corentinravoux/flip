@@ -2,6 +2,8 @@ import mpmath
 import numpy
 import scipy
 
+from flip.covariance.ravouxnoanchor25.coefficients import D1_function
+
 
 def set_backend(module):
     global np, erf
@@ -15,13 +17,8 @@ def set_backend(module):
 
 set_backend("numpy")
 
-import scipy.integrate as integrate
-from astropy.cosmology import FlatLambdaCDM
 
-exact = False
-
-
-def M_vv_0_0_0():
+def M_vv_0_0_0(*args):
     def func(k):
         return (10000 / 9) / k**2
 
@@ -32,7 +29,7 @@ def N_vv_0_0_0(theta, phi):
     return 3 * np.cos(theta)
 
 
-def M_vv_0_2_0():
+def M_vv_0_2_0(*args):
     def func(k):
         return (10000 / 9) / k**2
 
@@ -44,7 +41,9 @@ def N_vv_0_2_0(theta, phi):
 
 
 def Z_vv_0(k, redshift_1, redshift_2, Omega_m0, knl):
-    return 1
+    D1_z1 = D1_function(redshift_1, Omega_m0)
+    D1_z2 = D1_function(redshift_2, Omega_m0)
+    return np.exp(-((k / knl) ** 2) * (D1_z1 - D1_z2) ** 2)
 
 
 dictionary_terms = {"vv": ["0"]}

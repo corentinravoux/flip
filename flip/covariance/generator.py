@@ -350,22 +350,25 @@ def compute_coordinates(
         ra = coordinates_density[0]
         dec = coordinates_density[1]
         comoving_distance = coordinates_density[2]
-        redshift = redshift_dict["g"]
+        if redshift_dict is not None:
+            redshift = redshift_dict["g"]
         number_objects = len(ra)
     elif covariance_type == "vv":
         ra = coordinates_velocity[0]
         dec = coordinates_velocity[1]
         comoving_distance = coordinates_velocity[2]
-        redshift = redshift_dict["v"]
+        if redshift_dict is not None:
+            redshift = redshift_dict["v"]
         number_objects = len(ra)
     elif covariance_type == "gv":
         ra_g = coordinates_density[0]
         dec_g = coordinates_density[1]
         comoving_distance_g = coordinates_density[2]
-        redshift_g = redshift_dict["g"]
         ra_v = coordinates_velocity[0]
         dec_v = coordinates_velocity[1]
-        redshift_v = redshift_dict["v"]
+        if redshift_dict is not None:
+            redshift_g = redshift_dict["g"]
+            redshift_v = redshift_dict["v"]
         comoving_distance_v = coordinates_velocity[2]
         number_objects_g = len(ra_g)
         number_objects_v = len(ra_v)
@@ -384,36 +387,41 @@ def compute_coordinates(
             i_list, j_list = cov_utils.compute_i_j_cross_matrix(
                 number_objects_v, batches
             )
-            ra_i, dec_i, r_i, z_i = (
+            ra_i, dec_i, r_i = (
                 ra_g[i_list],
                 dec_g[i_list],
                 comoving_distance_g[i_list],
-                redshift_g[i_list],
             )
-            ra_j, dec_j, r_j, z_j = (
+            ra_j, dec_j, r_j = (
                 ra_v[j_list],
                 dec_v[j_list],
                 comoving_distance_v[j_list],
-                redshift_v[j_list],
             )
+            if redshift_dict is not None:
+                z_i = redshift_g[i_list]
+                z_j = redshift_v[j_list]
         else:
             i_list, j_list = cov_utils.compute_i_j(number_objects, batches)
-            ra_i, dec_i, r_i, z_i = (
+            ra_i, dec_i, r_i = (
                 ra[i_list],
                 dec[i_list],
                 comoving_distance[i_list],
-                redshift[i_list],
             )
-            ra_j, dec_j, r_j, z_j = (
+            ra_j, dec_j, r_j = (
                 ra[j_list],
                 dec[j_list],
                 comoving_distance[j_list],
-                redshift[j_list],
             )
+            if redshift_dict is not None:
+                z_i = redshift[i_list]
+                z_j = redshift[j_list]
         r, theta, phi = cov_utils.angle_separation(
             ra_i, ra_j, dec_i, dec_j, r_i, r_j, los_definition=los_definition
         )
-        parameters.append([r, theta, phi, z_i, z_j])
+        if redshift_dict is not None:
+            parameters.append([r, theta, phi, z_i, z_j])
+        else:
+            parameters.append([r, theta, phi])
     return parameters
 
 

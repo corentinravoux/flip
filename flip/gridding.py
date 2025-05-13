@@ -671,7 +671,138 @@ def grid_data_density_pypower(
 
     return grid
 
+def grid_data_velocity_pypower(
+    raobj,
+    decobj,
+    rcomobj,
+    variance,
+    velocity,
+    rcom_max,
+    grid_size,
+    grid_type,
+    kind,
+    interlacing=2,
+    compensate=False,
+    overhead=20,
+):
+    """
+    The grid_data_density_pypower function takes in the ra, dec, and rcom values of a galaxy catalog
+    and returns a grid of density contrast values. The function uses pypower to create the grid.
+    The function also has options for creating random points using different methods: choice, healpix, or cartesian.
 
+
+    Args:
+        raobj: Pass the ra values of the data
+        decobj: Calculate the z coordinate of the object in cartesian coordinates
+        rcomobj: Calculate the comoving distance of each galaxy
+        rcom_max: Cut the grid in a sphere of radius rcom_max
+        grid_size: Determine the size of each cell in the grid
+        grid_type: Determine whether to use a rectangular or spherical grid
+        kind: Set the resampler in the catalogmesh function
+        Nrandom: Determine the number of random points to be generated
+        random_method: Choose the method used to generate random points
+        interlacing: Reduce the variance of the density field
+        compensate: Correct for the fact that we are using a finite number of random points
+        : Remove the nan values from the grid
+
+    Returns:
+        A dictionary with the grid coordinates and density contrast values
+
+    """
+    xobj, yobj, zobj = utils.radec2cart(rcomobj, raobj, decobj)
+    mask = np.abs(xobj) < rcom_max + overhead
+    mask &= np.abs(yobj) < rcom_max + overhead
+    mask &= np.abs(zobj) < rcom_max + overhead
+    xobj, yobj, zobj = xobj[mask], yobj[mask], zobj[mask]
+    raobj, decobj, rcomobj = raobj[mask], decobj[mask], rcomobj[mask]
+
+
+    data_positions = np.array([xobj, yobj, zobj]).T
+
+    data_weights = np.ones((data_positions.shape[0],))
+
+    catalog_mesh_var = CatalogMesh(
+        data_positions=data_positions,
+        data_weights=variance,
+        interlacing=interlacing,
+        boxsize=2 * (rcom_max + overhead),
+        boxcenter=0.0,
+        cellsize=grid_size,
+        resampler=kind,
+        position_type="pos",
+    )
+
+    catalog_mesh_count = CatalogMesh(
+        data_positions=data_positions,
+        data_weights=data_weights,
+        interlacing=interlacing,
+        boxsize=2 * (rcom_max + overhead),
+        boxcenter=0.0,
+        cellsize=grid_size,
+        resampler=kind,
+        position_type="pos",
+    )
+
+    catalog_mesh_vel = CatalogMesh(
+        data_positions=data_positions,
+        data_weights=data_weights,
+        interlacing=interlacing ,
+        boxsize=2 * (rcom_max + overhead),
+        boxcenter=0.0,
+        cellsize=grid_size,
+        resampler=kind,
+        position_type="pos",
+    )
+    mesh_data = catalog_mesh.to_mesh(field="data", compensate=compensate)
+    mesh_count = catalog_mesh.to_mesh(field="data")
+
+
+
+    N_in_cell=np.ravel(mesh_count.value)
+    coord_mesh = np.array(
+        np.meshgrid(
+            np.sort(mesh_data.x[0][:, 0, 0]),
+            np.sort(mesh_data.x[1][0, :, 0]),
+            np.sort(mesh_data.x[2][0, 0, :]),
+            indexing="ij",
+        )
+    )
+    xgrid = np.ravel(coord_mesh[0, :, :, :]) + grid_size / 2
+    ygrid = np.ravel(coord_mesh[1, :, :, :]) + grid_size / 2
+    zgrid = np.ravel(coord_mesh[2, :, :, :]) + grid_size / 2
+
+    rcomgrid, ragrid, decgrid = utils.cart2radec(xgrid, ygrid, zgrid)
+    grid = {
+        "x": xgrid,
+        "y": ygrid,
+        "z": zgrid,
+        "ra": ragrid,
+        "dec": decgrid,
+        "rcom": rcomgrid,
+        "N_in_cell": N_in_cell,
+    }
+
+    if grid_type == "rect":
+        cut_grid(
+            grid,
+            remove_nan_density=True,
+            remove_nan_velocity=True,
+            xmax=rcom_max,
+            ymax=rcom_max,
+            zmax=rcom_max,
+            remove_origin=True,
+        )
+
+    if grid_type == "sphere":
+        cut_grid(
+            grid,
+            remove_nan_density=True,
+            remove_nan_velocity=True,
+            rcom_max=rcom_max,
+            remove_origin=True,
+        )
+
+    return grid
 # CR - First try unconnecting pypower
 
 

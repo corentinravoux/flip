@@ -736,11 +736,10 @@ def grid_data_velocity_pypower(
         resampler=kind,
         position_type="pos",
     )
-
     catalog_mesh_count = CatalogMesh(
         data_positions=data_positions,
         data_weights=count_weights,
-        interlacing=0,
+        interlacing=interlacing,
         boxsize=2 * (rcom_max + overhead),
         boxcenter=0.0,
         cellsize=grid_size,

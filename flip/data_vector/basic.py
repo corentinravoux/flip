@@ -271,9 +271,13 @@ class FisherVelFromHDres(DataVector):
 
     def _give_data_and_variance(self, parameter_values_dict):
 
-        variance = parameter_values_dict["sigma_M"] ** 2
+        variance = 0
         if "dmu_error" in self.data:
             variance += self.data["dmu_error"] ** 2
+        if "velocity_variance" in self.data:
+            variance += self.data["velocity_variance"]
+        else:
+            variance=parameter_values_dict["sigma_M"] ** 2
         return self._distance_modulus_difference_to_velocity**2 * variance
 
     def __init__(self, data, velocity_estimator="full", **kwargs):

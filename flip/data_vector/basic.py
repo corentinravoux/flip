@@ -233,7 +233,7 @@ class VelFromHDres(DirectVel):
         velocity = self._data["velocity"] - self._distance_modulus_difference_to_velocity * parameter_values_dict["M_0"]
         
         if self._covariance_observation is not None:
-            J = jnp.diag(self._log_distance_to_velocity)
+            J = jnp.diag(self._distance_modulus_difference_to_velocity)
             velocity_variance = J @ self._covariance_observation @ J.T
             return self._data["velocity"], velocity_variance
         return self._data["velocity"], self._data["velocity_error"] ** 2

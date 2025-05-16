@@ -15,6 +15,7 @@ from flip.covariance.adamsblake20 import flip_terms as flip_terms_adamsblake20
 from flip.covariance.carreres23 import flip_terms as flip_terms_carreres23
 from flip.covariance.lai22 import flip_terms as flip_terms_lai22
 from flip.covariance.ravouxcarreres import flip_terms as flip_terms_ravouxcarreres
+from flip.covariance.ravouxnoanchor25 import flip_terms as flip_terms_ravouxnoanchor25
 from flip.covariance.rcrk24 import flip_terms as flip_terms_rcrk24
 from flip.utils import create_log
 
@@ -26,6 +27,7 @@ _avail_models = [
     "lai22",
     "carreres23",
     "ravouxcarreres",
+    "ravouxnoanchor25",
     "rcrk24",
 ]
 _avail_regularization_option = [
@@ -144,7 +146,7 @@ def coefficient_hankel(
     if eval(f"flip_terms.redshift_dependent_model"):
         Z_ab_i = eval(f"flip_terms.Z_{covariance_type}_{term_index}")(
             wavenumber, coord[3], coord[4], *additional_parameters_values
-        )
+        )  # Shape issue: Z_ab_i is an outer product. How to include that in the Hankel transform?
     for l in range(lmax + 1):
         number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
         for j in range(number_terms):
@@ -510,7 +512,7 @@ def compute_coeficient(
                 lmax_list[i],
                 power_spectrum_list[index_power_spectrum][0],
                 power_spectrum_list[index_power_spectrum][1],
-                np.zeros((3, 1)),
+                np.zeros((5, 1)),
                 additional_parameters_values=additional_parameters_values,
             )[0]
 

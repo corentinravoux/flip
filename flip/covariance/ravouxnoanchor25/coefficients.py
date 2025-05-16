@@ -39,7 +39,7 @@ def f(z, H0, Omega_m0):
 
 def D1_function(z, Omega_m0):
     prefactor = 1 / (5 * (1 + z) * Omega_m0)
-    hyp2f1_value = hyp2f1(1 / 3, 1, 11 / 6, 1 - (1 / Omega_m(z)))
+    hyp2f1_value = hyp2f1(1 / 3, 1, 11 / 6, 1 - (1 / Omega_m(z, Omega_m0)))
     return prefactor * hyp2f1_value
 
 

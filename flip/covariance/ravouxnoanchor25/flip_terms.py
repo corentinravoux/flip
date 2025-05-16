@@ -43,7 +43,7 @@ def N_vv_0_2_0(theta, phi):
 def Z_vv_0(k, redshift_1, redshift_2, Omega_m0, knl):
     D1_z1 = D1_function(redshift_1, Omega_m0)
     D1_z2 = D1_function(redshift_2, Omega_m0)
-    return np.exp(-((k / knl) ** 2) * (D1_z1 - D1_z2) ** 2)
+    return np.exp(np.outer((D1_z1 - D1_z2) ** 2, -((k / knl) ** 2)))
 
 
 dictionary_terms = {"vv": ["0"]}

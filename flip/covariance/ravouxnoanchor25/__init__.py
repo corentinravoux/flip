@@ -1,5 +1,3 @@
-from .generator import covariance_vv
-
 _variant = [None]
 
 

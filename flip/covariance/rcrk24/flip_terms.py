@@ -43,7 +43,7 @@ def N_vv_0_2_0(theta, phi):
     return (9 / 2) * np.cos(2 * phi) + (3 / 2) * np.cos(theta)
 
 
-def Z_vv_0(k, redshift_1, redshift_2, Omega_m0, knl):
+def Z_vv_0(k, redshift_1, redshift_2):
     return 1
 
 

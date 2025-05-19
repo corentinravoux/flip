@@ -685,14 +685,13 @@ def grid_data_velocity_pypower(
     grid_size,
     grid_type,
     kind,
-    interlacing=2,
+    interlacing=0,
     compensate=False,
     overhead=20,
 ):
     """
-    The grid_data_density_pypower function takes in the ra, dec, and rcom values of a galaxy catalog
-    and returns a grid of density contrast values. The function uses pypower to create the grid.
-    The function also has options for creating random points using different methods: choice, healpix, or cartesian.
+    The grid_data_velocity_pypower function takes in the ra, dec, rcom, variance, and velocity values of a velocity catalog
+    and returns a grid of variance and velocities. The function uses pypower to create the grid.
 
 
     Args:
@@ -700,6 +699,8 @@ def grid_data_velocity_pypower(
         decobj: Calculate the z coordinate of the object in cartesian coordinates
         rcomobj: Calculate the comoving distance of each galaxy
         rcom_max: Cut the grid in a sphere of radius rcom_max
+        variance: variance of the data points
+        velocity: veloctity of the data
         grid_size: Determine the size of each cell in the grid
         grid_type: Determine whether to use a rectangular or spherical grid
         kind: Set the resampler in the catalogmesh function

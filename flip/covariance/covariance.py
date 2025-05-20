@@ -5,6 +5,7 @@ import time
 import numpy as np
 
 from flip.utils import create_log
+from functools import partial
 
 try:
     import jax.numpy as jnp
@@ -78,18 +79,7 @@ def compute_covariance_sum(
         covariance_sum += jnp.diag(vector_variance)
     else:
         covariance_sum += vector_variance        
-
     return covariance_sum
-
-
-if jax_installed:
-
-    compute_covariance_sum_density_jit = jit(compute_covariance_sum_density)
-    compute_covariance_sum_velocity_jit = jit(compute_covariance_sum_velocity)
-    compute_covariance_sum_density_velocity_jit = jit(
-        compute_covariance_sum_density_velocity
-    )
-    compute_covariance_sum_full_jit = jit(compute_covariance_sum_full)
 
 
 class CovMatrix:
@@ -116,8 +106,6 @@ class CovMatrix:
             los_definition: Define the angle between two vectors
             covariance_dict: Store the covariance matrix
             full_matrix: Determine whether the covariance matrix is stored as a full matrix or in sparse form
-            number_densities: Set the number of density variables in the model
-            number_velocities: Set the number of velocities in the model
             variant: Name of the variation of the analysis
 
         Returns:
@@ -137,7 +125,9 @@ class CovMatrix:
             f"flip.covariance.{self.model_name}.coefficients"
         )
 
-
+        if jax_installed:
+            self._compute_covariance_jit = self._build_jitted_compute_covariance_sum()
+            
 
     @classmethod
     def init_from_flip(
@@ -213,8 +203,6 @@ class CovMatrix:
             los_definition=los_definition,
             covariance_dict=covariance_dict,
             full_matrix=False,
-            number_densities=number_densities,
-            number_velocities=number_velocities,
             redshift_dict=redshift_dict,
             variant=variant,
         )
@@ -292,8 +280,6 @@ class CovMatrix:
             los_definition=los_definition,
             covariance_dict=covariance_dict,
             full_matrix=False,
-            number_densities=number_densities,
-            number_velocities=number_velocities,
             redshift_dict=redshift_dict,
             variant=variant,
         )
@@ -390,11 +376,43 @@ class CovMatrix:
             log.add("The model kind was not found")
             return False
 
+    def _build_jitted_compute_covariance_sum(self):
+        jitted_get_coefficients = jit(
+            partial(
+                self.coefficients.get_coefficients, 
+                model_kind=self.model_kind, 
+                variant=self.variant,
+                redshift_dict=self.redshift_dict
+                )
+            )
+        jitted_get_diagonal_coefficients = jit(
+            partial(
+                self.coefficients.get_diagonal_coefficients, 
+                model_kind=self.model_kind,
+                )
+            )
+        
+        jitted_covariance_sum = jit(
+            partial(
+                compute_covariance_sum, 
+                kind=self.model_kind)
+        )
+        
+        def _compute_covariance_sum(parameter_values_dict, covariance_dict, vector_variance):
+            coefficients_dict = jitted_get_coefficients(parameter_values_dict)
+            coefficients_dict_diagonal = jitted_get_diagonal_coefficients(parameter_values_dict)
+            return jitted_covariance_sum(
+                covariance_dict, 
+                coefficients_dict, 
+                coefficients_dict_diagonal,
+                vector_variance)
+    
+        return jit(_compute_covariance_sum)
+    
     def compute_covariance_sum(
         self,
         parameter_values_dict,
         vector_variance,
-        use_jit=False,
     ):
         """
         The compute_covariance_sum function computes the sum of all covariance matrices
@@ -411,7 +429,6 @@ class CovMatrix:
         """
         if not self.full_matrix:
             self.compute_full_matrix()
-            
             
         coefficients_dict = self.coefficients.get_coefficients(
             self.model_kind,
@@ -466,22 +483,25 @@ class CovMatrix:
 
         for key in self.covariance_dict.keys():
             if key == "gg":
+                Ngg = cov_utils.nflat_to_Nfull(self.covariance_dict[key].shape[1]-1)
                 new_shape = (
                     self.covariance_dict[key].shape[0],
-                    self.number_densities,
-                    self.number_densities,
+                    Ngg,
+                    Ngg
                 )
             elif key == "gv":
+                Ngv = cov_utils.nflat_to_Nfull(self.covariance_dict[key].shape[1])
                 new_shape = (
                     self.covariance_dict[key].shape[0],
-                    self.number_densities,
-                    self.number_velocities,
+                    Ngv,
+                    Ngv,
                 )
             elif key == "vv":
+                Nvv = cov_utils.nflat_to_Nfull(self.covariance_dict[key].shape[1]-1)
                 new_shape = (
                     self.covariance_dict[key].shape[0],
-                    self.number_velocities,
-                    self.number_velocities,
+                    Nvv,
+                    Nvv,
                 )
             else:
                 log.warning(f"{key} != 'gg', 'gv' or 'vv' was ignored")
@@ -492,8 +512,8 @@ class CovMatrix:
                 if key[0] != key[1]:
                     new_cov[i] = cov_utils.return_full_cov_cross(
                         self.covariance_dict[key][i],
-                        self.number_densities,
-                        self.number_velocities,
+                        Ngg,
+                        Nvv,
                     )
                 else:
                     new_cov[i] = cov_utils.return_full_cov(self.covariance_dict[key][i])

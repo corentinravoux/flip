@@ -260,7 +260,10 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
     def verify_covariance(self):
         if self.covariance.full_matrix is False:
             self.covariance.compute_full_matrix()
-
+    
+    def _build_likelihood_jit(parameter_values):
+        
+        
     def __call__(self, parameter_values):
         parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
 

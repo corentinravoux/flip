@@ -235,7 +235,7 @@ class FitMinuit(BaseFitter):
     def init_from_file(
         cls,
         model_name,
-        model_type,
+        model_kind,
         filename,
         data,
         parameter_dict,
@@ -248,7 +248,7 @@ class FitMinuit(BaseFitter):
         Args:
             cls: Pass the class object to the function
             model_name: Specify the name of the model
-            model_type: Specify the type of model
+            model_kind: Specify the type of model
             filename: Load the covariance matrix from a file
             data: Initialize the fitter's data attribute
             parameter_dict: Pass in the parameters that are used to
@@ -259,7 +259,7 @@ class FitMinuit(BaseFitter):
             A fitter object
 
         """
-        covariance = CovMatrix.init_from_file(model_name, model_type, filename)
+        covariance = CovMatrix.init_from_file(model_name, model_kind, filename)
 
         return cls.init_from_covariance(
             covariance,

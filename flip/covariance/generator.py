@@ -538,7 +538,7 @@ def compute_cov(
 
 def generate_redshift_dict(
     model_name,
-    model_type,
+    model_kind,
     redshift_velocity=None,
     redshift_density=None,
     coordinates_velocity=None,
@@ -550,7 +550,7 @@ def generate_redshift_dict(
     else:
         return None
 
-    if model_type in ["density", "full", "density_velocity"]:
+    if model_kind in ["density", "full", "density_velocity"]:
         if redshift_dependent_model:
             if redshift_density is not None:
                 redshift_dict["g"] = redshift_density
@@ -563,7 +563,7 @@ def generate_redshift_dict(
                     )
                 else:
                     redshift_dict["g"] = coordinates_density[3]
-    if model_type in ["velocity", "full", "density_velocity"]:
+    if model_kind in ["velocity", "full", "density_velocity"]:
         if redshift_dependent_model:
             if redshift_velocity is not None:
                 redshift_dict["v"] = redshift_velocity
@@ -581,7 +581,7 @@ def generate_redshift_dict(
 
 def generate_covariance(
     model_name,
-    model_type,
+    model_kind,
     power_spectrum_dict,
     coordinates_velocity=None,
     coordinates_density=None,
@@ -597,7 +597,7 @@ def generate_covariance(
 
     Args:
         model_name: Select the model to use
-        model_type: Determine the type of model to generate
+        model_kind: Determine the type of model to generate
         power_spectrum_dict: Store the power spectra of the different fields
         coordinates_velocity: Specify the coordinates of the velocity field
         coordinates_density: Specify the coordinates of the density field
@@ -612,13 +612,13 @@ def generate_covariance(
 
     """
     cov_utils.check_generator_need(
-        model_type,
+        model_kind,
         coordinates_density,
         coordinates_velocity,
     )
     covariance_dict = {}
 
-    if model_type in ["density", "full", "density_velocity"]:
+    if model_kind in ["density", "full", "density_velocity"]:
         covariance_dict["gg"] = compute_cov(
             model_name,
             "gg",
@@ -636,7 +636,7 @@ def generate_covariance(
     else:
         number_densities = None
 
-    if model_type in ["velocity", "full", "density_velocity"]:
+    if model_kind in ["velocity", "full", "density_velocity"]:
         covariance_dict["vv"] = compute_cov(
             model_name,
             "vv",
@@ -654,7 +654,7 @@ def generate_covariance(
     else:
         number_velocities = None
 
-    if model_type == "full":
+    if model_kind == "full":
         covariance_dict["gv"] = compute_cov(
             model_name,
             "gv",
@@ -671,7 +671,7 @@ def generate_covariance(
 
     redshift_dict = generate_redshift_dict(
         model_name,
-        model_type,
+        model_kind,
         coordinates_velocity=coordinates_velocity,
         coordinates_density=coordinates_density,
     )

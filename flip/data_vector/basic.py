@@ -12,6 +12,7 @@ from . import vector_utils
 
 try:
     import jax.numpy as jnp
+    from jax import jit
     from jax.experimental.sparse import BCOO
 
     jax_installed = True
@@ -52,7 +53,7 @@ class DataVector(abc.ABC):
         return self._data
 
     @abc.abstractmethod
-    def _give_data_and_variance(self, **kwargs):
+    def give_data_and_variance(self, **kwargs):
         pass
 
     def _check_keys(self, data):
@@ -68,9 +69,13 @@ class DataVector(abc.ABC):
 
         for k in self._data:
             self._data[k] = jnp.array(self._data[k])
-
+        
+        if jax_installed:
+            self.give_data_and_variance_jit = jit(self.give_data_and_variance)
+    
+    # TODO: deprecate this call
     def __call__(self, *args):
-        return self._give_data_and_variance(*args)
+        return self.give_data_and_variance(*args)
 
     def mask(self, bool_mask):
         if len(bool_mask) != len(self.data[self.needed_keys[0]]):
@@ -103,7 +108,7 @@ class Dens(DataVector):
     _kind = "density"
     _needed_keys = ["density", "density_error"]
 
-    def _give_data_and_variance(self, *args):
+    def give_data_and_variance(self, *args):
         return self._data["density"], self._data["density_error"] ** 2
 
 
@@ -118,7 +123,7 @@ class DirectVel(DataVector):
             cond_keys += ["velocity_error"]
         return cond_keys
 
-    def _give_data_and_variance(self, *args):
+    def give_data_and_variance(self, *args):
         if self._covariance_observation is not None:
             return self._data["velocity"], self._covariance_observation
         return self._data["velocity"], self._data["velocity_error"] ** 2
@@ -172,9 +177,9 @@ class DensVel(DataVector):
     def free_par(self):
         return self.densities.free_par + self.velocities.free_par
 
-    def _give_data_and_variance(self, *args):
-        data_density, density_variance = self.densities._give_data_and_variance(*args)
-        data_velocity, velocity_variance = self.velocities._give_data_and_variance(
+    def give_data_and_variance(self, *args):
+        data_density, density_variance = self.densities.give_data_and_variance(*args)
+        data_velocity, velocity_variance = self.velocities.give_data_and_variance(
             *args
         )
 
@@ -229,7 +234,7 @@ class VelFromHDres(DirectVel):
             cond_keys += ["dmu_error"]
         return self._needed_keys + cond_keys
 
-    def _give_data_and_variance(self, parameter_values_dict):
+    def give_data_and_variance(self, parameter_values_dict):
         velocity = self._data["velocity"] - self._distance_modulus_difference_to_velocity * parameter_values_dict["M_0"]
         
         if self._covariance_observation is not None:
@@ -269,7 +274,7 @@ class FisherVelFromHDres(DataVector):
     _needed_keys = ["zobs", "ra", "dec", "rcom_zobs"]
     _free_par = ["sigma_M"]
 
-    def _give_data_and_variance(self, parameter_values_dict):
+    def give_data_and_variance(self, parameter_values_dict):
 
         variance = parameter_values_dict["sigma_M"] ** 2
         if "dmu_error" in self.data:
@@ -290,7 +295,7 @@ class FisherDens(DataVector):
     _needed_keys = ["ra", "dec", "rcom_zobs"]
     _free_par = []
 
-    def _give_data_and_variance(self, parameter_values_dict):
+    def give_data_and_variance(self, parameter_values_dict):
         variance = 0
         if "density_error" in self.data:
             variance += self.data["density_error"] ** 2
@@ -303,9 +308,9 @@ class FisherDens(DataVector):
 class FisherDensVel(DataVector):
     _kind = "cross"
 
-    def _give_data_and_variance(self, *args):
-        density_variance = self.densities._give_data_and_variance(*args)
-        velocity_variance = self.velocities._give_data_and_variance(*args)
+    def give_data_and_variance(self, *args):
+        density_variance = self.densities.give_data_and_variance(*args)
+        velocity_variance = self.velocities.give_data_and_variance(*args)
 
         variance = np.hstack((density_variance, velocity_variance))
         return variance

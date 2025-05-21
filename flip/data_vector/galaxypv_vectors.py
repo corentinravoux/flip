@@ -32,7 +32,7 @@ class VelFromLogDist(DataVector):
             cond_keys += ["eta_error"]
         return self._needed_keys + cond_keys
 
-    def _give_data_and_variance(self, *args):
+    def give_data_and_variance(self, *args):
         """
         Returns the data and variance for the velocity.
 
@@ -175,7 +175,7 @@ class VelFromTullyFisher(DataVector):
             )
         return variance_distance_modulus
 
-    def _give_data_and_variance(self, parameter_values_dict):
+    def give_data_and_variance(self, parameter_values_dict):
         """
         Compute the velocities and velocity variances based on the given parameter values.
 
@@ -381,7 +381,7 @@ class VelFromFundamentalPlane(DataVector):
             )
         return variance_distance_modulus
 
-    def _give_data_and_variance(self, parameter_values_dict):
+    def give_data_and_variance(self, parameter_values_dict):
         """
         Compute the velocities and velocity variances based on the given parameter values.
 

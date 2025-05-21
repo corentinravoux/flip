@@ -124,10 +124,12 @@ class CovMatrix:
         self.coefficients = importlib.import_module(
             f"flip.covariance.{self.model_name}.coefficients"
         )
-
-        if jax_installed:
-            self._compute_covariance_jit = self._build_jitted_compute_covariance_sum()
-            
+        
+        self.compute_covariance_sum = None
+        self.compute_covariance_sum_jit = None
+        
+        if full_matrix:
+            self._build_compute_covariance_sum()
 
     @classmethod
     def init_from_flip(
@@ -376,84 +378,46 @@ class CovMatrix:
             log.add("The model kind was not found")
             return False
 
-    def _build_jitted_compute_covariance_sum(self):
-        jitted_get_coefficients = jit(
-            partial(
+    def build_compute_covariance_sum(self):
+        if not self.full_matrix:
+            log.add("Building compute cov requires computing full matrix.")
+            self.compute_full_matrix()
+        
+        # Init coefficients functions
+        get_coefficients = partial(
                 self.coefficients.get_coefficients, 
                 model_kind=self.model_kind, 
                 variant=self.variant,
                 redshift_dict=self.redshift_dict
                 )
-            )
-        jitted_get_diagonal_coefficients = jit(
-            partial(
+        
+        get_diagonal_coefficients = partial(
                 self.coefficients.get_diagonal_coefficients, 
                 model_kind=self.model_kind,
                 )
+        
+        compute_covariance_sum_fun = partial(
+            compute_covariance_sum, 
+            covariance_dict=self.covariance_dict,
+            kind=self.model_kind
             )
         
-        jitted_covariance_sum = jit(
-            partial(
-                compute_covariance_sum, 
-                kind=self.model_kind)
-        )
+        def _compute_covariance_sum(parameter_values_dict, vector_variance):
+            coefficients_dict = get_coefficients(parameter_values_dict=parameter_values_dict)
+            coefficients_dict_diagonal = get_diagonal_coefficients(parameter_values_dict=parameter_values_dict)
+            covariance_sum = compute_covariance_sum_fun(
+                coefficients_dict=coefficients_dict, 
+                coefficients_dict_diagonal=coefficients_dict_diagonal,
+                vector_variance=vector_variance
+                )
+
+            return covariance_sum
         
-        def _compute_covariance_sum(parameter_values_dict, covariance_dict, vector_variance):
-            coefficients_dict = jitted_get_coefficients(parameter_values_dict)
-            coefficients_dict_diagonal = jitted_get_diagonal_coefficients(parameter_values_dict)
-            return jitted_covariance_sum(
-                covariance_dict, 
-                coefficients_dict, 
-                coefficients_dict_diagonal,
-                vector_variance)
+        self.compute_covariance_sum = _compute_covariance_sum
+        
+        if jax_installed:
+            self.compute_covariance_sum_jit = jit(_compute_covariance_sum)
     
-        return jit(_compute_covariance_sum)
-    
-    def compute_covariance_sum(
-        self,
-        parameter_values_dict,
-        vector_variance,
-    ):
-        """
-        The compute_covariance_sum function computes the sum of all covariance matrices
-            and adds the diagonal terms.
-
-        Args:
-            self: Access the attributes of the class
-            parameter_values_dict: Pass the values of the parameters
-            : Compute the covariance matrix
-
-        Returns:
-            The sum of the covariance matrices with their respective coefficients
-
-        """
-        if not self.full_matrix:
-            self.compute_full_matrix()
-            
-        coefficients_dict = self.coefficients.get_coefficients(
-            self.model_kind,
-            parameter_values_dict,
-            variant=self.variant,
-            redshift_dict=self.redshift_dict,
-        )
-        coefficients_dict_diagonal = self.coefficients.get_diagonal_coefficients(
-            self.model_kind,
-            parameter_values_dict,
-        )
-        
-        covariance_sum_func = eval(
-            f"compute_covariance_sum_{self.model_kind}"
-            + f"{'_jit' if jax_installed & use_jit else ''}"
-        )
-        
-        covariance_sum = covariance_sum_func(
-            self.covariance_dict,
-            coefficients_dict,
-            coefficients_dict_diagonal,
-            vector_variance,
-        )
-        
-        return covariance_sum
 
     def compute_covariance_sum_eigenvalues(
         self,

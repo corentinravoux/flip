@@ -6,7 +6,7 @@ import scipy as sc
 try:
     import jax.numpy as jnp
     import jax.scipy as jsc
-    from jax import jit
+    from jax import jit, grad
 
     jax_installed = True
 except ImportError:
@@ -151,7 +151,6 @@ class BaseLikelihood(object):
         self.covariance = covariance
         self.data = data
         self.parameter_names = parameter_names
-        self.prior = prior
 
         self.free_par = self.data.free_par[:]
 
@@ -164,6 +163,10 @@ class BaseLikelihood(object):
             **self._default_likelihood_properties,
             **likelihood_properties,
         }
+        
+        self.verify_covariance()
+        self.prior = self.initialize_prior()
+        
 
     @classmethod
     def init_from_covariance(
@@ -200,9 +203,6 @@ class BaseLikelihood(object):
             **kwargs,
         )
 
-        likelihood.verify_covariance()
-
-        likelihood.prior = likelihood.initialize_prior()
         return likelihood
 
     def initialize_prior(
@@ -256,14 +256,39 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
             prior=prior,
             likelihood_properties=likelihood_properties,
         )
+        
+        if self.likelihood_properties['use_jit']:
+            self.likelihood_call_jit = self._build_likelihood_jit()
+            self.likelihood_grad_jit = jit(grad(self.likelihood_call_jit))
 
     def verify_covariance(self):
         if self.covariance.full_matrix is False:
             self.covariance.compute_full_matrix()
     
-    def _build_likelihood_jit(parameter_values):
+    def _build_likelihood_jit(self):
+        give_data_and_variance = self.data.give_data_and_variance_jit
+        compute_covariance_sum = self.covariance.compute_covariance_sum_jit
+        likelihood_function = eval(f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}_jit")
+        prior = jit(self.prior)
+    
         
+        def likelihood_value(parameter_values, neg_like=False):
+            parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
+            vector, vector_variance = give_data_and_variance(parameter_values_dict)
+            covariance_sum = compute_covariance_sum(parameter_values_dict, vector_variance)
+            likelihood_value = likelihood_function(vector, covariance_sum) + prior(parameter_values_dict)
+            
+            if neg_like:
+                likelihood_value *= -1
+            return likelihood_value
         
+        if self.likelihood_properties["negative_log_likelihood"]:
+            neg_like = True
+        else:
+            neg_like = False
+            
+        return jit(partial(likelihood_value, neg_like=neg_like))
+    
     def __call__(self, parameter_values):
         parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
 
@@ -271,20 +296,20 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
 
         covariance_sum = self.covariance.compute_covariance_sum(
             parameter_values_dict,
-            vector_variance,
-            use_jit=self.likelihood_properties["use_jit"],
-        )
+            vector_variance
+            )
+        
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
-            + f"{'_jit' if jax_installed and self.likelihood_properties['use_jit'] else ''}"
-        )
+            )
+
         prior_value = self.prior(parameter_values_dict)
 
         likelihood_value = likelihood_function(vector, covariance_sum) + prior_value
 
         if self.likelihood_properties["negative_log_likelihood"]:
             likelihood_value *= -1
-
+ 
         return likelihood_value
 
 

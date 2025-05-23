@@ -42,17 +42,19 @@ def _read_free_par(model_name, model_kind, variant=None):
 
 
 def compute_covariance_sum(
-    covariance_dict,
-    coefficients_dict,
-    coefficients_dict_diagonal,
-    vector_variance,
-    kind="density_velocity"):
-    
+        covariance_dict,
+        coefficients_dict,
+        coefficients_dict_diagonal,
+        vector_variance,
+        kind="full"):
+
     if kind == "density":
         keys = ["gg"]
     elif kind == "velocity":
         keys = ["vv"]
     elif kind == "density_velocity":
+        keys = ["gg", "vv"]
+    elif kind == "full":
         keys = ["gg", "gv", "vv"]
         
     covariance_sum_ = {}
@@ -64,10 +66,15 @@ def compute_covariance_sum(
         )
         covariance_sum_[k] += coefficients_dict_diagonal[k] * jnp.eye(covariance_sum_[k].shape[0])
     
+    if kind == "density_velocity":
+        jnp.zeros((
+            covariance_sum_['gg'].shape[0],  
+            covariance_sum_['vv'].shape[1]
+        ))
+    
     if len(keys) == 1:
         covariance_sum = covariance_sum_[keys[0]]
     else:
-        
         covariance_sum = jnp.block(
             [
                 [covariance_sum_['gg'], covariance_sum_['gv']],
@@ -127,10 +134,12 @@ class CovMatrix:
         
         self.compute_covariance_sum = None
         self.compute_covariance_sum_jit = None
-        
+                    
         if full_matrix:
-            self._build_compute_covariance_sum()
-
+            self.init_compute_covariance_sum()
+        else:
+            log.add("Use self.init_covariance_sum before using self.compute_covariance_sum.")
+        
     @classmethod
     def init_from_flip(
         cls,
@@ -378,9 +387,9 @@ class CovMatrix:
             log.add("The model kind was not found")
             return False
 
-    def build_compute_covariance_sum(self):
+    def init_compute_covariance_sum(self):
         if not self.full_matrix:
-            log.add("Building compute cov requires computing full matrix.")
+            log.add("Initializing compute cov requires computing full matrix.")
             self.compute_full_matrix()
         
         # Init coefficients functions

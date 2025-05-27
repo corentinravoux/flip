@@ -217,9 +217,11 @@ class FitMinuit(BaseFitter):
         ]
 
         if jax_installed & likelihood.likelihood_properties["use_gradient"]:
-            grad = jax_grad(likelihood)
+            log.add('Using jax gradient')
+            grad = likelihood.likelihood_grad
         else:
             grad = None
+            
         minuit_fitter.minuit = iminuit.Minuit(
             likelihood,
             parameter_values,

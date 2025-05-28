@@ -772,7 +772,7 @@ def grid_data_velocity_pypower(
     mesh_var = catalog_mesh_var.to_mesh(field="data", compensate=compensate)
     mesh_count = catalog_mesh_count.to_mesh(field="data")
     N_in_cell=np.ravel(mesh_count.value)
-    variance_grid=np.ravel(mesh_var.value)  /(N_in_cell**2)
+    variance_grid=np.ravel(mesh_var.value)  /(N_in_cell**2) #*N_in_cell/np.abs(N_in_cell)
     if type(velocity)!=type(None):
         mesh_weighted_vel= catalog_mesh_weighted_vel.to_mesh(field="data", compensate=compensate)
         mesh_invvar=catalog_mesh_invvar.to_mesh(field="data", compensate=compensate)

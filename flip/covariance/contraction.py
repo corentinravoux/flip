@@ -124,8 +124,8 @@ class Contraction:
         )
 
         coefficients_dict = coefficients.get_coefficients(
-            self.model_kind,
             parameter_values_dict,
+            self.model_kind,
             variant=self.variant,
             redshift_dict=self.redshift_dict,
         )

@@ -44,6 +44,8 @@ class FisherMatrix:
     ):
         if covariance.full_matrix is False:
             covariance.compute_full_matrix()
+        if covariance.compute_covariance_sum is None or covariance.compute_covariance_sum_jit is None:
+            covariance.init_compute_covariance_sum()    
 
         fisher_properties = {
             **cls._default_fisher_properties,

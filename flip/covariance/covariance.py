@@ -64,7 +64,8 @@ def compute_covariance_sum(
             jnp.stack([coefficients_dict[k][i] * cov for i, cov in enumerate(covariance_dict[k])]),
             axis=0
         )
-        covariance_sum_[k] += coefficients_dict_diagonal[k] * jnp.eye(covariance_sum_[k].shape[0])
+        if k in coefficients_dict_diagonal:
+            covariance_sum_[k] += coefficients_dict_diagonal[k] * jnp.eye(covariance_sum_[k].shape[0])
     
     if kind == "density_velocity":
         jnp.zeros((
@@ -454,20 +455,16 @@ class CovMatrix:
             log.add("Full matrix already computed")
             return
 
-        for key in self.covariance_dict.keys():
-            if key == "gg":
+        for key in ['gg', 'vv', 'gv']:
+            if key not in self.covariance_dict:
+                log.warning(f"{key} != 'gg', 'gv' or 'vv' was ignored")
+                continue
+            elif key == "gg":
                 Ngg = cov_utils.nflat_to_Nfull(self.covariance_dict[key].shape[1]-1)
                 new_shape = (
                     self.covariance_dict[key].shape[0],
                     Ngg,
                     Ngg
-                )
-            elif key == "gv":
-                Ngv = cov_utils.nflat_to_Nfull(self.covariance_dict[key].shape[1])
-                new_shape = (
-                    self.covariance_dict[key].shape[0],
-                    Ngv,
-                    Ngv,
                 )
             elif key == "vv":
                 Nvv = cov_utils.nflat_to_Nfull(self.covariance_dict[key].shape[1]-1)
@@ -476,10 +473,13 @@ class CovMatrix:
                     Nvv,
                     Nvv,
                 )
-            else:
-                log.warning(f"{key} != 'gg', 'gv' or 'vv' was ignored")
-                continue
-
+            elif key == "gv":
+                new_shape = (
+                    self.covariance_dict[key].shape[0],
+                    Ngg,
+                    Nvv,
+                )
+            
             new_cov = np.zeros(new_shape)
             for i, _ in enumerate(self.covariance_dict[key]):
                 if key[0] != key[1]:

@@ -69,6 +69,7 @@ def log_likelihood_gaussian_cholesky(vector, covariance_sum):
     chi2 = jnp.dot(vector, jsc.linalg.cho_solve(cholesky, vector))
     return -0.5 * (vector.size * jnp.log(2 * jnp.pi) + logdet + chi2)
 
+
 def log_likelihood_gaussian_cholesky_inverse(vector, covariance_sum):
     try:
         return log_likelihood_gaussian_cholesky(vector, covariance_sum)

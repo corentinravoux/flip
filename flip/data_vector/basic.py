@@ -77,7 +77,7 @@ class DataVector(abc.ABC):
     def __call__(self, *args):
         return self.give_data_and_variance(*args)
 
-    def mask(self, bool_mask):
+    def get_masked_data_and_cov(self, bool_mask):
         if len(bool_mask) != len(self.data[self.needed_keys[0]]):
             raise ValueError("Boolean mask does not align with data")
         new_data = {k: v[bool_mask] for k, v in self._data.items()}
@@ -85,7 +85,7 @@ class DataVector(abc.ABC):
         new_cov = None
         if self._covariance_observation is not None:
             new_cov = self._covariance_observation[np.ix_(bool_mask, bool_mask)]
-        return type(self)(new_data, covariance_observation=new_cov, **self._kwargs)
+        return new_data, new_cov
 
     def compute_covariance(self, model, power_spectrum_dict, **kwargs):
 
@@ -186,7 +186,7 @@ class DensVel(DataVector):
         data = np.hstack((data_density, data_velocity))
         variance = np.hstack((density_variance, velocity_variance))
         return data, variance
-
+    
     def __init__(self, density_vector, velocity_vector):
         self.densities = density_vector
         self.velocities = velocity_vector

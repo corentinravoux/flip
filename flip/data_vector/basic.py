@@ -176,16 +176,15 @@ class DensVel(DataVector):
     @property
     def free_par(self):
         return self.densities.free_par + self.velocities.free_par
-
+    
+    
     def give_data_and_variance(self, *args):
         data_density, density_variance = self.densities.give_data_and_variance(*args)
-        data_velocity, velocity_variance = self.velocities.give_data_and_variance(
-            *args
-        )
-
-        data = np.hstack((data_density, data_velocity))
-        variance = np.hstack((density_variance, velocity_variance))
+        data_velocity, velocity_variance = self.velocities.give_data_and_variance(*args)
+        data = jnp.hstack((data_density, data_velocity))
+        variance = jnp.hstack((density_variance, velocity_variance))
         return data, variance
+
     
     def __init__(self, density_vector, velocity_vector):
         self.densities = density_vector
@@ -195,6 +194,9 @@ class DensVel(DataVector):
             raise NotImplementedError(
                 "Velocity with observed covariance + density not implemented yet"
             )
+
+        if jax_installed:
+            self.give_data_and_variance_jit = jit(self.give_data_and_variance)
 
     def compute_covariance(self, model, power_spectrum_dict, **kwargs):
 
@@ -303,6 +305,7 @@ class FisherDens(DataVector):
 
     def __init__(self, data, velocity_estimator="full", **kwargs):
         super().__init__(data)
+
 
 
 class FisherDensVel(DataVector):

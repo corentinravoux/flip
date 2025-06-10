@@ -457,9 +457,8 @@ class CovMatrix:
 
         for key in ['gg', 'vv', 'gv']:
             if key not in self.covariance_dict:
-                log.warning(f"{key} != 'gg', 'gv' or 'vv' was ignored")
                 continue
-            elif key == "gg":
+            if key == "gg":
                 Ngg = cov_utils.nflat_to_Nfull(self.covariance_dict[key].shape[1]-1)
                 new_shape = (
                     self.covariance_dict[key].shape[0],

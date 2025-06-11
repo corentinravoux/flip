@@ -43,7 +43,13 @@ log = create_log()
 
 _available_priors = ["gaussian", "positive", "uniform"]
 
-_available_inversion_methods = ["inverse", "solve", "cholesky", "cholesky_regularized", "cholesky_inverse"]
+_available_inversion_methods = [
+    "inverse",
+    "solve",
+    "cholesky",
+    "cholesky_regularized",
+    "cholesky_inverse",
+]
 
 
 def log_likelihood_gaussian_inverse(vector, covariance_sum):
@@ -65,12 +71,13 @@ def log_likelihood_gaussian_cholesky(vector, covariance_sum):
     chi2 = jnp.dot(vector, jsc.linalg.cho_solve(cholesky, vector))
     return -0.5 * (vector.size * jnp.log(2 * np.pi) + logdet + chi2)
 
+
 def log_likelihood_gaussian_cholesky_inverse(vector, covariance_sum):
     try:
         return log_likelihood_gaussian_cholesky(vector, covariance_sum)
     except:
         return log_likelihood_gaussian_inverse(vector, covariance_sum)
-    
+
 
 def log_likelihood_gaussian_cholesky_regularized(vector, covariance_sum):
     eigval, eigvec = jnp.linalg.eig(covariance_sum)
@@ -84,6 +91,9 @@ def log_likelihood_gaussian_cholesky_regularized(vector, covariance_sum):
 if jax_installed:
     log_likelihood_gaussian_inverse_jit = jit(log_likelihood_gaussian_inverse)
     log_likelihood_gaussian_cholesky_jit = jit(log_likelihood_gaussian_cholesky)
+    log_likelihood_gaussian_cholesky_inverse_jit = jit(
+        log_likelihood_gaussian_cholesky_inverse
+    )
 
 
 def no_prior(x):

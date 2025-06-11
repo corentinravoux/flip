@@ -34,7 +34,7 @@ def H(z, H0, Omega_m0):
 
 def f(z, H0, Omega_m0):
     D1_derivative = derivative(D1_function, z, args=(Omega_m0,))
-    return D1_derivative / (D1_function(z, Omega_m0) * H(z, H0, Omega_m0))
+    return D1_derivative.df / (D1_function(z, Omega_m0) * H(z, H0, Omega_m0))
 
 
 def D1_function(z, Omega_m0):

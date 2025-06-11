@@ -141,12 +141,7 @@ class CovMatrix:
         self.compute_covariance_sum = None
         self.compute_covariance_sum_jit = None
 
-        if full_matrix:
-            self.init_compute_covariance_sum()
-        else:
-            log.add(
-                "Use self.init_covariance_sum before using self.compute_covariance_sum."
-            )
+        self.init_compute_covariance_sum()
 
     @classmethod
     def init_from_flip(

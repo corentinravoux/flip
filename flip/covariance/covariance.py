@@ -392,7 +392,6 @@ class CovMatrix:
 
     def init_compute_covariance_sum(self):
         if not self.full_matrix:
-            log.add("Initializing compute cov requires computing full matrix.")
             self.compute_full_matrix()
 
         # Init coefficients functions

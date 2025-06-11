@@ -1,11 +1,11 @@
 import importlib
 import pickle
 import time
+from functools import partial
 
 import numpy as np
 
 from flip.utils import create_log
-from functools import partial
 
 try:
     import jax.numpy as jnp
@@ -42,11 +42,12 @@ def _read_free_par(model_name, model_kind, variant=None):
 
 
 def compute_covariance_sum(
-        covariance_dict,
-        coefficients_dict,
-        coefficients_dict_diagonal,
-        vector_variance,
-        kind="full"):
+    covariance_dict,
+    coefficients_dict,
+    coefficients_dict_diagonal,
+    vector_variance,
+    kind="full",
+):
 
     if kind == "density":
         keys = ["gg"]
@@ -56,37 +57,41 @@ def compute_covariance_sum(
         keys = ["gg", "vv"]
     elif kind == "full":
         keys = ["gg", "gv", "vv"]
-        
+
     covariance_sum_ = {}
-        
+
     for k in keys:
         covariance_sum_[k] = jnp.sum(
-            jnp.stack([coefficients_dict[k][i] * cov for i, cov in enumerate(covariance_dict[k])]),
-            axis=0
+            jnp.stack(
+                [
+                    coefficients_dict[k][i] * cov
+                    for i, cov in enumerate(covariance_dict[k])
+                ]
+            ),
+            axis=0,
         )
         if k in coefficients_dict_diagonal:
-            covariance_sum_[k] += coefficients_dict_diagonal[k] * jnp.eye(covariance_sum_[k].shape[0])
-    
+            covariance_sum_[k] += coefficients_dict_diagonal[k] * jnp.eye(
+                covariance_sum_[k].shape[0]
+            )
+
     if kind == "density_velocity":
-        jnp.zeros((
-            covariance_sum_['gg'].shape[0],  
-            covariance_sum_['vv'].shape[1]
-        ))
-    
+        jnp.zeros((covariance_sum_["gg"].shape[0], covariance_sum_["vv"].shape[1]))
+
     if len(keys) == 1:
         covariance_sum = covariance_sum_[keys[0]]
     else:
         covariance_sum = jnp.block(
             [
-                [covariance_sum_['gg'], covariance_sum_['gv']],
-                [covariance_sum_['gv'].T, covariance_sum_['vv']],
+                [covariance_sum_["gg"], covariance_sum_["gv"]],
+                [covariance_sum_["gv"].T, covariance_sum_["vv"]],
             ]
         )
-    
+
     if len(vector_variance.shape) == 1:
         covariance_sum += jnp.diag(vector_variance)
     else:
-        covariance_sum += vector_variance        
+        covariance_sum += vector_variance
     return covariance_sum
 
 
@@ -128,19 +133,21 @@ class CovMatrix:
         self.full_matrix = full_matrix
         self.redshift_dict = redshift_dict
         self.variant = variant
-        
+
         self.coefficients = importlib.import_module(
             f"flip.covariance.{self.model_name}.coefficients"
         )
-        
+
         self.compute_covariance_sum = None
         self.compute_covariance_sum_jit = None
-                    
+
         if full_matrix:
             self.init_compute_covariance_sum()
         else:
-            log.add("Use self.init_covariance_sum before using self.compute_covariance_sum.")
-        
+            log.add(
+                "Use self.init_covariance_sum before using self.compute_covariance_sum."
+            )
+
     @classmethod
     def init_from_flip(
         cls,
@@ -311,9 +318,9 @@ class CovMatrix:
             class_attrs_dictionary = dict(np.load(f"{filename}.npz", allow_pickle=True))
             for key in class_attrs_dictionary.keys():
                 if class_attrs_dictionary[key].size == 1:
-                    class_attrs_dictionary[key] = class_attrs_dictionary[key].item() 
+                    class_attrs_dictionary[key] = class_attrs_dictionary[key].item()
                 else:
-                    class_attrs_dictionary[key] = list(class_attrs_dictionary[key])                   
+                    class_attrs_dictionary[key] = list(class_attrs_dictionary[key])
         return cls(**class_attrs_dictionary)
 
     @property
@@ -392,42 +399,45 @@ class CovMatrix:
         if not self.full_matrix:
             log.add("Initializing compute cov requires computing full matrix.")
             self.compute_full_matrix()
-        
+
         # Init coefficients functions
         get_coefficients = partial(
-                self.coefficients.get_coefficients, 
-                model_kind=self.model_kind, 
-                variant=self.variant,
-                redshift_dict=self.redshift_dict
-                )
-        
+            self.coefficients.get_coefficients,
+            model_kind=self.model_kind,
+            variant=self.variant,
+            redshift_dict=self.redshift_dict,
+        )
+
         get_diagonal_coefficients = partial(
-                self.coefficients.get_diagonal_coefficients, 
-                model_kind=self.model_kind,
-                )
-        
+            self.coefficients.get_diagonal_coefficients,
+            model_kind=self.model_kind,
+        )
+
         compute_covariance_sum_fun = partial(
-            compute_covariance_sum, 
+            compute_covariance_sum,
             covariance_dict=self.covariance_dict,
-            kind=self.model_kind
-            )
-        
+            kind=self.model_kind,
+        )
+
         def _compute_covariance_sum(parameter_values_dict, vector_variance):
-            coefficients_dict = get_coefficients(parameter_values_dict=parameter_values_dict)
-            coefficients_dict_diagonal = get_diagonal_coefficients(parameter_values_dict=parameter_values_dict)
+            coefficients_dict = get_coefficients(
+                parameter_values_dict=parameter_values_dict
+            )
+            coefficients_dict_diagonal = get_diagonal_coefficients(
+                parameter_values_dict=parameter_values_dict
+            )
             covariance_sum = compute_covariance_sum_fun(
-                coefficients_dict=coefficients_dict, 
+                coefficients_dict=coefficients_dict,
                 coefficients_dict_diagonal=coefficients_dict_diagonal,
-                vector_variance=vector_variance
-                )
+                vector_variance=vector_variance,
+            )
 
             return covariance_sum
-        
+
         self.compute_covariance_sum = _compute_covariance_sum
-        
+
         if jax_installed:
             self.compute_covariance_sum_jit = jit(_compute_covariance_sum)
-    
 
     def compute_covariance_sum_eigenvalues(
         self,
@@ -455,18 +465,14 @@ class CovMatrix:
             log.add("Full matrix already computed")
             return
 
-        for key in ['gg', 'vv', 'gv']:
+        for key in ["gg", "vv", "gv"]:
             if key not in self.covariance_dict:
                 continue
             if key == "gg":
-                Ngg = cov_utils.nflat_to_Nfull(self.covariance_dict[key].shape[1]-1)
-                new_shape = (
-                    self.covariance_dict[key].shape[0],
-                    Ngg,
-                    Ngg
-                )
+                Ngg = cov_utils.nflat_to_Nfull(self.covariance_dict[key].shape[1] - 1)
+                new_shape = (self.covariance_dict[key].shape[0], Ngg, Ngg)
             elif key == "vv":
-                Nvv = cov_utils.nflat_to_Nfull(self.covariance_dict[key].shape[1]-1)
+                Nvv = cov_utils.nflat_to_Nfull(self.covariance_dict[key].shape[1] - 1)
                 new_shape = (
                     self.covariance_dict[key].shape[0],
                     Nvv,
@@ -478,7 +484,7 @@ class CovMatrix:
                     Ngg,
                     Nvv,
                 )
-            
+
             new_cov = np.zeros(new_shape)
             for i, _ in enumerate(self.covariance_dict[key]):
                 if key[0] != key[1]:
@@ -595,7 +601,9 @@ class CovMatrix:
                     ]
                 )
             else:
-                cov_vv_mask = np.outer(mask_vel, mask_vel)[np.triu_indices(self.number_velocities, k=1)]
+                cov_vv_mask = np.outer(mask_vel, mask_vel)[
+                    np.triu_indices(self.number_velocities, k=1)
+                ]
                 cov_vv_mask = np.insert(cov_vv_mask, 0, True)
 
                 masked_cov_dic["vv"] = np.array(
@@ -614,7 +622,9 @@ class CovMatrix:
                     ]
                 )
             else:
-                cov_gg_mask = np.outer(mask_dens, mask_dens)[np.triu_indices(self.number_densities, k=1)]
+                cov_gg_mask = np.outer(mask_dens, mask_dens)[
+                    np.triu_indices(self.number_densities, k=1)
+                ]
                 cov_gg_mask = np.insert(cov_gg_mask, 0, True)
                 masked_cov_dic["gg"] = np.array(
                     [cov[cov_gg_mask] for cov in self.covariance_dict["gg"]]
@@ -622,9 +632,9 @@ class CovMatrix:
 
         if self.number_densities is not None and self.number_velocities is not None:
             if mask_vel is None:
-                mask_vel = np.ones(self.number_velocities, dkind='bool')
+                mask_vel = np.ones(self.number_velocities, dkind="bool")
             elif mask_dens is None:
-                mask_dens = np.ones(self.number_densities, dkind='bool')
+                mask_dens = np.ones(self.number_densities, dkind="bool")
 
             if self.full_matrix:
                 masked_cov_dic["gv"] = np.array(

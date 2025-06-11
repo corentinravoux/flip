@@ -7,13 +7,13 @@ from flip.utils import create_log
 log = create_log()
 from . import (
     covariance,
+    data_vector,
     fisher,
     fitter,
     gridding,
     likelihood,
     power_spectra,
     utils,
-    data_vector,
 )
 
 try:
@@ -25,3 +25,4 @@ except:
 
 __version__ = "1.0.0"
 __flip_dir_path__ = os.path.dirname(__file__)
+__use_jax__ = True

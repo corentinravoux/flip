@@ -4,19 +4,26 @@ import importlib
 
 import numpy as np
 
-import flip.utils as utils
+from flip import __use_jax__
 from flip.covariance import CovMatrix
 from flip.utils import create_log
 
 from . import vector_utils
 
-try:
-    import jax.numpy as jnp
-    from jax import jit
-    from jax.experimental.sparse import BCOO
+if __use_jax__:
+    try:
+        import jax.numpy as jnp
+        from jax import jit
+        from jax.experimental.sparse import BCOO
 
-    jax_installed = True
-except ImportError:
+        jax_installed = True
+
+    except ImportError:
+        import numpy as jnp
+
+        jax_installed = False
+else:
+
     import numpy as jnp
 
     jax_installed = False
@@ -69,10 +76,10 @@ class DataVector(abc.ABC):
 
         for k in self._data:
             self._data[k] = jnp.array(self._data[k])
-        
+
         if jax_installed:
             self.give_data_and_variance_jit = jit(self.give_data_and_variance)
-    
+
     # TODO: deprecate this call
     def __call__(self, *args):
         return self.give_data_and_variance(*args)
@@ -176,8 +183,7 @@ class DensVel(DataVector):
     @property
     def free_par(self):
         return self.densities.free_par + self.velocities.free_par
-    
-    
+
     def give_data_and_variance(self, *args):
         data_density, density_variance = self.densities.give_data_and_variance(*args)
         data_velocity, velocity_variance = self.velocities.give_data_and_variance(*args)
@@ -185,7 +191,6 @@ class DensVel(DataVector):
         variance = jnp.hstack((density_variance, velocity_variance))
         return data, variance
 
-    
     def __init__(self, density_vector, velocity_vector):
         self.densities = density_vector
         self.velocities = velocity_vector
@@ -237,8 +242,12 @@ class VelFromHDres(DirectVel):
         return self._needed_keys + cond_keys
 
     def give_data_and_variance(self, parameter_values_dict):
-        velocity = self._data["velocity"] - self._distance_modulus_difference_to_velocity * parameter_values_dict["M_0"]
-        
+        velocity = (
+            self._data["velocity"]
+            - self._distance_modulus_difference_to_velocity
+            * parameter_values_dict["M_0"]
+        )
+
         if self._covariance_observation is not None:
             J = jnp.diag(self._distance_modulus_difference_to_velocity)
             velocity_variance = J @ self._covariance_observation @ J.T
@@ -263,13 +272,14 @@ class VelFromHDres(DirectVel):
             )
 
         super().__init__(data, covariance_observation=covariance_observation)
-        
+
         if "host_group_id" in self._data:
             self._distance_modulus_difference_to_velocity = (
-            vector_utils.redshift_dependence_velocity(
-                self._data, velocity_estimator, **kwargs
+                vector_utils.redshift_dependence_velocity(
+                    self._data, velocity_estimator, **kwargs
+                )
             )
-            )
+
 
 class FisherVelFromHDres(DataVector):
     _kind = "velocity"
@@ -305,7 +315,6 @@ class FisherDens(DataVector):
 
     def __init__(self, data, velocity_estimator="full", **kwargs):
         super().__init__(data)
-
 
 
 class FisherDensVel(DataVector):

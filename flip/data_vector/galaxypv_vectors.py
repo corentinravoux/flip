@@ -1,14 +1,24 @@
 import numpy as np
 
+from flip import __use_jax__
+
 from . import vector_utils
 from .basic import DataVector
 
-try:
-    import jax.numpy as jnp
-    from jax.experimental.sparse import BCOO
+if __use_jax__:
+    try:
+        import jax.numpy as jnp
+        from jax import jit
+        from jax.experimental.sparse import BCOO
 
-    jax_installed = True
-except ImportError:
+        jax_installed = True
+
+    except ImportError:
+        import numpy as jnp
+
+        jax_installed = False
+else:
+
     import numpy as jnp
 
     jax_installed = False
@@ -185,11 +195,14 @@ class VelFromTullyFisher(DataVector):
         Returns:
             tuple: A tuple containing the velocities and velocity variances.
         """
-        observed_distance_modulus_variance = self.compute_observed_distance_modulus_variance(
-            parameter_values_dict
+        observed_distance_modulus_variance = (
+            self.compute_observed_distance_modulus_variance(parameter_values_dict)
         )
         if self._covariance_observation is None:
-            velocity_variance = observed_distance_modulus_variance * self._distance_modulus_difference_to_velocity**2
+            velocity_variance = (
+                observed_distance_modulus_variance
+                * self._distance_modulus_difference_to_velocity**2
+            )
         else:
             A = self._init_A()
             J = A[0] + parameter_values_dict["a"] * A[1]
@@ -391,11 +404,14 @@ class VelFromFundamentalPlane(DataVector):
         Returns:
             tuple: A tuple containing the velocities and velocity variances.
         """
-        observed_distance_modulus_variance = self.compute_observed_distance_modulus_variance(
-            parameter_values_dict
+        observed_distance_modulus_variance = (
+            self.compute_observed_distance_modulus_variance(parameter_values_dict)
         )
         if self._covariance_observation is None:
-            velocity_variance = observed_distance_modulus_variance * self._distance_modulus_difference_to_velocity**2
+            velocity_variance = (
+                observed_distance_modulus_variance
+                * self._distance_modulus_difference_to_velocity**2
+            )
         else:
             A = self._init_A()
             J = (

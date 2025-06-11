@@ -4,42 +4,29 @@ from functools import partial
 import numpy as np
 import scipy as sc
 
-try:
-    import jax.numpy as jnp
-    import jax.scipy as jsc
-    from jax import grad, jit
+from flip import __use_jax__
+from flip.utils import create_log
 
-    jax_installed = True
+if __use_jax__:
+    try:
+        import jax.numpy as jnp
+        import jax.scipy as jsc
+        from jax import grad, jit
 
-except ImportError:
+        jax_installed = True
+
+    except ImportError:
+        import numpy as jnp
+        import scipy as jsc
+
+        jax_installed = False
+else:
+
     import numpy as jnp
     import scipy as jsc
 
     jax_installed = False
 
-
-from flip.utils import create_log
-
-# try:
-#     import jax, jaxlib
-#     import jax.numpy as jnp
-# except ImportError:
-#     jax = None
-#     import numpy as jnp
-
-
-# def use_jax(array):
-#     """Whether to use jax.numpy depending on whether array is jax's object"""
-#     return jax and isinstance(array, (jaxlib.xla_extension.DeviceArrayBase, jax.core.Tracer))
-
-
-# def np_jax(array):
-#     """Return numpy or jax.numpy depending on whether array is jax's object"""
-#     if use_jax(array):
-#         return jnp
-#     return np
-
-# CR - cool implementation - to test
 
 log = create_log()
 

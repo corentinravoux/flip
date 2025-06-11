@@ -5,18 +5,27 @@ from functools import partial
 
 import numpy as np
 
+from flip import __use_jax__
+from flip.covariance import cov_utils
 from flip.utils import create_log
 
-try:
-    import jax.numpy as jnp
-    from jax import jit
+if __use_jax__:
+    try:
+        import jax.numpy as jnp
+        from jax import jit
 
-    jax_installed = True
-except ImportError:
+        jax_installed = True
+
+    except ImportError:
+        import numpy as jnp
+
+        jax_installed = False
+else:
+
     import numpy as jnp
 
     jax_installed = False
-from flip.covariance import cov_utils
+
 
 log = create_log()
 

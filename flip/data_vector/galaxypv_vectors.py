@@ -1,14 +1,12 @@
 import numpy as np
 
-from flip import __use_jax__
-
+from ..config import __use_jax__
 from . import vector_utils
 from .basic import DataVector
 
 if __use_jax__:
     try:
         import jax.numpy as jnp
-        from jax import jit
         from jax.experimental.sparse import BCOO
 
         jax_installed = True

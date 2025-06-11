@@ -4,10 +4,10 @@ import importlib
 
 import numpy as np
 
-from flip import __use_jax__
 from flip.covariance import CovMatrix
 from flip.utils import create_log
 
+from ..config import __use_jax__
 from . import vector_utils
 
 if __use_jax__:

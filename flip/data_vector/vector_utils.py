@@ -4,7 +4,8 @@ import numpy as np
 from scipy.sparse import coo_array
 
 import flip.utils as utils
-from flip import __use_jax__
+
+from ..config import __use_jax__
 
 if __use_jax__:
     try:

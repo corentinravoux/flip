@@ -5,9 +5,10 @@ from functools import partial
 
 import numpy as np
 
-from flip import __use_jax__
 from flip.covariance import cov_utils
 from flip.utils import create_log
+
+from ..config import __use_jax__
 
 if __use_jax__:
     try:

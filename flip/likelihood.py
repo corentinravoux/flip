@@ -4,8 +4,9 @@ from functools import partial
 import numpy as np
 import scipy as sc
 
-from flip import __use_jax__
 from flip.utils import create_log
+
+from .config import __use_jax__
 
 if __use_jax__:
     try:

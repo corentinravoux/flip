@@ -207,12 +207,14 @@ class FitMinuit(BaseFitter):
             parameter_dict[parameters]["value"] for parameters in parameter_dict
         ]
 
-        if (likelihood.likelihood_grad is not None) & likelihood.likelihood_properties["use_gradient"]:
-            log.add('Using jax gradient')
+        if (likelihood.likelihood_grad is not None) & likelihood.likelihood_properties[
+            "use_gradient"
+        ]:
+            log.add("Using jax gradient")
             grad = likelihood.likelihood_grad
         else:
             grad = None
-            
+
         minuit_fitter.minuit = iminuit.Minuit(
             likelihood,
             parameter_values,

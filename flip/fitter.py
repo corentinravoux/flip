@@ -7,15 +7,6 @@ import emcee
 import iminuit
 import numpy as np
 
-try:
-    from jax import grad as jax_grad
-
-    jax_installed = True
-except ImportError:
-    jax_installed = False
-    pass
-
-
 from flip.utils import create_log
 
 log = create_log()
@@ -216,7 +207,7 @@ class FitMinuit(BaseFitter):
             parameter_dict[parameters]["value"] for parameters in parameter_dict
         ]
 
-        if jax_installed & likelihood.likelihood_properties["use_gradient"]:
+        if (likelihood.likelihood_grad is not None) & likelihood.likelihood_properties["use_gradient"]:
             log.add('Using jax gradient')
             grad = likelihood.likelihood_grad
         else:

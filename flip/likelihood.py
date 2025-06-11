@@ -7,7 +7,7 @@ import scipy as sc
 try:
     import jax.numpy as jnp
     import jax.scipy as jsc
-    from jax import jit, grad, devices
+    from jax import jit, grad
 
     jax_installed = True
     
@@ -282,7 +282,7 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         
         use_jit = self.likelihood_properties['use_jit']
         
-        if use_jit:
+        if jax_installed & use_jit:
             suffix = '_jit'
         else:
             suffix = ''
@@ -291,7 +291,7 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         compute_covariance_sum = eval(f"self.covariance.compute_covariance_sum{suffix}")
         likelihood_function = eval(f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}{suffix}")
         
-        if use_jit:
+        if jax_installed & use_jit:
             prior = jit(self.prior)
         else:
             prior = self.prior
@@ -312,12 +312,13 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
             neg_like = False
         
         likelihood_fun = partial(likelihood_evaluation, neg_like=neg_like)
-        likelihood_grad = grad(likelihood_fun)
-        
-        if use_jit:
-            likelihood_fun = jit(likelihood_fun)
-            likelihood_grad = jit(likelihood_grad)
-            
+        if jax_installed:
+            likelihood_grad = grad(likelihood_fun)
+            if use_jit:
+                likelihood_fun = jit(likelihood_fun)
+                likelihood_grad = jit(likelihood_grad)
+        else:
+            likelihood_grad = None
         return likelihood_fun, likelihood_grad
         
 
@@ -365,7 +366,7 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
     def _init_likelihood(self):
         use_jit = self.likelihood_properties['use_jit']
 
-        if use_jit:
+        if jax_installed & use_jit:
             suffix = '_jit'
         else:
             suffix = ''
@@ -381,7 +382,7 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         likelihood_function = eval(f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}{suffix}")
 
         interpolation_value_range = self.interpolation_value_range
-        if use_jit:
+        if jax_installed & use_jit:
             prior = jit(self.prior)
             interpolation_value_range = jnp.array(interpolation_value_range)
         else:
@@ -430,11 +431,15 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
             neg_like = False
         
         likelihood_fun = partial(likelihood_evaluation, neg_like=neg_like)
-        likelihood_grad = grad(likelihood_fun)
-        
-        if use_jit:
-            likelihood_fun = jit(likelihood_fun)
-            likelihood_grad = jit(likelihood_grad)
+
+        if jax_installed:
+            likelihood_grad = grad(likelihood_fun)
+            if use_jit:
+                likelihood_fun = jit(likelihood_fun)
+                likelihood_grad = jit(likelihood_grad)
+        else:
+            likelihood_grad = None
+
 
         return likelihood_fun, likelihood_grad
 

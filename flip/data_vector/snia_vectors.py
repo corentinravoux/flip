@@ -101,10 +101,15 @@ class VelFromSALTfit(DataVector):
         observed_distance_modulus_variance = (
             self.compute_observed_distance_modulus_variance(parameter_values_dict)
         )
+        distance_modulus_difference_to_velocity = (
+            vector_utils.redshift_dependence_velocity(
+                self._data, self.velocity_estimator, **parameter_values_dict
+            )
+        )
         if self._covariance_observation is None:
             velocity_variance = (
                 observed_distance_modulus_variance
-                * self._distance_modulus_difference_to_velocity**2
+                * distance_modulus_difference_to_velocity**2
             )
         else:
             A = self._init_A()
@@ -113,11 +118,11 @@ class VelFromSALTfit(DataVector):
                 + parameter_values_dict["alpha"] * A[1]
                 - parameter_values_dict["beta"] * A[2]
             )
-            J = jnp.diag(self._distance_modulus_difference_to_velocity) @ J
+            J = jnp.diag(distance_modulus_difference_to_velocity) @ J
             velocity_variance = J @ observed_distance_modulus_variance @ J.T
 
         velocities = (
-            self._distance_modulus_difference_to_velocity
+            distance_modulus_difference_to_velocity
             * self.compute_distance_modulus_difference(parameter_values_dict)
         )
 
@@ -126,14 +131,7 @@ class VelFromSALTfit(DataVector):
                 self._host_matrix, velocities, velocity_variance
             )
 
-        return (velocities, velocity_variance)
-
-    def _init_distance_modulus_difference_to_velocity(
-        self, velocity_estimator, **kwargs
-    ):
-        return vector_utils.redshift_dependence_velocity(
-            self._data, velocity_estimator, **kwargs
-        )
+        return velocities, velocity_variance
 
     def _init_A(self):
         N = len(self._data)
@@ -150,14 +148,9 @@ class VelFromSALTfit(DataVector):
         covariance_observation=None,
         velocity_estimator="full",
         mass_step=10,
-        **kwargs
     ):
         super().__init__(data, covariance_observation=covariance_observation)
-        self._distance_modulus_difference_to_velocity = (
-            self._init_distance_modulus_difference_to_velocity(
-                velocity_estimator, h=h, **kwargs
-            )
-        )
+        self.velocity_estimator = velocity_estimator
         self.h = h
         self._A = None
         self._host_matrix = None

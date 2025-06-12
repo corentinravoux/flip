@@ -280,12 +280,19 @@ def plot_all_mean_fits(
         fig2, ax2 = plt.subplots(len(parameters), 1, figsize=figsize, sharex=True)
 
     text = []
-    mean_param_dict, mean_error_dict, error_mean_dict, std_dict = {}, {}, {}, {}
+    mean_param_dict, mean_error_dict, error_mean_dict, std_dict, count_dict = (
+        {},
+        {},
+        {},
+        {},
+        {},
+    )
     for j, param_name in enumerate(parameters):
         mean_param_dict[param_name] = []
         mean_error_dict[param_name] = []
         error_mean_dict[param_name] = []
         std_dict[param_name] = []
+        count_dict[param_name] = []
 
     for i, fit_p in enumerate(unique_fit_prop):
 
@@ -320,11 +327,13 @@ def plot_all_mean_fits(
             error_mean_param = np.mean(errors) / np.sqrt(len(mask[mask]))
             mean_error_param = np.mean(errors)
             std_param = np.std(params)
+            count = len(params)
 
             mean_param_dict[param_name].append(mean_param)
             mean_error_dict[param_name].append(mean_error_param)
             error_mean_dict[param_name].append(error_mean_param)
             std_dict[param_name].append(std_param)
+            count_dict[param_name].append(count)
             if plot:
                 if plot_std_error:
                     if plot_error_bar_of_mean:
@@ -367,6 +376,7 @@ def plot_all_mean_fits(
         mean_error_dict,
         error_mean_dict,
         std_dict,
+        count_dict,
     )
 
 

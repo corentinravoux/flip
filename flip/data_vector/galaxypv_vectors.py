@@ -40,7 +40,7 @@ class VelFromLogDist(DataVector):
             cond_keys += ["eta_error"]
         return self._needed_keys + cond_keys
 
-    def give_data_and_variance(self, *args):
+    def give_data_and_variance(self, parameter_values_dict, *args):
         """
         Returns the data and variance for the velocity.
 
@@ -54,14 +54,26 @@ class VelFromLogDist(DataVector):
             tuple: A tuple containing the velocity data and the variance.
 
         """
+        log_distance_to_velocity = 5 * (
+            vector_utils.redshift_dependence_velocity(
+                self._data, self.velocity_estimator, **parameter_values_dict
+            )
+        )
+
+        velocity = log_distance_to_velocity * self._data["eta"]
+
         if self._covariance_observation is not None:
-            J = jnp.diag(self._log_distance_to_velocity)
+            J = jnp.diag(log_distance_to_velocity)
             velocity_variance = J @ self._covariance_observation @ J.T
-            return self._data["velocity"], velocity_variance
-        return self._data["velocity"], self._data["velocity_error"] ** 2
+            return velocity, velocity_variance
+
+        return velocity, (log_distance_to_velocity * self._data["eta_error"]) ** 2
 
     def __init__(
-        self, data, covariance_observation=None, velocity_estimator="full", **kwargs
+        self,
+        data,
+        covariance_observation=None,
+        velocity_estimator="full",
     ):
         """
         Initialize the GalaxypvVectors class.
@@ -73,16 +85,7 @@ class VelFromLogDist(DataVector):
         - **kwargs: Additional keyword arguments.
 
         """
-        self._log_distance_to_velocity = 5 * (
-            vector_utils.redshift_dependence_velocity(
-                data, velocity_estimator, **kwargs
-            )
-        )
-        data["velocity"] = self._log_distance_to_velocity * data["eta"]
-
-        if covariance_observation is None:
-            data["velocity_error"] = self._log_distance_to_velocity * data["eta_error"]
-
+        self.velocity_estimator = velocity_estimator
         super().__init__(
             data,
             covariance_observation=covariance_observation,
@@ -193,22 +196,28 @@ class VelFromTullyFisher(DataVector):
         Returns:
             tuple: A tuple containing the velocities and velocity variances.
         """
+
+        distance_modulus_difference_to_velocity = (
+            vector_utils.redshift_dependence_velocity(
+                self._data, self.velocity_estimator, **parameter_values_dict
+            )
+        )
         observed_distance_modulus_variance = (
             self.compute_observed_distance_modulus_variance(parameter_values_dict)
         )
         if self._covariance_observation is None:
             velocity_variance = (
                 observed_distance_modulus_variance
-                * self._distance_modulus_difference_to_velocity**2
+                * distance_modulus_difference_to_velocity**2
             )
         else:
             A = self._init_A()
             J = A[0] + parameter_values_dict["a"] * A[1]
-            J = jnp.diag(self._distance_modulus_difference_to_velocity) @ J
+            J = jnp.diag(distance_modulus_difference_to_velocity) @ J
             velocity_variance = J @ observed_distance_modulus_variance @ J.T
 
         velocities = (
-            self._distance_modulus_difference_to_velocity
+            distance_modulus_difference_to_velocity
             * self.compute_distance_modulus_difference(parameter_values_dict)
         )
 
@@ -218,23 +227,6 @@ class VelFromTullyFisher(DataVector):
             )
 
         return velocities, velocity_variance
-
-    def _init_distance_modulus_difference_to_velocity(
-        self, velocity_estimator, **kwargs
-    ):
-        """
-        Initializes the distance modulus difference to velocity calculation.
-
-        Args:
-            velocity_estimator: The velocity estimator to use.
-            **kwargs: Additional keyword arguments.
-
-        Returns:
-            The result of the redshift dependence velocity calculation.
-        """
-        return vector_utils.redshift_dependence_velocity(
-            self._data, velocity_estimator, **kwargs
-        )
 
     def _init_A(self):
         """
@@ -256,7 +248,6 @@ class VelFromTullyFisher(DataVector):
         h,
         covariance_observation=None,
         velocity_estimator="full",
-        **kwargs,
     ):
         """
         Initialize the GalaxypvVectors class.
@@ -272,11 +263,7 @@ class VelFromTullyFisher(DataVector):
             ValueError: If the shape of the covariance_observation is not (2 * len(data), 2 * len(data)).
         """
         super().__init__(data, covariance_observation=covariance_observation)
-        self._distance_modulus_difference_to_velocity = (
-            self._init_distance_modulus_difference_to_velocity(
-                velocity_estimator, h=h, **kwargs
-            )
-        )
+        self.velocity_estimator = velocity_estimator
         self.h = h
         self._A = None
         self._host_matrix = None
@@ -402,13 +389,19 @@ class VelFromFundamentalPlane(DataVector):
         Returns:
             tuple: A tuple containing the velocities and velocity variances.
         """
+
+        distance_modulus_difference_to_velocity = (
+            vector_utils.redshift_dependence_velocity(
+                self._data, self.velocity_estimator, **parameter_values_dict
+            )
+        )
         observed_distance_modulus_variance = (
             self.compute_observed_distance_modulus_variance(parameter_values_dict)
         )
         if self._covariance_observation is None:
             velocity_variance = (
                 observed_distance_modulus_variance
-                * self._distance_modulus_difference_to_velocity**2
+                * distance_modulus_difference_to_velocity**2
             )
         else:
             A = self._init_A()
@@ -417,11 +410,11 @@ class VelFromFundamentalPlane(DataVector):
                 + parameter_values_dict["a"] * A[1]
                 + parameter_values_dict["b"] * A[2]
             )
-            J = jnp.diag(self._distance_modulus_difference_to_velocity) @ J
+            J = jnp.diag(distance_modulus_difference_to_velocity) @ J
             velocity_variance = J @ observed_distance_modulus_variance @ J.T
 
         velocities = (
-            self._distance_modulus_difference_to_velocity
+            distance_modulus_difference_to_velocity
             * self.compute_distance_modulus_difference(parameter_values_dict)
         )
 
@@ -431,23 +424,6 @@ class VelFromFundamentalPlane(DataVector):
             )
 
         return velocities, velocity_variance
-
-    def _init_distance_modulus_difference_to_velocity(
-        self, velocity_estimator, **kwargs
-    ):
-        """
-        Initializes the distance modulus difference to velocity calculation.
-
-        Args:
-            velocity_estimator: The velocity estimator to use.
-            **kwargs: Additional keyword arguments.
-
-        Returns:
-            The result of the redshift dependence velocity calculation.
-        """
-        return vector_utils.redshift_dependence_velocity(
-            self._data, velocity_estimator, **kwargs
-        )
 
     def _init_A(self):
         """
@@ -469,7 +445,6 @@ class VelFromFundamentalPlane(DataVector):
         h,
         covariance_observation=None,
         velocity_estimator="full",
-        **kwargs,
     ):
         """
         Initialize the GalaxypvVectors class.
@@ -485,11 +460,7 @@ class VelFromFundamentalPlane(DataVector):
             ValueError: If the shape of the covariance_observation is not (2 * len(data), 2 * len(data)).
         """
         super().__init__(data, covariance_observation=covariance_observation)
-        self._distance_modulus_difference_to_velocity = (
-            self._init_distance_modulus_difference_to_velocity(
-                velocity_estimator, h=h, **kwargs
-            )
-        )
+        self.velocity_estimator = velocity_estimator
         self.h = h
         self._A = None
         self._host_matrix = None

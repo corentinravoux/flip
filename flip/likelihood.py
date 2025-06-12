@@ -82,6 +82,9 @@ def log_likelihood_gaussian_cholesky_regularized(vector, covariance_sum):
 if jax_installed:
     log_likelihood_gaussian_inverse_jit = jit(log_likelihood_gaussian_inverse)
     log_likelihood_gaussian_cholesky_jit = jit(log_likelihood_gaussian_cholesky)
+    log_likelihood_gaussian_cholesky_inverse_jit = jit(
+        log_likelihood_gaussian_cholesky_inverse
+    )
     log_likelihood_gaussian_solve_jit = jit(log_likelihood_gaussian_solve)
 
 
@@ -91,41 +94,6 @@ def no_prior(x):
 
 def prior_sum(priors, x):
     return sum(prior(x) for prior in priors)
-
-
-# TODO: NOT USED ANYMORE, TO REMOVE?
-def interpolate_covariance_sum_1d(
-    interpolation_value_range,
-    interpolation_value,
-    covariance,
-    parameter_values_dict,
-    vector_variance,
-):
-
-    upper_index_interpolation = jnp.searchsorted(
-        interpolation_value_range, interpolation_value
-    )
-    covariance_sum_upper = covariance[upper_index_interpolation].compute_covariance_sum(
-        parameter_values_dict, vector_variance
-    )
-
-    covariance_sum_lower = covariance[
-        upper_index_interpolation - 1
-    ].compute_covariance_sum(parameter_values_dict, vector_variance)
-
-    fraction_interpolation = (
-        interpolation_value_range[upper_index_interpolation] - interpolation_value
-    ) / (
-        interpolation_value_range[upper_index_interpolation]
-        - interpolation_value_range[upper_index_interpolation - 1]
-    )
-    covariance_sum = (
-        1 - fraction_interpolation
-    ) * covariance_sum_upper + fraction_interpolation * covariance_sum_lower
-    return covariance_sum
-
-
-# TODO: END OF REMOVE
 
 
 class BaseLikelihood(abc.ABC):

@@ -82,7 +82,7 @@ def compute_coef(k, pk, coord):
 
 
 def generate_covariance(
-    model_type,
+    model_kind,
     power_spectrum_dict,
     coordinates_density=False,
     coordinates_velocity=None,
@@ -92,7 +92,7 @@ def generate_covariance(
     The generate_covariance function generates a covariance matrix for the velocity field.
 
     Args:
-        model_type: Specify the type of model to generate
+        model_kind: Specify the type of model to generate
         power_spectrum_dict: Pass the power spectrum to the function
         coordinates_density: Specify the coordinates of the density field
         coordinates_velocity: Generate the covariance matrix
@@ -103,9 +103,9 @@ def generate_covariance(
         A dictionary with a single key &quot;vv&quot;
 
     """
-    assert model_type == "velocity"
+    assert model_kind == "velocity"
     cov_utils.check_generator_need(
-        model_type,
+        model_kind,
         coordinates_density,
         coordinates_velocity,
     )

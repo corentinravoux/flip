@@ -4,13 +4,13 @@ from flip.covariance.lai22.flip_terms import dictionary_terms
 
 
 def get_coefficients(
-    model_type,
     parameter_values_dict,
+    model_kind,
     variant=None,
     redshift_dict=None,
 ):
     coefficients_dict = {}
-    if model_type in ["density", "full", "density_velocity"]:
+    if model_kind in ["density", "full", "density_velocity"]:
         coefficients_dict["gg"] = []
         gg_terms = dictionary_terms["gg"]
         sigg = parameter_values_dict["sigg"]
@@ -44,7 +44,7 @@ def get_coefficients(
                         * parameter_values_dict["beta_f"] ** 2
                         * sigg ** (2 * m_index)
                     )
-    if model_type in ["full"]:
+    if model_kind in ["full"]:
         coefficients_dict["gv"] = []
         gv_terms = dictionary_terms["gv"]
         sigg = parameter_values_dict["sigg"]
@@ -69,15 +69,15 @@ def get_coefficients(
                         * sigg ** (2 * m_index)
                     )
 
-    if model_type in ["velocity", "full", "density_velocity"]:
+    if model_kind in ["velocity", "full", "density_velocity"]:
         coefficients_dict["vv"] = [parameter_values_dict["fs8"] ** 2]
     return coefficients_dict
 
 
-def get_diagonal_coefficients(model_type, parameter_values_dict):
+def get_diagonal_coefficients(parameter_values_dict, model_kind):
     coefficients_dict = {}
-    if model_type in ["density", "full", "density_velocity"]:
+    if model_kind in ["density", "full", "density_velocity"]:
         coefficients_dict["gg"] = 0.0
-    if model_type in ["velocity", "full", "density_velocity"]:
+    if model_kind in ["velocity", "full", "density_velocity"]:
         coefficients_dict["vv"] = parameter_values_dict["sigv"] ** 2
     return coefficients_dict

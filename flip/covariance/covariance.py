@@ -1,28 +1,39 @@
 import importlib
 import pickle
 import time
+from functools import partial
 
 import numpy as np
 
+from flip.covariance import cov_utils
 from flip.utils import create_log
 
-try:
-    import jax.numpy as jnp
-    from jax import jit
+from ..config import __use_jax__
 
-    jax_installed = True
-except ImportError:
+if __use_jax__:
+    try:
+        import jax.numpy as jnp
+        from jax import jit
+
+        jax_installed = True
+
+    except ImportError:
+        import numpy as jnp
+
+        jax_installed = False
+else:
+
     import numpy as jnp
 
     jax_installed = False
-from flip.covariance import cov_utils
+
 
 log = create_log()
 
 
-def _read_free_par(model_name, model_type, variant=None):
+def _read_free_par(model_name, model_kind, variant=None):
     _free_par = importlib.import_module(f"flip.covariance.{model_name}")._free_par
-    model_type = model_type.split("_")
+    model_kind = model_kind.split("_")
 
     if variant is None:
         variant = "baseline"
@@ -33,232 +44,76 @@ def _read_free_par(model_name, model_type, variant=None):
         for v in val:
             fp_def = v.split("@")
             fp_model, fp_variant = fp_def[0], fp_def[1:]
-            if "full" in model_type or fp_model == "all" or fp_model in model_type:
+            if "full" in model_kind or fp_model == "all" or fp_model in model_kind:
                 if "all" in fp_variant or variant in fp_variant:
                     free_par.append(k)
                     continue
     return list(set(free_par))
 
 
-def compute_covariance_sum_density(
-    coefficients_dict,
+def compute_covariance_sum(
     covariance_dict,
+    coefficients_dict,
     coefficients_dict_diagonal,
     vector_variance,
-    number_densities,
-    number_velocities,
+    kind="full",
 ):
-    covariance_sum = jnp.sum(
-        jnp.array(
+
+    if kind == "density":
+        keys = ["gg"]
+    elif kind == "velocity":
+        keys = ["vv"]
+    elif kind == "density_velocity":
+        keys = ["gg", "vv"]
+    elif kind == "full":
+        keys = ["gg", "gv", "vv"]
+
+    covariance_sum_ = {}
+
+    for k in keys:
+        covariance_sum_[k] = jnp.sum(
+            jnp.stack(
+                [
+                    coefficients_dict[k][i] * cov
+                    for i, cov in enumerate(covariance_dict[k])
+                ]
+            ),
+            axis=0,
+        )
+        if k in coefficients_dict_diagonal:
+            covariance_sum_[k] += coefficients_dict_diagonal[k] * jnp.eye(
+                covariance_sum_[k].shape[0]
+            )
+
+    if kind == "density_velocity":
+        jnp.zeros((covariance_sum_["gg"].shape[0], covariance_sum_["vv"].shape[1]))
+
+    if len(keys) == 1:
+        covariance_sum = covariance_sum_[keys[0]]
+    else:
+        covariance_sum = jnp.block(
             [
-                coefficients_dict["gg"][i] * cov
-                for i, cov in enumerate(covariance_dict["gg"])
+                [covariance_sum_["gg"], covariance_sum_["gv"]],
+                [covariance_sum_["gv"].T, covariance_sum_["vv"]],
             ]
-        ),
-        axis=0,
-    )
+        )
 
     if len(vector_variance.shape) == 1:
-        covariance_sum += jnp.diag(coefficients_dict_diagonal["gg"] + vector_variance)
+        covariance_sum += jnp.diag(vector_variance)
     else:
-        covariance_sum += coefficients_dict_diagonal["gg"] * jnp.eye(vector_variance.shape[0]) + vector_variance
-
+        covariance_sum += vector_variance
     return covariance_sum
-
-
-def compute_covariance_sum_velocity(
-    coefficients_dict,
-    covariance_dict,
-    coefficients_dict_diagonal,
-    vector_variance,
-    number_densities,
-    number_velocities,
-):
-
-    
-    covariance_sum = jnp.sum(
-        jnp.array(
-            [
-                coefficients_dict["vv"][i] * cov
-                for i, cov in enumerate(covariance_dict["vv"])
-            ]
-        ),
-        axis=0,
-    )
-
-    if vector_variance.ndim == 1:
-        covariance_sum += jnp.diag(coefficients_dict_diagonal["vv"] + vector_variance)
-    else:
-        covariance_sum += coefficients_dict_diagonal["vv"] * jnp.eye(vector_variance.shape[0]) + vector_variance
-
-    return covariance_sum
-
-
-def compute_covariance_sum_density_velocity(
-    coefficients_dict,
-    covariance_dict,
-    coefficients_dict_diagonal,
-    vector_variance,
-    number_densities,
-    number_velocities,
-):
-
-    if vector_variance.ndim == 1:
-        density_variance = vector_variance[:number_densities]
-        velocity_variance = vector_variance[
-            number_densities : number_densities + number_velocities
-        ]
-    else:
-        density_variance = vector_variance[:number_densities, : number_densities]
-        velocity_variance = vector_variance[
-            number_densities : number_densities + number_velocities,
-            number_densities : number_densities + number_velocities
-        ]
-
-    covariance_sum_gv = jnp.zeros((number_densities, number_velocities))
-
-    covariance_sum_gg = jnp.sum(
-        jnp.array(
-            [
-                coefficients_dict["gg"][i] * cov
-                for i, cov in enumerate(covariance_dict["gg"])
-            ]
-        ),
-        axis=0,
-    )
-
-    covariance_sum_vv = jnp.sum(
-        jnp.array(
-            [
-                coefficients_dict["vv"][i] * cov
-                for i, cov in enumerate(covariance_dict["vv"])
-            ]
-        ),
-        axis=0,
-    )
-
-    if len(density_variance.shape) == 1:
-        covariance_sum_gg += jnp.diag(
-            coefficients_dict_diagonal["gg"] + density_variance
-        )
-    else:
-        covariance_sum_gg += (
-             coefficients_dict_diagonal["gg"] * jnp.eye(vector_variance.shape[0]) + density_variance
-        )
-
-    if len(velocity_variance.shape) == 1:
-        covariance_sum_vv += jnp.diag(
-            coefficients_dict_diagonal["vv"] + velocity_variance
-        )
-    else:
-        covariance_sum_vv += (
-            coefficients_dict_diagonal["vv"] * jnp.eye(vector_variance.shape[0]) + velocity_variance
-
-        )
-
-    covariance_sum = jnp.block(
-        [
-            [covariance_sum_gg, covariance_sum_gv],
-            [covariance_sum_gv.T, covariance_sum_vv],
-        ]
-    )
-
-    return covariance_sum
-
-
-def compute_covariance_sum_full(
-    coefficients_dict,
-    covariance_dict,
-    coefficients_dict_diagonal,
-    vector_variance,
-    number_densities,
-    number_velocities,
-):
-
-    density_variance = vector_variance[:number_densities]
-    velocity_variance = vector_variance[
-        number_densities : number_densities + number_velocities
-    ]
-
-    covariance_sum_gv = jnp.sum(
-        jnp.array(
-            [
-                coefficients_dict["gv"][i] * cov
-                for i, cov in enumerate(covariance_dict["gv"])
-            ]
-        ),
-        axis=0,
-    )
-
-    covariance_sum_gg = jnp.sum(
-        jnp.array(
-            [
-                coefficients_dict["gg"][i] * cov
-                for i, cov in enumerate(covariance_dict["gg"])
-            ]
-        ),
-        axis=0,
-    )
-    covariance_sum_gg += jnp.diag(coefficients_dict_diagonal["gg"] + density_variance)
-
-    covariance_sum_vv = jnp.sum(
-        jnp.array(
-            [
-                coefficients_dict["vv"][i] * cov
-                for i, cov in enumerate(covariance_dict["vv"])
-            ]
-        ),
-        axis=0,
-    )
-
-    if len(density_variance.shape) == 1:
-        covariance_sum_gg += jnp.diag(
-            coefficients_dict_diagonal["gg"] + density_variance
-        )
-    else:
-        covariance_sum_gg += (
-            jnp.diag(coefficients_dict_diagonal["gg"]) + density_variance
-        )
-
-    if len(velocity_variance.shape) == 1:
-        covariance_sum_vv += jnp.diag(
-            coefficients_dict_diagonal["vv"] + velocity_variance
-        )
-    else:
-        covariance_sum_vv += (
-            jnp.diag(coefficients_dict_diagonal["vv"]) + velocity_variance
-        )
-
-    covariance_sum = jnp.block(
-        [
-            [covariance_sum_gg, covariance_sum_gv],
-            [covariance_sum_gv.T, covariance_sum_vv],
-        ]
-    )
-    return covariance_sum
-
-
-if jax_installed:
-
-    compute_covariance_sum_density_jit = jit(compute_covariance_sum_density)
-    compute_covariance_sum_velocity_jit = jit(compute_covariance_sum_velocity)
-    compute_covariance_sum_density_velocity_jit = jit(
-        compute_covariance_sum_density_velocity
-    )
-    compute_covariance_sum_full_jit = jit(compute_covariance_sum_full)
 
 
 class CovMatrix:
     def __init__(
         self,
         model_name=None,
-        model_type=None,
+        model_kind=None,
         free_par=None,
         los_definition=None,
         covariance_dict=None,
         full_matrix=False,
-        number_densities=None,
-        number_velocities=None,
         redshift_dict=None,
         variant=None,
     ):
@@ -270,12 +125,10 @@ class CovMatrix:
         Args:
             self: Represent the instance of the class
             model_name: Identify the model
-            model_type: Define the type of model that is being used
+            model_kind: Define the kind of model that is being used
             los_definition: Define the angle between two vectors
             covariance_dict: Store the covariance matrix
             full_matrix: Determine whether the covariance matrix is stored as a full matrix or in sparse form
-            number_densities: Set the number of density variables in the model
-            number_velocities: Set the number of velocities in the model
             variant: Name of the variation of the analysis
 
         Returns:
@@ -283,21 +136,28 @@ class CovMatrix:
         """
 
         self.model_name = model_name
-        self.model_type = model_type
+        self.model_kind = model_kind
         self.free_par = free_par
         self.los_definition = los_definition
         self.covariance_dict = covariance_dict
         self.full_matrix = full_matrix
-        self.number_densities = number_densities
-        self.number_velocities = number_velocities
         self.redshift_dict = redshift_dict
         self.variant = variant
+
+        self.coefficients = importlib.import_module(
+            f"flip.covariance.{self.model_name}.coefficients"
+        )
+
+        self.compute_covariance_sum = None
+        self.compute_covariance_sum_jit = None
+
+        self.init_compute_covariance_sum()
 
     @classmethod
     def init_from_flip(
         cls,
         model_name,
-        model_type,
+        model_kind,
         power_spectrum_dict,
         coordinates_density=None,
         coordinates_velocity=None,
@@ -310,14 +170,14 @@ class CovMatrix:
         The init_from_flip function is a function that initializes the covariance matrix from the flip code.
         It takes as input:
             - model_name: name of the model used to generate the covariance matrix (e.g., 'lai22')
-            - model_type: type of data used to generate the covariance matrix (e.g., 'density' or 'velocity')
+            - model_kind: kind of data used to generate the covariance matrix (e.g., 'density' or 'velocity')
             - power_spectrum_dict: dictionary containing all information about power spectrum, including k and P(k) values, redshift, etc...
                 It is generated by calling getPowerSpectrumDict() in
 
         Args:
             cls: Indicate that the function is a class method
             model_name: Determine which model to use for the covariance matrix
-            model_type: Determine the type of model to be used
+            model_kind: Determine the kind of model to be used
             power_spectrum_dict: Pass the power spectrum of the model
             coordinates_density: Specify the coordinates of the density field
             coordinates_velocity: Define the velocity coordinates of the covariance matrix
@@ -339,7 +199,7 @@ class CovMatrix:
                 f"Variant is not in available variants: {_available_variants}"
             )
 
-        free_par = _read_free_par(model_name, model_type, variant=variant)
+        free_par = _read_free_par(model_name, model_kind, variant=variant)
 
         (
             covariance_dict,
@@ -348,7 +208,7 @@ class CovMatrix:
             redshift_dict,
         ) = generator_flip.generate_covariance(
             model_name,
-            model_type,
+            model_kind,
             power_spectrum_dict,
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
@@ -362,13 +222,11 @@ class CovMatrix:
         )
         return cls(
             model_name=model_name,
-            model_type=model_type,
+            model_kind=model_kind,
             free_par=free_par,
             los_definition=los_definition,
             covariance_dict=covariance_dict,
             full_matrix=False,
-            number_densities=number_densities,
-            number_velocities=number_velocities,
             redshift_dict=redshift_dict,
             variant=variant,
         )
@@ -377,7 +235,7 @@ class CovMatrix:
     def init_from_generator(
         cls,
         model_name,
-        model_type,
+        model_kind,
         power_spectrum_dict,
         coordinates_velocity=None,
         coordinates_density=None,
@@ -390,14 +248,14 @@ class CovMatrix:
         a Covariance object from a generator. The init_from_generator function takes in as arguments:
             - cls: the class of the object being initialized (Covariance)
             - model_name: name of covariance model used to generate covariance matrix (e.g., 'lai22')
-            - model_type: type of covariance matrix generated ('density' or 'velocity')
+            - model_kind: kind of covariance matrix generated ('density' or 'velocity')
             - power spectrum dictionary containing keys for each redshift bin and values corresponding to
                 power spectra at those red
 
         Args:
             cls: Refer to the class itself
-            model_name: Specify the type of model used to generate the covariance matrix
-            model_type: Determine which model to use
+            model_name: Specify the kind of model used to generate the covariance matrix
+            model_kind: Determine which model to use
             power_spectrum_dict: Pass the power spectrum to the generate_* functions
             coordinates_velocity: Generate the velocity covariance matrix
             coordinates_density: Generate the density field
@@ -420,7 +278,7 @@ class CovMatrix:
                 f"Variant is not in available variants: {_available_variants}"
             )
 
-        free_par = _read_free_par(model_name, model_type, variant=variant)
+        free_par = _read_free_par(model_name, model_kind, variant=variant)
 
         (
             covariance_dict,
@@ -429,7 +287,7 @@ class CovMatrix:
             los_definition,
             redshift_dict,
         ) = generator.generate_covariance(
-            model_type,
+            model_kind,
             power_spectrum_dict,
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
@@ -441,13 +299,11 @@ class CovMatrix:
         )
         return cls(
             model_name=model_name,
-            model_type=model_type,
+            model_kind=model_kind,
             free_par=free_par,
             los_definition=los_definition,
             covariance_dict=covariance_dict,
             full_matrix=False,
-            number_densities=number_densities,
-            number_velocities=number_velocities,
             redshift_dict=redshift_dict,
             variant=variant,
         )
@@ -467,15 +323,15 @@ class CovMatrix:
             class_attrs_dictionary = dict(np.load(f"{filename}.npz", allow_pickle=True))
             for key in class_attrs_dictionary.keys():
                 if class_attrs_dictionary[key].size == 1:
-                    class_attrs_dictionary[key] = class_attrs_dictionary[key].item() 
+                    class_attrs_dictionary[key] = class_attrs_dictionary[key].item()
                 else:
-                    class_attrs_dictionary[key] = list(class_attrs_dictionary[key])                   
+                    class_attrs_dictionary[key] = list(class_attrs_dictionary[key])
         return cls(**class_attrs_dictionary)
 
     @property
-    def type(self):
+    def kind(self):
         """
-        The type function is used to determine the type of covariance model that will be computed.
+        The kind function is used to determine the kind of covariance model that will be computed.
         The options are:
             - velocity: The covariance model is computed for velocity only.
             - density: The covariance model is computed for density only.
@@ -485,22 +341,22 @@ class CovMatrix:
             self: Represent the instance of the class
 
         Returns:
-            The type of the model
+            The kind of the model
 
         """
-        if self.model_type == "velocity":
+        if self.model_kind == "velocity":
             log.add("The covariance model is computed for velocity")
-        elif self.model_type == "density":
+        elif self.model_kind == "density":
             log.add("The covariance model is computed for density")
-        elif self.model_type == "density_velocity":
+        elif self.model_kind == "density_velocity":
             log.add(
                 "The covariance model is computed for velocity and density, without cross-term"
             )
-        elif self.model_type == "full":
+        elif self.model_kind == "full":
             log.add(
                 "The covariance model is computed for velocity and density, with cross-term"
             )
-        return self.model_type
+        return self.model_kind
 
     @property
     def loaded(self):
@@ -514,24 +370,24 @@ class CovMatrix:
             A boolean
 
         """
-        if self.model_type == "density":
+        if self.model_kind == "density":
             if "gg" in self.covariance_dict.keys():
                 return True
             else:
                 return False
-        elif self.model_type == "velocity":
+        elif self.model_kind == "velocity":
             if "vv" in self.covariance_dict.keys():
                 return True
             else:
                 return False
-        elif self.model_type == "density_velocity":
+        elif self.model_kind == "density_velocity":
             if ("vv" in self.covariance_dict.keys()) & (
                 "gg" in self.covariance_dict.keys()
             ):
                 return True
             else:
                 return False
-        elif self.model_type == "full":
+        elif self.model_kind == "full":
             if (
                 ("vv" in self.covariance_dict.keys())
                 & ("gg" in self.covariance_dict.keys())
@@ -541,59 +397,51 @@ class CovMatrix:
             else:
                 return False
         else:
-            log.add("The model type was not found")
+            log.add("The model kind was not found")
             return False
 
-    def compute_covariance_sum(
-        self,
-        parameter_values_dict,
-        vector_variance,
-        use_jit=False,
-    ):
-        """
-        The compute_covariance_sum function computes the sum of all covariance matrices
-            and adds the diagonal terms.
-
-        Args:
-            self: Access the attributes of the class
-            parameter_values_dict: Pass the values of the parameters
-            : Compute the covariance matrix
-
-        Returns:
-            The sum of the covariance matrices with their respective coefficients
-
-        """
+    def init_compute_covariance_sum(self):
         if not self.full_matrix:
             self.compute_full_matrix()
 
-        coefficients = importlib.import_module(
-            f"flip.covariance.{self.model_name}.coefficients"
-        )
-
-        coefficients_dict = coefficients.get_coefficients(
-            self.model_type,
-            parameter_values_dict,
+        # Init coefficients functions
+        get_coefficients = partial(
+            self.coefficients.get_coefficients,
+            model_kind=self.model_kind,
             variant=self.variant,
             redshift_dict=self.redshift_dict,
         )
-        coefficients_dict_diagonal = coefficients.get_diagonal_coefficients(
-            self.model_type,
-            parameter_values_dict,
+
+        get_diagonal_coefficients = partial(
+            self.coefficients.get_diagonal_coefficients,
+            model_kind=self.model_kind,
         )
 
-        covariance_sum_func = eval(
-            f"compute_covariance_sum_{self.model_type}"
-            + f"{'_jit' if jax_installed & use_jit else ''}"
+        compute_covariance_sum_fun = partial(
+            compute_covariance_sum,
+            covariance_dict=self.covariance_dict,
+            kind=self.model_kind,
         )
-        covariance_sum = covariance_sum_func(
-            coefficients_dict,
-            self.covariance_dict,
-            coefficients_dict_diagonal,
-            vector_variance,
-            self.number_densities,
-            self.number_velocities,
-        )
-        return covariance_sum
+
+        def _compute_covariance_sum(parameter_values_dict, vector_variance):
+            coefficients_dict = get_coefficients(
+                parameter_values_dict=parameter_values_dict
+            )
+            coefficients_dict_diagonal = get_diagonal_coefficients(
+                parameter_values_dict=parameter_values_dict
+            )
+            covariance_sum = compute_covariance_sum_fun(
+                coefficients_dict=coefficients_dict,
+                coefficients_dict_diagonal=coefficients_dict_diagonal,
+                vector_variance=vector_variance,
+            )
+
+            return covariance_sum
+
+        self.compute_covariance_sum = _compute_covariance_sum
+
+        if jax_installed:
+            self.compute_covariance_sum_jit = jit(_compute_covariance_sum)
 
     def compute_covariance_sum_eigenvalues(
         self,
@@ -621,36 +469,33 @@ class CovMatrix:
             log.add("Full matrix already computed")
             return
 
-        for key in self.covariance_dict.keys():
+        for key in ["gg", "vv", "gv"]:
+            if key not in self.covariance_dict:
+                continue
             if key == "gg":
+                Ngg = cov_utils.nflat_to_Nfull(self.covariance_dict[key].shape[1] - 1)
+                new_shape = (self.covariance_dict[key].shape[0], Ngg, Ngg)
+            elif key == "vv":
+                Nvv = cov_utils.nflat_to_Nfull(self.covariance_dict[key].shape[1] - 1)
                 new_shape = (
                     self.covariance_dict[key].shape[0],
-                    self.number_densities,
-                    self.number_densities,
+                    Nvv,
+                    Nvv,
                 )
             elif key == "gv":
                 new_shape = (
                     self.covariance_dict[key].shape[0],
-                    self.number_densities,
-                    self.number_velocities,
+                    Ngg,
+                    Nvv,
                 )
-            elif key == "vv":
-                new_shape = (
-                    self.covariance_dict[key].shape[0],
-                    self.number_velocities,
-                    self.number_velocities,
-                )
-            else:
-                log.warning(f"{key} != 'gg', 'gv' or 'vv' was ignored")
-                continue
 
             new_cov = np.zeros(new_shape)
             for i, _ in enumerate(self.covariance_dict[key]):
                 if key[0] != key[1]:
                     new_cov[i] = cov_utils.return_full_cov_cross(
                         self.covariance_dict[key][i],
-                        self.number_densities,
-                        self.number_velocities,
+                        Ngg,
+                        Nvv,
                     )
                 else:
                     new_cov[i] = cov_utils.return_full_cov(self.covariance_dict[key][i])
@@ -760,7 +605,9 @@ class CovMatrix:
                     ]
                 )
             else:
-                cov_vv_mask = np.outer(mask_vel, mask_vel)[np.triu_indices(self.number_velocities, k=1)]
+                cov_vv_mask = np.outer(mask_vel, mask_vel)[
+                    np.triu_indices(self.number_velocities, k=1)
+                ]
                 cov_vv_mask = np.insert(cov_vv_mask, 0, True)
 
                 masked_cov_dic["vv"] = np.array(
@@ -779,7 +626,9 @@ class CovMatrix:
                     ]
                 )
             else:
-                cov_gg_mask = np.outer(mask_dens, mask_dens)[np.triu_indices(self.number_densities, k=1)]
+                cov_gg_mask = np.outer(mask_dens, mask_dens)[
+                    np.triu_indices(self.number_densities, k=1)
+                ]
                 cov_gg_mask = np.insert(cov_gg_mask, 0, True)
                 masked_cov_dic["gg"] = np.array(
                     [cov[cov_gg_mask] for cov in self.covariance_dict["gg"]]
@@ -787,9 +636,9 @@ class CovMatrix:
 
         if self.number_densities is not None and self.number_velocities is not None:
             if mask_vel is None:
-                mask_vel = np.ones(self.number_velocities, dtype='bool')
+                mask_vel = np.ones(self.number_velocities, dkind="bool")
             elif mask_dens is None:
-                mask_dens = np.ones(self.number_densities, dtype='bool')
+                mask_dens = np.ones(self.number_densities, dkind="bool")
 
             if self.full_matrix:
                 masked_cov_dic["gv"] = np.array(
@@ -810,7 +659,7 @@ class CovMatrix:
 
         return CovMatrix(
             model_name=self.model_name,
-            model_type=self.model_type,
+            model_kind=self.model_kind,
             free_par=self.free_par,
             los_definition=self.los_definition,
             covariance_dict=masked_cov_dic,

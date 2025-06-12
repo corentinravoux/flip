@@ -4,7 +4,7 @@ from scipy.special import hyp2f1
 
 
 def get_coefficients(
-    model_type,
+    model_kind,
     parameter_values_dict,
     variant=None,
     redshift_dict=None,
@@ -43,7 +43,7 @@ def D1_function(z, Omega_m0):
     return prefactor * hyp2f1_value
 
 
-def get_diagonal_coefficients(model_type, parameter_values_dict):
+def get_diagonal_coefficients(model_kind, parameter_values_dict):
     coefficients_dict = {}
     coefficients_dict["vv"] = parameter_values_dict["sigv"] ** 2
     return coefficients_dict

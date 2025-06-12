@@ -44,6 +44,8 @@ class FisherMatrix:
     ):
         if covariance.full_matrix is False:
             covariance.compute_full_matrix()
+        if covariance.compute_covariance_sum is None or covariance.compute_covariance_sum_jit is None:
+            covariance.init_compute_covariance_sum()    
 
         fisher_properties = {
             **cls._default_fisher_properties,
@@ -72,7 +74,7 @@ class FisherMatrix:
         partial_coefficients_dict_param,
     ):
 
-        if self.covariance.model_type == "density":
+        if self.covariance.model_kind == "density":
             covariance_derivative_sum = np.sum(
                 [
                     partial_coefficients_dict_param["gg"][i] * cov
@@ -81,7 +83,7 @@ class FisherMatrix:
                 axis=0,
             )
 
-        elif self.covariance.model_type == "velocity":
+        elif self.covariance.model_kind == "velocity":
             covariance_derivative_sum = np.sum(
                 [
                     partial_coefficients_dict_param["vv"][i] * cov
@@ -90,15 +92,15 @@ class FisherMatrix:
                 axis=0,
             )
 
-        elif self.covariance.model_type in ["density_velocity", "full"]:
+        elif self.covariance.model_kind in ["density_velocity", "full"]:
             number_densities = self.covariance.number_densities
             number_velocities = self.covariance.number_velocities
 
-            if self.covariance.model_type == "density_velocity":
+            if self.covariance.model_kind == "density_velocity":
                 covariance_derivative_sum_gv = np.zeros(
                     (number_densities, number_velocities)
                 )
-            elif self.covariance.model_type == "full":
+            elif self.covariance.model_kind == "full":
                 covariance_derivative_sum_gv = np.sum(
                     [
                         partial_coefficients_dict_param["gv"][i] * cov
@@ -140,7 +142,7 @@ class FisherMatrix:
             f"flip.covariance.{self.covariance.model_name}.fisher_terms"
         )
         partial_coefficients_dict = coefficients.get_partial_derivative_coefficients(
-            self.covariance.model_type,
+            self.covariance.model_kind,
             self.parameter_values_dict,
             variant=self.covariance.variant,
             redshift_dict=self.covariance.redshift_dict,

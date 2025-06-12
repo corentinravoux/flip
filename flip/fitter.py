@@ -7,15 +7,6 @@ import emcee
 import iminuit
 import numpy as np
 
-try:
-    from jax import grad as jax_grad
-
-    jax_installed = True
-except ImportError:
-    jax_installed = False
-    pass
-
-
 from flip.utils import create_log
 
 log = create_log()
@@ -216,10 +207,14 @@ class FitMinuit(BaseFitter):
             parameter_dict[parameters]["value"] for parameters in parameter_dict
         ]
 
-        if jax_installed & likelihood.likelihood_properties["use_gradient"]:
-            grad = jax_grad(likelihood)
+        if (likelihood.likelihood_grad is not None) & likelihood.likelihood_properties[
+            "use_gradient"
+        ]:
+            log.add("Using jax gradient")
+            grad = likelihood.likelihood_grad
         else:
             grad = None
+
         minuit_fitter.minuit = iminuit.Minuit(
             likelihood,
             parameter_values,
@@ -235,7 +230,7 @@ class FitMinuit(BaseFitter):
     def init_from_file(
         cls,
         model_name,
-        model_type,
+        model_kind,
         filename,
         data,
         parameter_dict,
@@ -248,7 +243,7 @@ class FitMinuit(BaseFitter):
         Args:
             cls: Pass the class object to the function
             model_name: Specify the name of the model
-            model_type: Specify the type of model
+            model_kind: Specify the type of model
             filename: Load the covariance matrix from a file
             data: Initialize the fitter's data attribute
             parameter_dict: Pass in the parameters that are used to
@@ -259,7 +254,7 @@ class FitMinuit(BaseFitter):
             A fitter object
 
         """
-        covariance = CovMatrix.init_from_file(model_name, model_type, filename)
+        covariance = CovMatrix.init_from_file(model_name, model_kind, filename)
 
         return cls.init_from_covariance(
             covariance,

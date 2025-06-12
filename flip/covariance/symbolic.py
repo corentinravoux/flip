@@ -826,7 +826,7 @@ def write_partial_derivatives(
         )
 
         f.write(
-            "def get_partial_derivative_coefficients(model_type,parameter_values_dict,variant=None,redshift_dict=None,):\n"
+            "def get_partial_derivative_coefficients(model_kind,parameter_values_dict,variant=None,redshift_dict=None,):\n"
         )
         write_one_function(
             f,
@@ -837,21 +837,21 @@ def write_partial_derivatives(
         )
     else:
         f.write(
-            "def get_partial_derivative_coefficients(model_type,parameter_values_dict,variant=None,):\n"
+            "def get_partial_derivative_coefficients(model_kind,parameter_values_dict,variant=None,):\n"
         )
-        f.write("    if model_type == 'density':\n")
+        f.write("    if model_kind == 'density':\n")
         f.write(
             "        return get_partial_derivative_coefficients_density(parameter_values_dict,variant=variant,)\n"
         )
-        f.write("    elif model_type == 'velocity':\n")
+        f.write("    elif model_kind == 'velocity':\n")
         f.write(
             "        return get_partial_derivative_coefficients_velocity(parameter_values_dict,variant=variant,)\n"
         )
-        f.write("    elif model_type == 'density_velocity':\n")
+        f.write("    elif model_kind == 'density_velocity':\n")
         f.write(
             "        return get_partial_derivative_coefficients_density_velocity(parameter_values_dict,variant=variant,)\n"
         )
-        f.write("    elif model_type == 'full':\n")
+        f.write("    elif model_kind == 'full':\n")
         f.write(
             "        return get_partial_derivative_coefficients_full(parameter_values_dict,variant=variant,)\n"
         )

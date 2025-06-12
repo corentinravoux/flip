@@ -1,14 +1,22 @@
 import numpy as np
 
+from ..config import __use_jax__
 from . import vector_utils
 from .basic import DataVector
 
-try:
-    import jax.numpy as jnp
-    from jax.experimental.sparse import BCOO
+if __use_jax__:
+    try:
+        import jax.numpy as jnp
+        from jax.experimental.sparse import BCOO
 
-    jax_installed = True
-except ImportError:
+        jax_installed = True
+
+    except ImportError:
+        import numpy as jnp
+
+        jax_installed = False
+else:
+
     import numpy as jnp
 
     jax_installed = False
@@ -178,7 +186,7 @@ class VelFromTullyFisher(DataVector):
             )
         return variance_distance_modulus
 
-    def _give_data_and_variance(self, parameter_values_dict):
+    def give_data_and_variance(self, parameter_values_dict):
         """
         Compute the velocities and velocity variances based on the given parameter values.
 
@@ -371,7 +379,7 @@ class VelFromFundamentalPlane(DataVector):
             )
         return variance_distance_modulus
 
-    def _give_data_and_variance(self, parameter_values_dict):
+    def give_data_and_variance(self, parameter_values_dict):
         """
         Compute the velocities and velocity variances based on the given parameter values.
 

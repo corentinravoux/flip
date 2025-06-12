@@ -15,6 +15,7 @@ from flip.covariance.adamsblake20 import flip_terms as flip_terms_adamsblake20
 from flip.covariance.carreres23 import flip_terms as flip_terms_carreres23
 from flip.covariance.lai22 import flip_terms as flip_terms_lai22
 from flip.covariance.ravouxcarreres import flip_terms as flip_terms_ravouxcarreres
+from flip.covariance.ravouxnoanchor25 import flip_terms as flip_terms_ravouxnoanchor25
 from flip.covariance.rcrk24 import flip_terms as flip_terms_rcrk24
 from flip.utils import create_log
 
@@ -26,6 +27,7 @@ _avail_models = [
     "lai22",
     "carreres23",
     "ravouxcarreres",
+    "ravouxnoanchor25",
     "rcrk24",
 ]
 _avail_regularization_option = [
@@ -140,6 +142,11 @@ def coefficient_hankel(
     flip_terms.set_backend("numpy")
     dictionary_subterms = flip_terms.dictionary_subterms
     regularize_M_terms = flip_terms.regularize_M_terms
+    Z_ab_i = 1
+    if eval(f"flip_terms.redshift_dependent_model"):
+        Z_ab_i = eval(f"flip_terms.Z_{covariance_type}_{term_index}")(
+            wavenumber, coord[3], coord[4], *additional_parameters_values
+        )  # Shape issue: Z_ab_i is an outer product. How to include that in the Hankel transform?
     for l in range(lmax + 1):
         number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
         for j in range(number_terms):
@@ -152,6 +159,7 @@ def coefficient_hankel(
                 flip_terms,
                 additional_parameters_values,
             )
+            M_ab_i_l_j_evaluated = M_ab_i_l_j_evaluated * Z_ab_i
             N_ab_i_l_j = eval(f"flip_terms.N_{covariance_type}_{term_index}_{l}_{j}")(
                 coord[1], coord[2]
             )
@@ -200,6 +208,11 @@ def coefficient_trapz(
     flip_terms.set_backend("numpy")
     dictionary_subterms = flip_terms.dictionary_subterms
     regularize_M_terms = flip_terms.regularize_M_terms
+    Z_ab_i = 1
+    if eval(f"flip_terms.redshift_dependent_model"):
+        Z_ab_i = eval(f"flip_terms.Z_{covariance_type}_{term_index}")(
+            wavenumber, coord[3], coord[4], *additional_parameters_values
+        )
     for l in range(lmax + 1):
         number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
         for j in range(number_terms):
@@ -212,6 +225,7 @@ def coefficient_trapz(
                 flip_terms,
                 additional_parameters_values,
             )
+            M_ab_i_l_j_evaluated = M_ab_i_l_j_evaluated * Z_ab_i
             N_ab_i_l_j = eval(f"flip_terms.N_{covariance_type}_{term_index}_{l}_{j}")(
                 coord[1], coord[2]
             )
@@ -317,6 +331,7 @@ def compute_coordinates(
     covariance_type,
     coordinates_density=None,
     coordinates_velocity=None,
+    redshift_dict=None,
     size_batch=10_000,
     los_definition="bisector",
 ):
@@ -337,11 +352,15 @@ def compute_coordinates(
         ra = coordinates_density[0]
         dec = coordinates_density[1]
         comoving_distance = coordinates_density[2]
+        if redshift_dict is not None:
+            redshift = redshift_dict["g"]
         number_objects = len(ra)
     elif covariance_type == "vv":
         ra = coordinates_velocity[0]
         dec = coordinates_velocity[1]
         comoving_distance = coordinates_velocity[2]
+        if redshift_dict is not None:
+            redshift = redshift_dict["v"]
         number_objects = len(ra)
     elif covariance_type == "gv":
         ra_g = coordinates_density[0]
@@ -349,6 +368,9 @@ def compute_coordinates(
         comoving_distance_g = coordinates_density[2]
         ra_v = coordinates_velocity[0]
         dec_v = coordinates_velocity[1]
+        if redshift_dict is not None:
+            redshift_g = redshift_dict["g"]
+            redshift_v = redshift_dict["v"]
         comoving_distance_v = coordinates_velocity[2]
         number_objects_g = len(ra_g)
         number_objects_v = len(ra_v)
@@ -367,16 +389,41 @@ def compute_coordinates(
             i_list, j_list = cov_utils.compute_i_j_cross_matrix(
                 number_objects_v, batches
             )
-            ra_i, dec_i, r_i = ra_g[i_list], dec_g[i_list], comoving_distance_g[i_list]
-            ra_j, dec_j, r_j = ra_v[j_list], dec_v[j_list], comoving_distance_v[j_list]
+            ra_i, dec_i, r_i = (
+                ra_g[i_list],
+                dec_g[i_list],
+                comoving_distance_g[i_list],
+            )
+            ra_j, dec_j, r_j = (
+                ra_v[j_list],
+                dec_v[j_list],
+                comoving_distance_v[j_list],
+            )
+            if redshift_dict is not None:
+                z_i = redshift_g[i_list]
+                z_j = redshift_v[j_list]
         else:
             i_list, j_list = cov_utils.compute_i_j(number_objects, batches)
-            ra_i, dec_i, r_i = ra[i_list], dec[i_list], comoving_distance[i_list]
-            ra_j, dec_j, r_j = ra[j_list], dec[j_list], comoving_distance[j_list]
+            ra_i, dec_i, r_i = (
+                ra[i_list],
+                dec[i_list],
+                comoving_distance[i_list],
+            )
+            ra_j, dec_j, r_j = (
+                ra[j_list],
+                dec[j_list],
+                comoving_distance[j_list],
+            )
+            if redshift_dict is not None:
+                z_i = redshift[i_list]
+                z_j = redshift[j_list]
         r, theta, phi = cov_utils.angle_separation(
             ra_i, ra_j, dec_i, dec_j, r_i, r_j, los_definition=los_definition
         )
-        parameters.append([r, theta, phi])
+        if redshift_dict is not None:
+            parameters.append([r, theta, phi, z_i, z_j])
+        else:
+            parameters.append([r, theta, phi])
     return parameters
 
 
@@ -465,7 +512,7 @@ def compute_coeficient(
                 lmax_list[i],
                 power_spectrum_list[index_power_spectrum][0],
                 power_spectrum_list[index_power_spectrum][1],
-                np.zeros((3, 1)),
+                np.zeros((5, 1)),
                 additional_parameters_values=additional_parameters_values,
             )[0]
 
@@ -483,6 +530,7 @@ def compute_cov(
     power_spectrum_list,
     coordinates_density=None,
     coordinates_velocity=None,
+    redshift_dict=None,
     additional_parameters_values=None,
     size_batch=10_000,
     number_worker=8,
@@ -519,6 +567,7 @@ def compute_cov(
         covariance_type,
         coordinates_density=coordinates_density,
         coordinates_velocity=coordinates_velocity,
+        redshift_dict=redshift_dict,
         size_batch=size_batch,
         los_definition=los_definition,
     )
@@ -538,7 +587,7 @@ def compute_cov(
 
 def generate_redshift_dict(
     model_name,
-    model_type,
+    model_kind,
     redshift_velocity=None,
     redshift_density=None,
     coordinates_velocity=None,
@@ -550,7 +599,7 @@ def generate_redshift_dict(
     else:
         return None
 
-    if model_type in ["density", "full", "density_velocity"]:
+    if model_kind in ["density", "full", "density_velocity"]:
         if redshift_dependent_model:
             if redshift_density is not None:
                 redshift_dict["g"] = redshift_density
@@ -563,7 +612,7 @@ def generate_redshift_dict(
                     )
                 else:
                     redshift_dict["g"] = coordinates_density[3]
-    if model_type in ["velocity", "full", "density_velocity"]:
+    if model_kind in ["velocity", "full", "density_velocity"]:
         if redshift_dependent_model:
             if redshift_velocity is not None:
                 redshift_dict["v"] = redshift_velocity
@@ -581,7 +630,7 @@ def generate_redshift_dict(
 
 def generate_covariance(
     model_name,
-    model_type,
+    model_kind,
     power_spectrum_dict,
     coordinates_velocity=None,
     coordinates_density=None,
@@ -597,7 +646,7 @@ def generate_covariance(
 
     Args:
         model_name: Select the model to use
-        model_type: Determine the type of model to generate
+        model_kind: Determine the type of model to generate
         power_spectrum_dict: Store the power spectra of the different fields
         coordinates_velocity: Specify the coordinates of the velocity field
         coordinates_density: Specify the coordinates of the density field
@@ -612,19 +661,27 @@ def generate_covariance(
 
     """
     cov_utils.check_generator_need(
-        model_type,
+        model_kind,
         coordinates_density,
         coordinates_velocity,
     )
     covariance_dict = {}
 
-    if model_type in ["density", "full", "density_velocity"]:
+    redshift_dict = generate_redshift_dict(
+        model_name,
+        model_kind,
+        coordinates_velocity=coordinates_velocity,
+        coordinates_density=coordinates_density,
+    )
+
+    if model_kind in ["density", "full", "density_velocity"]:
         covariance_dict["gg"] = compute_cov(
             model_name,
             "gg",
             power_spectrum_dict["gg"],
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
+            redshift_dict=redshift_dict,
             additional_parameters_values=additional_parameters_values,
             size_batch=size_batch,
             number_worker=number_worker,
@@ -636,13 +693,14 @@ def generate_covariance(
     else:
         number_densities = None
 
-    if model_type in ["velocity", "full", "density_velocity"]:
+    if model_kind in ["velocity", "full", "density_velocity"]:
         covariance_dict["vv"] = compute_cov(
             model_name,
             "vv",
             power_spectrum_dict["vv"],
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
+            redshift_dict=redshift_dict,
             additional_parameters_values=additional_parameters_values,
             size_batch=size_batch,
             number_worker=number_worker,
@@ -654,13 +712,14 @@ def generate_covariance(
     else:
         number_velocities = None
 
-    if model_type == "full":
+    if model_kind == "full":
         covariance_dict["gv"] = compute_cov(
             model_name,
             "gv",
             power_spectrum_dict["gv"],
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
+            redshift_dict=redshift_dict,
             additional_parameters_values=additional_parameters_values,
             size_batch=size_batch,
             number_worker=number_worker,
@@ -669,10 +728,4 @@ def generate_covariance(
             kmin=kmin,
         )
 
-    redshift_dict = generate_redshift_dict(
-        model_name,
-        model_type,
-        coordinates_velocity=coordinates_velocity,
-        coordinates_density=coordinates_density,
-    )
     return covariance_dict, number_densities, number_velocities, redshift_dict

@@ -26,7 +26,7 @@ else:
 
 
 def get_partial_derivative_coefficients(
-    model_type,
+    model_kind,
     parameter_values_dict,
     variant=None,
     redshift_dict=None,

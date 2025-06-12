@@ -8,6 +8,7 @@ from . import (
     cov_utils,
     lai22,
     ravouxcarreres,
+    ravouxnoanchor25,
     rcrk24,
 )
 from .covariance import CovMatrix

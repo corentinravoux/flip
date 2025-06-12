@@ -78,6 +78,14 @@ def compute_i_j(N, seq):
     return i, j
 
 
+def nflat_to_Nfull(flat_shape_non_diagonal):
+    Delta = 1 + 8 * flat_shape_non_diagonal
+    Nfull = (1 + np.sqrt(Delta)) / 2
+    if Nfull - int(Nfull) > 0:
+        raise ValueError("flat_shape_non_diagonal is not a valid number") 
+    return int(Nfull)
+
+
 def compute_i_j_cross_matrix(Nv, seq):
     """
     The compute_i_j_cross_matrix function takes in the number of vertices, Nv, and a sequence of numbers
@@ -219,7 +227,7 @@ def return_full_cov(cov):
     variance_val = cov[0]
 
     non_diagonal_cov = np.delete(cov, 0)
-    number_objects = int((1 + np.sqrt(1 + 8 * non_diagonal_cov.size)) / 2)
+    number_objects = nflat_to_Nfull(non_diagonal_cov.size)
 
     variance_val = variance_val * np.eye(number_objects)
 
@@ -340,14 +348,14 @@ def generator_need(
             raise ValueError("Velocity coordinates not provided")
 
 
-def check_generator_need(model_type, coordinates_density, coordinates_velocity):
+def check_generator_need(model_kind, coordinates_density, coordinates_velocity):
     """
     The check_generator_need function is used to check if the generator_need function
     is called with the correct arguments. The model type determines which coordinates are needed,
     and these are passed as arguments to generator_need.
 
     Args:
-        model_type: Determine if the density, velocity or full model is being used
+        model_kind: Determine if the density, velocity or full model is being used
         coordinates_density: Check if the density coordinates are needed
         coordinates_velocity: Determine whether the velocity model is needed
 
@@ -355,17 +363,17 @@ def check_generator_need(model_type, coordinates_density, coordinates_velocity):
         A boolean
 
     """
-    if model_type == "density":
+    if model_kind == "density":
         generator_need(
             coordinates_density=coordinates_density,
             coordinates_velocity=False,
         )
-    if model_type == "velocity":
+    if model_kind == "velocity":
         generator_need(
             coordinates_density=False,
             coordinates_velocity=coordinates_velocity,
         )
-    if model_type in ["full", "density_velocity"]:
+    if model_kind in ["full", "density_velocity"]:
         generator_need(
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,

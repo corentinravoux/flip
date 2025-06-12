@@ -1,15 +1,25 @@
 import copy
 
 import numpy as np
+from astropy.cosmology import FlatLambdaCDM
 from scipy.sparse import coo_array
 
 import flip.utils as utils
 
-try:
-    import jax.numpy as jnp
+from ..config import __use_jax__
 
-    jax_installed = True
-except ImportError:
+if __use_jax__:
+    try:
+        import jax.numpy as jnp
+
+        jax_installed = True
+
+    except ImportError:
+        import numpy as jnp
+
+        jax_installed = False
+else:
+
     import numpy as jnp
 
     jax_installed = False
@@ -52,6 +62,23 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
             * utils._C_LIGHT_KMS_
             / (data["hubble_norm"] * data["rcom_zobs"])
             - 1.0
+        )
+
+    elif velocity_estimator == "full_lcdm":
+        if ("H0" not in kwargs) & ("Omega_m0" not in kwargs):
+            raise ValueError(
+                """ The "H0" and "Omega_m0" parameters are not present in the **kwargs"""
+                f""" Please add it or choose a different velocity_estimator among {_avail_velocity_estimator}"""
+            )
+        H0 = kwargs["H0"]
+        Omega_m0 = kwargs["Omega_m0"]
+        cosmo = FlatLambdaCDM(H0=H0, Om0=Omega_m0)
+
+        rcom_zobs = cosmo.comoving_distance(redshift_obs).value
+        hubble_z = cosmo.H(redshift_obs).value
+
+        redshift_dependence = prefactor / (
+            (1 + redshift_obs) * utils._C_LIGHT_KMS_ / (hubble_z * rcom_zobs) - 1.0
         )
 
     else:

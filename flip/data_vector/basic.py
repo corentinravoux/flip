@@ -241,7 +241,7 @@ class VelFromHDres(DirectVel):
             cond_keys += ["dmu_error"]
         return self._needed_keys + cond_keys
 
-    def _give_data_and_variance(self, parameter_values_dict):
+    def give_data_and_variance(self, parameter_values_dict):
         distance_modulus_difference_to_velocity = (
             vector_utils.redshift_dependence_velocity(
                 self._data, self.velocity_estimator, **parameter_values_dict
@@ -282,7 +282,7 @@ class FisherVelFromHDres(DataVector):
     _needed_keys = ["zobs", "ra", "dec", "rcom_zobs"]
     _free_par = ["sigma_M"]
 
-    def _give_data_and_variance(self, parameter_values_dict):
+    def give_data_and_variance(self, parameter_values_dict):
         distance_modulus_difference_to_velocity = (
             vector_utils.redshift_dependence_velocity(
                 self._data, self.velocity_estimator, **parameter_values_dict

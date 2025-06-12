@@ -97,7 +97,7 @@ class VelFromSALTfit(DataVector):
             )
         return variance_distance_modulus
 
-    def _give_data_and_variance(self, parameter_values_dict):
+    def give_data_and_variance(self, parameter_values_dict):
         observed_distance_modulus_variance = (
             self.compute_observed_distance_modulus_variance(parameter_values_dict)
         )

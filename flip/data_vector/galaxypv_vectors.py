@@ -40,7 +40,7 @@ class VelFromLogDist(DataVector):
             cond_keys += ["eta_error"]
         return self._needed_keys + cond_keys
 
-    def _give_data_and_variance(self, parameter_values_dict, *args):
+    def give_data_and_variance(self, parameter_values_dict, *args):
         """
         Returns the data and variance for the velocity.
 

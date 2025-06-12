@@ -17,7 +17,7 @@ You also can compute covariance:
 
 .. code-block:: python 
 
-    Cov = DataVector.compute_cov(
+    Cov = DataVector.compute_covariance(
         # model and pw used
         model_name, 
         power_spectrum_dict, 

@@ -7,13 +7,13 @@ from flip.utils import create_log
 log = create_log()
 from . import (
     covariance,
+    data_vector,
     fisher,
     fitter,
     gridding,
     likelihood,
     power_spectra,
     utils,
-    data_vector,
 )
 
 try:

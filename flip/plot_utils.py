@@ -22,7 +22,7 @@ def plot_1d_contraction(
 
     _, ax = plt.subplots(1, 3, figsize=(17, 5))
 
-    if contraction.model_type in ["density", "density_velocity", "full"]:
+    if contraction.model_kind in ["density", "density_velocity", "full"]:
         xi_gg = contraction_sum["gg"]
         ax_plot = ax[0]
 
@@ -51,7 +51,7 @@ def plot_1d_contraction(
         ax_plot.set_xlabel(r"$r_{i}$", fontsize=15)
         ax_plot.legend([r"$\parallel$", r"$\bot$"], fontsize=15)
 
-    if contraction.model_type == "full":
+    if contraction.model_kind == "full":
         xi_gv = contraction_sum["gv"]
         ax_plot = ax[1]
         ax_plot.plot(
@@ -66,7 +66,7 @@ def plot_1d_contraction(
         ax_plot.set_xlabel(r"$r_{i}$", fontsize=15)
         ax_plot.legend([r"$\parallel$", r"$\bot$"], fontsize=15)
 
-    if contraction.model_type in ["velocity", "density_velocity", "full"]:
+    if contraction.model_kind in ["velocity", "density_velocity", "full"]:
         xi_vv = contraction_sum["vv"]
         ax_plot = ax[2]
         ax_plot.plot(
@@ -103,7 +103,7 @@ def plot_2d_contraction(
 
     _, ax = plt.subplots(1, 3, figsize=(17, 5))
 
-    if contraction.model_type in ["density", "density_velocity", "full"]:
+    if contraction.model_kind in ["density", "density_velocity", "full"]:
         xi_gg = contraction_sum["gg"]
 
         ax_plot = ax[0]
@@ -125,7 +125,7 @@ def plot_2d_contraction(
         ax_plot.set_ylabel(r"$r_{\parallel}$")
         ax_plot.set_title(r"$r^2 C_{gg}(r)$", fontsize=15)
 
-    if contraction.model_type == "full":
+    if contraction.model_kind == "full":
         xi_gv = contraction_sum["gv"]
         ax_plot = ax[1]
 
@@ -138,7 +138,7 @@ def plot_2d_contraction(
         ax_plot.set_ylabel(r"$r_{\parallel}$")
         ax_plot.set_title(r"$C_{gv}(r)$", fontsize=15)
 
-    if contraction.model_type in ["velocity", "density_velocity", "full"]:
+    if contraction.model_kind in ["velocity", "density_velocity", "full"]:
         xi_vv = contraction_sum["vv"]
         ax_plot = ax[2]
 

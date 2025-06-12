@@ -1,14 +1,22 @@
 import numpy as np
 
+from ..config import __use_jax__
 from . import vector_utils
 from .basic import DataVector
 
-try:
-    import jax.numpy as jnp
-    from jax.experimental.sparse import BCOO
+if __use_jax__:
+    try:
+        import jax.numpy as jnp
+        from jax.experimental.sparse import BCOO
 
-    jax_installed = True
-except ImportError:
+        jax_installed = True
+
+    except ImportError:
+        import numpy as jnp
+
+        jax_installed = False
+else:
+
     import numpy as jnp
 
     jax_installed = False
@@ -32,7 +40,7 @@ class VelFromLogDist(DataVector):
             cond_keys += ["eta_error"]
         return self._needed_keys + cond_keys
 
-    def _give_data_and_variance(self, *args):
+    def give_data_and_variance(self, *args):
         """
         Returns the data and variance for the velocity.
 
@@ -175,7 +183,7 @@ class VelFromTullyFisher(DataVector):
             )
         return variance_distance_modulus
 
-    def _give_data_and_variance(self, parameter_values_dict):
+    def give_data_and_variance(self, parameter_values_dict):
         """
         Compute the velocities and velocity variances based on the given parameter values.
 
@@ -185,11 +193,14 @@ class VelFromTullyFisher(DataVector):
         Returns:
             tuple: A tuple containing the velocities and velocity variances.
         """
-        observed_distance_modulus_variance = self.compute_observed_distance_modulus_variance(
-            parameter_values_dict
+        observed_distance_modulus_variance = (
+            self.compute_observed_distance_modulus_variance(parameter_values_dict)
         )
         if self._covariance_observation is None:
-            velocity_variance = observed_distance_modulus_variance * self._distance_modulus_difference_to_velocity**2
+            velocity_variance = (
+                observed_distance_modulus_variance
+                * self._distance_modulus_difference_to_velocity**2
+            )
         else:
             A = self._init_A()
             J = A[0] + parameter_values_dict["a"] * A[1]
@@ -381,7 +392,7 @@ class VelFromFundamentalPlane(DataVector):
             )
         return variance_distance_modulus
 
-    def _give_data_and_variance(self, parameter_values_dict):
+    def give_data_and_variance(self, parameter_values_dict):
         """
         Compute the velocities and velocity variances based on the given parameter values.
 
@@ -391,11 +402,14 @@ class VelFromFundamentalPlane(DataVector):
         Returns:
             tuple: A tuple containing the velocities and velocity variances.
         """
-        observed_distance_modulus_variance = self.compute_observed_distance_modulus_variance(
-            parameter_values_dict
+        observed_distance_modulus_variance = (
+            self.compute_observed_distance_modulus_variance(parameter_values_dict)
         )
         if self._covariance_observation is None:
-            velocity_variance = observed_distance_modulus_variance * self._distance_modulus_difference_to_velocity**2
+            velocity_variance = (
+                observed_distance_modulus_variance
+                * self._distance_modulus_difference_to_velocity**2
+            )
         else:
             A = self._init_A()
             J = (

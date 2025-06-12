@@ -12,7 +12,7 @@ class Contraction:
     def __init__(
         self,
         model_name=None,
-        model_type=None,
+        model_kind=None,
         contraction_dict=None,
         coordinates_dict=None,
         basis_definition=None,
@@ -20,7 +20,7 @@ class Contraction:
         variant=None,
     ):
         self.model_name = model_name
-        self.model_type = model_type
+        self.model_kind = model_kind
         self.contraction_dict = contraction_dict
         self.coordinates_dict = coordinates_dict
         self.basis_definition = basis_definition
@@ -31,7 +31,7 @@ class Contraction:
     def init_from_flip(
         cls,
         model_name,
-        model_type,
+        model_kind,
         power_spectrum_dict,
         coord_1,
         coord_2,
@@ -50,7 +50,7 @@ class Contraction:
             redshift_dict,
         ) = contract_covariance(
             model_name,
-            model_type,
+            model_kind,
             power_spectrum_dict,
             coord_1,
             coord_2,
@@ -65,7 +65,7 @@ class Contraction:
 
         return cls(
             model_name=model_name,
-            model_type=model_type,
+            model_kind=model_kind,
             contraction_dict=contraction_dict,
             coordinates_dict=coordinates_dict,
             basis_definition=basis_definition,
@@ -89,19 +89,19 @@ class Contraction:
             The type of the model
 
         """
-        if self.model_type == "velocity":
+        if self.model_kind == "velocity":
             log.add("The covariance model is computed for velocity")
-        elif self.model_type == "density":
+        elif self.model_kind == "density":
             log.add("The covariance model is computed for density")
-        elif self.model_type == "density_velocity":
+        elif self.model_kind == "density_velocity":
             log.add(
                 "The covariance model is computed for velocity and density, without cross-term"
             )
-        elif self.model_type == "full":
+        elif self.model_kind == "full":
             log.add(
                 "The covariance model is computed for velocity and density, with cross-term"
             )
-        return self.model_type
+        return self.model_kind
 
     def compute_contraction_sum(
         self,
@@ -124,13 +124,13 @@ class Contraction:
         )
 
         coefficients_dict = coefficients.get_coefficients(
-            self.model_type,
             parameter_values_dict,
+            self.model_kind,
             variant=self.variant,
             redshift_dict=self.redshift_dict,
         )
         contraction_covariance_sum_dict = {}
-        if self.model_type == "density":
+        if self.model_kind == "density":
             contraction_covariance_sum_dict["gg"] = np.sum(
                 [
                     coefficients_dict["gg"][i] * cov
@@ -139,7 +139,7 @@ class Contraction:
                 axis=0,
             )
 
-        elif self.model_type == "velocity":
+        elif self.model_kind == "velocity":
             contraction_covariance_sum_dict["vv"] = np.sum(
                 [
                     coefficients_dict["vv"][i] * cov
@@ -148,8 +148,8 @@ class Contraction:
                 axis=0,
             )
 
-        elif self.model_type in ["density_velocity", "full"]:
-            if self.model_type == "full":
+        elif self.model_kind in ["density_velocity", "full"]:
+            if self.model_kind == "full":
                 contraction_covariance_sum_dict["gv"] = np.sum(
                     [
                         coefficients_dict["gv"][i] * cov
@@ -271,7 +271,7 @@ def compute_contraction_coordinates(
 
 def contract_covariance(
     model_name,
-    model_type,
+    model_kind,
     power_spectrum_dict,
     coord_1,
     coord_2,
@@ -294,7 +294,7 @@ def contract_covariance(
         basis_definition,
     )
     contraction_dict = {}
-    if model_type in ["density", "full", "density_velocity"]:
+    if model_kind in ["density", "full", "density_velocity"]:
         contraction_dict["gg"] = generator_flip.compute_coeficient(
             [coordinates],
             model_name,
@@ -305,7 +305,7 @@ def contract_covariance(
             hankel=hankel,
         )[:, 1:].reshape(-1, len(coord_1), len(coord_2))
 
-    if model_type in ["velocity", "full", "density_velocity"]:
+    if model_kind in ["velocity", "full", "density_velocity"]:
         contraction_dict["vv"] = generator_flip.compute_coeficient(
             [coordinates],
             model_name,
@@ -316,7 +316,7 @@ def contract_covariance(
             hankel=hankel,
         )[:, 1:].reshape(-1, len(coord_1), len(coord_2))
 
-    if model_type == "full":
+    if model_kind == "full":
         contraction_dict["gv"] = generator_flip.compute_coeficient(
             [coordinates],
             model_name,
@@ -328,7 +328,7 @@ def contract_covariance(
         )[:, :].reshape(-1, len(coord_1), len(coord_2))
     redshift_dict = generator_flip.generate_redshift_dict(
         model_name,
-        model_type,
+        model_kind,
         redshift_velocity=redshift,
         redshift_density=redshift,
     )

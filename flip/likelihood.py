@@ -1,76 +1,74 @@
+import abc
 from functools import partial
 
 import numpy as np
 import scipy as sc
 
-try:
-    import jax.numpy as jnp
-    import jax.scipy as jsc
-    from jax import jit
+from flip.utils import create_log
 
-    jax_installed = True
-except ImportError:
+from .config import __use_jax__
+
+if __use_jax__:
+    try:
+        import jax.numpy as jnp
+        import jax.scipy as jsc
+        from jax import grad, jit
+
+        jax_installed = True
+
+    except ImportError:
+        import numpy as jnp
+        import scipy as jsc
+
+        jax_installed = False
+else:
+
     import numpy as jnp
     import scipy as jsc
 
     jax_installed = False
 
-from flip.utils import create_log
-
-# try:
-#     import jax, jaxlib
-#     import jax.numpy as jnp
-# except ImportError:
-#     jax = None
-#     import numpy as jnp
-
-
-# def use_jax(array):
-#     """Whether to use jax.numpy depending on whether array is jax's object"""
-#     return jax and isinstance(array, (jaxlib.xla_extension.DeviceArrayBase, jax.core.Tracer))
-
-
-# def np_jax(array):
-#     """Return numpy or jax.numpy depending on whether array is jax's object"""
-#     if use_jax(array):
-#         return jnp
-#     return np
-
-# CR - cool implementation - to test
 
 log = create_log()
 
 
 _available_priors = ["gaussian", "positive", "uniform"]
 
-_available_inversion_methods = ["inverse", "solve", "cholesky", "cholesky_regularized", "cholesky_inverse"]
+_available_inversion_methods = [
+    "inverse",
+    "solve",
+    "cholesky",
+    "cholesky_regularized",
+    "cholesky_inverse",
+]
 
 
 def log_likelihood_gaussian_inverse(vector, covariance_sum):
     _, logdet = jnp.linalg.slogdet(covariance_sum)
     inverse_covariance_sum = jnp.linalg.inv(covariance_sum)
     chi2 = jnp.dot(vector, jnp.dot(inverse_covariance_sum, vector))
-    return -0.5 * (vector.size * jnp.log(2 * np.pi) + logdet + chi2)
+    return -0.5 * (vector.size * jnp.log(2 * jnp.pi) + logdet + chi2)
 
 
 def log_likelihood_gaussian_solve(vector, covariance_sum):
-    _, logdet = np.linalg.slogdet(covariance_sum)
-    chi2 = np.dot(vector.T, np.linalg.solve(covariance_sum, vector))
-    return -0.5 * (vector.size * np.log(2 * np.pi) + logdet + chi2)
+    _, logdet = jnp.linalg.slogdet(covariance_sum)
+    chi2 = jnp.dot(vector.T, jnp.linalg.solve(covariance_sum, vector))
+    return -0.5 * (vector.size * jnp.log(2 * jnp.pi) + logdet + chi2)
 
 
 def log_likelihood_gaussian_cholesky(vector, covariance_sum):
     cholesky = jsc.linalg.cho_factor(covariance_sum)
     logdet = 2 * jnp.sum(jnp.log(jnp.diag(cholesky[0])))
     chi2 = jnp.dot(vector, jsc.linalg.cho_solve(cholesky, vector))
-    return -0.5 * (vector.size * jnp.log(2 * np.pi) + logdet + chi2)
+    return -0.5 * (vector.size * jnp.log(2 * jnp.pi) + logdet + chi2)
+
 
 def log_likelihood_gaussian_cholesky_inverse(vector, covariance_sum):
     try:
         return log_likelihood_gaussian_cholesky(vector, covariance_sum)
     except:
         return log_likelihood_gaussian_inverse(vector, covariance_sum)
-    
+
 
 def log_likelihood_gaussian_cholesky_regularized(vector, covariance_sum):
     eigval, eigvec = jnp.linalg.eig(covariance_sum)
@@ -84,6 +82,7 @@ def log_likelihood_gaussian_cholesky_regularized(vector, covariance_sum):
 if jax_installed:
     log_likelihood_gaussian_inverse_jit = jit(log_likelihood_gaussian_inverse)
     log_likelihood_gaussian_cholesky_jit = jit(log_likelihood_gaussian_cholesky)
+    log_likelihood_gaussian_solve_jit = jit(log_likelihood_gaussian_solve)
 
 
 def no_prior(x):
@@ -94,6 +93,7 @@ def prior_sum(priors, x):
     return sum(prior(x) for prior in priors)
 
 
+# TODO: NOT USED ANYMORE, TO REMOVE?
 def interpolate_covariance_sum_1d(
     interpolation_value_range,
     interpolation_value,
@@ -101,13 +101,7 @@ def interpolate_covariance_sum_1d(
     parameter_values_dict,
     vector_variance,
 ):
-    if np.isnan(interpolation_value):
-        return np.full_like(
-            covariance[0].compute_covariance_sum(
-                parameter_values_dict, vector_variance
-            ),
-            np.nan,
-        )
+
     upper_index_interpolation = jnp.searchsorted(
         interpolation_value_range, interpolation_value
     )
@@ -131,7 +125,10 @@ def interpolate_covariance_sum_1d(
     return covariance_sum
 
 
-class BaseLikelihood(object):
+# TODO: END OF REMOVE
+
+
+class BaseLikelihood(abc.ABC):
 
     _default_likelihood_properties = {
         "inversion_method": "inverse",
@@ -145,13 +142,11 @@ class BaseLikelihood(object):
         covariance=None,
         data=None,
         parameter_names=None,
-        prior=None,
         likelihood_properties={},
     ):
         self.covariance = covariance
         self.data = data
         self.parameter_names = parameter_names
-        self.prior = prior
 
         self.free_par = self.data.free_par[:]
 
@@ -164,6 +159,20 @@ class BaseLikelihood(object):
             **self._default_likelihood_properties,
             **likelihood_properties,
         }
+
+        self.verify_covariance()
+        self.prior = self.initialize_prior()
+
+        self.likelihood_call, self.likelihood_grad = self._init_likelihood()
+
+    def __call__(self, parameter_values):
+        return self.likelihood_call(parameter_values)
+
+    @abc.abstractmethod
+    def _init_likelihood(self, *args):
+        likelihood_fun = None
+        likelihood_grad = None
+        return likelihood_fun, likelihood_grad
 
     @classmethod
     def init_from_covariance(
@@ -200,9 +209,6 @@ class BaseLikelihood(object):
             **kwargs,
         )
 
-        likelihood.verify_covariance()
-
-        likelihood.prior = likelihood.initialize_prior()
         return likelihood
 
     def initialize_prior(
@@ -239,6 +245,24 @@ class BaseLikelihood(object):
             prior_function = partial(prior_sum, priors)
             return prior_function
 
+    def verify_covariance(self):
+        if isinstance(self.covariance, list):
+            for i in range(len(self.covariance)):
+                if self.covariance[i].full_matrix is False:
+                    self.covariance[i].compute_full_matrix()
+                if (self.covariance[i].compute_covariance_sum is None) or (
+                    self.covariance[i].compute_covariance_sum_jit is None
+                ):
+                    self.covariance[i].init_compute_covariance_sum()
+        else:
+            if self.covariance.full_matrix is False:
+                self.covariance.compute_full_matrix()
+            if (
+                self.covariance.compute_covariance_sum is None
+                or self.covariance.compute_covariance_sum_jit is None
+            ):
+                self.covariance.init_compute_covariance_sum()
+
 
 class MultivariateGaussianLikelihood(BaseLikelihood):
     def __init__(
@@ -246,43 +270,63 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         covariance=None,
         data=None,
         parameter_names=None,
-        prior=None,
         likelihood_properties={},
     ):
         super(MultivariateGaussianLikelihood, self).__init__(
             covariance=covariance,
             data=data,
             parameter_names=parameter_names,
-            prior=prior,
             likelihood_properties=likelihood_properties,
         )
 
-    def verify_covariance(self):
-        if self.covariance.full_matrix is False:
-            self.covariance.compute_full_matrix()
+    def _init_likelihood(self):
 
-    def __call__(self, parameter_values):
-        parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
+        use_jit = self.likelihood_properties["use_jit"]
 
-        vector, vector_variance = self.data(parameter_values_dict)
+        if jax_installed & use_jit:
+            suffix = "_jit"
+        else:
+            suffix = ""
 
-        covariance_sum = self.covariance.compute_covariance_sum(
-            parameter_values_dict,
-            vector_variance,
-            use_jit=self.likelihood_properties["use_jit"],
-        )
+        give_data_and_variance = eval(f"self.data.give_data_and_variance{suffix}")
+        compute_covariance_sum = eval(f"self.covariance.compute_covariance_sum{suffix}")
         likelihood_function = eval(
-            f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
-            + f"{'_jit' if jax_installed and self.likelihood_properties['use_jit'] else ''}"
+            f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}{suffix}"
         )
-        prior_value = self.prior(parameter_values_dict)
 
-        likelihood_value = likelihood_function(vector, covariance_sum) + prior_value
+        if jax_installed & use_jit:
+            prior = jit(self.prior)
+        else:
+            prior = self.prior
+
+        def likelihood_evaluation(parameter_values, neg_like=False):
+            parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
+            vector, vector_variance = give_data_and_variance(parameter_values_dict)
+            covariance_sum = compute_covariance_sum(
+                parameter_values_dict, vector_variance
+            )
+            likelihood_value = likelihood_function(vector, covariance_sum) + prior(
+                parameter_values_dict
+            )
+
+            if neg_like:
+                likelihood_value *= -1
+            return likelihood_value
 
         if self.likelihood_properties["negative_log_likelihood"]:
-            likelihood_value *= -1
+            neg_like = True
+        else:
+            neg_like = False
 
-        return likelihood_value
+        likelihood_fun = partial(likelihood_evaluation, neg_like=neg_like)
+        if jax_installed:
+            likelihood_grad = grad(likelihood_fun)
+            if use_jit:
+                likelihood_fun = jit(likelihood_fun)
+                likelihood_grad = jit(likelihood_grad)
+        else:
+            likelihood_grad = None
+        return likelihood_fun, likelihood_grad
 
 
 class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
@@ -291,7 +335,6 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         covariance=None,
         data=None,
         parameter_names=None,
-        prior=None,
         likelihood_properties={},
         interpolation_value_name=None,
         interpolation_value_range=None,
@@ -314,86 +357,112 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         Returns:
             The object itself
         """
+        self.interpolation_value_name = interpolation_value_name
+        self.interpolation_value_range = interpolation_value_range
 
         super(MultivariateGaussianLikelihoodInterpolate1D, self).__init__(
             covariance=covariance,
             data=data,
             parameter_names=parameter_names,
-            prior=prior,
             likelihood_properties=likelihood_properties,
         )
-        self.interpolation_value_name = interpolation_value_name
-        self.interpolation_value_range = interpolation_value_range
 
-        self.free_par.append(interpolation_value_name)
+        self.free_par = [interpolation_value_name] + self.free_par
 
-    def verify_covariance(self):
-        """
-        The verify_covariance function is used to ensure that the covariance matrix of each
-            parameter in the model has been computed. If it has not, then this function will compute
-            it and store it as a full matrix.
+    def _init_likelihood(self):
+        use_jit = self.likelihood_properties["use_jit"]
 
-        Args:
-            self: Bind the method to the object
+        if jax_installed & use_jit:
+            suffix = "_jit"
+        else:
+            suffix = ""
 
-        Returns:
-            Nothing
-        """
+        give_data_and_variance = eval(f"self.data.give_data_and_variance{suffix}")
+
+        compute_covariance_sum_list = []
         for i in range(len(self.covariance)):
-            if self.covariance[i].full_matrix is False:
-                self.covariance[i].compute_full_matrix()
+            compute_covariance_sum_list.append(
+                eval(f"self.covariance[{i}].compute_covariance_sum{suffix}")
+            )
 
-    def __call__(
-        self,
-        parameter_values,
-    ):
-        """
-        The __call__ function is the function that is called when you call an instance of a class.
-        For example, if you have a class named 'Foo' and create an instance of it like this:
-            foo = Foo()
-        then calling foo(x) will actually run the __call__ function in your Foo class with x as its argument.
-
-        Args:
-            self: Refer to the object itself
-            parameter_values: Pass the values of the parameters to be used in this evaluation
-            interpolation_value: Interpolate the covariance_sum
-
-        Returns:
-            The log likelihood value of the data vector given a set of parameters and an interpolation value
-        """
-        parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
-
-        interpolation_value = parameter_values_dict[self.interpolation_value_name]
-
-        if (interpolation_value < self.interpolation_value_range[0]) | (
-            interpolation_value > self.interpolation_value_range[-1]
-        ):
-            if self.likelihood_properties["negative_log_likelihood"]:
-                return np.inf
-            else:
-                return -np.inf
-
-        vector, vector_variance = self.data(parameter_values_dict)
-
-        covariance_sum = interpolate_covariance_sum_1d(
-            self.interpolation_value_range,
-            interpolation_value,
-            self.covariance,
-            parameter_values_dict,
-            vector_variance,
-        )
         likelihood_function = eval(
-            f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}"
-            + f"{'_jit' if jax_installed and self.likelihood_properties['use_jit'] else ''}"
+            f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}{suffix}"
         )
-        prior_value = self.prior(parameter_values_dict)
 
-        likelihood_value = likelihood_function(vector, covariance_sum) + prior_value
+        interpolation_value_range = self.interpolation_value_range
+        if jax_installed & use_jit:
+            prior = jit(self.prior)
+            interpolation_value_range = jnp.array(interpolation_value_range)
+        else:
+            prior = self.prior
+
+        def likelihood_evaluation(parameter_values, neg_like=False):
+            parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
+            interpolation_value = parameter_values_dict[self.interpolation_value_name]
+
+            prior_interpolation_range = jsc.stats.uniform.logpdf(
+                interpolation_value,
+                loc=interpolation_value_range[0],
+                scale=interpolation_value_range[-1] - interpolation_value_range[0],
+            )
+
+            vector, vector_variance = give_data_and_variance(parameter_values_dict)
+
+            # INTERPOLATION
+            upper_index = jnp.searchsorted(
+                interpolation_value_range, interpolation_value
+            )
+
+            covariance_sum_list = jnp.array(
+                [
+                    compute_covariance_sum(parameter_values_dict, vector_variance)
+                    for compute_covariance_sum in compute_covariance_sum_list
+                ]
+            )
+
+            covariance_sum_upper = covariance_sum_list[upper_index]
+
+            covariance_sum_lower = covariance_sum_list[upper_index - 1]
+
+            fraction_interpolation = (
+                interpolation_value_range[upper_index] - interpolation_value
+            )
+            fraction_interpolation /= (
+                interpolation_value_range[upper_index]
+                - interpolation_value_range[upper_index - 1]
+            )
+
+            covariance_sum = (
+                1 - fraction_interpolation
+            ) * covariance_sum_upper + fraction_interpolation * covariance_sum_lower
+            # END INTERPOLATION
+
+            likelihood_value = (
+                likelihood_function(vector, covariance_sum)
+                + prior(parameter_values_dict)
+                + prior_interpolation_range
+            )
+
+            if neg_like:
+                likelihood_value *= -1
+            return likelihood_value
 
         if self.likelihood_properties["negative_log_likelihood"]:
-            likelihood_value *= -1
+            neg_like = True
+        else:
+            neg_like = False
 
-        return likelihood_value
+        likelihood_fun = partial(likelihood_evaluation, neg_like=neg_like)
+
+        if jax_installed:
+            likelihood_grad = grad(likelihood_fun)
+            if use_jit:
+                likelihood_fun = jit(likelihood_fun)
+                likelihood_grad = jit(likelihood_grad)
+        else:
+            likelihood_grad = None
+
+        return likelihood_fun, likelihood_grad
 
 
 class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
@@ -438,12 +507,6 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
         self.interpolation_value_name_1 = interpolation_value_name_1
         self.interpolation_value_range_0 = interpolation_value_range_0
         self.interpolation_value_range_1 = interpolation_value_range_1
-
-    def verify_covariance(self):
-        for i in range(len(self.covariance)):
-            for j in range(len(self.covariance[i])):
-                if self.covariance[i][j].full_matrix is False:
-                    self.covariance[i][j].compute_full_matrix()
 
     def __call__(
         self,
@@ -539,7 +602,7 @@ class GaussianPrior(Prior):
         parameter_values_dict,
     ):
         return -0.5 * (
-            np.log(2 * np.pi * self.prior_standard_deviation**2)
+            np.log(2 * jnp.pi * self.prior_standard_deviation**2)
             + (parameter_values_dict[self.parameter_name] - self.prior_mean) ** 2
             / self.prior_standard_deviation**2
         )
@@ -557,10 +620,7 @@ class PositivePrior(Prior):
         self,
         parameter_values_dict,
     ):
-        if parameter_values_dict[self.parameter_name] < 0:
-            return -np.inf
-        else:
-            return 0
+        return jnp.log(jnp.heaviside(parameter_values_dict[self.parameter_name], 0))
 
 
 class UniformPrior(Prior):
@@ -574,7 +634,6 @@ class UniformPrior(Prior):
         parameter_values_dict,
     ):
         value = parameter_values_dict[self.parameter_name]
-        if (value < self.range[0]) | (value > self.range[1]):
-            return -np.inf
-        else:
-            return 0
+        return jsc.stats.uniform.logpdf(
+            value, loc=self.range[0], scale=self.range[1] - self.range[0]
+        )

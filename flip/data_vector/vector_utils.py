@@ -5,11 +5,20 @@ from scipy.sparse import coo_array
 
 import flip.utils as utils
 
-try:
-    import jax.numpy as jnp
+from ..config import __use_jax__
 
-    jax_installed = True
-except ImportError:
+if __use_jax__:
+    try:
+        import jax.numpy as jnp
+
+        jax_installed = True
+
+    except ImportError:
+        import numpy as jnp
+
+        jax_installed = False
+else:
+
     import numpy as jnp
 
     jax_installed = False

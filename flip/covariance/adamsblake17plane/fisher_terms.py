@@ -2,27 +2,27 @@ import numpy as np
 
 
 def get_partial_derivative_coefficients(
-    model_type,
+    model_kind,
     parameter_values_dict,
     variant=None,
     redshift_dict=None,
 ):
-    if model_type == "density":
+    if model_kind == "density":
         return get_partial_derivative_coefficients_density(
             parameter_values_dict,
             variant=variant,
         )
-    elif model_type == "velocity":
+    elif model_kind == "velocity":
         return get_partial_derivative_coefficients_velocity(
             parameter_values_dict,
             variant=variant,
         )
-    elif model_type == "density_velocity":
+    elif model_kind == "density_velocity":
         return get_partial_derivative_coefficients_density_velocity(
             parameter_values_dict,
             variant=variant,
         )
-    elif model_type == "full":
+    elif model_kind == "full":
         return get_partial_derivative_coefficients_full(
             parameter_values_dict,
             variant=variant,

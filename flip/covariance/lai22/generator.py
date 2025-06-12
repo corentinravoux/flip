@@ -747,7 +747,7 @@ def compute_all_matrices(
 
 
 def generate_covariance(
-    model_type,
+    model_kind,
     power_spectrum_dict,
     coordinates_velocity=None,
     coordinates_density=None,
@@ -759,7 +759,7 @@ def generate_covariance(
     The generate_covariance function generates the covariance matrix for a given model type.
 
     Args:
-        model_type: Determine which covariance matrices are computed
+        model_kind: Determine which covariance matrices are computed
         power_spectrum_dict: Pass the power spectrum of the density and velocity fields
         coordinates_velocity: Pass the coordinates of the velocity field
         coordinates_density: Define the coordinates of the density field
@@ -776,13 +776,13 @@ def generate_covariance(
     los_definition = "bisector"
 
     cov_utils.check_generator_need(
-        model_type,
+        model_kind,
         coordinates_density,
         coordinates_velocity,
     )
     covariance_dict = {}
 
-    if model_type in ["density", "full", "density_velocity"]:
+    if model_kind in ["density", "full", "density_velocity"]:
         covariance_dict["gg"] = compute_cov_gg(
             pmax,
             qmax,
@@ -802,7 +802,7 @@ def generate_covariance(
     else:
         number_densities = None
 
-    if model_type in ["velocity", "full", "density_velocity"]:
+    if model_kind in ["velocity", "full", "density_velocity"]:
         covariance_dict["vv"] = compute_cov_vv(
             coordinates_velocity[0],
             coordinates_velocity[1],
@@ -816,7 +816,7 @@ def generate_covariance(
     else:
         number_velocities = None
 
-    if model_type == "full":
+    if model_kind == "full":
         covariance_dict["gv"] = compute_cov_gv(
             pmax,
             coordinates_density[0],

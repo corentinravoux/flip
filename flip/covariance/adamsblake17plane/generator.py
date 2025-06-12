@@ -170,7 +170,7 @@ def covariance_gg(
 
 
 def generate_covariance(
-    model_type,
+    model_kind,
     power_spectrum_dict,
     coordinates_velocity=None,
     coordinates_density=None,
@@ -180,7 +180,7 @@ def generate_covariance(
     The generate_covariance function generates the covariance matrix for a given model type, power spectrum, and coordinates.
 
     Args:
-        model_type: Determine which covariance matrices are generated, and the coordinates_density and coordinates_velocity parameters are used to generate the covariance matrices
+        model_kind: Determine which covariance matrices are generated, and the coordinates_density and coordinates_velocity parameters are used to generate the covariance matrices
         power_spectrum_dict: Pass the power spectrum to the function
         coordinates_velocity: Define the coordinates of the velocity field
         coordinates_density: Define the coordinates of the density field
@@ -195,13 +195,13 @@ def generate_covariance(
         Trelent
     """
     cov_utils.check_generator_need(
-        model_type,
+        model_kind,
         coordinates_density,
         coordinates_velocity,
     )
     covariance_dict = {}
 
-    if model_type in ["density", "full", "density_velocity"]:
+    if model_kind in ["density", "full", "density_velocity"]:
         covariance_dict["gg"] = np.array(
             [
                 covariance_gg(
@@ -218,7 +218,7 @@ def generate_covariance(
     else:
         number_densities = None
 
-    if model_type in ["velocity", "full", "density_velocity"]:
+    if model_kind in ["velocity", "full", "density_velocity"]:
         covariance_dict["vv"] = np.array(
             [
                 covariance_vv(
@@ -235,7 +235,7 @@ def generate_covariance(
     else:
         number_velocities = None
 
-    if model_type == "full":
+    if model_kind == "full":
         covariance_dict["gv"] = np.array(
             [
                 covariance_gv(

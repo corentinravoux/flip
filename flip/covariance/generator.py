@@ -464,13 +464,14 @@ def compute_coeficient(
     lmax_list = eval(f"flip_terms_{model_name}.dictionary_lmax")[covariance_type]
     multi_index_model = eval(f"flip_terms_{model_name}.multi_index_model")
 
+    function_covariance_dict = {}
     for i, index in enumerate(term_index_list):
         if multi_index_model:
             index_power_spectrum = int(index[0])
         else:
             index_power_spectrum = i
 
-        locals()[f"func_{index}"] = partial(
+        function_covariance_dict[f"func_{index}"] = partial(
             coefficient,
             model_name,
             covariance_type,
@@ -483,19 +484,22 @@ def compute_coeficient(
         )
     if number_worker == 1:
         for i, index in enumerate(term_index_list):
-            loc = locals()
-            locals()[f"cov_{index}"] = np.concatenate(
-                [eval(f"func_{index}", loc)(param) for param in parameters]
+            function_covariance_dict[f"cov_{index}"] = np.concatenate(
+                [
+                    function_covariance_dict[f"func_{index}"](param)
+                    for param in parameters
+                ]
             )
     else:
         with mp.Pool(number_worker) as pool:
             for i, index in enumerate(term_index_list):
-                locals()[f"map_async_{index}"] = pool.map_async(
-                    eval(f"func_{index}"), parameters
+                function_covariance_dict[f"map_async_{index}"] = pool.map_async(
+                    function_covariance_dict[f"func_{index}"],
+                    parameters,
                 )
             for i, index in enumerate(term_index_list):
-                locals()[f"cov_{index}"] = np.concatenate(
-                    eval(f"map_async_{index}").get()
+                function_covariance_dict[f"cov_{index}"] = np.concatenate(
+                    function_covariance_dict[f"map_async_{index}"].get()
                 )
 
     # In the case of autocorrelation, add the theoretical variance.
@@ -516,11 +520,17 @@ def compute_coeficient(
                 additional_parameters_values=additional_parameters_values,
             )[0]
 
-            locals()[f"cov_{index}"] = np.insert(eval(f"cov_{index}"), 0, variance_t)
+            function_covariance_dict[f"cov_{index}"] = np.insert(
+                function_covariance_dict[f"cov_{index}"],
+                0,
+                variance_t,
+            )
 
-    loc = locals()
     return np.array(
-        [eval(f"cov_{index}", loc) for _, index in enumerate(term_index_list)]
+        [
+            function_covariance_dict[f"cov_{index}"]
+            for _, index in enumerate(term_index_list)
+        ]
     )
 
 

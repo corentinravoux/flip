@@ -778,8 +778,9 @@ def compute_partial_derivative_dictionnary(
         Trelent
     """
 
+    parameter_symbolic_dict = {}
     for param in all_parameters:
-        locals()[param] = sy.symbols(
+        parameter_symbolic_dict[param] = sy.symbols(
             f'parameter_values_dict["{param}"]', positive=True, finite=True, real=True
         )
 
@@ -793,7 +794,9 @@ def compute_partial_derivative_dictionnary(
                 model = eval(coefficient_models[i][component])
                 for j in range(len(model)):
                     derivative = (
-                        derivative + pycode(sy.diff(model[j], eval(parameter))) + ","
+                        derivative
+                        + pycode(sy.diff(model[j], parameter_symbolic_dict[parameter]))
+                        + ","
                     )
                 derivative = derivative + "]"
                 partial_derivative_dictionnary[parameter][component] = derivative

@@ -159,8 +159,9 @@ def compute_cov_gg(
     m_index = np.arange(0, 2 * (qmax + pmax) + 1, 2)
     iter_pq = np.array(list(itertools.product(p_index, q_index)))
     sum_iter_pq = 2 * np.sum(iter_pq, axis=1)
+    function_covariance_dict = {}
     for m in m_index:
-        locals()[f"func_gg_b2_{m}"] = partial(
+        function_covariance_dict[f"func_gg_b2_{m}"] = partial(
             coefficient_gg_b2_m,
             wavenumber_mm,
             power_spectrum_mm,
@@ -170,7 +171,7 @@ def compute_cov_gg(
             sig_damp_mm_gg_m,
             hankel=hankel,
         )
-        locals()[f"func_gg_f2_{m}"] = partial(
+        function_covariance_dict[f"func_gg_f2_{m}"] = partial(
             coefficient_gg_f2_m,
             wavenumber_tt,
             power_spectrum_tt,
@@ -179,7 +180,7 @@ def compute_cov_gg(
             m,
             hankel=hankel,
         )
-        locals()[f"func_gg_bf_{m}"] = partial(
+        function_covariance_dict[f"func_gg_bf_{m}"] = partial(
             coefficient_gg_bf_m,
             wavenumber_mt,
             power_spectrum_mt,
@@ -191,38 +192,46 @@ def compute_cov_gg(
 
     if number_worker == 1:
         for m in m_index:
-            loc = locals()
-            locals()[f"cov_gg_b2_{m}"] = np.concatenate(
-                [eval(f"func_gg_b2_{m}", loc)(param) for param in parameters]
+            function_covariance_dict[f"cov_gg_b2_{m}"] = np.concatenate(
+                [
+                    function_covariance_dict[f"func_gg_b2_{m}"](param)
+                    for param in parameters
+                ]
             )
-            locals()[f"cov_gg_f2_{m}"] = np.concatenate(
-                [eval(f"func_gg_f2_{m}", loc)(param) for param in parameters]
+            function_covariance_dict[f"cov_gg_f2_{m}"] = np.concatenate(
+                [
+                    function_covariance_dict[f"func_gg_f2_{m}"](param)
+                    for param in parameters
+                ]
             )
-            locals()[f"cov_gg_bf_{m}"] = np.concatenate(
-                [eval(f"func_gg_bf_{m}", loc)(param) for param in parameters]
+            function_covariance_dict[f"cov_gg_bf_{m}"] = np.concatenate(
+                [
+                    function_covariance_dict[f"func_gg_bf_{m}"](param)
+                    for param in parameters
+                ]
             )
     else:
         with mp.Pool(number_worker) as pool:
             for m in m_index:
-                locals()[f"map_async_gg_b2_{m}"] = pool.map_async(
-                    eval(f"func_gg_b2_{m}"), parameters
+                function_covariance_dict[f"map_async_gg_b2_{m}"] = pool.map_async(
+                    function_covariance_dict[f"func_gg_b2_{m}"], parameters
                 )
-                locals()[f"map_async_gg_f2_{m}"] = pool.map_async(
-                    eval(f"func_gg_f2_{m}"), parameters
+                function_covariance_dict[f"map_async_gg_f2_{m}"] = pool.map_async(
+                    function_covariance_dict[f"func_gg_f2_{m}"], parameters
                 )
-                locals()[f"map_async_gg_bf_{m}"] = pool.map_async(
-                    eval(f"func_gg_bf_{m}"), parameters
+                function_covariance_dict[f"map_async_gg_bf_{m}"] = pool.map_async(
+                    function_covariance_dict[f"func_gg_bf_{m}"], parameters
                 )
 
             for m in m_index:
-                locals()[f"cov_gg_b2_{m}"] = np.concatenate(
-                    eval(f"map_async_gg_b2_{m}").get()
+                function_covariance_dict[f"cov_gg_b2_{m}"] = np.concatenate(
+                    function_covariance_dict[f"map_async_gg_b2_{m}"].get()
                 )
-                locals()[f"cov_gg_f2_{m}"] = np.concatenate(
-                    eval(f"map_async_gg_f2_{m}").get()
+                function_covariance_dict[f"cov_gg_f2_{m}"] = np.concatenate(
+                    function_covariance_dict[f"map_async_gg_f2_{m}"].get()
                 )
-                locals()[f"cov_gg_bf_{m}"] = np.concatenate(
-                    eval(f"map_async_gg_bf_{m}").get()
+                function_covariance_dict[f"cov_gg_bf_{m}"] = np.concatenate(
+                    function_covariance_dict[f"map_async_gg_bf_{m}"].get()
                 )
 
     for m in m_index:
@@ -257,20 +266,19 @@ def compute_cov_gg(
             hankel=False,
         )  # does not work with hankel
 
-        locals()[f"cov_gg_b2_{m}"] = np.insert(
-            eval(f"cov_gg_b2_{m}"), 0, variance_val_gg_b2_m
+        function_covariance_dict[f"cov_gg_b2_{m}"] = np.insert(
+            function_covariance_dict[f"cov_gg_b2_{m}"], 0, variance_val_gg_b2_m
         )
-        locals()[f"cov_gg_f2_{m}"] = np.insert(
-            eval(f"cov_gg_f2_{m}"), 0, variance_val_gg_f2_m
+        function_covariance_dict[f"cov_gg_f2_{m}"] = np.insert(
+            function_covariance_dict[f"cov_gg_f2_{m}"], 0, variance_val_gg_f2_m
         )
-        locals()[f"cov_gg_bf_{m}"] = np.insert(
-            eval(f"cov_gg_bf_{m}"), 0, variance_val_gg_bf_m
+        function_covariance_dict[f"cov_gg_bf_{m}"] = np.insert(
+            function_covariance_dict[f"cov_gg_bf_{m}"], 0, variance_val_gg_bf_m
         )
 
-    loc = locals()
-    cov_gg_b2 = [eval(f"cov_gg_b2_{m}", loc) for m in m_index]
-    cov_gg_f2 = [eval(f"cov_gg_f2_{m}", loc) for m in m_index]
-    cov_gg_bf = [eval(f"cov_gg_bf_{m}", loc) for m in m_index]
+    cov_gg_b2 = [function_covariance_dict[f"cov_gg_b2_{m}"] for m in m_index]
+    cov_gg_f2 = [function_covariance_dict[f"cov_gg_f2_{m}"] for m in m_index]
+    cov_gg_bf = [function_covariance_dict[f"cov_gg_bf_{m}"] for m in m_index]
 
     return m_index, cov_gg_b2, cov_gg_f2, cov_gg_bf
 
@@ -311,8 +319,9 @@ def compute_cov_gg_add(
     m_index = np.arange(0, 2 * (qmax + pmax) + 1, 2)
     iter_pq = np.array(list(itertools.product(p_index, q_index)))
     sum_iter_pq = 2 * np.sum(iter_pq, axis=1)
+    function_covariance_dict = {}
     for m in m_index:
-        locals()[f"func_gg_b2_{m}"] = partial(
+        function_covariance_dict[f"func_gg_b2_{m}"] = partial(
             coefficient_gg_b2_m,
             wavenumber_mm,
             power_spectrum_mm,
@@ -325,20 +334,22 @@ def compute_cov_gg_add(
 
     if number_worker == 1:
         for m in m_index:
-            loc = locals()
-            locals()[f"cov_gg_b2_{m}"] = np.concatenate(
-                [eval(f"func_gg_b2_{m}", loc)(param) for param in parameters]
+            function_covariance_dict[f"cov_gg_b2_{m}"] = np.concatenate(
+                [
+                    function_covariance_dict[f"func_gg_b2_{m}"](param)
+                    for param in parameters
+                ]
             )
     else:
         with mp.Pool(number_worker) as pool:
             for m in m_index:
-                locals()[f"map_async_gg_b2_{m}"] = pool.map_async(
-                    eval(f"func_gg_b2_{m}"), parameters
+                function_covariance_dict[f"map_async_gg_b2_{m}"] = pool.map_async(
+                    function_covariance_dict[f"func_gg_b2_{m}"], parameters
                 )
 
             for m in m_index:
-                locals()[f"cov_gg_b2_{m}"] = np.concatenate(
-                    eval(f"map_async_gg_b2_{m}").get()
+                function_covariance_dict[f"cov_gg_b2_{m}"] = np.concatenate(
+                    function_covariance_dict[f"map_async_gg_b2_{m}"].get()
                 )
 
     for m in m_index:
@@ -353,12 +364,11 @@ def compute_cov_gg_add(
             hankel=False,
         )
 
-        locals()[f"cov_gg_b2_{m}"] = np.insert(
-            eval(f"cov_gg_b2_{m}"), 0, variance_val_gg_b2_m
+        function_covariance_dict[f"cov_gg_b2_{m}"] = np.insert(
+            function_covariance_dict[f"cov_gg_b2_{m}"], 0, variance_val_gg_b2_m
         )
 
-    loc = locals()
-    cov_gg_b2_add = [eval(f"cov_gg_b2_{m}", loc) for m in m_index]
+    cov_gg_b2_add = [function_covariance_dict[f"cov_gg_b2_{m}"] for m in m_index]
 
     return m_index, cov_gg_b2_add
 
@@ -517,15 +527,16 @@ def compute_cov_gv(
     cov_gv_bf = []
     p_index = np.arange(pmax + 1)
     m_index = 2 * p_index
+    function_covariance_dict = {}
     for p in p_index:
-        locals()[f"func_gv_f2_{p}"] = partial(
+        function_covariance_dict[f"func_gv_f2_{p}"] = partial(
             coefficient_gv_f2_p,
             wavenumber_tt,
             power_spectrum_tt,
             p,
             hankel=hankel,
         )
-        locals()[f"func_gv_bf_{p}"] = partial(
+        function_covariance_dict[f"func_gv_bf_{p}"] = partial(
             coefficient_gv_bf_p,
             wavenumber_mt,
             power_spectrum_mt,
@@ -534,39 +545,47 @@ def compute_cov_gv(
         )
     if number_worker == 1:
         for p in p_index:
-            loc = locals()
-            locals()[f"cov_gv_f2_{p}"] = np.concatenate(
-                [eval(f"func_gv_f2_{p}", loc)(param) for param in parameters]
+            function_covariance_dict[f"cov_gv_f2_{p}"] = np.concatenate(
+                [
+                    function_covariance_dict[f"func_gv_f2_{p}"](param)
+                    for param in parameters
+                ]
             )
-            locals()[f"cov_gv_bf_{p}"] = np.concatenate(
-                [eval(f"func_gv_bf_{p}", loc)(param) for param in parameters]
+            function_covariance_dict[f"cov_gv_bf_{p}"] = np.concatenate(
+                [
+                    function_covariance_dict[f"func_gv_bf_{p}"](param)
+                    for param in parameters
+                ]
             )
     else:
         with mp.Pool(number_worker) as pool:
             for p in p_index:
-                locals()[f"map_async_gv_f2_{p}"] = pool.map_async(
-                    eval(f"func_gv_f2_{p}"), parameters
+                function_covariance_dict[f"map_async_gv_f2_{p}"] = pool.map_async(
+                    function_covariance_dict[f"func_gv_f2_{p}"], parameters
                 )
-                locals()[f"map_async_gv_bf_{p}"] = pool.map_async(
-                    eval(f"func_gv_bf_{p}"), parameters
+                function_covariance_dict[f"map_async_gv_bf_{p}"] = pool.map_async(
+                    function_covariance_dict[f"func_gv_bf_{p}"], parameters
                 )
 
             for p in p_index:
-                locals()[f"cov_gv_f2_{p}"] = np.concatenate(
-                    eval(f"map_async_gv_f2_{p}").get()
+                function_covariance_dict[f"cov_gv_f2_{p}"] = np.concatenate(
+                    function_covariance_dict[f"map_async_gv_f2_{p}"].get()
                 )
-                locals()[f"cov_gv_bf_{p}"] = np.concatenate(
-                    eval(f"map_async_gv_bf_{p}").get()
+                function_covariance_dict[f"cov_gv_bf_{p}"] = np.concatenate(
+                    function_covariance_dict[f"map_async_gv_bf_{p}"].get()
                 )
 
     for p in p_index:
         # Multiplication by H_0
-        locals()[f"cov_gv_f2_{p}"] = 100 * eval(f"cov_gv_f2_{p}")
-        locals()[f"cov_gv_bf_{p}"] = 100 * eval(f"cov_gv_bf_{p}")
+        function_covariance_dict[f"cov_gv_f2_{p}"] = (
+            100 * function_covariance_dict[f"cov_gv_f2_{p}"]
+        )
+        function_covariance_dict[f"cov_gv_bf_{p}"] = (
+            100 * function_covariance_dict[f"cov_gv_bf_{p}"]
+        )
 
-    loc = locals()
-    cov_gv_f2 = [eval(f"cov_gv_f2_{p}", loc) for p in p_index]
-    cov_gv_bf = [eval(f"cov_gv_bf_{p}", loc) for p in p_index]
+    cov_gv_f2 = [function_covariance_dict[f"cov_gv_f2_{p}"] for p in p_index]
+    cov_gv_bf = [function_covariance_dict[f"cov_gv_bf_{p}"] for p in p_index]
 
     return m_index, cov_gv_f2, cov_gv_bf
 

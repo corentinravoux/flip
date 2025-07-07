@@ -3,7 +3,7 @@ def get_coefficients(
     model_kind,
     variant=None,
     redshift_dict=None,
-)::
+):
     coefficients_dict = {}
     if model_kind in ["density", "full", "density_velocity"]:
         coefficients_dict["gg"] = [

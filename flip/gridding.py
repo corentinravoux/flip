@@ -465,6 +465,7 @@ def grid_data_density(
 def cut_grid(
     grid,
     remove_nan_density=True,
+    remove_empty_cells=False,
     n_cut=None,
     weight_min=None,
     rcom_max=None,
@@ -509,6 +510,9 @@ def cut_grid(
             mask &= ~(np.isnan(grid["density"]))
         if "density_err" in grid:
             mask &= ~(np.isnan(grid["density_err"]))
+    if remove_empty_cells:
+        if "N_in_cell" in grid:
+            mask &= ~(grid["N_in_cell"].astype(int)==0)
     if remove_origin:
         mask = mask & ((grid["x"] != 0.0) | (grid["y"] != 0.0) | (grid["z"] != 0.0))
     for field in grid:
@@ -671,7 +675,167 @@ def grid_data_density_pypower(
 
     return grid
 
+def grid_data_velocity_pypower(
+    raobj,
+    decobj,
+    rcomobj,
+    rcom_max,
+    variance,
+    velocity,
+    grid_size,
+    grid_type,
+    kind,
+    interlacing=0,
+    compensate=False,
+    overhead=20,
+):
+    """
+    The grid_data_velocity_pypower function takes in the ra, dec, rcom, variance, and velocity values of a velocity catalog
+    and returns a grid of variance and velocities. The function uses pypower to create the grid.
 
+
+    Args:
+        raobj: Pass the ra values of the data
+        decobj: Calculate the z coordinate of the object in cartesian coordinates
+        rcomobj: Calculate the comoving distance of each galaxy
+        rcom_max: Cut the grid in a sphere of radius rcom_max
+        variance: variance of the data points
+        velocity: veloctity of the data
+        grid_size: Determine the size of each cell in the grid
+        grid_type: Determine whether to use a rectangular or spherical grid
+        kind: Set the resampler in the catalogmesh function
+        Nrandom: Determine the number of random points to be generated
+        random_method: Choose the method used to generate random points
+        interlacing: Reduce the variance of the density field
+        compensate: Correct for the fact that we are using a finite number of random points
+        : Remove the nan values from the grid
+
+    Returns:
+        A dictionary with the grid coordinates and density contrast values
+
+    """
+    xobj, yobj, zobj = utils.radec2cart(rcomobj, raobj, decobj)
+    mask = np.abs(xobj) < rcom_max + overhead
+    mask &= np.abs(yobj) < rcom_max + overhead
+    mask &= np.abs(zobj) < rcom_max + overhead
+    xobj, yobj, zobj = xobj[mask], yobj[mask], zobj[mask]
+    raobj, decobj, rcomobj = raobj[mask], decobj[mask], rcomobj[mask]
+
+
+    data_positions = np.array([xobj, yobj, zobj]).T
+    count_weights = np.ones((data_positions.shape[0],))
+
+    
+
+    catalog_mesh_var =  CatalogMesh(
+        data_positions=data_positions,
+        data_weights=variance,
+        interlacing=interlacing,
+        boxsize=2 * (rcom_max + overhead),
+        boxcenter=0.0,
+        cellsize=grid_size,
+        resampler=kind,
+        position_type="pos",
+    )
+    catalog_mesh_count = CatalogMesh(
+        data_positions=data_positions,
+        data_weights=count_weights,
+        interlacing=interlacing,
+        boxsize=2 * (rcom_max + overhead),
+        boxcenter=0.0,
+        cellsize=grid_size,
+        resampler=kind,
+        position_type="pos",
+    )
+    if type(velocity)!=type(None):
+        weights_weighted_mean = velocity/variance
+        catalog_mesh_weighted_vel = CatalogMesh(
+            data_positions=data_positions,
+            data_weights=weights_weighted_mean,
+            interlacing=interlacing ,
+            boxsize=2 * (rcom_max + overhead),
+            boxcenter=0.0,
+            cellsize=grid_size,
+            resampler=kind,
+            position_type="pos",
+        )
+        catalog_mesh_invvar =  CatalogMesh(
+            data_positions=data_positions,
+            data_weights=1/variance,
+            interlacing=interlacing,
+            boxsize=2 * (rcom_max + overhead),
+            boxcenter=0.0,
+            cellsize=grid_size,
+            resampler=kind,
+            position_type="pos",
+        )
+    mesh_var = catalog_mesh_var.to_mesh(field="data", compensate=compensate)
+    mesh_count = catalog_mesh_count.to_mesh(field="data")
+    N_in_cell=np.ravel(mesh_count.value)
+    variance_grid=np.ravel(mesh_var.value)  /(N_in_cell**2) #*N_in_cell/np.abs(N_in_cell)
+    if type(velocity)!=type(None):
+        mesh_weighted_vel= catalog_mesh_weighted_vel.to_mesh(field="data", compensate=compensate)
+        mesh_invvar=catalog_mesh_invvar.to_mesh(field="data", compensate=compensate)
+        velocity_grid=np.ravel(mesh_weighted_vel.value)/np.ravel(mesh_invvar.value)
+    else:
+        velocity_grid=None
+
+    coord_mesh = np.array(
+        np.meshgrid(
+            np.sort(mesh_var.x[0][:, 0, 0]),
+            np.sort(mesh_var.x[1][0, :, 0]),
+            np.sort(mesh_var.x[2][0, 0, :]),
+            indexing="ij",
+        )
+    )
+    xgrid = np.ravel(coord_mesh[0, :, :, :]) + grid_size / 2
+    ygrid = np.ravel(coord_mesh[1, :, :, :]) + grid_size / 2
+    zgrid = np.ravel(coord_mesh[2, :, :, :]) + grid_size / 2
+    rcomgrid, ragrid, decgrid = utils.cart2radec(xgrid, ygrid, zgrid)
+    if type(velocity)!=type(None):
+        grid = {
+            "x": xgrid,
+            "y": ygrid,
+            "z": zgrid,
+            "ra": ragrid,
+            "dec": decgrid,
+            "rcom": rcomgrid,
+            "velocity": velocity_grid,
+            "velocity_variance":variance_grid,
+            "N_in_cell":N_in_cell
+        }
+    else:
+        grid = {
+            "x": xgrid,
+            "y": ygrid,
+            "z": zgrid,
+            "ra": ragrid,
+            "dec": decgrid,
+            "rcom": rcomgrid,
+            "velocity_variance":variance_grid,
+            "N_in_cell":N_in_cell
+        }
+    if grid_type == "rect":
+        cut_grid(
+            grid,
+            remove_nan_density=True,
+            remove_empty_cells=True,
+            xmax=rcom_max,
+            ymax=rcom_max,
+            zmax=rcom_max,
+            remove_origin=True,
+        )
+
+    if grid_type == "sphere":
+        cut_grid(
+            grid,
+            remove_nan_density=True,
+            remove_empty_cells=True,
+            rcom_max=rcom_max,
+            remove_origin=True,
+        )
+
+    return grid
 # CR - First try unconnecting pypower
 
 

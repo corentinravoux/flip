@@ -277,6 +277,21 @@ class VelFromHDres(DirectVel):
         super().__init__(data, covariance_observation=covariance_observation)
 
 
+class FisherVelMesh(DataVector):
+    _kind = "velocity"
+    _needed_keys = ["zobs", "ra", "dec", "rcom_zobs"]
+
+    def _give_data_and_variance(self, parameter_values_dict):
+        variance = self.data["velocity_variance"]
+        return self._distance_modulus_difference_to_velocity**2 * variance
+
+    def __init__(self, data, velocity_estimator="full", **kwargs):
+        super().__init__(data)
+        self._distance_modulus_difference_to_velocity = (
+            vector_utils.redshift_dependence_velocity(
+                self._data, velocity_estimator, **kwargs
+            )
+        )
 class FisherVelFromHDres(DataVector):
     _kind = "velocity"
     _needed_keys = ["zobs", "ra", "dec", "rcom_zobs"]

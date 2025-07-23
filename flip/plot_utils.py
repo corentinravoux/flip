@@ -255,6 +255,7 @@ def plot_all_mean_fits(
     remove_lower=None,
     remove_higher=None,
     plot=True,
+    use_minos=False,
     **kwargs,
 ):
 
@@ -317,15 +318,33 @@ def plot_all_mean_fits(
                 ]
             else:
                 params = [fits[i][0][param_name] for i in range(len(fits))]
-                errors = [fits[i][2][param_name] for i in range(len(fits))]
+                if use_minos:
+                    names = [fits[0][3][i].name for i in range(len(fits[0][3]))]
+                    index = np.argwhere(np.array(names) == param_name)
+                    errors = [
+                        [abs(fits[i][3][index].lower) for i in range(len(fits))],
+                        [abs(fits[i][3][index].upper) for i in range(len(fits))],
+                    ]
+                else:
+                    errors = [fits[i][2][param_name] for i in range(len(fits))]
             if weighted_mean:
                 mean_param = np.average(
                     params, weights=[1 / (error**2) for error in errors]
                 )
             else:
                 mean_param = np.mean(params)
-            error_mean_param = np.mean(errors) / np.sqrt(len(mask[mask]))
-            mean_error_param = np.mean(errors)
+            if use_minos:
+                error_mean_param = [
+                    [np.mean(errors[0]) / np.sqrt(len(mask[mask]))],
+                    [np.mean(errors[1]) / np.sqrt(len(mask[mask]))],
+                ]
+                mean_error_param = [
+                    [np.mean(errors[0])],
+                    [np.mean(errors[1])],
+                ]
+            else:
+                error_mean_param = np.mean(errors) / np.sqrt(len(mask[mask]))
+                mean_error_param = np.mean(errors)
             std_param = np.std(params)
             count = len(params)
 

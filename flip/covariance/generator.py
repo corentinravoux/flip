@@ -106,7 +106,7 @@ def correlation_hankel(l, r, k, integrand, hankel_overhead_coefficient=2, kmin=N
 def coefficient_hankel(
     model_name,
     covariance_type,
-    term_index,
+    n,
     lmax,
     wavenumber,
     power_spectrum,
@@ -137,41 +137,40 @@ def coefficient_hankel(
         The covariance of the a-th and b-th terms
 
     """
-    cov_ab_i = 0
+    cov_ab_n = 0
     flip_terms = eval(f"flip_terms_{model_name}")
     flip_terms.set_backend("numpy")
     dictionary_subterms = flip_terms.dictionary_subterms
     regularize_M_terms = flip_terms.regularize_M_terms
-    Z_ab_i = 1
-    if eval(f"flip_terms.redshift_dependent_model"):
-        Z_ab_i = eval(f"flip_terms.Z_{covariance_type}_{term_index}")(
-            wavenumber, coord[3], coord[4], *additional_parameters_values
-        )  # Shape issue: Z_ab_i is an outer product. How to include that in the Hankel transform?
+    # Z_ab_i = 1
+    # if eval(f"flip_terms.redshift_dependent_model"):
+    #     Z_ab_i = eval(f"flip_terms.Z_{covariance_type}_{term_index}")(
+    #         wavenumber, coord[3], coord[4], *additional_parameters_values
+    #     )  # Shape issue: Z_ab_i is an outer product. How to include that in the Hankel transform?
     for l in range(lmax + 1):
-        number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
-        for j in range(number_terms):
-            M_ab_i_l_j = eval(f"flip_terms.M_{covariance_type}_{term_index}_{l}_{j}")
-            M_ab_i_l_j_evaluated = regularize_M(
-                M_ab_i_l_j,
+        number_l1_l2_terms = dictionary_subterms[f"{covariance_type}_{n}_{l}"]
+        for l1_l2 in range(number_l1_l2_terms):
+            M_ab_n_l_l1_l2 = eval(f"flip_terms.M_{covariance_type}_{n}_{l}_{l1_l2}")
+            M_ab_n_l_l1_l2_evaluated = regularize_M(
+                M_ab_n_l_l1_l2,
                 wavenumber,
                 regularize_M_terms,
                 covariance_type,
                 flip_terms,
                 additional_parameters_values,
             )
-            M_ab_i_l_j_evaluated = M_ab_i_l_j_evaluated * Z_ab_i
-            N_ab_i_l_j = eval(f"flip_terms.N_{covariance_type}_{term_index}_{l}_{j}")(
+            N_ab_n_l_l1_l2 = eval(f"flip_terms.N_{covariance_type}_{n}_{l}_{l1_l2}")(
                 coord[1], coord[2]
             )
-            hankel_ab_i_l_j = correlation_hankel(
+            hankel_ab_n_l_l1_l2 = correlation_hankel(
                 l,
                 coord[0],
                 wavenumber,
-                M_ab_i_l_j_evaluated * power_spectrum,
+                M_ab_n_l_l1_l2_evaluated * power_spectrum,
                 **kwargs,
             )
-            cov_ab_i = cov_ab_i + N_ab_i_l_j * hankel_ab_i_l_j
-    return cov_ab_i
+            cov_ab_n += N_ab_n_l_l1_l2 * hankel_ab_n_l_l1_l2
+    return cov_ab_n
 
 
 def coefficient_trapz(

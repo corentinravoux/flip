@@ -96,5 +96,5 @@ dictionary_subterms = {
     "vv_2_2": 1,
 }
 multi_index_model = False
-redshift_dependent_model = False
+redshift_dependent_model = True
 regularize_M_terms = None

@@ -9,21 +9,9 @@ from scipy import integrate
 from scipy.signal import savgol_filter
 from scipy.special import spherical_jn
 
-from flip.covariance import cov_utils
+from flip.covariance import cov_utils, __available_models__
 
-_avail_models = [
-    "adamsblake17plane",
-    "adamsblake17",
-    "adamsblake20",
-    "lai22",
-    "carreres23",
-    "ravouxcarreres",
-    "ravouxnoanchor25",
-    "rcrk24",
-    "genericzdep"
-]
-
-for model_name in _avail_models:
+for model_name in __available_models__:
     globals()[f"flip_terms_" + model_name] = importlib.import_module("flip.covariance." + model_name + ".flip_terms")
     
 from flip.utils import create_log
@@ -566,10 +554,10 @@ def compute_cov(
         The covariance matrix for a given model and set of parameters
 
     """
-    if model_name not in _avail_models:
+    if model_name not in __available_models__:
         log.add(
             f"Model {model_name} not available."
-            f"Please choose between: {_avail_models}"
+            f"Please choose between: {__available_models__}"
         )
 
     parameters = compute_coordinates(

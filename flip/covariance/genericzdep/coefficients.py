@@ -8,6 +8,7 @@ def get_coefficients(
     redshift_dict=None,
 ):
     coefficients_dict = {}
+    coefficients_dict["vv"] = []
     return coefficients_dict
 
 

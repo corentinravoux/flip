@@ -1,5 +1,6 @@
 import multiprocessing as mp
 from functools import partial
+import importlib 
 
 import cosmoprimo
 import mpmath
@@ -9,17 +10,7 @@ from scipy.signal import savgol_filter
 from scipy.special import spherical_jn
 
 from flip.covariance import cov_utils
-from flip.covariance.adamsblake17 import flip_terms as flip_terms_adamsblake17
-from flip.covariance.adamsblake17plane import flip_terms as flip_terms_adamsblake17plane
-from flip.covariance.adamsblake20 import flip_terms as flip_terms_adamsblake20
-from flip.covariance.carreres23 import flip_terms as flip_terms_carreres23
-from flip.covariance.lai22 import flip_terms as flip_terms_lai22
-from flip.covariance.ravouxcarreres import flip_terms as flip_terms_ravouxcarreres
-from flip.covariance.ravouxnoanchor25 import flip_terms as flip_terms_ravouxnoanchor25
-from flip.covariance.rcrk24 import flip_terms as flip_terms_rcrk24
-from flip.utils import create_log
 
-log = create_log()
 _avail_models = [
     "adamsblake17plane",
     "adamsblake17",
@@ -29,7 +20,16 @@ _avail_models = [
     "ravouxcarreres",
     "ravouxnoanchor25",
     "rcrk24",
+    "genericzdep"
 ]
+
+for model_name in _avail_models:
+    globals()[f"flip_terms_" + model_name] = importlib.import_module("flip.covariance." + model_name + ".flip_terms")
+    
+from flip.utils import create_log
+
+log = create_log()
+
 _avail_regularization_option = [
     None,
     "mpmath",

@@ -10,5 +10,7 @@ from . import (
     ravouxcarreres,
     ravouxnoanchor25,
     rcrk24,
+    genericzdep
 )
+
 from .covariance import CovMatrix

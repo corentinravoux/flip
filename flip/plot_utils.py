@@ -305,22 +305,55 @@ def plot_all_mean_fits(
                 params = [
                     fits[i][0]["beta_f"] * fits[i][0]["bs8"] for i in range(len(fits))
                 ]
-                errors = [
-                    (
-                        fits[i][0]["beta_f"]
-                        * fits[i][0]["bs8"]
-                        * np.sqrt(
-                            (fits[i][2]["bs8"] / fits[i][0]["bs8"]) ** 2
-                            + (fits[i][2]["beta_f"] / fits[i][0]["beta_f"]) ** 2
+                if use_minos:
+                    names = [fits[0][3][i].name for i in range(len(fits[0][3]))]
+                    index_bs8 = np.argwhere(np.array(names) == "bs8")[0][0]
+                    index_beta_f = np.argwhere(np.array(names) == "beta_f")[0][0]
+                    errors = [
+                        [
+                            fits[i][0]["beta_f"]
+                            * fits[i][0]["bs8"]
+                            * np.sqrt(
+                                (fits[i][3][index_bs8].lower / fits[i][0]["bs8"]) ** 2
+                                + (
+                                    fits[i][3][index_beta_f].lower
+                                    / fits[i][0]["beta_f"]
+                                )
+                                ** 2
+                            )
+                            for i in range(len(fits))
+                        ],
+                        [
+                            fits[i][0]["beta_f"]
+                            * fits[i][0]["bs8"]
+                            * np.sqrt(
+                                (fits[i][3][index_bs8].upper / fits[i][0]["bs8"]) ** 2
+                                + (
+                                    fits[i][3][index_beta_f].upper
+                                    / fits[i][0]["beta_f"]
+                                )
+                                ** 2
+                            )
+                            for i in range(len(fits))
+                        ],
+                    ]
+                else:
+                    errors = [
+                        (
+                            fits[i][0]["beta_f"]
+                            * fits[i][0]["bs8"]
+                            * np.sqrt(
+                                (fits[i][2]["bs8"] / fits[i][0]["bs8"]) ** 2
+                                + (fits[i][2]["beta_f"] / fits[i][0]["beta_f"]) ** 2
+                            )
                         )
-                    )
-                    for i in range(len(fits))
-                ]
+                        for i in range(len(fits))
+                    ]
             else:
                 params = [fits[i][0][param_name] for i in range(len(fits))]
                 if use_minos:
                     names = [fits[0][3][i].name for i in range(len(fits[0][3]))]
-                    index = np.argwhere(np.array(names) == param_name)
+                    index = np.argwhere(np.array(names) == param_name)[0][0]
                     errors = [
                         [abs(fits[i][3][index].lower) for i in range(len(fits))],
                         [abs(fits[i][3][index].upper) for i in range(len(fits))],

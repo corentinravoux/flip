@@ -31,7 +31,11 @@ else:
 log = create_log()
 
 
-def _read_free_par(model_name, model_kind, variant=None):
+def _read_free_par(
+    model_name,
+    model_kind,
+    variant=None,
+):
     _free_par = importlib.import_module(f"flip.covariance.{model_name}")._free_par
     model_kind = model_kind.split("_")
 

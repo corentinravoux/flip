@@ -595,49 +595,6 @@ def compute_cov(
     return covariance
 
 
-def generate_redshift_dict(
-    model_name,
-    model_kind,
-    redshift_velocity=None,
-    redshift_density=None,
-    coordinates_velocity=None,
-    coordinates_density=None,
-):
-    redshift_dependent_model = eval(f"flip_terms_{model_name}.redshift_dependent_model")
-    if redshift_dependent_model:
-        redshift_dict = {}
-    else:
-        return None
-
-    if model_kind in ["density", "full", "density_velocity"]:
-        if redshift_dependent_model:
-            if redshift_density is not None:
-                redshift_dict["g"] = redshift_density
-            else:
-                if len(coordinates_density) < 4:
-                    raise ValueError(
-                        "You are using a model which is redshift dependent."
-                        "Please provide redshifts as the fourth field"
-                        "of the coordinates_density value"
-                    )
-                else:
-                    redshift_dict["g"] = coordinates_density[3]
-    if model_kind in ["velocity", "full", "density_velocity"]:
-        if redshift_dependent_model:
-            if redshift_velocity is not None:
-                redshift_dict["v"] = redshift_velocity
-            else:
-                if len(coordinates_velocity) < 4:
-                    raise ValueError(
-                        "You are using a model which is redshift dependent."
-                        "Please provide redshifts as the fourth field"
-                        "of the coordinates_velocity value"
-                    )
-                else:
-                    redshift_dict["v"] = coordinates_velocity[3]
-    return redshift_dict
-
-
 def generate_covariance(
     model_name,
     model_kind,
@@ -677,134 +634,16 @@ def generate_covariance(
     )
     covariance_dict = {}
 
-    redshift_dict = generate_redshift_dict(
-        model_name,
-        model_kind,
-        coordinates_velocity=coordinates_velocity,
-        coordinates_density=coordinates_density,
-    )
-
-    if model_kind in ["density", "full", "density_velocity"]:
-        covariance_dict["gg"] = compute_cov(
-            model_name,
-            "gg",
-            power_spectrum_dict["gg"],
-            coordinates_density=coordinates_density,
+    redshift_dependent_model = eval(f"flip_terms_{model_name}.redshift_dependent_model")
+    if redshift_dependent_model:
+        redshift_dict = cov_utils.generate_redshift_dict(
+            redshift_dependent_model,
+            model_kind,
             coordinates_velocity=coordinates_velocity,
-            redshift_dict=redshift_dict,
-            additional_parameters_values=additional_parameters_values,
-            size_batch=size_batch,
-            number_worker=number_worker,
-            hankel=hankel,
-            los_definition=los_definition,
-            kmin=kmin,
+            coordinates_density=coordinates_density,
         )
-        number_densities = len(coordinates_density[0])
     else:
-        number_densities = None
-
-    if model_kind in ["velocity", "full", "density_velocity"]:
-        covariance_dict["vv"] = compute_cov(
-            model_name,
-            "vv",
-            power_spectrum_dict["vv"],
-            coordinates_density=coordinates_density,
-            coordinates_velocity=coordinates_velocity,
-            redshift_dict=redshift_dict,
-            additional_parameters_values=additional_parameters_values,
-            size_batch=size_batch,
-            number_worker=number_worker,
-            hankel=hankel,
-            los_definition=los_definition,
-            kmin=kmin,
-        )
-        number_velocities = len(coordinates_velocity[0])
-    else:
-        number_velocities = None
-
-    if model_kind == "full":
-        covariance_dict["gv"] = compute_cov(
-            model_name,
-            "gv",
-            power_spectrum_dict["gv"],
-            coordinates_density=coordinates_density,
-            coordinates_velocity=coordinates_velocity,
-            redshift_dict=redshift_dict,
-            additional_parameters_values=additional_parameters_values,
-            size_batch=size_batch,
-            number_worker=number_worker,
-            hankel=hankel,
-            los_definition=los_definition,
-            kmin=kmin,
-        )
-
-    return covariance_dict, number_densities, number_velocities, redshift_dict
-
-
-def compute_cov_from_emulator(
-    model_name,
-    covariance_type,
-    external_emulator=None,
-    coordinates_density=None,
-    coordinates_velocity=None,
-    redshift_dict=None,
-    additional_parameters_values=None,
-    size_batch=10_000,
-    los_definition="bisector",
-):
-
-    if model_name not in _avail_models:
-        log.add(
-            f"Model {model_name} not available."
-            f"Please choose between: {_avail_models}"
-        )
-
-    parameters = compute_coordinates(
-        covariance_type,
-        coordinates_density=coordinates_density,
-        coordinates_velocity=coordinates_velocity,
-        redshift_dict=redshift_dict,
-        size_batch=size_batch,
-        los_definition=los_definition,
-    )
-    # covariance = compute_coeficient_emulator(
-    #     parameters,
-    #     model_name,
-    #     covariance_type,
-    #     additional_parameters_values=additional_parameters_values,
-    #     external_emulator=external_emulator,
-    # )
-
-    # return covariance
-
-
-def generate_covariance_from_emulator(
-    model_name,
-    model_kind,
-    power_spectrum_dict,
-    coordinates_velocity=None,
-    coordinates_density=None,
-    additional_parameters_values=None,
-    size_batch=10_000,
-    number_worker=8,
-    hankel=True,
-    los_definition="bisector",
-    kmin=None,
-):
-
-    cov_utils.check_generator_need(
-        model_kind,
-        coordinates_density,
-        coordinates_velocity,
-    )
-    covariance_dict = {}
-
-    redshift_dict = generate_redshift_dict(
-        model_name,
-        model_kind,
-        coordinates_velocity=coordinates_velocity,
-        coordinates_density=coordinates_density,
-    )
+        redshift_dict = None
 
     if model_kind in ["density", "full", "density_velocity"]:
         covariance_dict["gg"] = compute_cov(

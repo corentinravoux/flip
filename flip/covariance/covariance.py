@@ -110,6 +110,44 @@ def compute_covariance_sum(
 
 
 class CovMatrix:
+    """CovMatrix is a class for managing and manipulating covariance matrices used in cosmological analyses, particularly for models involving density and velocity fields. It provides methods for initialization from various sources, conversion between flat and matrix forms, masking, and file I/O operations.
+
+    Attributes:
+        model_name (str): Name of the covariance model.
+        model_kind (str): Type of covariance ('density', 'velocity', 'density_velocity', 'full').
+        free_par (dict): Dictionary of free parameters for the model.
+        los_definition (str): Definition of the line-of-sight.
+        covariance_dict (dict): Dictionary containing covariance matrices.
+        matrix_form (bool): Indicates if covariance is in matrix form.
+        redshift_dict (dict): Dictionary of redshift information.
+        variant (str): Variant of the model.
+        number_densities (int): Number of density bins.
+        number_velocities (int): Number of velocity bins.
+        coefficients (module): Imported module for model coefficients.
+        compute_covariance_sum (callable): Function to compute covariance sum.
+        compute_covariance_sum_jit (callable): JIT-compiled function to compute covariance sum (if JAX is installed).
+
+    Methods:
+        __init__: Initializes a CovMatrix instance.
+        init_from_flip: Class method to initialize from the flip code generator.
+        init_from_generator: Class method to initialize from a model-specific generator.
+        init_from_file: Class method to initialize from a file (pickle, npz, parquet).
+        kind: Property returning the kind of covariance model.
+        loaded: Property indicating if the covariance matrix is loaded.
+        init_compute_covariance_sum: Initializes functions for computing covariance sums.
+        compute_covariance_sum_eigenvalues: Computes eigenvalues of the covariance sum.
+        compute_matrix_covariance: Converts flat covariance to matrix form.
+        compute_flat_covariance: Converts matrix covariance to flat form.
+        write: Writes the covariance matrix to a file (pickle, npz, parquet).
+        mask: Returns a masked CovMatrix instance based on provided masks for density and velocity.
+
+    Usage:
+        CovMatrix can be instantiated directly or via class methods for loading from generators or files. It supports conversion between flat and matrix forms, masking, and saving/loading to disk.
+
+    Raises:
+        ValueError: If variants or mask sizes are invalid.
+        NotImplementedError: If reading from unsupported file formats."""
+
     def __init__(
         self,
         model_name=None,
@@ -117,45 +155,59 @@ class CovMatrix:
         free_par=None,
         los_definition=None,
         covariance_dict=None,
-        full_matrix=False,
+        matrix_form=False,
         redshift_dict=None,
         variant=None,
+        coefficients=None,
+        number_densities=None,
+        number_velocities=None,
+        emulator_flag=False,
     ):
         """
-        The __init__ function is called when the class is instantiated.
-        It sets up the instance of the class, and defines all of its attributes.
-
+        Initialize the covariance model with specified parameters.
 
         Args:
-            self: Represent the instance of the class
-            model_name: Identify the model
-            model_kind: Define the kind of model that is being used
-            los_definition: Define the angle between two vectors
-            covariance_dict: Store the covariance matrix
-            full_matrix: Determine whether the covariance matrix is stored as a full matrix or in sparse form
-            variant: Name of the variation of the analysis
+            model_name (str, optional): Name of the covariance model to use.
+            model_kind (str, optional): Type or kind of the model.
+            free_par (Any, optional): Free parameters for the model.
+            los_definition (Any, optional): Definition of the line-of-sight.
+            covariance_dict (dict, optional): Dictionary containing covariance data.
+            matrix_form (bool, optional): If True, use matrix form for computations.
+            redshift_dict (dict, optional): Dictionary containing redshift information.
+            variant (Any, optional): Variant of the model to use.
+            number_densities (Any, optional): Number densities for the model.
+            number_velocities (Any, optional): Number velocities for the model.
 
-        Returns:
-            An object of the class
+        Attributes:
+            model_name (str): Name of the covariance model.
+            model_kind (str): Type or kind of the model.
+            free_par (Any): Free parameters for the model.
+            los_definition (Any): Definition of the line-of-sight.
+            covariance_dict (dict): Dictionary containing covariance data.
+            matrix_form (bool): Indicates if matrix form is used.
+            redshift_dict (dict): Dictionary containing redshift information.
+            variant (Any): Variant of the model.
+            coefficients (module): Imported coefficients module for the model.
+            compute_covariance_sum (callable): Function to compute covariance sum.
+            compute_covariance_sum_jit (callable): JIT-compiled function to compute covariance sum.
         """
-
         self.model_name = model_name
         self.model_kind = model_kind
         self.free_par = free_par
         self.los_definition = los_definition
         self.covariance_dict = covariance_dict
-        self.full_matrix = full_matrix
+        self.matrix_form = matrix_form
         self.redshift_dict = redshift_dict
         self.variant = variant
-
-        self.coefficients = importlib.import_module(
-            f"flip.covariance.{self.model_name}.coefficients"
-        )
-
+        self.coefficients = coefficients
         self.compute_covariance_sum = None
         self.compute_covariance_sum_jit = None
+        self.number_densities = number_densities
+        self.number_velocities = number_velocities
+        self.emulator_flag = emulator_flag
 
-        self.init_compute_covariance_sum()
+        if not emulator_flag:
+            self.init_compute_covariance_sum()
 
     @classmethod
     def init_from_flip(
@@ -205,6 +257,10 @@ class CovMatrix:
 
         free_par = _read_free_par(model_name, model_kind, variant=variant)
 
+        coefficients = importlib.import_module(
+            f"flip.covariance.{model_name}.coefficients"
+        )
+
         (
             covariance_dict,
             number_densities,
@@ -230,9 +286,12 @@ class CovMatrix:
             free_par=free_par,
             los_definition=los_definition,
             covariance_dict=covariance_dict,
-            full_matrix=False,
+            matrix_form=False,
             redshift_dict=redshift_dict,
             variant=variant,
+            coefficients=coefficients,
+            number_densities=number_densities,
+            number_velocities=number_velocities,
         )
 
     @classmethod
@@ -284,6 +343,10 @@ class CovMatrix:
 
         free_par = _read_free_par(model_name, model_kind, variant=variant)
 
+        coefficients = importlib.import_module(
+            f"flip.covariance.{model_name}.coefficients"
+        )
+
         (
             covariance_dict,
             number_densities,
@@ -307,9 +370,51 @@ class CovMatrix:
             free_par=free_par,
             los_definition=los_definition,
             covariance_dict=covariance_dict,
-            full_matrix=False,
+            matrix_form=False,
             redshift_dict=redshift_dict,
             variant=variant,
+            coefficients=coefficients,
+            number_densities=number_densities,
+            number_velocities=number_velocities,
+        )
+
+    @classmethod
+    def init_from_emulator(
+        cls,
+        emulator_model_name,
+        model_kind,
+        covariance_list,
+        parameter_values,
+        **kwargs,
+    ):
+
+        begin = time.time()
+        from flip.covariance.emulators import generator as generator_emulators
+
+        emulator_covariance_dict = generator_emulators.generate_covariance(
+            emulator_model_name,
+            model_kind,
+            covariance_list,
+            parameter_values,
+            **kwargs,
+        )
+        end = time.time()
+        log.add(
+            f"Covariance matrix generated from emulator with {emulator_model_name} model in {'{:.2e}'.format(end - begin)} seconds"
+        )
+        return cls(
+            model_name=emulator_model_name,
+            model_kind=model_kind,
+            free_par=covariance_list[0].free_par,
+            los_definition=covariance_list[0].los_definition,
+            covariance_dict=emulator_covariance_dict,
+            matrix_form=False,
+            redshift_dict=covariance_list[0].redshift_dict,
+            variant=covariance_list[0].variant,
+            coefficients=covariance_list[0].coefficients,
+            number_densities=covariance_list[0].number_densities,
+            number_velocities=covariance_list[0].number_velocities,
+            emulator_flag=True,
         )
 
     @classmethod
@@ -405,8 +510,8 @@ class CovMatrix:
             return False
 
     def init_compute_covariance_sum(self):
-        if not self.full_matrix:
-            self.compute_full_matrix()
+        if not self.matrix_form:
+            self.compute_matrix_covariance()
 
         # Init coefficients functions
         get_coefficients = partial(
@@ -458,9 +563,9 @@ class CovMatrix:
         )
         return np.linalg.eigvals(covariance_sum)
 
-    def compute_full_matrix(self):
+    def compute_matrix_covariance(self):
         """
-        The compute_full_matrix function takes the covariance matrix and fills in all of the missing values.
+        The compute_matrix_covariance function takes the covariance matrix and fills in all of the missing values.
 
         Args:
             self: Bind the method to the object
@@ -469,8 +574,8 @@ class CovMatrix:
             A dictionary with the full covariance matrices for each redshift bin
 
         """
-        if self.full_matrix:
-            log.add("Full matrix already computed")
+        if self.matrix_form:
+            log.add("Matrix covariance already computed")
             return
 
         for key in ["gg", "vv", "gv"]:
@@ -496,18 +601,26 @@ class CovMatrix:
             new_cov = np.zeros(new_shape)
             for i, _ in enumerate(self.covariance_dict[key]):
                 if key[0] != key[1]:
-                    new_cov[i] = cov_utils.return_full_cov_cross(
+                    new_cov[i] = cov_utils.return_matrix_covariance_cross(
                         self.covariance_dict[key][i],
                         Ngg,
                         Nvv,
                     )
                 else:
-                    new_cov[i] = cov_utils.return_full_cov(self.covariance_dict[key][i])
+                    new_cov[i] = cov_utils.return_matrix_covariance(
+                        self.covariance_dict[key][i]
+                    )
             self.covariance_dict[key] = new_cov
 
-            self.full_matrix = True
+            self.matrix_form = True
 
-    def compute_flat_matrix(self):
+    def compute_flat_covariance(self, verbose=True):
+
+        if not self.matrix_form:
+            if verbose:
+                log.add("Flat covariance already computed")
+            return
+
         for key in self.covariance_dict.keys():
             if key == "gg":
                 new_shape = (
@@ -535,10 +648,12 @@ class CovMatrix:
                         self.covariance_dict[key][i],
                     )
                 else:
-                    new_cov[i] = cov_utils.return_flat_cov(self.covariance_dict[key][i])
+                    new_cov[i] = cov_utils.return_flat_covariance(
+                        self.covariance_dict[key][i]
+                    )
                     self.covariance_dict[key] = new_cov
 
-            self.full_matrix = False
+            self.matrix_form = False
 
     def write(
         self,
@@ -601,7 +716,7 @@ class CovMatrix:
             if len(mask_vel) != self.number_velocities:
                 raise ValueError("Velocities mask size does not match vel cov size")
 
-            if self.full_matrix:
+            if self.matrix_form:
                 masked_cov_dic["vv"] = np.array(
                     [
                         cov[np.ix_(mask_vel, mask_vel)]
@@ -622,7 +737,7 @@ class CovMatrix:
             if len(mask_dens) != self.number_densities:
                 raise ValueError("Densities mask size does not match density cov size")
 
-            if self.full_matrix:
+            if self.matrix_form:
                 masked_cov_dic["gg"] = np.array(
                     [
                         cov[np.ix_(mask_dens, mask_dens)]
@@ -644,7 +759,7 @@ class CovMatrix:
             elif mask_dens is None:
                 mask_dens = np.ones(self.number_densities, dkind="bool")
 
-            if self.full_matrix:
+            if self.matrix_form:
                 masked_cov_dic["gv"] = np.array(
                     [
                         cov[np.ix_(mask_dens, mask_vel)]
@@ -667,7 +782,7 @@ class CovMatrix:
             free_par=self.free_par,
             los_definition=self.los_definition,
             covariance_dict=masked_cov_dic,
-            full_matrix=self.full_matrix,
+            matrix_form=self.matrix_form,
             number_densities=np.sum(mask_dens),
             number_velocities=np.sum(mask_vel),
             redshift_dict=self.redshift_dict,

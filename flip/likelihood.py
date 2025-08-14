@@ -216,15 +216,15 @@ class BaseLikelihood(abc.ABC):
     def verify_covariance(self):
         if isinstance(self.covariance, list):
             for i in range(len(self.covariance)):
-                if self.covariance[i].full_matrix is False:
-                    self.covariance[i].compute_full_matrix()
+                if self.covariance[i].matrix_form is False:
+                    self.covariance[i].compute_matrix_covariance()
                 if (self.covariance[i].compute_covariance_sum is None) or (
                     self.covariance[i].compute_covariance_sum_jit is None
                 ):
                     self.covariance[i].init_compute_covariance_sum()
         else:
-            if self.covariance.full_matrix is False:
-                self.covariance.compute_full_matrix()
+            if self.covariance.matrix_form is False:
+                self.covariance.compute_matrix_covariance()
             if (
                 self.covariance.compute_covariance_sum is None
                 or self.covariance.compute_covariance_sum_jit is None

@@ -361,9 +361,12 @@ def plot_all_mean_fits(
                 else:
                     errors = [fits[i][2][param_name] for i in range(len(fits))]
             if weighted_mean:
-                mean_param = np.average(
-                    params, weights=[1 / (error**2) for error in errors]
-                )
+                if use_minos:
+                    error_average = np.mean(errors, axis=0)
+                    weigths_errors = [1 / (error**2) for error in error_average]
+                else:
+                    weigths_errors = [1 / (error**2) for error in errors]
+                mean_param = np.average(params, weights=weigths_errors)
             else:
                 mean_param = np.mean(params)
             if use_minos:

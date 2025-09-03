@@ -78,7 +78,7 @@ def compute_i_j(N, seq):
     return i, j
 
 
-def nflat_to_Nfull(flat_shape_non_diagonal):
+def flatshape_to_fullshape(flat_shape_non_diagonal):
     Delta = 1 + 8 * flat_shape_non_diagonal
     Nfull = (1 + np.sqrt(Delta)) / 2
     if Nfull - int(Nfull) > 0:
@@ -224,13 +224,13 @@ def return_matrix_covariance(flat_covariance):
         np.ndarray: The reconstructed full covariance matrix.
 
     Notes:
-        - The function uses `nflat_to_Nfull` to determine the size of the full matrix.
+        - The function uses `flatshape_to_fullshape` to determine the size of the full matrix.
         - The diagonal is set to the first value in `flat_covariance_matrix`.
         - The off-diagonal elements are filled symmetrically.
     """
     diagonal_value = flat_covariance[0]
     non_diagonal_matrix_covariance = np.delete(flat_covariance, 0)
-    number_objects = nflat_to_Nfull(non_diagonal_matrix_covariance.size)
+    number_objects = flatshape_to_fullshape(non_diagonal_matrix_covariance.size)
     diagonal_value = diagonal_value * np.eye(number_objects)
     matrix_covariance = np.zeros((number_objects, number_objects))
     vi, vj = np.triu_indices(number_objects, k=1)

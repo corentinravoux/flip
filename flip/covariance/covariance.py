@@ -61,6 +61,7 @@ def compute_covariance_sum(
     coefficients_dict_diagonal,
     vector_variance,
     kind="full",
+    parameter_values_dict=None,
 ):
 
     if kind == "density":
@@ -75,15 +76,26 @@ def compute_covariance_sum(
     covariance_sum_ = {}
 
     for k in keys:
-        covariance_sum_[k] = jnp.sum(
-            jnp.stack(
-                [
-                    coefficients_dict[k][i] * cov
-                    for i, cov in enumerate(covariance_dict[k])
-                ]
-            ),
-            axis=0,
-        )
+        if parameter_values_dict is not None:
+            covariance_sum_[k] = jnp.sum(
+                jnp.stack(
+                    [
+                        coefficients_dict[k][i] * cov(parameter_values_dict)
+                        for i, cov in enumerate(covariance_dict[k])
+                    ]
+                ),
+                axis=0,
+            )
+        else:
+            covariance_sum_[k] = jnp.sum(
+                jnp.stack(
+                    [
+                        coefficients_dict[k][i] * cov
+                        for i, cov in enumerate(covariance_dict[k])
+                    ]
+                ),
+                axis=0,
+            )
         if k in coefficients_dict_diagonal:
             covariance_sum_[k] += coefficients_dict_diagonal[k] * jnp.eye(
                 covariance_sum_[k].shape[0]
@@ -206,8 +218,7 @@ class CovMatrix:
         self.number_velocities = number_velocities
         self.emulator_flag = emulator_flag
 
-        if not emulator_flag:
-            self.init_compute_covariance_sum()
+        self.init_compute_covariance_sum()
 
     @classmethod
     def init_from_flip(
@@ -384,7 +395,8 @@ class CovMatrix:
         emulator_model_name,
         model_kind,
         covariance_list,
-        parameter_values,
+        emulator_parameter_values,
+        parameter_names,
         **kwargs,
     ):
 
@@ -395,7 +407,8 @@ class CovMatrix:
             emulator_model_name,
             model_kind,
             covariance_list,
-            parameter_values,
+            emulator_parameter_values,
+            parameter_names,
             **kwargs,
         )
         end = time.time()
@@ -510,10 +523,9 @@ class CovMatrix:
             return False
 
     def init_compute_covariance_sum(self):
-        if not self.matrix_form:
+        if not self.matrix_form and not self.emulator_flag:
             self.compute_matrix_covariance()
 
-        # Init coefficients functions
         get_coefficients = partial(
             self.coefficients.get_coefficients,
             model_kind=self.model_kind,
@@ -543,6 +555,9 @@ class CovMatrix:
                 coefficients_dict=coefficients_dict,
                 coefficients_dict_diagonal=coefficients_dict_diagonal,
                 vector_variance=vector_variance,
+                parameter_values_dict=(
+                    parameter_values_dict if self.emulator_flag else None
+                ),
             )
 
             return covariance_sum
@@ -563,7 +578,9 @@ class CovMatrix:
         )
         return np.linalg.eigvals(covariance_sum)
 
-    def compute_matrix_covariance(self):
+    # CR - the two next functions should be more general (covariance_type[0] != covariance_type[1] case or not)
+
+    def compute_matrix_covariance(self, verbose=True):
         """
         The compute_matrix_covariance function takes the covariance matrix and fills in all of the missing values.
 
@@ -575,27 +592,36 @@ class CovMatrix:
 
         """
         if self.matrix_form:
-            log.add("Matrix covariance already computed")
+            if verbose:
+                log.add("Matrix covariance already computed")
             return
 
         for key in ["gg", "vv", "gv"]:
             if key not in self.covariance_dict:
                 continue
             if key == "gg":
-                Ngg = cov_utils.nflat_to_Nfull(self.covariance_dict[key].shape[1] - 1)
-                new_shape = (self.covariance_dict[key].shape[0], Ngg, Ngg)
-            elif key == "vv":
-                Nvv = cov_utils.nflat_to_Nfull(self.covariance_dict[key].shape[1] - 1)
+                number_densities = cov_utils.flatshape_to_fullshape(
+                    self.covariance_dict[key].shape[1] - 1
+                )
                 new_shape = (
                     self.covariance_dict[key].shape[0],
-                    Nvv,
-                    Nvv,
+                    number_densities,
+                    number_densities,
+                )
+            elif key == "vv":
+                number_velocities = cov_utils.flatshape_to_fullshape(
+                    self.covariance_dict[key].shape[1] - 1
+                )
+                new_shape = (
+                    self.covariance_dict[key].shape[0],
+                    number_velocities,
+                    number_velocities,
                 )
             elif key == "gv":
                 new_shape = (
                     self.covariance_dict[key].shape[0],
-                    Ngg,
-                    Nvv,
+                    number_densities,
+                    number_velocities,
                 )
 
             new_cov = np.zeros(new_shape)
@@ -603,8 +629,8 @@ class CovMatrix:
                 if key[0] != key[1]:
                     new_cov[i] = cov_utils.return_matrix_covariance_cross(
                         self.covariance_dict[key][i],
-                        Ngg,
-                        Nvv,
+                        number_densities,
+                        number_velocities,
                     )
                 else:
                     new_cov[i] = cov_utils.return_matrix_covariance(

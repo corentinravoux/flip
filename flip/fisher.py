@@ -42,7 +42,7 @@ class FisherMatrix:
         parameter_values_dict,
         fisher_properties={},
     ):
-        if covariance.matrix_form is False:
+        if covariance.matrix_form is False and covariance.emulator_flag is False:
             covariance.compute_matrix_covariance()
         if (
             covariance.compute_covariance_sum is None

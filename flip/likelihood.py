@@ -223,7 +223,10 @@ class BaseLikelihood(abc.ABC):
                 ):
                     self.covariance[i].init_compute_covariance_sum()
         else:
-            if self.covariance.matrix_form is False:
+            if (
+                self.covariance.matrix_form is False
+                and self.covariance.emulator_flag is False
+            ):
                 self.covariance.compute_matrix_covariance()
             if (
                 self.covariance.compute_covariance_sum is None

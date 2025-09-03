@@ -93,37 +93,38 @@ def train(
 
     if square_covariance:
         nn_models_variance = []
-        nn_evaluation_dictionary_variance = {}
-        nn_evaluation_dictionary_variance["input_mean"] = parameter_values_mean
-        nn_evaluation_dictionary_variance["input_std"] = parameter_values_std
-        nn_evaluation_dictionary_variance["output_mean"] = [
-            np.mean(output_variance[j]) for j in range(len(output_variance))
+        nn_evaluation_dictionary_variance = [
+            {
+                "input_mean": parameter_values_mean,
+                "input_std": parameter_values_std,
+                "output_mean": np.mean(output_variance[j]),
+                "output_std": np.std(output_variance[j]),
+            }
+            for j in range(len(output_variance))
         ]
-        nn_evaluation_dictionary_variance["output_std"] = [
-            np.std(output_variance[j]) for j in range(len(output_variance))
-        ]
+
     else:
         nn_models_variance = None
         nn_evaluation_dictionary_variance = None
 
     nn_models_non_diagonal = []
 
-    nn_evaluation_dictionary_non_diagonal = {}
-    nn_evaluation_dictionary_non_diagonal["input_mean"] = parameter_values_mean
-    nn_evaluation_dictionary_non_diagonal["input_std"] = parameter_values_std
-    nn_evaluation_dictionary_non_diagonal["output_mean"] = [
-        np.mean(output_non_diagonal[j], axis=0) for j in range(len(output_non_diagonal))
-    ]
-    nn_evaluation_dictionary_non_diagonal["output_std"] = [
-        np.std(output_non_diagonal[j], axis=0) for j in range(len(output_non_diagonal))
+    nn_evaluation_dictionary_non_diagonal = [
+        {
+            "input_mean": parameter_values_mean,
+            "input_std": parameter_values_std,
+            "output_mean": np.mean(output_non_diagonal[j]),
+            "output_std": np.std(output_non_diagonal[j]),
+        }
+        for j in range(len(output_non_diagonal))
     ]
 
     for j in range(len(output_non_diagonal)):
         if square_covariance:
             normalized_nn_output_variance = (
                 output_variance[j][:, np.newaxis]
-                - nn_evaluation_dictionary_variance["output_mean"][j]
-            ) / nn_evaluation_dictionary_variance["output_std"][j]
+                - nn_evaluation_dictionary_variance[j]["output_mean"]
+            ) / nn_evaluation_dictionary_variance[j]["output_std"]
 
             model_variance = RegressionNet(
                 input_dimension=normalized_parameter_values.shape[1],
@@ -151,8 +152,8 @@ def train(
 
         normalized_nn_output_non_diagonal = (
             output_non_diagonal[j]
-            - nn_evaluation_dictionary_non_diagonal["output_mean"][j]
-        ) / nn_evaluation_dictionary_non_diagonal["output_std"][j]
+            - nn_evaluation_dictionary_non_diagonal[j]["output_mean"]
+        ) / nn_evaluation_dictionary_non_diagonal[j]["output_std"]
         model_non_diagonal = RegressionNet(
             input_dimension=normalized_parameter_values.shape[1],
             dimension_hidden_layers=dimension_hidden_layers,
@@ -190,9 +191,17 @@ def evaluate(
     evaluation_value,
     evaluation_dictionary,
 ):
-    normalized_output = model(evaluation_value)
+
+    normalized_evaluation_value = (
+        evaluation_value - evaluation_dictionary["input_mean"]
+    ) / evaluation_dictionary["input_std"]
+
+    normalized_output = model(
+        torch.tensor(normalized_evaluation_value, dtype=torch.float32)
+    )
+    numpy_normalized_output = normalized_output.detach().cpu().numpy()
     output = (
-        normalized_output * evaluation_dictionary["output_std"]
+        numpy_normalized_output * evaluation_dictionary["output_std"]
         + evaluation_dictionary["output_mean"]
     )
-    return output
+    return (output, None)

@@ -35,15 +35,18 @@ def train(
     if square_covariance:
         if kernel_variance is None:
             kernel_variance = default_kernel_variance
+        gp_models_variance = []
+        gp_evaluation_dictionary_variance = [None for j in range(len(output_variance))]
+    else:
+        gp_models_variance = None
+        gp_evaluation_dictionary_variance = None
     if kernel_non_diagonal is None:
         kernel_non_diagonal = default_kernel_non_diagonal
 
-    if square_covariance:
-        gp_models_variance = []
-    else:
-        gp_models_variance = None
-
     gp_models_non_diagonal = []
+    gp_evaluation_dictionary_non_diagonal = [
+        None for j in range(len(output_non_diagonal))
+    ]
 
     for j in range(len(output_non_diagonal)):
 
@@ -67,9 +70,6 @@ def train(
             model_non_diagonal.optimize_restarts(num_restarts=num_restarts_non_diagonal)
 
         gp_models_non_diagonal.append(model_non_diagonal)
-
-    gp_evaluation_dictionary_variance = None
-    gp_evaluation_dictionary_non_diagonal = None
 
     return (
         gp_models_variance,

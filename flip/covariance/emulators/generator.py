@@ -154,7 +154,7 @@ def return_evaluation_functions(
 
         if square_covariance:
 
-            def evaluate(
+            def evaluation_function(
                 parameter_values_dict,
                 return_emulator_variance=False,
             ):
@@ -166,11 +166,13 @@ def return_evaluation_functions(
                 output_non_diagonal = emulator_module.evaluate(
                     model_non_diagonal,
                     evaluation_value,
-                    evaluation_dictionary_variance,
+                    evaluation_dictionary_non_diagonal[j],
                 )
                 output_covariance = output_non_diagonal[0][0]
                 output_diagonal = emulator_module.evaluate(
-                    model_variance, evaluation_value
+                    model_variance,
+                    evaluation_value,
+                    evaluation_dictionary_variance[j],
                 )
                 output_covariance = np.insert(
                     output_covariance, 0, output_diagonal[0][0]
@@ -178,18 +180,18 @@ def return_evaluation_functions(
                 output_covariance = cov_utils.return_matrix_covariance(
                     output_covariance
                 )
-                variance_emulator = [
-                    output_diagonal[1][0, 0],
-                    output_non_diagonal[1][0, 0],
-                ]
                 if return_emulator_variance:
+                    variance_emulator = [
+                        output_diagonal[1][0, 0],
+                        output_non_diagonal[1][0, 0],
+                    ]
                     return output_covariance, variance_emulator
                 else:
                     return output_covariance
 
         else:
 
-            def evaluate(
+            def evaluation_function(
                 parameter_value,
                 return_emulator_variance=False,
             ):
@@ -197,7 +199,7 @@ def return_evaluation_functions(
                 output_non_diagonal = emulator_module.evaluate(
                     model_non_diagonal,
                     evaluation_value,
-                    evaluation_dictionary_non_diagonal,
+                    evaluation_dictionary_non_diagonal[j],
                 )
                 output_covariance = output_non_diagonal[0][0]
                 variance_emulator = output_non_diagonal[1][0, 0]
@@ -207,7 +209,7 @@ def return_evaluation_functions(
                 else:
                     return output_covariance
 
-        evaluation_functions.append(evaluate)
+        evaluation_functions.append(evaluation_function)
 
     return evaluation_functions
 

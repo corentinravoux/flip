@@ -14,7 +14,6 @@ from . import (
     likelihood,
     power_spectra,
     utils,
-    data
 )
 
 try:

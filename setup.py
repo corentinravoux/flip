@@ -12,11 +12,8 @@ from shutil import rmtree
 
 from setuptools import setup, Command
 
-def get_version():
-    return re.findall(
-        r"__version__ = \"(.*?)\"", 
-        open(os.path.join("flip", "__init__.py")).read()
-        )[0]
+VERSION=re.findall(r"__version__ = \"(.*?)\"", 
+                    open(os.path.join("flip", "__init__.py")).read())[0]
 
 class UploadCommand(Command):
     """Support setup.py upload."""
@@ -57,8 +54,10 @@ class UploadCommand(Command):
 
 # Where the magic happens:
 setup(
-    version=get_version(),
+    version=VERSION,
     cmdclass={
-        "upload": UploadCommand,    
+        "upload": UploadCommand,
+        
+        
     }
 )

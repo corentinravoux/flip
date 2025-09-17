@@ -18,8 +18,8 @@ jobs:
         
     - name: setup git
       run: |
-        git config --global user.email "Waelthus@users.noreply.github.com"
-        git config --global user.name "Michael Walther (bot)"
+        git config --global user.email "corentinravoux@users.noreply.github.com"
+        git config --global user.name "Corentin Ravoux (bot)"
     
     - name: Set up Python
       uses: actions/setup-python@v5

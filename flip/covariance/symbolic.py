@@ -263,12 +263,12 @@ def write_output(
                     additional_str = additional_str[:-1]
                     f.write(f"def M_{type}_{t}_{l}_{j}({additional_str}):\n")
                     f.write(f"    def func(k):\n")
-                    f.write(f"        return({M_ab_i_l_j})\n")
-                    f.write(f"    return(func)\n")
+                    f.write(f"        return {M_ab_i_l_j}\n")
+                    f.write(f"    return func\n")
                     f.write("\n")
 
                     f.write(f"def N_{type}_{t}_{l}_{j}(theta,phi):\n")
-                    f.write(f"    return({N_ab_i_l_j})\n")
+                    f.write(f"    return {N_ab_i_l_j}\n")
                     f.write("\n")
 
     f.write("dictionary_terms = ")
@@ -385,6 +385,53 @@ def write_M_N_functions(
         multi_index_model=multi_index_model,
         redshift_dependent_model=redshift_dependent_model,
         regularize_M_terms=regularize_M_terms,
+    )
+
+
+def generate_generalized_genericzdep_functions(
+    filename="./genericzdep/flip_terms.py", number_worker=8
+):
+    """
+    The generate_generalized_genericzdep_functions function generates the flip_terms.py file in the genericzdep directory, which contains functions that calculate M and N terms for a generalized version of Carreres' (2012) model 2 and 3.
+
+    Args:
+        filename: Specify the name of the file that will be generated
+        number_worker: Determine the number of processes to use for multiprocessing
+
+    Returns:
+        A list of functions,
+
+    """
+    mu1, mu2 = sy.symbols("mu1 mu2")
+    k = sy.symbols("k", positive=True, finite=True, real=True)
+    kNL = sy.symbols("kNL", positive=True, finite=True, real=True)
+    additional_parameters = ["kNL"]
+
+    type_list = ["vv"]
+    term_index_list = [["0", "1", "2"]]
+    lmax_list = [[2, 2, 2]]
+    l1max_list = [[1, 1, 1]]
+    l2max_list = [[1, 1, 1]]
+    dict_B = {
+              "B_vv_0": mu1 * mu2 / k**2,
+              "B_vv_1": mu1 * mu2 / kNL**2,
+              "B_vv_2": mu1 * mu2 * k**2 / kNL**4
+              }
+    
+
+    regularize_M_terms = "None"
+    write_M_N_functions(
+        filename,
+        type_list,
+        term_index_list,
+        lmax_list,
+        dict_B,
+        number_worker=number_worker,
+        wide_angle=True,
+        l1max_list=l1max_list,
+        l2max_list=l2max_list,
+        regularize_M_terms=regularize_M_terms,
+        additional_parameters=additional_parameters
     )
 
 
@@ -1259,6 +1306,7 @@ def generate_files():
     generate_generalized_lai22_functions()
     generate_generalized_ravouxcarreres_functions()
     generate_generalized_rcrk24_functions()
+    generate_generalized_genericzdep_functions()
 
 
 def generate_fisher_files():

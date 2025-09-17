@@ -78,11 +78,11 @@ def compute_i_j(N, seq):
     return i, j
 
 
-def nflat_to_Nfull(flat_shape_non_diagonal):
+def flatshape_to_fullshape(flat_shape_non_diagonal):
     Delta = 1 + 8 * flat_shape_non_diagonal
     Nfull = (1 + np.sqrt(Delta)) / 2
     if Nfull - int(Nfull) > 0:
-        raise ValueError("flat_shape_non_diagonal is not a valid number") 
+        raise ValueError("flat_shape_non_diagonal is not a valid number")
     return int(Nfull)
 
 
@@ -133,8 +133,8 @@ def compute_phi(ra_0, ra_1, dec_0, dec_1, r_0, r_1, los_definition):
     r_z = z_0 - z_1
 
     # We define r = r0 - r1 for all the flip package.
-    # This is directly linked with coordinate choice that we are making
-    # at the symbolic level. This have an impact on cross-correlation terms,
+    # This is directly linked with coordinate choice that we are making
+    # at the symbolic level. This have an impact on cross-correlation terms,
     # especially for cross-terms (gv for example).
 
     r = np.sqrt(r_x**2 + r_y**2 + r_z**2)
@@ -209,40 +209,57 @@ def compute_phi_bisector_theorem(r, theta, r_0, r_1):
     return np.arcsin(np.clip(sin_phi, -1, 1))
 
 
-def return_full_cov(cov):
+def return_matrix_covariance(flat_covariance):
     """
-    The return_full_cov function takes in a 1D array of covariance values and returns the full covariance matrix.
-    The first value in the input array is assumed to be the variance, and all other values are assumed to be non-diagonal
-    covariance terms. The function then creates an empty square matrix with dimensions equal to the number of objects
-    (calculated from cov_array size), fills it with zeros, adds diagonal elements (variance) using numpy's eye function,
-    and finally fills in upper triangle elements (non-diagonal covariances) using numpy's triu_indices function
+    Reconstructs a full covariance matrix from a flattened representation.
+
+    The input `flat_covariance` is expected to have the diagonal value as its first element,
+    followed by the upper-triangular (excluding diagonal) elements of the covariance matrix.
 
     Args:
-        cov: Store the covariance matrix of a multivariate normal distribution
+        flat_covariance (np.ndarray): 1D array containing the diagonal value followed by
+            the upper-triangular elements of the covariance matrix.
 
     Returns:
-        A full covariance matrix from a vector of covariances
+        np.ndarray: The reconstructed full covariance matrix.
 
+    Notes:
+        - The function uses `flatshape_to_fullshape` to determine the size of the full matrix.
+        - The diagonal is set to the first value in `flat_covariance_matrix`.
+        - The off-diagonal elements are filled symmetrically.
     """
-    variance_val = cov[0]
-
-    non_diagonal_cov = np.delete(cov, 0)
-    number_objects = nflat_to_Nfull(non_diagonal_cov.size)
-
-    variance_val = variance_val * np.eye(number_objects)
-
-    full_cov = np.zeros((number_objects, number_objects))
+    diagonal_value = flat_covariance[0]
+    non_diagonal_matrix_covariance = np.delete(flat_covariance, 0)
+    number_objects = flatshape_to_fullshape(non_diagonal_matrix_covariance.size)
+    diagonal_value = diagonal_value * np.eye(number_objects)
+    matrix_covariance = np.zeros((number_objects, number_objects))
     vi, vj = np.triu_indices(number_objects, k=1)
-    full_cov[vi, vj] = non_diagonal_cov
-    full_cov[vj, vi] = non_diagonal_cov
+    matrix_covariance[vi, vj] = non_diagonal_matrix_covariance
+    matrix_covariance[vj, vi] = non_diagonal_matrix_covariance
+    matrix_covariance = matrix_covariance + diagonal_value
 
-    full_cov = full_cov + variance_val
-    return full_cov
+    return matrix_covariance
 
 
-def return_flat_cov(cov):
-    variance_val = cov[0, 0]
-    flat_cov = cov[np.triu_indices_from(cov, k=1)]
+def return_flat_covariance(matrix_covariance):
+    """
+    Flattens a covariance matrix into a one-dimensional array.
+
+    The returned array starts with the variance value (element at position [0, 0]),
+    followed by the upper triangular elements of the covariance matrix (excluding the diagonal).
+
+    Parameters
+    ----------
+    cov : numpy.ndarray
+        A square covariance matrix.
+
+    Returns
+    -------
+    numpy.ndarray
+        A one-dimensional array containing the variance and upper triangular covariance values.
+    """
+    variance_val = matrix_covariance[0, 0]
+    flat_cov = matrix_covariance[np.triu_indices_from(matrix_covariance, k=1)]
     flat_cov = np.insert(flat_cov, 0, variance_val)
     return flat_cov
 
@@ -251,9 +268,9 @@ def return_flat_cross_cov(cov):
     return cov.flatten()
 
 
-def return_full_cov_cross(cov, number_objects_g, number_objects_v):
+def return_matrix_covariance_cross(cov, number_objects_g, number_objects_v):
     """
-    The return_full_cov_cross function takes in a covariance matrix and the number of objects in each band.
+    The return_matrix_covariance_cross function takes in a covariance matrix and the number of objects in each band.
     It then reshapes the covariance matrix into a full cross-covariance matrix, which is returned.
 
     Args:
@@ -378,3 +395,43 @@ def check_generator_need(model_kind, coordinates_density, coordinates_velocity):
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
         )
+
+
+def generate_redshift_dict(
+    redshift_dependent_model,
+    model_kind,
+    redshift_velocity=None,
+    redshift_density=None,
+    coordinates_velocity=None,
+    coordinates_density=None,
+):
+
+    redshift_dict = {}
+
+    if model_kind in ["density", "full", "density_velocity"]:
+        if redshift_dependent_model:
+            if redshift_density is not None:
+                redshift_dict["g"] = redshift_density
+            else:
+                if len(coordinates_density) < 4:
+                    raise ValueError(
+                        "You are using a model which is redshift dependent."
+                        "Please provide redshifts as the fourth field"
+                        "of the coordinates_density value"
+                    )
+                else:
+                    redshift_dict["g"] = coordinates_density[3]
+    if model_kind in ["velocity", "full", "density_velocity"]:
+        if redshift_dependent_model:
+            if redshift_velocity is not None:
+                redshift_dict["v"] = redshift_velocity
+            else:
+                if len(coordinates_velocity) < 4:
+                    raise ValueError(
+                        "You are using a model which is redshift dependent."
+                        "Please provide redshifts as the fourth field"
+                        "of the coordinates_velocity value"
+                    )
+                else:
+                    redshift_dict["v"] = coordinates_velocity[3]
+    return redshift_dict

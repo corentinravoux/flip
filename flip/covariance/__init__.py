@@ -6,6 +6,7 @@ from . import (
     adamsblake20,
     carreres23,
     cov_utils,
+    emulators,
     lai22,
     ravouxcarreres,
     ravouxnoanchor25,

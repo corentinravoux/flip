@@ -2,9 +2,9 @@ import os
 
 import numpy as np
 
-from flip.power_spectra import class_engine, cosmoprimo_engine, models
+from flip.power_spectra import class_engine, cosmoprimo_engine, models, pyccl_engine
 
-_available_engines = ["class_engine", "cosmoprimo_engine"]
+_available_engines = ["class_engine", "cosmoprimo_engine", "pyccl_engine"]
 _available_power_spectrum_model = ["linearbel", "nonlinearbel", "linear"]
 _available_power_spectrum_normalizaton = [
     "no_normalization",
@@ -186,6 +186,5 @@ def compute_power_spectra(
             header,
             save_path,
         )
-
 
     return wavenumber, power_spectrum_mm, power_spectrum_mt, power_spectrum_tt, fiducial

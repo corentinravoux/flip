@@ -101,7 +101,7 @@ class DataVector(abc.ABC):
         )._coordinate_keys
 
         coords = np.vstack([self.data[k] for k in coordinate_keys])
-
+        
         return CovMatrix.init_from_flip(
             model,
             self._kind,

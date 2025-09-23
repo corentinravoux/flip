@@ -6,7 +6,10 @@ log = create_log()
 
 try:
     import GPy
+
+    gpy_installed = True
 except:
+    gpy_installed = False
     log.add(
         "Install GPy to use the gpmatrix emulator",
         level="warning",
@@ -15,8 +18,12 @@ except:
 
 _emulator_type = "matrix"
 
-default_kernel_variance = GPy.kern.Exponential(1) + GPy.kern.Poly(1)
-default_kernel_non_diagonal = GPy.kern.Exponential(1) + GPy.kern.Poly(1)
+if gpy_installed:
+    default_kernel_variance = GPy.kern.Exponential(1) + GPy.kern.Poly(1)
+    default_kernel_non_diagonal = GPy.kern.Exponential(1) + GPy.kern.Poly(1)
+else:
+    default_kernel_variance = None
+    default_kernel_non_diagonal = None
 
 
 def train(

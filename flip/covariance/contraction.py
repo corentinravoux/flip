@@ -2,6 +2,7 @@ import importlib
 
 import numpy as np
 
+from flip.covariance import cov_utils
 from flip.covariance import generator as generator_flip
 from flip.utils import create_log
 
@@ -251,7 +252,7 @@ def compute_contraction_coordinates(
     elif basis_definition == "endpoint":
         # r_perp, r_par are defined with respect to r_reference = d.
         theta = np.arctan2(coord_rper_rpar[0, :], r_reference + coord_rper_rpar[1, :])
- 
+
     coordinates = np.zeros((3, shape_coord_1_coord_2))
     coordinates[0, :] = r
     coordinates[1, :] = theta
@@ -293,6 +294,20 @@ def contract_covariance(
         coordinate_type,
         basis_definition,
     )
+
+    redshift_dependent_model = generator_flip.get_redshift_dependent_model_flag(
+        model_name
+    )
+    if redshift_dependent_model:
+        redshift_dict = cov_utils.generate_redshift_dict(
+            model_name,
+            model_kind,
+            redshift_velocity=redshift,
+            redshift_density=redshift,
+        )
+    else:
+        redshift_dict = None
+
     contraction_dict = {}
     if model_kind in ["density", "full", "density_velocity"]:
         contraction_dict["gg"] = generator_flip.compute_coeficient(
@@ -326,10 +341,5 @@ def contract_covariance(
             number_worker=number_worker,
             hankel=hankel,
         )[:, :].reshape(-1, len(coord_1), len(coord_2))
-    redshift_dict = generator_flip.generate_redshift_dict(
-        model_name,
-        model_kind,
-        redshift_velocity=redshift,
-        redshift_density=redshift,
-    )
+
     return contraction_dict, coordinates_dict, redshift_dict

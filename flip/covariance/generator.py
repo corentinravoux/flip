@@ -595,6 +595,17 @@ def compute_cov(
     return covariance
 
 
+def get_redshift_dependent_model_flag(model_name):
+    """
+    The get_redshift_dependent_model_flag function returns a boolean indicating whether the model is redshift dependent or not.
+
+    Args:
+        model_name: Determine which model to use
+    """
+    redshift_dependent_model = eval(f"flip_terms_{model_name}.redshift_dependent_model")
+    return redshift_dependent_model
+
+
 def generate_covariance(
     model_name,
     model_kind,
@@ -634,7 +645,7 @@ def generate_covariance(
     )
     covariance_dict = {}
 
-    redshift_dependent_model = eval(f"flip_terms_{model_name}.redshift_dependent_model")
+    redshift_dependent_model = get_redshift_dependent_model_flag(model_name)
     if redshift_dependent_model:
         redshift_dict = cov_utils.generate_redshift_dict(
             redshift_dependent_model,

@@ -8,26 +8,26 @@ import pytest
 from flip import __flip_dir_path__, data_vector, utils
 
 
-def load_ps(data_path: Path):
+def load_power_spectra(data_path: Path):
     kmm, pmm = np.loadtxt(data_path / "power_spectrum_mm.txt")
     kmt, pmt = np.loadtxt(data_path / "power_spectrum_mt.txt")
     ktt, ptt = np.loadtxt(data_path / "power_spectrum_tt.txt")
     return (kmm, pmm), (kmt, pmt), (ktt, ptt)
 
 
-def small_density(data_path: Path, n=16):
+def small_density(data_path: Path, n: int = 16):
     grid = pd.read_parquet(data_path / "density_data.parquet")
     grid = grid.rename(columns={"density_err": "density_error", "rcom": "rcom_zobs"})
     grid = grid.iloc[:n]
     return data_vector.Dens(grid.to_dict(orient="list"))
 
 
-def small_velocity_true(data_path: Path, n=16):
-    vdf = pd.read_parquet(data_path / "velocity_data.parquet")
-    v = vdf.rename(columns={"vpec": "velocity"}).iloc[:n]
-    d = v.to_dict(orient="list")
-    d["velocity_error"] = np.zeros(len(v))
-    return data_vector.DirectVel(d)
+def small_velocity_true(data_path: Path, n: int = 16):
+    velocity_df = pd.read_parquet(data_path / "velocity_data.parquet")
+    velocity_sample = velocity_df.rename(columns={"vpec": "velocity"}).iloc[:n]
+    velocity_dict = velocity_sample.to_dict(orient="list")
+    velocity_dict["velocity_error"] = np.zeros(len(velocity_sample))
+    return data_vector.DirectVel(velocity_dict)
 
 
 @pytest.mark.parametrize(
@@ -48,73 +48,79 @@ def small_velocity_true(data_path: Path, n=16):
     ],
 )
 def test_covariance_generation_shapes(model, kind):
-    base = Path(__flip_dir_path__)
-    data_path = base / "data"
-    (kmm, pmm), (kmt, pmt), (ktt, ptt) = load_ps(data_path)
+    base_path = Path(__flip_dir_path__)
+    data_path = base_path / "data"
+    (kmm, pmm), (kmt, pmt), (ktt, ptt) = load_power_spectra(data_path)
 
-    sigu = 15.0
-    # Some models (adamsblake20, ravouxcarreres) require an extra smoothing parameter sig_g
-    needs_sig_g = model in {"adamsblake20", "ravouxcarreres"}
-    additional_params = (sigu,) if needs_sig_g else ()
+    sigma_u = 15.0
+    # Some models (adamsblake20, ravouxcarreres) require an extra smoothing parameter sigma_g
+    needs_sigma_g = model in {"adamsblake20", "ravouxcarreres"}
+    additional_parameters = (sigma_u,) if needs_sigma_g else ()
 
     # Inspect the model's required number of PS terms per block
-    flip_terms = importlib.import_module(f"flip.covariance.{model}.flip_terms")
-    dictionary_terms = getattr(flip_terms, "dictionary_terms", {})
+    flip_terms_module = importlib.import_module(f"flip.covariance.{model}.flip_terms")
+    dictionary_terms = getattr(flip_terms_module, "dictionary_terms", {})
 
-    def repeat_spec(spec, n):
-        # Return a list of n copies of a [k, Pk] pair
-        return [[spec[0], spec[1]] for _ in range(max(n, 0))]
+    def repeat_specification(specification, count):
+        # Return a list of count copies of a [k, Pk] pair
+        return [[specification[0], specification[1]] for _ in range(max(count, 0))]
 
-    ps = {}
+    power_spectra = {}
     if kind in ["density", "full", "density_velocity"]:
         if "gg" not in dictionary_terms:
             pytest.xfail(
                 f"Model {model} does not define gg terms (density not supported)"
             )
-        ps["gg"] = repeat_spec([kmm, pmm], len(dictionary_terms["gg"]))
+        power_spectra["gg"] = repeat_specification(
+            [kmm, pmm], len(dictionary_terms["gg"])
+        )
     if kind in ["velocity", "full", "density_velocity"]:
         if "vv" not in dictionary_terms:
             pytest.xfail(
                 f"Model {model} does not define vv terms (velocity not supported)"
             )
-        ps["vv"] = repeat_spec(
-            [ktt, ptt * utils.Du(ktt, sigu) ** 2], len(dictionary_terms["vv"])
+        power_spectra["vv"] = repeat_specification(
+            [ktt, ptt * utils.Du(ktt, sigma_u) ** 2], len(dictionary_terms["vv"])
         )
     if kind == "full":
         if "gv" not in dictionary_terms:
             pytest.xfail(f"Model {model} does not define gv terms (full not supported)")
-        ps["gv"] = repeat_spec([kmt, pmt], len(dictionary_terms["gv"]))
+        power_spectra["gv"] = repeat_specification(
+            [kmt, pmt], len(dictionary_terms["gv"])
+        )
 
     if kind == "density":
-        dv = small_density(data_path)
+        data_vector_obj = small_density(data_path)
     elif kind == "velocity":
-        dv = small_velocity_true(data_path)
+        data_vector_obj = small_velocity_true(data_path)
     else:
-        dv = data_vector.DensVel(
+        data_vector_obj = data_vector.DensVel(
             small_density(data_path), small_velocity_true(data_path)
         )
 
-    cov = dv.compute_covariance(
+    covariance = data_vector_obj.compute_covariance(
         model,
-        ps,
+        power_spectra,
         size_batch=2000,
         number_worker=1,
-        additional_parameters_values=additional_params,
+        additional_parameters_values=additional_parameters,
     )
 
     # Build a parameter dict with reasonable values
-    par = {"bs8": 1.0, "fs8": 0.5, "sigv": 0.0}
+    parameters = {"bs8": 1.0, "fs8": 0.5, "sigv": 0.0}
     if model in {"adamsblake20", "ravouxcarreres"}:
         # Link beta_f consistently to fs8/bs8 so that default and nobeta branches agree
-        par["beta_f"] = par["fs8"] / max(par["bs8"], 1e-6)
+        parameters["beta_f"] = parameters["fs8"] / max(parameters["bs8"], 1e-6)
     if model == "lai22":
-        par["sigg"] = 1.0
+        parameters["sigg"] = 1.0
         # lai22 coefficients expect beta_f unless variant 'nobeta' is used
-        par["beta_f"] = par["fs8"] / max(par["bs8"], 1e-6)
-    vec, var = dv.give_data_and_variance(par if "M_0" in dv.free_par else {})
-    C = cov.compute_covariance_sum(par, var)
+        parameters["beta_f"] = parameters["fs8"] / max(parameters["bs8"], 1e-6)
+    data_values, data_variance = data_vector_obj.give_data_and_variance(
+        parameters if "M_0" in data_vector_obj.free_par else {}
+    )
+    covariance_matrix = covariance.compute_covariance_sum(parameters, data_variance)
 
     # Check symmetry & finite diagonal
-    np.testing.assert_allclose(C, C.T, atol=1e-10)
-    assert np.all(np.isfinite(np.diag(C)))
-    assert C.shape[0] == vec.shape[0]
+    np.testing.assert_allclose(covariance_matrix, covariance_matrix.T, atol=1e-10)
+    assert np.all(np.isfinite(np.diag(covariance_matrix)))
+    assert covariance_matrix.shape[0] == data_values.shape[0]

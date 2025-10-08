@@ -8,37 +8,39 @@ from flip import __flip_dir_path__, data_vector, fitter, utils
 
 
 def test_e2e_joint_short():
-    base = Path(__flip_dir_path__)
-    data_path = base / "data"
+    base_path = Path(__flip_dir_path__)
+    data_path = base_path / "data"
 
     # Density subset
     grid = pd.read_parquet(data_path / "density_data.parquet")
     grid = grid.rename(columns={"density_err": "density_error", "rcom": "rcom_zobs"})
     grid = grid.iloc[:30]
-    dens = data_vector.Dens(grid.to_dict(orient="list"))
+    density_data_vector = data_vector.Dens(grid.to_dict(orient="list"))
 
     # Velocity subset (true velocities, zero noise)
-    vdf = pd.read_parquet(data_path / "velocity_data.parquet")
-    v = vdf.rename(columns={"vpec": "velocity"}).iloc[:30]
-    v_dict = v.to_dict(orient="list")
-    v_dict["velocity_error"] = np.zeros(len(v))
-    vel = data_vector.DirectVel(v_dict)
+    velocity_df = pd.read_parquet(data_path / "velocity_data.parquet")
+    velocity_sample = velocity_df.rename(columns={"vpec": "velocity"}).iloc[:30]
+    velocity_dict = velocity_sample.to_dict(orient="list")
+    velocity_dict["velocity_error"] = np.zeros(len(velocity_sample))
+    velocity_data_vector = data_vector.DirectVel(velocity_dict)
 
-    dv = data_vector.DensVel(dens, vel)
+    density_velocity_data_vector = data_vector.DensVel(
+        density_data_vector, velocity_data_vector
+    )
 
     # Power spectra
     kmm, pmm = np.loadtxt(data_path / "power_spectrum_mm.txt")
     kmt, pmt = np.loadtxt(data_path / "power_spectrum_mt.txt")
     ktt, ptt = np.loadtxt(data_path / "power_spectrum_tt.txt")
-    sigu = 15.0
-    ps = {
+    sigma_u = 15.0
+    power_spectra = {
         "gg": [[kmm, pmm]],
         "gv": [[kmt, pmt]],
-        "vv": [[ktt, ptt * utils.Du(ktt, sigu) ** 2]],
+        "vv": [[ktt, ptt * utils.Du(ktt, sigma_u) ** 2]],
     }
 
-    cov = dv.compute_covariance(
-        "adamsblake17plane", ps, size_batch=2000, number_worker=1
+    covariance = density_velocity_data_vector.compute_covariance(
+        "adamsblake17plane", power_spectra, size_batch=2000, number_worker=1
     )
 
     like_props = {"inversion_method": "cholesky"}
@@ -48,16 +50,16 @@ def test_e2e_joint_short():
         "sigv": {"value": 50.0, "limit_low": 0.0, "limit_up": 500.0, "fixed": False},
     }
 
-    fm = fitter.FitMinuit.init_from_covariance(
-        cov,
-        dv,
+    fit_minuit = fitter.FitMinuit.init_from_covariance(
+        covariance,
+        density_velocity_data_vector,
         params,
         likelihood_type="multivariate_gaussian",
         likelihood_properties=like_props,
     )
 
-    vals1 = fm.run(migrad=True, hesse=False, minos=False, n_iter=1)
-    vals2 = fm.run(migrad=True, hesse=False, minos=False, n_iter=1)
+    vals1 = fit_minuit.run(migrad=True, hesse=False, minos=False, n_iter=1)
+    vals2 = fit_minuit.run(migrad=True, hesse=False, minos=False, n_iter=1)
     assert 0.2 <= vals1["bs8"] <= 1.8
     assert 0.1 <= vals1["fs8"] <= 0.9
     assert 0.0 <= vals1["sigv"] <= 300.0

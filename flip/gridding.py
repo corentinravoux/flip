@@ -72,10 +72,8 @@ def compute_grid_window(grid_size, kh, kind="ngp", n=1000):
     }
 
     if kind not in _GRID_KIND:
-        raise ValueError(
-            "INVALID GRID TYPE ! Grid allowed : "
-            + "".join("" + f"{k} " for k in _GRID_KIND)
-        )
+        allowed = ", ".join(_GRID_KIND)
+        raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
     if grid_size == 0:
         return None
     return _compute_grid_window(grid_size, kh, _order_dic[kind], n)
@@ -178,7 +176,7 @@ def ngp_errw_weight(ds):
 
 
 def cic_weight(ds):
-    """Clood In Cell."""
+    """Cloud In Cell."""
     abs_ds = np.abs(ds)
     w = (1.0 - abs_ds) * (abs_ds < 1)
     return w
@@ -512,7 +510,7 @@ def cut_grid(
             mask &= ~(np.isnan(grid["density_err"]))
     if remove_empty_cells:
         if "N_in_cell" in grid:
-            mask &= ~(grid["N_in_cell"].astype(int)==0)
+            mask &= ~(grid["N_in_cell"].astype(int) == 0)
     if remove_origin:
         mask = mask & ((grid["x"] != 0.0) | (grid["y"] != 0.0) | (grid["z"] != 0.0))
     for field in grid:
@@ -675,6 +673,7 @@ def grid_data_density_pypower(
 
     return grid
 
+
 def grid_data_velocity_pypower(
     raobj,
     decobj,
@@ -721,13 +720,10 @@ def grid_data_velocity_pypower(
     xobj, yobj, zobj = xobj[mask], yobj[mask], zobj[mask]
     raobj, decobj, rcomobj = raobj[mask], decobj[mask], rcomobj[mask]
 
-
     data_positions = np.array([xobj, yobj, zobj]).T
     count_weights = np.ones((data_positions.shape[0],))
 
-    
-
-    catalog_mesh_var =  CatalogMesh(
+    catalog_mesh_var = CatalogMesh(
         data_positions=data_positions,
         data_weights=variance,
         interlacing=interlacing,
@@ -747,21 +743,21 @@ def grid_data_velocity_pypower(
         resampler=kind,
         position_type="pos",
     )
-    if type(velocity)!=type(None):
-        weights_weighted_mean = velocity/variance
+    if type(velocity) != type(None):
+        weights_weighted_mean = velocity / variance
         catalog_mesh_weighted_vel = CatalogMesh(
             data_positions=data_positions,
             data_weights=weights_weighted_mean,
-            interlacing=interlacing ,
+            interlacing=interlacing,
             boxsize=2 * (rcom_max + overhead),
             boxcenter=0.0,
             cellsize=grid_size,
             resampler=kind,
             position_type="pos",
         )
-        catalog_mesh_invvar =  CatalogMesh(
+        catalog_mesh_invvar = CatalogMesh(
             data_positions=data_positions,
-            data_weights=1/variance,
+            data_weights=1 / variance,
             interlacing=interlacing,
             boxsize=2 * (rcom_max + overhead),
             boxcenter=0.0,
@@ -771,14 +767,18 @@ def grid_data_velocity_pypower(
         )
     mesh_var = catalog_mesh_var.to_mesh(field="data", compensate=compensate)
     mesh_count = catalog_mesh_count.to_mesh(field="data")
-    N_in_cell=np.ravel(mesh_count.value)
-    variance_grid=np.ravel(mesh_var.value)  /(N_in_cell**2) #*N_in_cell/np.abs(N_in_cell)
-    if type(velocity)!=type(None):
-        mesh_weighted_vel= catalog_mesh_weighted_vel.to_mesh(field="data", compensate=compensate)
-        mesh_invvar=catalog_mesh_invvar.to_mesh(field="data", compensate=compensate)
-        velocity_grid=np.ravel(mesh_weighted_vel.value)/np.ravel(mesh_invvar.value)
+    N_in_cell = np.ravel(mesh_count.value)
+    variance_grid = np.ravel(mesh_var.value) / (
+        N_in_cell**2
+    )  # *N_in_cell/np.abs(N_in_cell)
+    if type(velocity) != type(None):
+        mesh_weighted_vel = catalog_mesh_weighted_vel.to_mesh(
+            field="data", compensate=compensate
+        )
+        mesh_invvar = catalog_mesh_invvar.to_mesh(field="data", compensate=compensate)
+        velocity_grid = np.ravel(mesh_weighted_vel.value) / np.ravel(mesh_invvar.value)
     else:
-        velocity_grid=None
+        velocity_grid = None
 
     coord_mesh = np.array(
         np.meshgrid(
@@ -792,7 +792,7 @@ def grid_data_velocity_pypower(
     ygrid = np.ravel(coord_mesh[1, :, :, :]) + grid_size / 2
     zgrid = np.ravel(coord_mesh[2, :, :, :]) + grid_size / 2
     rcomgrid, ragrid, decgrid = utils.cart2radec(xgrid, ygrid, zgrid)
-    if type(velocity)!=type(None):
+    if type(velocity) != type(None):
         grid = {
             "x": xgrid,
             "y": ygrid,
@@ -801,8 +801,8 @@ def grid_data_velocity_pypower(
             "dec": decgrid,
             "rcom": rcomgrid,
             "velocity": velocity_grid,
-            "velocity_variance":variance_grid,
-            "N_in_cell":N_in_cell
+            "velocity_variance": variance_grid,
+            "N_in_cell": N_in_cell,
         }
     else:
         grid = {
@@ -812,8 +812,8 @@ def grid_data_velocity_pypower(
             "ra": ragrid,
             "dec": decgrid,
             "rcom": rcomgrid,
-            "velocity_variance":variance_grid,
-            "N_in_cell":N_in_cell
+            "velocity_variance": variance_grid,
+            "N_in_cell": N_in_cell,
         }
     if grid_type == "rect":
         cut_grid(
@@ -836,6 +836,8 @@ def grid_data_velocity_pypower(
         )
 
     return grid
+
+
 # CR - First try unconnecting pypower
 
 

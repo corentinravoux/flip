@@ -101,18 +101,27 @@ def compute_covariance_sum(
                 covariance_sum_[k].shape[0]
             )
 
-    if kind == "density_velocity":
-        jnp.zeros((covariance_sum_["gg"].shape[0], covariance_sum_["vv"].shape[1]))
-
     if len(keys) == 1:
         covariance_sum = covariance_sum_[keys[0]]
     else:
-        covariance_sum = jnp.block(
-            [
-                [covariance_sum_["gg"], covariance_sum_["gv"]],
-                [covariance_sum_["gv"].T, covariance_sum_["vv"]],
-            ]
-        )
+        # Assemble full covariance; handle density_velocity (no cross-term) vs full (with gv)
+        if kind == "density_velocity":
+            zeros_gv = jnp.zeros(
+                (covariance_sum_["gg"].shape[0], covariance_sum_["vv"].shape[0])
+            )
+            covariance_sum = jnp.block(
+                [
+                    [covariance_sum_["gg"], zeros_gv],
+                    [zeros_gv.T, covariance_sum_["vv"]],
+                ]
+            )
+        else:
+            covariance_sum = jnp.block(
+                [
+                    [covariance_sum_["gg"], covariance_sum_["gv"]],
+                    [covariance_sum_["gv"].T, covariance_sum_["vv"]],
+                ]
+            )
 
     if len(vector_variance.shape) == 1:
         covariance_sum += jnp.diag(vector_variance)
@@ -781,9 +790,9 @@ class CovMatrix:
 
         if self.number_densities is not None and self.number_velocities is not None:
             if mask_vel is None:
-                mask_vel = np.ones(self.number_velocities, dkind="bool")
+                mask_vel = np.ones(self.number_velocities, dtype=bool)
             elif mask_dens is None:
-                mask_dens = np.ones(self.number_densities, dkind="bool")
+                mask_dens = np.ones(self.number_densities, dtype=bool)
 
             if self.matrix_form:
                 masked_cov_dic["gv"] = np.array(

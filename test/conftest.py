@@ -2,7 +2,6 @@ import sys
 import types
 from pathlib import Path
 
-
 # Prepend repository root to sys.path so tests import local 'flip' package
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
@@ -19,4 +18,3 @@ ra_stub_coeff = types.ModuleType("flip.covariance.ravouxnoanchor25.coefficients"
 sys.modules.setdefault("flip.covariance.ravouxnoanchor25", ra_stub_pkg)
 sys.modules.setdefault("flip.covariance.ravouxnoanchor25.flip_terms", ra_stub_terms)
 sys.modules.setdefault("flip.covariance.ravouxnoanchor25.coefficients", ra_stub_coeff)
-

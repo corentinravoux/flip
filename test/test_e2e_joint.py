@@ -1,9 +1,10 @@
 import json
-import numpy as np
-import pandas as pd
 from pathlib import Path
 
-from flip import __flip_dir_path__, utils, data_vector, fitter
+import numpy as np
+import pandas as pd
+
+from flip import __flip_dir_path__, data_vector, fitter, utils
 
 
 def test_e2e_joint_short():
@@ -48,7 +49,11 @@ def test_e2e_joint_short():
     }
 
     fm = fitter.FitMinuit.init_from_covariance(
-        cov, dv, params, likelihood_type="multivariate_gaussian", likelihood_properties=like_props
+        cov,
+        dv,
+        params,
+        likelihood_type="multivariate_gaussian",
+        likelihood_properties=like_props,
     )
 
     vals1 = fm.run(migrad=True, hesse=False, minos=False, n_iter=1)

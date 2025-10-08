@@ -1,8 +1,9 @@
-import numpy as np
-import pandas as pd
 from pathlib import Path
 
-from flip import __flip_dir_path__, utils, data_vector
+import numpy as np
+import pandas as pd
+
+from flip import __flip_dir_path__, data_vector, utils
 
 
 def test_density_velocity_block_diagonal_no_gv():
@@ -30,7 +31,9 @@ def test_density_velocity_block_diagonal_no_gv():
     kmt, pmt = np.loadtxt(data_path / "power_spectrum_mt.txt")
     ps = {"gg": [[kmm, pmm]], "vv": [[ktt, ptt]], "gv": [[kmt, 0 * pmt]]}
 
-    cov = dv.compute_covariance("adamsblake17plane", ps, size_batch=1000, number_worker=1)
+    cov = dv.compute_covariance(
+        "adamsblake17plane", ps, size_batch=1000, number_worker=1
+    )
 
     # Assemble total covariance with simple coefficients
     coeffs = {"bs8": 1.0, "fs8": 1.0, "sigv": 0.0}
@@ -38,7 +41,8 @@ def test_density_velocity_block_diagonal_no_gv():
     C = cov.compute_covariance_sum(coeffs, var)
 
     # Check shapes and that cross-block is exactly zero (no gv provided)
-    Ng = len(dens.data["density"]) ; Nv = len(vel.data["velocity"]) 
+    Ng = len(dens.data["density"])
+    Nv = len(vel.data["velocity"])
     assert C.shape == (Ng + Nv, Ng + Nv)
     Cgg = C[:Ng, :Ng]
     Cvv = C[Ng:, Ng:]
@@ -70,13 +74,15 @@ def test_full_with_gv_nonzero():
     ktt, ptt = np.loadtxt(data_path / "power_spectrum_tt.txt")
     ps = {"gg": [[kmm, pmm]], "gv": [[kmt, pmt]], "vv": [[ktt, ptt]]}
 
-    cov = dv.compute_covariance("adamsblake17plane", ps, size_batch=1000, number_worker=1)
+    cov = dv.compute_covariance(
+        "adamsblake17plane", ps, size_batch=1000, number_worker=1
+    )
 
     coeffs = {"bs8": 1.0, "fs8": 1.0, "sigv": 0.0}
     vec, var = dv.give_data_and_variance()
     C = cov.compute_covariance_sum(coeffs, var)
 
     # Cross block should be non-zero in general
-    Ng = len(dens.data["density"]) 
+    Ng = len(dens.data["density"])
     Cgv = C[:Ng, Ng:]
     assert np.any(np.abs(Cgv) > 0)

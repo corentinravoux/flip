@@ -1,7 +1,8 @@
 import json
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from pathlib import Path
 
 from flip import __flip_dir_path__, data_vector, fitter
 
@@ -39,7 +40,11 @@ def test_e2e_density_short():
     like_props = {"inversion_method": "cholesky"}
     params = {"bs8": {"value": 1.0, "limit_low": 0.0, "fixed": False}}
     fm = fitter.FitMinuit.init_from_covariance(
-        cov, dens, params, likelihood_type="multivariate_gaussian", likelihood_properties=like_props
+        cov,
+        dens,
+        params,
+        likelihood_type="multivariate_gaussian",
+        likelihood_properties=like_props,
     )
     vals1 = fm.run(migrad=True, hesse=False, minos=False, n_iter=1)
     vals2 = fm.run(migrad=True, hesse=False, minos=False, n_iter=1)

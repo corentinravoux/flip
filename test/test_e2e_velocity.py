@@ -1,10 +1,10 @@
 import json
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
-from pathlib import Path
-
-from flip import __flip_dir_path__, utils, data_vector, fitter
+from flip import __flip_dir_path__, data_vector, fitter, utils
 
 
 def test_e2e_velocity_fit_short():
@@ -26,9 +26,7 @@ def test_e2e_velocity_fit_short():
     sigu = 15.0
     ps = {"vv": [[ktt, ptt * utils.Du(ktt, sigu) ** 2]]}
 
-    cov = dv.compute_covariance(
-        "carreres23", ps, size_batch=2000, number_worker=1
-    )
+    cov = dv.compute_covariance("carreres23", ps, size_batch=2000, number_worker=1)
 
     like_props = {"inversion_method": "cholesky"}
     params = {
@@ -37,7 +35,11 @@ def test_e2e_velocity_fit_short():
     }
 
     fm = fitter.FitMinuit.init_from_covariance(
-        cov, dv, params, likelihood_type="multivariate_gaussian", likelihood_properties=like_props
+        cov,
+        dv,
+        params,
+        likelihood_type="multivariate_gaussian",
+        likelihood_properties=like_props,
     )
 
     # Run optimization twice to check reproducibility

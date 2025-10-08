@@ -1,10 +1,11 @@
-import numpy as np
-import pandas as pd
-import pytest
 import importlib
 from pathlib import Path
 
-from flip import __flip_dir_path__, utils, data_vector
+import numpy as np
+import pandas as pd
+import pytest
+
+from flip import __flip_dir_path__, data_vector, utils
 
 
 def load_ps(data_path: Path):
@@ -67,12 +68,18 @@ def test_covariance_generation_shapes(model, kind):
     ps = {}
     if kind in ["density", "full", "density_velocity"]:
         if "gg" not in dictionary_terms:
-            pytest.xfail(f"Model {model} does not define gg terms (density not supported)")
+            pytest.xfail(
+                f"Model {model} does not define gg terms (density not supported)"
+            )
         ps["gg"] = repeat_spec([kmm, pmm], len(dictionary_terms["gg"]))
     if kind in ["velocity", "full", "density_velocity"]:
         if "vv" not in dictionary_terms:
-            pytest.xfail(f"Model {model} does not define vv terms (velocity not supported)")
-        ps["vv"] = repeat_spec([ktt, ptt * utils.Du(ktt, sigu) ** 2], len(dictionary_terms["vv"]))
+            pytest.xfail(
+                f"Model {model} does not define vv terms (velocity not supported)"
+            )
+        ps["vv"] = repeat_spec(
+            [ktt, ptt * utils.Du(ktt, sigu) ** 2], len(dictionary_terms["vv"])
+        )
     if kind == "full":
         if "gv" not in dictionary_terms:
             pytest.xfail(f"Model {model} does not define gv terms (full not supported)")
@@ -83,7 +90,9 @@ def test_covariance_generation_shapes(model, kind):
     elif kind == "velocity":
         dv = small_velocity_true(data_path)
     else:
-        dv = data_vector.DensVel(small_density(data_path), small_velocity_true(data_path))
+        dv = data_vector.DensVel(
+            small_density(data_path), small_velocity_true(data_path)
+        )
 
     cov = dv.compute_covariance(
         model,

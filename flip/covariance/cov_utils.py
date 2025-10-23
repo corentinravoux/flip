@@ -28,7 +28,6 @@ def compute_sep(
     """
     number_objects = len(ra)
     n_task = int((number_objects * (number_objects + 1)) / 2) - number_objects
-
     sep = []
     sep_perp = []
     sep_par = []
@@ -54,6 +53,28 @@ def compute_sep(
 
     return sep, sep_perp, sep_par
 
+def compute_function_sym_matrix(f, *args, compute_diag=True, fill_diag=0, size_batch=10_000):
+    number_objects = len(args[0])
+    if compute_diag:
+        k = 0
+    else:
+        k = 1
+
+    i_ref, j_ref = np.triu_indices(number_objects, k=k)
+    n_task = int((number_objects * (number_objects + 1)) / 2)
+    if not compute_diag:
+        n_task -= number_objects
+
+    res = []
+    for n in range(0, n_task, size_batch):
+        batches = np.arange(n, np.min((n + size_batch, n_task)))
+        i_list, j_list = i_ref[batches], j_ref[batches]
+        res.append(f(*np.vstack([[a[i_list], a[j_list]] for a in args])))
+    res = np.concatenate(res)
+
+    if fill_dag:
+        res = np.insert(    res, 0, 0)
+    return res
 
 def compute_i_j(N, seq):
     """
@@ -82,7 +103,7 @@ def nflat_to_Nfull(flat_shape_non_diagonal):
     Delta = 1 + 8 * flat_shape_non_diagonal
     Nfull = (1 + np.sqrt(Delta)) / 2
     if Nfull - int(Nfull) > 0:
-        raise ValueError("flat_shape_non_diagonal is not a valid number") 
+        raise ValueError("flat_shape_non_diagonal is not a valid number")
     return int(Nfull)
 
 

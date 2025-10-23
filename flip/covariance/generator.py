@@ -133,7 +133,7 @@ def coefficient_hankel(
     # Z_ab_i = 1
     # if eval(f"flip_terms.redshift_dependent_model"):
     #     Z_ab_i = eval(f"flip_terms.Z_{covariance_type}_{term_index}")(
-    #         wavenumber, coord[3], coord[4], *additional_parameters_values
+    #         wavenumber, coord[3], coord[4], **additional_parameters_values
     #     )  # Shape issue: Z_ab_i is an outer product. How to include that in the Hankel transform?
     for l in range(lmax + 1):
         number_l1_l2_terms = dictionary_subterms[f"{covariance_type}_{n}_{l}"]
@@ -198,7 +198,7 @@ def coefficient_trapz(
     Z_ab_i = 1
     if eval(f"flip_terms.redshift_dependent_model"):
         Z_ab_i = eval(f"flip_terms.Z_{covariance_type}_{term_index}")(
-            wavenumber, coord[3], coord[4], *additional_parameters_values
+            wavenumber, coord[3], coord[4], **additional_parameters_values
         )
     for l in range(lmax + 1):
         number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
@@ -244,22 +244,21 @@ def regularize_M(
 ):
 
     if regularize_M_terms is None:
-        return M_function(*additional_parameters_values)(wavenumber)
+        return M_function(**additional_parameters_values)(wavenumber)
     else:
         regularization_option = regularize_M_terms[covariance_type]
 
         if regularization_option is None:
-            return M_function(*additional_parameters_values)(wavenumber)
+            return M_function(**additional_parameters_values)(wavenumber)
 
         elif regularization_option == "mpmath":
             flip_terms.set_backend("mpmath")
             mpmath.mp.dps = mpmmath_decimal_precision
             wavenumber_mpmath = wavenumber * mpmath.mpf(1)
-            additional_parameters_values_mpf = tuple(
-                [mpmath.mpf(par) for par in additional_parameters_values]
-            )
+            additional_parameters_values_mpf = {k: mpmath.mpf(v) for k, par in additional_parameters_values.items()}
+
             M_function_evaluated = np.array(
-                np.frompyfunc(M_function(*additional_parameters_values_mpf), 1, 1)(
+                np.frompyfunc(M_function(**additional_parameters_values_mpf), 1, 1)(
                     wavenumber_mpmath
                 ).tolist(),
                 dtype=float,
@@ -267,7 +266,7 @@ def regularize_M(
             flip_terms.set_backend("numpy")
 
         elif regularization_option == "savgol":
-            M_function_evaluated = M_function(*additional_parameters_values)(wavenumber)
+            M_function_evaluated = M_function(**additional_parameters_values)(wavenumber)
             M_function_evaluated = savgol_filter(
                 M_function_evaluated,
                 savgol_window,
@@ -278,7 +277,7 @@ def regularize_M(
             # The low k region presents numerical instabilities for density models.
             # All the M density function should present and asymptotic behaviour at low k.
             # This method detect low k asymptote and force it for all M functions.
-            M_function_evaluated = M_function(*additional_parameters_values)(wavenumber)
+            M_function_evaluated = M_function(**additional_parameters_values)(wavenumber)
             diff = np.diff(M_function_evaluated, append=[M_function_evaluated[-1]])
             mask_asymptote = np.abs(diff) < lowk_unstable_threshold * np.mean(
                 np.abs(diff[wavenumber > wavenumber[len(wavenumber) // 2]])
@@ -441,7 +440,7 @@ def compute_coeficient(
         A list of arrays
     """
     if additional_parameters_values is None:
-        additional_parameters_values = ()
+        additional_parameters_values = {}
     if hankel:
         coefficient = coefficient_hankel
     else:

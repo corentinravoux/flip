@@ -1,4 +1,5 @@
 import importlib
+import inspect
 import pickle
 import time
 from functools import partial
@@ -56,6 +57,7 @@ def compute_covariance_sum(
     coefficients_dict,
     coefficients_dict_diagonal,
     vector_variance,
+    cov_matrix_prefactor=None,
     kind="full",
 ):
 
@@ -70,12 +72,20 @@ def compute_covariance_sum(
 
     covariance_sum_ = {}
 
+    if cov_matrix_prefactor is None:
+        cov_matrix_prefactor = {k: [1.0] * covariance_dict[k].shape[0] for k in keys}
+
     for k in keys:
+        print(coefficients_dict[k])
+        print(cov_matrix_prefactor[k])
+
         covariance_sum_[k] = jnp.sum(
             jnp.stack(
                 [
-                    coefficients_dict[k][i] * cov
-                    for i, cov in enumerate(covariance_dict[k])
+                    coeff * mcov_pre * cov
+                    for coeff, mcov_pre, cov in zip(
+                        coefficients_dict[k], cov_matrix_prefactor[k], covariance_dict[k]
+                    )
                 ]
             ),
             axis=0,
@@ -315,7 +325,7 @@ class CovMatrix:
         file_format,
     ):
         if file_format == "parquet":
-            raise NotImplementedError(f"Reading from parquet not implemented yet")
+            raise NotImplementedError("Reading from parquet not implemented yet")
         if file_format == "pickle":
             with open(f"{filename}.pickle", "rb") as file_read:
                 class_attrs_dictionary = pickle.load(file_read)
@@ -423,17 +433,27 @@ class CovMatrix:
             kind=self.model_kind,
         )
 
-        def _compute_covariance_sum(parameter_values_dict, vector_variance):
+        if "get_cov_matrix_prefactor" in dict(
+            inspect.getmembers(self.coefficients, inspect.isfunction)
+        ):
+            get_cov_matrix_prefactor = self.coefficients.get_cov_matrix_prefactor
+        else:
+            get_cov_matrix_prefactor = lambda: None
+
+        def _compute_covariance_sum(parameter_values_dict, vector_variance, *args):
             coefficients_dict = get_coefficients(
                 parameter_values_dict=parameter_values_dict
             )
             coefficients_dict_diagonal = get_diagonal_coefficients(
                 parameter_values_dict=parameter_values_dict
             )
+            cov_matrix_prefactor = get_cov_matrix_prefactor(*args)
+
             covariance_sum = compute_covariance_sum_fun(
                 coefficients_dict=coefficients_dict,
                 coefficients_dict_diagonal=coefficients_dict_diagonal,
                 vector_variance=vector_variance,
+                cov_matrix_prefactor=cov_matrix_prefactor,
             )
 
             return covariance_sum

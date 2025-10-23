@@ -262,9 +262,9 @@ def write_output(
                             additional_str = additional_str + f"{add},"
                     additional_str = additional_str[:-1]
                     f.write(f"def M_{type}_{t}_{l}_{j}({additional_str}):\n")
-                    f.write(f"    def func(k):\n")
+                    f.write("    def func(k):\n")
                     f.write(f"        return {M_ab_i_l_j}\n")
-                    f.write(f"    return func\n")
+                    f.write("    return func\n")
                     f.write("\n")
 
                     f.write(f"def N_{type}_{t}_{l}_{j}(theta,phi):\n")
@@ -417,7 +417,7 @@ def generate_generalized_genericzdep_functions(
               "B_vv_1": mu1 * mu2 / kNL**2,
               "B_vv_2": mu1 * mu2 * k**2 / kNL**4
               }
-    
+
 
     regularize_M_terms = "None"
     write_M_N_functions(
@@ -961,7 +961,7 @@ def write_one_function(
     else:
         for i_model, name in enumerate(name_models):
             if name is None:
-                f.write(f"    else:\n")
+                f.write("    else:\n")
             elif i_model > 0:
                 f.write(f"    elif variant == '{name}':\n")
             else:

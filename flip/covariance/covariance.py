@@ -57,7 +57,7 @@ def compute_covariance_sum(
     coefficients_dict,
     coefficients_dict_diagonal,
     vector_variance,
-    cov_matrix_prefactor=None,
+    cov_matrix_prefactor_dict=None,
     kind="full",
 ):
 
@@ -72,24 +72,18 @@ def compute_covariance_sum(
 
     covariance_sum_ = {}
 
-    if cov_matrix_prefactor is None:
-        cov_matrix_prefactor = {k: [1.0] * covariance_dict[k].shape[0] for k in keys}
+    if not cov_matrix_prefactor_dict:
+        cov_matrix_prefactor_dict = {k: jnp.ones(covariance_dict[k].shape[0]) for k in keys}
 
     for k in keys:
-        print(coefficients_dict[k])
-        print(cov_matrix_prefactor[k])
-
+        print(cov_matrix_prefactor_dict[k].shape)
+        print(coefficients_dict[k].shape)
+        print(covariance_dict[k].shape)
         covariance_sum_[k] = jnp.sum(
-            jnp.stack(
-                [
-                    coeff * mcov_pre * cov
-                    for coeff, mcov_pre, cov in zip(
-                        coefficients_dict[k], cov_matrix_prefactor[k], covariance_dict[k]
-                    )
-                ]
-            ),
+            coefficients_dict[k][:, None, None] * cov_matrix_prefactor_dict[k] * covariance_dict[k],
             axis=0,
         )
+
         if k in coefficients_dict_diagonal:
             covariance_sum_[k] += coefficients_dict_diagonal[k] * jnp.eye(
                 covariance_sum_[k].shape[0]
@@ -438,22 +432,27 @@ class CovMatrix:
         ):
             get_cov_matrix_prefactor = self.coefficients.get_cov_matrix_prefactor
         else:
-            get_cov_matrix_prefactor = lambda: None
+            get_cov_matrix_prefactor = lambda: {}
 
         def _compute_covariance_sum(parameter_values_dict, vector_variance, *args):
-            coefficients_dict = get_coefficients(
-                parameter_values_dict=parameter_values_dict
-            )
+            coefficients_dict = {
+                k: jnp.array(v)
+                for k, v in get_coefficients(parameter_values_dict=parameter_values_dict).items()
+            }
+
             coefficients_dict_diagonal = get_diagonal_coefficients(
                 parameter_values_dict=parameter_values_dict
             )
-            cov_matrix_prefactor = get_cov_matrix_prefactor(*args)
+
+            cov_matrix_prefactor_dict = {
+                k: jnp.array(v) for k, v in get_cov_matrix_prefactor(*args).items()
+            }
 
             covariance_sum = compute_covariance_sum_fun(
                 coefficients_dict=coefficients_dict,
                 coefficients_dict_diagonal=coefficients_dict_diagonal,
                 vector_variance=vector_variance,
-                cov_matrix_prefactor=cov_matrix_prefactor,
+                cov_matrix_prefactor_dict=cov_matrix_prefactor_dict,
             )
 
             return covariance_sum
@@ -519,7 +518,7 @@ class CovMatrix:
                     )
                 else:
                     new_cov[i] = cov_utils.return_full_cov(self.covariance_dict[key][i])
-            self.covariance_dict[key] = new_cov
+            self.covariance_dict[key] = jnp.array(new_cov)
 
             self.full_matrix = True
 

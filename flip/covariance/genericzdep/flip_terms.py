@@ -17,7 +17,7 @@ set_backend("numpy")
 
 def M_vv_0_0_0(kNL):
     def func(k):
-        return (1/9)/k**2
+        return (10000 / 9) / k**2
     return func
 
 def N_vv_0_0_0(theta,phi):
@@ -25,7 +25,7 @@ def N_vv_0_0_0(theta,phi):
 
 def M_vv_0_2_0(kNL):
     def func(k):
-        return (1/9)/k**2
+        return (10000 / 9) / k**2
     return func
 
 def N_vv_0_2_0(theta,phi):
@@ -33,7 +33,7 @@ def N_vv_0_2_0(theta,phi):
 
 def M_vv_1_0_0(kNL):
     def func(k):
-        return (1/9)/kNL**2
+        return (10000 / 9) / kNL**2
     return func
 
 def N_vv_1_0_0(theta,phi):
@@ -41,7 +41,7 @@ def N_vv_1_0_0(theta,phi):
 
 def M_vv_1_2_0(kNL):
     def func(k):
-        return (1/9)/kNL**2
+        return (10000 / 9) / kNL**2
     return func
 
 def N_vv_1_2_0(theta,phi):
@@ -49,7 +49,7 @@ def N_vv_1_2_0(theta,phi):
 
 def M_vv_2_0_0(kNL):
     def func(k):
-        return (1/9)*k**2/kNL**4
+        return (10000 / 9) * k**2 / kNL**4
     return func
 
 def N_vv_2_0_0(theta,phi):
@@ -57,7 +57,7 @@ def N_vv_2_0_0(theta,phi):
 
 def M_vv_2_2_0(kNL):
     def func(k):
-        return (1/9)*k**2/kNL**4
+        return (10000 / 9) * k**2 / kNL**4
     return func
 
 def N_vv_2_2_0(theta,phi):

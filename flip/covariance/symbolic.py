@@ -413,10 +413,10 @@ def generate_generalized_genericzdep_functions(
     l1max_list = [[1, 1, 1]]
     l2max_list = [[1, 1, 1]]
     dict_B = {
-              "B_vv_0": mu1 * mu2 / k**2,
-              "B_vv_1": mu1 * mu2 / kNL**2,
-              "B_vv_2": mu1 * mu2 * k**2 / kNL**4
-              }
+        "B_vv_0": 100**2 * mu1 * mu2 / k**2,
+        "B_vv_1": 100**2 * mu1 * mu2 / kNL**2,
+        "B_vv_2": 100**2 * mu1 * mu2 * k**2 / kNL**4,
+    }
 
 
     regularize_M_terms = "None"

@@ -23,7 +23,11 @@ def get_coefficients(
     redshift_dict=None,
 ):
     coefficients_dict = {}
-    coefficients_dict["vv"] = []
+    coefficients_dict["vv"] = [
+        1.0,
+        1.0,
+        1.0,
+    ]
     return coefficients_dict
 
 
@@ -33,7 +37,16 @@ def get_diagonal_coefficients(parameter_values_dict, model_kind):
     return coefficients_dict
 
 
-def get_cov_matrix_prefactor(D_growth_z):
+def get_cov_matrix_prefactor(z, f_z, E_z, D_growth_z):
+    Ai_z = f_z * D_growth_z * E_z / (1 + z)
+    Aij_z = jnp.outer(Ai_z, Ai_z)
     Delta_D_growth_squared = jnp.subtract.outer(D_growth_z, D_growth_z) ** 2
-    matrix_cov_prefactor = {"vv": [1, Delta_D_growth_squared, Delta_D_growth_squared**2]}
+
+    matrix_cov_prefactor = {
+        "vv": [
+            Aij_z * jnp.ones(Delta_D_growth_squared.shape),
+            Aij_z * Delta_D_growth_squared,
+            Aij_z * 1 / 2 * Delta_D_growth_squared**2,
+        ]
+    }
     return matrix_cov_prefactor

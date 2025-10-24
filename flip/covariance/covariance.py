@@ -76,9 +76,6 @@ def compute_covariance_sum(
         cov_matrix_prefactor_dict = {k: jnp.ones(covariance_dict[k].shape[0]) for k in keys}
 
     for k in keys:
-        print(cov_matrix_prefactor_dict[k].shape)
-        print(coefficients_dict[k].shape)
-        print(covariance_dict[k].shape)
         covariance_sum_[k] = jnp.sum(
             coefficients_dict[k][:, None, None] * cov_matrix_prefactor_dict[k] * covariance_dict[k],
             axis=0,

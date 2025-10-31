@@ -6,24 +6,35 @@ log = create_log()
 
 try:
     import torch
+
+    torch_install = True
+
 except:
+    torch_install = False
     log.add(
         "Install pytorch to use the nnmatrix emulator",
         level="warning",
     )
-
+if torch_install:
+    default_regression_object = torch.nn.Module
+    default_activation_function = torch.nn.ReLU
+    default_loss_function = torch.nn.MSELoss()
+else:
+    default_regression_object = object
+    default_activation_function = None
+    default_loss_function = None
 
 _emulator_type = "matrix"
 
 
-class RegressionNet(torch.nn.Module):
+class RegressionNet(default_regression_object):
     def __init__(
         self,
         input_dimension,
         dimension_hidden_layers=64,
         number_hidden_layers=3,
         output_dimension=1,
-        activation_function=torch.nn.ReLU,
+        activation_function=default_activation_function,
     ):
         super().__init__()
         layers = []
@@ -78,8 +89,8 @@ def train(
     dimension_hidden_layers=64,
     number_hidden_layers=3,
     number_epochs=3000,
-    activation_function=torch.nn.ReLU,
-    loss_function=torch.nn.MSELoss(),
+    activation_function=default_activation_function,
+    loss_function=default_loss_function,
     tolerance_optimizer=1e-3,
 ):
 

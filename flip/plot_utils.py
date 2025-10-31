@@ -390,11 +390,11 @@ def plot_all_mean_fits(
             std_param = np.std(params)
             count = len(params)
 
-            mean_param_dict[param_name].append(mean_param)
-            mean_error_dict[param_name].append(mean_error_param)
-            error_mean_dict[param_name].append(error_mean_param)
-            std_dict[param_name].append(std_param)
-            count_dict[param_name].append(count)
+            mean_param_dict[param_name].append(np.array(mean_param))
+            mean_error_dict[param_name].append(np.array(mean_error_param))
+            error_mean_dict[param_name].append(np.array(error_mean_param))
+            std_dict[param_name].append(np.array(std_param))
+            count_dict[param_name].append(np.array(count))
             if plot:
                 if plot_std_error:
                     if plot_error_bar_of_mean:

@@ -44,7 +44,7 @@ def get_cov_matrix_prefactor(z, f_z, E_z, D_growth_z):
 
     matrix_cov_prefactor = {
         "vv": [
-            Aij_z * jnp.ones(Delta_D_growth_squared.shape),
+            Aij_z * jnp.ones_like(Delta_D_growth_squared),
             Aij_z * Delta_D_growth_squared,
             Aij_z * 1 / 2 * Delta_D_growth_squared**2,
         ]

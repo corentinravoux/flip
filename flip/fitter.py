@@ -254,7 +254,19 @@ class FitMinuit(BaseFitter):
             A fitter object
 
         """
-        covariance = CovMatrix.init_from_file(model_name, model_kind, filename)
+        # Detect supported formats by extension
+        if filename.endswith(".pickle"):
+            fname = filename[:-7]
+            file_format = "pickle"
+        elif filename.endswith(".npz"):
+            fname = filename[:-4]
+            file_format = "npz"
+        else:
+            # Assume base name without extension, default to pickle
+            fname = filename
+            file_format = "pickle"
+
+        covariance = CovMatrix.init_from_file(fname, file_format)
 
         return cls.init_from_covariance(
             covariance,

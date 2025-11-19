@@ -305,7 +305,7 @@ def plot_all_mean_fits(
                 params = [
                     fits[i][0]["beta_f"] * fits[i][0]["bs8"] for i in range(len(fits))
                 ]
-                errors = [
+                errors_hesse = [
                     (
                         fits[i][0]["beta_f"]
                         * fits[i][0]["bs8"]
@@ -316,21 +316,63 @@ def plot_all_mean_fits(
                     )
                     for i in range(len(fits))
                 ]
-            else:
-                params = [fits[i][0][param_name] for i in range(len(fits))]
                 if use_minos:
                     names = [fits[0][3][i].name for i in range(len(fits[0][3]))]
-                    index = np.argwhere(np.array(names) == param_name)
+                    index_bs8 = np.argwhere(np.array(names) == "bs8")[0][0]
+                    index_beta_f = np.argwhere(np.array(names) == "beta_f")[0][0]
+                    for i in range(len(fits)):
+                        error_bs8_low = fits[i][2]["bs8"]
+                        error_bs8_high = fits[i][2]["bs8"]
+                        error_betaf_low = fits[i][2]["beta_f"]
+                        error_betaf_high = fits[i][2]["beta_f"]
+                        try:
+                            error_bs8_low = fits[i][3][index_bs8].lower
+                            error_bs8_high = fits[i][3][index_bs8].upper
+                            error_betaf_low = fits[i][3][index_beta_f].lower
+                            error_betaf_high = fits[i][3][index_beta_f].upper
+                        except:
+                            print("Minos failed, taking hessian error")
                     errors = [
-                        [abs(fits[i][3][index].lower) for i in range(len(fits))],
-                        [abs(fits[i][3][index].upper) for i in range(len(fits))],
+                        [
+                            fits[i][0]["beta_f"]
+                            * fits[i][0]["bs8"]
+                            * np.sqrt(
+                                (error_bs8_low / fits[i][0]["bs8"]) ** 2
+                                + (error_betaf_low / fits[i][0]["beta_f"]) ** 2
+                            )
+                            for i in range(len(fits))
+                        ],
+                        [
+                            fits[i][0]["beta_f"]
+                            * fits[i][0]["bs8"]
+                            * np.sqrt(
+                                (error_bs8_high / fits[i][0]["bs8"]) ** 2
+                                + (error_betaf_high / fits[i][0]["beta_f"]) ** 2
+                            )
+                            for i in range(len(fits))
+                        ],
                     ]
                 else:
-                    errors = [fits[i][2][param_name] for i in range(len(fits))]
+                    errors = errors_hesse
+            else:
+                params = [fits[i][0][param_name] for i in range(len(fits))]
+                errors_hesse = [fits[i][2][param_name] for i in range(len(fits))]
+                if use_minos:
+                    errors = [[], []]
+                    for i in range(len(fits)):
+                        try:
+                            names = [fits[i][3][j].name for j in range(len(fits[0][3]))]
+                            index = np.argwhere(np.array(names) == param_name)[0][0]
+                            errors[0].append(abs(fits[i][3][index].lower))
+                            errors[1].append(abs(fits[i][3][index].upper))
+                        except:
+                            errors[0].append(fits[i][2][param_name])
+                            errors[1].append(fits[i][2][param_name])
+                else:
+                    errors = errors_hesse
             if weighted_mean:
-                mean_param = np.average(
-                    params, weights=[1 / (error**2) for error in errors]
-                )
+                weigths_errors = [1 / (error**2) for error in errors_hesse]
+                mean_param = np.average(params, weights=weigths_errors)
             else:
                 mean_param = np.mean(params)
             if use_minos:
@@ -348,11 +390,11 @@ def plot_all_mean_fits(
             std_param = np.std(params)
             count = len(params)
 
-            mean_param_dict[param_name].append(mean_param)
-            mean_error_dict[param_name].append(mean_error_param)
-            error_mean_dict[param_name].append(error_mean_param)
-            std_dict[param_name].append(std_param)
-            count_dict[param_name].append(count)
+            mean_param_dict[param_name].append(np.array(mean_param))
+            mean_error_dict[param_name].append(np.array(mean_error_param))
+            error_mean_dict[param_name].append(np.array(error_mean_param))
+            std_dict[param_name].append(np.array(std_param))
+            count_dict[param_name].append(np.array(count))
             if plot:
                 if plot_std_error:
                     if plot_error_bar_of_mean:

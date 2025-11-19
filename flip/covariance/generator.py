@@ -1,6 +1,5 @@
 import multiprocessing as mp
 from functools import partial
-import importlib 
 
 import cosmoprimo
 import mpmath
@@ -9,15 +8,20 @@ from scipy import integrate
 from scipy.signal import savgol_filter
 from scipy.special import spherical_jn
 
-from flip.covariance import cov_utils, __available_models__
-
-for model_name in __available_models__:
-    globals()[f"flip_terms_" + model_name] = importlib.import_module("flip.covariance." + model_name + ".flip_terms")
-    
+from flip.covariance import cov_utils
 from flip.utils import create_log
 
 log = create_log()
-
+_avail_models = [
+    "adamsblake17plane",
+    "adamsblake17",
+    "adamsblake20",
+    "lai22",
+    "carreres23",
+    "ravouxcarreres",
+    "ravouxnoanchor25",
+    "rcrk24",
+]
 _avail_regularization_option = [
     None,
     "mpmath",
@@ -94,7 +98,7 @@ def correlation_hankel(l, r, k, integrand, hankel_overhead_coefficient=2, kmin=N
 def coefficient_hankel(
     model_name,
     covariance_type,
-    n,
+    term_index,
     lmax,
     wavenumber,
     power_spectrum,
@@ -125,7 +129,7 @@ def coefficient_hankel(
         The covariance of the a-th and b-th terms
 
     """
-    cov_ab_n = 0
+    cov_ab_i = 0
     flip_terms = eval(f"flip_terms_{model_name}")
     flip_terms.set_backend("numpy")
     dictionary_subterms = flip_terms.dictionary_subterms
@@ -136,29 +140,30 @@ def coefficient_hankel(
     #         wavenumber, coord[3], coord[4], **additional_parameters_values
     #     )  # Shape issue: Z_ab_i is an outer product. How to include that in the Hankel transform?
     for l in range(lmax + 1):
-        number_l1_l2_terms = dictionary_subterms[f"{covariance_type}_{n}_{l}"]
-        for l1_l2 in range(number_l1_l2_terms):
-            M_ab_n_l_l1_l2 = eval(f"flip_terms.M_{covariance_type}_{n}_{l}_{l1_l2}")
-            M_ab_n_l_l1_l2_evaluated = regularize_M(
-                M_ab_n_l_l1_l2,
+        number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
+        for j in range(number_terms):
+            M_ab_i_l_j = eval(f"flip_terms.M_{covariance_type}_{term_index}_{l}_{j}")
+            M_ab_i_l_j_evaluated = regularize_M(
+                M_ab_i_l_j,
                 wavenumber,
                 regularize_M_terms,
                 covariance_type,
                 flip_terms,
                 additional_parameters_values,
             )
-            N_ab_n_l_l1_l2 = eval(f"flip_terms.N_{covariance_type}_{n}_{l}_{l1_l2}")(
+            M_ab_i_l_j_evaluated = M_ab_i_l_j_evaluated * Z_ab_i
+            N_ab_i_l_j = eval(f"flip_terms.N_{covariance_type}_{term_index}_{l}_{j}")(
                 coord[1], coord[2]
             )
-            hankel_ab_n_l_l1_l2 = correlation_hankel(
+            hankel_ab_i_l_j = correlation_hankel(
                 l,
                 coord[0],
                 wavenumber,
-                M_ab_n_l_l1_l2_evaluated * power_spectrum,
+                M_ab_i_l_j_evaluated * power_spectrum,
                 **kwargs,
             )
-            cov_ab_n += N_ab_n_l_l1_l2 * hankel_ab_n_l_l1_l2
-    return cov_ab_n
+            cov_ab_i = cov_ab_i + N_ab_i_l_j * hankel_ab_i_l_j
+    return cov_ab_i
 
 
 def coefficient_trapz(
@@ -196,7 +201,7 @@ def coefficient_trapz(
     dictionary_subterms = flip_terms.dictionary_subterms
     regularize_M_terms = flip_terms.regularize_M_terms
     Z_ab_i = 1
-    if eval(f"flip_terms.redshift_dependent_model"):
+    if eval("flip_terms.redshift_dependent_model"):
         Z_ab_i = eval(f"flip_terms.Z_{covariance_type}_{term_index}")(
             wavenumber, coord[3], coord[4], **additional_parameters_values
         )
@@ -553,10 +558,10 @@ def compute_cov(
         The covariance matrix for a given model and set of parameters
 
     """
-    if model_name not in __available_models__:
+    if model_name not in _avail_models:
         log.add(
             f"Model {model_name} not available."
-            f"Please choose between: {__available_models__}"
+            f"Please choose between: {_avail_models}"
         )
 
     parameters = compute_coordinates(
@@ -581,47 +586,15 @@ def compute_cov(
     return covariance
 
 
-def generate_redshift_dict(
-    model_name,
-    model_kind,
-    redshift_velocity=None,
-    redshift_density=None,
-    coordinates_velocity=None,
-    coordinates_density=None,
-):
-    redshift_dependent_model = eval(f"flip_terms_{model_name}.redshift_dependent_model")
-    if redshift_dependent_model:
-        redshift_dict = {}
-    else:
-        return None
+def get_redshift_dependent_model_flag(model_name):
+    """
+    The get_redshift_dependent_model_flag function returns a boolean indicating whether the model is redshift dependent or not.
 
-    if model_kind in ["density", "full", "density_velocity"]:
-        if redshift_dependent_model:
-            if redshift_density is not None:
-                redshift_dict["g"] = redshift_density
-            else:
-                if len(coordinates_density) < 4:
-                    raise ValueError(
-                        "You are using a model which is redshift dependent."
-                        "Please provide redshifts as the fourth field"
-                        "of the coordinates_density value"
-                    )
-                else:
-                    redshift_dict["g"] = coordinates_density[3]
-    if model_kind in ["velocity", "full", "density_velocity"]:
-        if redshift_dependent_model:
-            if redshift_velocity is not None:
-                redshift_dict["v"] = redshift_velocity
-            else:
-                if len(coordinates_velocity) < 4:
-                    raise ValueError(
-                        "You are using a model which is redshift dependent."
-                        "Please provide redshifts as the fourth field"
-                        "of the coordinates_velocity value"
-                    )
-                else:
-                    redshift_dict["v"] = coordinates_velocity[3]
-    return redshift_dict
+    Args:
+        model_name: Determine which model to use
+    """
+    redshift_dependent_model = eval(f"flip_terms_{model_name}.redshift_dependent_model")
+    return redshift_dependent_model
 
 
 def generate_covariance(
@@ -663,12 +636,16 @@ def generate_covariance(
     )
     covariance_dict = {}
 
-    redshift_dict = generate_redshift_dict(
-        model_name,
-        model_kind,
-        coordinates_velocity=coordinates_velocity,
-        coordinates_density=coordinates_density,
-    )
+    redshift_dependent_model = get_redshift_dependent_model_flag(model_name)
+    if redshift_dependent_model:
+        redshift_dict = cov_utils.generate_redshift_dict(
+            redshift_dependent_model,
+            model_kind,
+            coordinates_velocity=coordinates_velocity,
+            coordinates_density=coordinates_density,
+        )
+    else:
+        redshift_dict = None
 
     if model_kind in ["density", "full", "density_velocity"]:
         covariance_dict["gg"] = compute_cov(

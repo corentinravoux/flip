@@ -638,7 +638,7 @@ def coefficient_gv_bf_p(
     return result
 
 
-def return_full_cov(cov):
+def return_matrix_covariance(cov):
     variance_val = cov[0]
 
     non_diagonal_cov = np.delete(cov, 0)
@@ -707,9 +707,15 @@ def compute_all_matrices(
         number_worker=number_worker,
         hankel=hankel,
     )
-    cov_gg_b2_m = [return_full_cov(cov_gg_b2[i]) for i, m in enumerate(m_index_gg)]
-    cov_gg_bf_m = [return_full_cov(cov_gg_bf[i]) for i, m in enumerate(m_index_gg)]
-    cov_gg_f2_m = [return_full_cov(cov_gg_f2[i]) for i, m in enumerate(m_index_gg)]
+    cov_gg_b2_m = [
+        return_matrix_covariance(cov_gg_b2[i]) for i, m in enumerate(m_index_gg)
+    ]
+    cov_gg_bf_m = [
+        return_matrix_covariance(cov_gg_bf[i]) for i, m in enumerate(m_index_gg)
+    ]
+    cov_gg_f2_m = [
+        return_matrix_covariance(cov_gg_f2[i]) for i, m in enumerate(m_index_gg)
+    ]
 
     m_index_gv, cov_gv_f2, cov_gv_bf = compute_cov_gv(
         pmax,
@@ -739,7 +745,7 @@ def compute_all_matrices(
         for i, _ in enumerate(m_index_gv)
     ]
 
-    cov_vv = return_full_cov(
+    cov_vv = return_matrix_covariance(
         compute_cov_vv(
             ra_vel,
             dec_vel,

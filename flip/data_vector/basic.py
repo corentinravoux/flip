@@ -101,7 +101,7 @@ class DataVector(abc.ABC):
         )._coordinate_keys
 
         coords = np.vstack([self.data[k] for k in coordinate_keys])
-        
+
         return CovMatrix.init_from_flip(
             model,
             self._kind,
@@ -261,16 +261,17 @@ class VelFromHDres(DirectVel):
     def __init__(
         self, data, covariance_observation=None, velocity_estimator="full", **kwargs
     ):
-
+        # Compute conversion using provided input data, not uninitialized self._data
         distance_modulus_difference_to_velocity = (
             vector_utils.redshift_dependence_velocity(
-                self._data, velocity_estimator, **kwargs
+                data, velocity_estimator, **kwargs
             )
         )
         self.velocity_estimator = velocity_estimator
+        data = dict(data)  # shallow copy to avoid side-effects upstream
         data["velocity"] = distance_modulus_difference_to_velocity * data["dmu"]
 
-        if covariance_observation is None:
+        if covariance_observation is None and "dmu_error" in data:
             data["velocity_error"] = (
                 distance_modulus_difference_to_velocity * data["dmu_error"]
             )
@@ -281,7 +282,7 @@ class FisherVelMesh(DataVector):
     _kind = "velocity"
     _needed_keys = ["zobs", "ra", "dec", "rcom_zobs"]
 
-    def _give_data_and_variance(self, parameter_values_dict):
+    def give_data_and_variance(self, parameter_values_dict):
         variance = self.data["velocity_variance"]
         return self._distance_modulus_difference_to_velocity**2 * variance
 

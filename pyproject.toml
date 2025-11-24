@@ -41,10 +41,12 @@ docs = [
     "sphinx-autoapi",
 ]
 
+[tool.setuptools]
+packages = ["flip"]
 
 [tool.setuptools.package-data]
 flip = [
-    "data/*.txt", 
-    "data/*.parquet", 
+    "data/*.txt",
+    "data/*.parquet",
     "data/*.mplstyle"
     ]

@@ -1,4 +1,5 @@
 import importlib
+import inspect
 import pickle
 import time
 from functools import partial
@@ -60,6 +61,7 @@ def compute_covariance_sum(
     coefficients_dict,
     coefficients_dict_diagonal,
     vector_variance,
+    cov_matrix_prefactor_dict=None,
     kind="full",
     parameter_values_dict=None,
 ):
@@ -75,27 +77,15 @@ def compute_covariance_sum(
 
     covariance_sum_ = {}
 
+    if not cov_matrix_prefactor_dict:
+        cov_matrix_prefactor_dict = {k: jnp.ones(covariance_dict[k].shape[0]) for k in keys}
+
     for k in keys:
-        if parameter_values_dict is not None:
-            covariance_sum_[k] = jnp.sum(
-                jnp.stack(
-                    [
-                        coefficients_dict[k][i] * cov(parameter_values_dict)
-                        for i, cov in enumerate(covariance_dict[k])
-                    ]
-                ),
-                axis=0,
-            )
-        else:
-            covariance_sum_[k] = jnp.sum(
-                jnp.stack(
-                    [
-                        coefficients_dict[k][i] * cov
-                        for i, cov in enumerate(covariance_dict[k])
-                    ]
-                ),
-                axis=0,
-            )
+        covariance_sum_[k] = jnp.sum(
+            coefficients_dict[k][:, None, None] * cov_matrix_prefactor_dict[k] * covariance_dict[k],
+            axis=0,
+        )
+
         if k in coefficients_dict_diagonal:
             covariance_sum_[k] += coefficients_dict_diagonal[k] * jnp.eye(
                 covariance_sum_[k].shape[0]
@@ -446,7 +436,7 @@ class CovMatrix:
         file_format,
     ):
         if file_format == "parquet":
-            raise NotImplementedError(f"Reading from parquet not implemented yet")
+            raise NotImplementedError("Reading from parquet not implemented yet")
         if file_format == "pickle":
             with open(f"{filename}.pickle", "rb") as file_read:
                 class_attrs_dictionary = pickle.load(file_read)
@@ -553,13 +543,27 @@ class CovMatrix:
             kind=self.model_kind,
         )
 
-        def _compute_covariance_sum(parameter_values_dict, vector_variance):
-            coefficients_dict = get_coefficients(
-                parameter_values_dict=parameter_values_dict
-            )
+        if "get_cov_matrix_prefactor" in dict(
+            inspect.getmembers(self.coefficients, inspect.isfunction)
+        ):
+            get_cov_matrix_prefactor = self.coefficients.get_cov_matrix_prefactor
+        else:
+            get_cov_matrix_prefactor = lambda: {}
+
+        def _compute_covariance_sum(parameter_values_dict, vector_variance, *args):
+            coefficients_dict = {
+                k: jnp.array(v)
+                for k, v in get_coefficients(parameter_values_dict=parameter_values_dict).items()
+            }
+
             coefficients_dict_diagonal = get_diagonal_coefficients(
                 parameter_values_dict=parameter_values_dict
             )
+
+            cov_matrix_prefactor_dict = {
+                k: jnp.array(v) for k, v in get_cov_matrix_prefactor(*args).items()
+            }
+
             covariance_sum = compute_covariance_sum_fun(
                 coefficients_dict=coefficients_dict,
                 coefficients_dict_diagonal=coefficients_dict_diagonal,
@@ -567,6 +571,7 @@ class CovMatrix:
                 parameter_values_dict=(
                     parameter_values_dict if self.emulator_flag else None
                 ),
+                cov_matrix_prefactor_dict=cov_matrix_prefactor_dict,
             )
 
             return covariance_sum
@@ -645,7 +650,7 @@ class CovMatrix:
                     new_cov[i] = cov_utils.return_matrix_covariance(
                         self.covariance_dict[key][i]
                     )
-            self.covariance_dict[key] = new_cov
+            self.covariance_dict[key] = jnp.array(new_cov)
 
             self.matrix_form = True
 

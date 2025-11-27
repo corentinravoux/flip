@@ -1,3 +1,4 @@
+import importlib
 import multiprocessing as mp
 from functools import partial
 
@@ -9,14 +10,6 @@ from scipy.signal import savgol_filter
 from scipy.special import spherical_jn
 
 from flip.covariance import cov_utils
-from flip.covariance.adamsblake17 import flip_terms as flip_terms_adamsblake17
-from flip.covariance.adamsblake17plane import flip_terms as flip_terms_adamsblake17plane
-from flip.covariance.adamsblake20 import flip_terms as flip_terms_adamsblake20
-from flip.covariance.carreres23 import flip_terms as flip_terms_carreres23
-from flip.covariance.lai22 import flip_terms as flip_terms_lai22
-from flip.covariance.ravouxcarreres import flip_terms as flip_terms_ravouxcarreres
-from flip.covariance.ravouxnoanchor25 import flip_terms as flip_terms_ravouxnoanchor25
-from flip.covariance.rcrk24 import flip_terms as flip_terms_rcrk24
 from flip.utils import create_log
 
 log = create_log()
@@ -57,9 +50,7 @@ def correlation_integration(l, r, k, integrand):
 
     """
     kr = np.outer(k, r)
-    integrand = (
-        (-1) ** (l // 2) * (k**2 / (2 * np.pi**2)) * integrand * spherical_jn(l, kr).T
-    )
+    integrand = (-1) ** (l // 2) * (k**2 / (2 * np.pi**2)) * integrand * spherical_jn(l, kr).T
     return (-1) ** (l % 2) * integrate.simpson(integrand, x=k)
 
 
@@ -137,20 +128,22 @@ def coefficient_hankel(
         The covariance of the a-th and b-th terms
 
     """
+    flip_terms = importlib.import_module(f".{model_name}.flip_terms", package=__package__)
+
     cov_ab_i = 0
-    flip_terms = eval(f"flip_terms_{model_name}")
     flip_terms.set_backend("numpy")
     dictionary_subterms = flip_terms.dictionary_subterms
     regularize_M_terms = flip_terms.regularize_M_terms
-    Z_ab_i = 1
-    if eval(f"flip_terms.redshift_dependent_model"):
-        Z_ab_i = eval(f"flip_terms.Z_{covariance_type}_{term_index}")(
-            wavenumber, coord[3], coord[4], *additional_parameters_values
-        )  # Shape issue: Z_ab_i is an outer product. How to include that in the Hankel transform?
+    # Z_ab_i = 1
+    # if eval(f"flip_terms.redshift_dependent_model"):
+    #     Z_ab_i = eval(f"flip_terms.Z_{covariance_type}_{term_index}")(
+    #         wavenumber, coord[3], coord[4], **additional_parameters_values
+    #     )  # Shape issue: Z_ab_i is an outer product. How to include that in the Hankel transform?
+
     for l in range(lmax + 1):
         number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
         for j in range(number_terms):
-            M_ab_i_l_j = eval(f"flip_terms.M_{covariance_type}_{term_index}_{l}_{j}")
+            M_ab_i_l_j = getattr(flip_terms, f"M_{covariance_type}_{term_index}_{l}_{j}")
             M_ab_i_l_j_evaluated = regularize_M(
                 M_ab_i_l_j,
                 wavenumber,
@@ -159,8 +152,8 @@ def coefficient_hankel(
                 flip_terms,
                 additional_parameters_values,
             )
-            M_ab_i_l_j_evaluated = M_ab_i_l_j_evaluated * Z_ab_i
-            N_ab_i_l_j = eval(f"flip_terms.N_{covariance_type}_{term_index}_{l}_{j}")(
+
+            N_ab_i_l_j = getattr(flip_terms, f"N_{covariance_type}_{term_index}_{l}_{j}")(
                 coord[1], coord[2]
             )
             hankel_ab_i_l_j = correlation_hankel(
@@ -170,7 +163,7 @@ def coefficient_hankel(
                 M_ab_i_l_j_evaluated * power_spectrum,
                 **kwargs,
             )
-            cov_ab_i = cov_ab_i + N_ab_i_l_j * hankel_ab_i_l_j
+            cov_ab_i += N_ab_i_l_j * hankel_ab_i_l_j
     return cov_ab_i
 
 
@@ -204,19 +197,19 @@ def coefficient_trapz(
 
     """
     cov_ab_i = 0
-    flip_terms = eval(f"flip_terms_{model_name}")
+    flip_terms = importlib.import_module(f"{model_name}.flip_terms")
     flip_terms.set_backend("numpy")
     dictionary_subterms = flip_terms.dictionary_subterms
     regularize_M_terms = flip_terms.regularize_M_terms
-    Z_ab_i = 1
-    if eval(f"flip_terms.redshift_dependent_model"):
-        Z_ab_i = eval(f"flip_terms.Z_{covariance_type}_{term_index}")(
-            wavenumber, coord[3], coord[4], *additional_parameters_values
-        )
+    # Z_ab_i = 1
+    # if eval("flip_terms.redshift_dependent_model"):
+    #     Z_ab_i = eval(f"flip_terms.Z_{covariance_type}_{term_index}")(
+    #         wavenumber, coord[3], coord[4], **additional_parameters_values
+    #     )
     for l in range(lmax + 1):
         number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
         for j in range(number_terms):
-            M_ab_i_l_j = eval(f"flip_terms.M_{covariance_type}_{term_index}_{l}_{j}")
+            M_ab_i_l_j = getattr(flip_terms, f"M_{covariance_type}_{term_index}_{l}_{j}")
             M_ab_i_l_j_evaluated = regularize_M(
                 M_ab_i_l_j,
                 wavenumber,
@@ -225,8 +218,7 @@ def coefficient_trapz(
                 flip_terms,
                 additional_parameters_values,
             )
-            M_ab_i_l_j_evaluated = M_ab_i_l_j_evaluated * Z_ab_i
-            N_ab_i_l_j = eval(f"flip_terms.N_{covariance_type}_{term_index}_{l}_{j}")(
+            N_ab_i_l_j = getattr(flip_terms, f"N_{covariance_type}_{term_index}_{l}_{j}")(
                 coord[1], coord[2]
             )
             kr = np.outer(wavenumber, coord[0])
@@ -237,8 +229,8 @@ def coefficient_trapz(
                 * power_spectrum
                 * spherical_jn(l, kr).T
             )
-            hankel_ab_i_l_j = (-1) ** (l % 2) * np.trapz(integrand, x=wavenumber)
-            cov_ab_i = cov_ab_i + N_ab_i_l_j * hankel_ab_i_l_j
+            hankel_ab_i_l_j = (-1) ** (l % 2) * np.trapezoid(integrand, x=wavenumber)
+            cov_ab_i += N_ab_i_l_j * hankel_ab_i_l_j
     return cov_ab_i
 
 
@@ -257,22 +249,21 @@ def regularize_M(
 ):
 
     if regularize_M_terms is None:
-        return M_function(*additional_parameters_values)(wavenumber)
+        return M_function(**additional_parameters_values)(wavenumber)
     else:
         regularization_option = regularize_M_terms[covariance_type]
 
         if regularization_option is None:
-            return M_function(*additional_parameters_values)(wavenumber)
+            return M_function(**additional_parameters_values)(wavenumber)
 
         elif regularization_option == "mpmath":
             flip_terms.set_backend("mpmath")
             mpmath.mp.dps = mpmmath_decimal_precision
             wavenumber_mpmath = wavenumber * mpmath.mpf(1)
-            additional_parameters_values_mpf = tuple(
-                [mpmath.mpf(par) for par in additional_parameters_values]
-            )
+            additional_parameters_values_mpf = {k: mpmath.mpf(v) for k, par in additional_parameters_values.items()}
+
             M_function_evaluated = np.array(
-                np.frompyfunc(M_function(*additional_parameters_values_mpf), 1, 1)(
+                np.frompyfunc(M_function(**additional_parameters_values_mpf), 1, 1)(
                     wavenumber_mpmath
                 ).tolist(),
                 dtype=float,
@@ -280,7 +271,7 @@ def regularize_M(
             flip_terms.set_backend("numpy")
 
         elif regularization_option == "savgol":
-            M_function_evaluated = M_function(*additional_parameters_values)(wavenumber)
+            M_function_evaluated = M_function(**additional_parameters_values)(wavenumber)
             M_function_evaluated = savgol_filter(
                 M_function_evaluated,
                 savgol_window,
@@ -291,7 +282,7 @@ def regularize_M(
             # The low k region presents numerical instabilities for density models.
             # All the M density function should present and asymptotic behaviour at low k.
             # This method detect low k asymptote and force it for all M functions.
-            M_function_evaluated = M_function(*additional_parameters_values)(wavenumber)
+            M_function_evaluated = M_function(**additional_parameters_values)(wavenumber)
             diff = np.diff(M_function_evaluated, append=[M_function_evaluated[-1]])
             mask_asymptote = np.abs(diff) < lowk_unstable_threshold * np.mean(
                 np.abs(diff[wavenumber > wavenumber[len(wavenumber) // 2]])
@@ -454,15 +445,16 @@ def compute_coeficient(
         A list of arrays
     """
     if additional_parameters_values is None:
-        additional_parameters_values = ()
+        additional_parameters_values = {}
     if hankel:
         coefficient = coefficient_hankel
     else:
         coefficient = coefficient_trapz
 
-    term_index_list = eval(f"flip_terms_{model_name}.dictionary_terms")[covariance_type]
-    lmax_list = eval(f"flip_terms_{model_name}.dictionary_lmax")[covariance_type]
-    multi_index_model = eval(f"flip_terms_{model_name}.multi_index_model")
+    flip_terms = importlib.import_module(f".{model_name}.flip_terms", package=__package__)
+    term_index_list = getattr(flip_terms, "dictionary_terms")[covariance_type]
+    lmax_list = getattr(flip_terms, "dictionary_lmax")[covariance_type]
+    multi_index_model = getattr(flip_terms, "multi_index_model")
 
     function_covariance_dict = {}
     for i, index in enumerate(term_index_list):
@@ -602,7 +594,8 @@ def get_redshift_dependent_model_flag(model_name):
     Args:
         model_name: Determine which model to use
     """
-    redshift_dependent_model = eval(f"flip_terms_{model_name}.redshift_dependent_model")
+    flip_terms = importlib.import_module(f".{model_name}.flip_terms", package=__package__)
+    redshift_dependent_model = getattr(flip_terms, "redshift_dependent_model")
     return redshift_dependent_model
 
 

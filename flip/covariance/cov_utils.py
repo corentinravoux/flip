@@ -72,7 +72,7 @@ def compute_function_sym_matrix(f, *args, compute_diag=True, fill_diag=0, size_b
         res.append(f(*np.vstack([[a[i_list], a[j_list]] for a in args])))
     res = np.concatenate(res)
 
-    if fill_dag:
+    if fill_diag:
         res = np.insert(    res, 0, 0)
     return res
 

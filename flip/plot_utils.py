@@ -478,3 +478,20 @@ def select_valid_fits(
             fit_to_plot.append(fit)
             fit_name_to_plot.append(f)
     return fit_to_plot, fit_name_to_plot
+
+
+def __secret_logo__(first_album=False):
+    from PIL import Image
+
+    from flip import __flip_dir_path__
+
+    if first_album:
+        img = Image.open(f"{__flip_dir_path__}/data/.htmp/flip_first_album.webp")
+    else:
+        # Load the WEBP image
+        img = Image.open(f"{__flip_dir_path__}/data/.htmp/flip_heavy.webp")
+
+    # Display it with matplotlib
+    plt.imshow(img)
+    plt.axis("off")
+    plt.show()

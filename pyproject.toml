@@ -3,7 +3,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "flip"
+name = "flipcosmo"
 dynamic = ["version"]
 authors = [
     {name = "Corentin Ravoux", email = "corentin.ravoux.research@gmail.com"},
@@ -26,6 +26,9 @@ dependencies = [
     "mpmath"
 ]
 
+[project.urls]
+Homepage = "https://github.com/corentinravoux/flip"
+
 [project.optional-dependencies]
 docs = [
     "markdown",
@@ -42,7 +45,12 @@ docs = [
 ]
 
 [tool.setuptools]
-packages = ["flip"]
+package-dir = { "" = "flip" }
+
+[tool.setuptools.packages.find]
+where = ["flip"]
+namespaces = true
+
 
 [tool.setuptools.package-data]
 flip = [
@@ -50,3 +58,15 @@ flip = [
     "data/*.parquet",
     "data/*.mplstyle"
     ]
+
+[project.scripts]
+# Continuum fitting
+"flip_compute_correlation_model.py" = "flip.bin.flip_compute_correlation_model:main"
+"flip_compute_power_spectra.py" = "flip.bin.flip_compute_power_spectra:main"
+"flip_fisher_forecast_velocity.py" = "flip.bin.flip_fisher_forecast_velocity:main"
+"flip_launch_minuit_density_fit.py" = "flip.bin.flip_launch_minuit_density_fit:main"
+"flip_launch_minuit_full_fit.py" = "flip.bin.flip_launch_minuit_full_fit:main"
+"flip_launch_minuit_velocity_fit_full.py" = "flip.bin.flip_launch_minuit_velocity_fit_full:main"
+"flip_launch_minuit_velocity_fit_interpolation.py" = "flip.bin.flip_launch_minuit_velocity_fit_interpolation:main"
+"flip_launch_minuit_velocity_fit.py" = "flip.bin.flip_launch_minuit_velocity_fit:main"
+"flip_rcrk24_fisher.py" = "flip.bin.flip_rcrk24_fisher:main"

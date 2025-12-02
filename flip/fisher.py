@@ -148,7 +148,6 @@ class FisherMatrix:
             self.covariance.model_kind,
             self.parameter_values_dict,
             variant=self.covariance.variant,
-            redshift_dict=self.covariance.redshift_dict,
         )
         parameter_name_list = []
         covariance_derivative_sum_list = []

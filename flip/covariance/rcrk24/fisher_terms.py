@@ -29,7 +29,6 @@ def get_partial_derivative_coefficients(
     model_kind,
     parameter_values_dict,
     variant=None,
-    redshift_dict=None,
 ):
     partial_coefficients_dict = None
     redshift_velocities = redshift_dict["v"]

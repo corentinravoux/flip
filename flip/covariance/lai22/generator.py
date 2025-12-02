@@ -858,11 +858,9 @@ def generate_covariance(
             **kwargs,
         )
 
-    redshift_dict = None
     return (
         covariance_dict,
         number_densities,
         number_velocities,
         los_definition,
-        redshift_dict,
     )

@@ -7,7 +7,7 @@ def get_coefficients(
     model_kind,
     parameter_values_dict,
     variant=None,
-    redshift_dict=None,
+    covariance_prefactor_dict=None,
 ):
     H0 = parameter_values_dict["H0"]
     Omega_m0 = parameter_values_dict["Omega_m0"]

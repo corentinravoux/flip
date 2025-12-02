@@ -23,7 +23,6 @@ if __use_jax__:
 
         jax_installed = False
 else:
-
     import numpy as jnp
 
     jax_installed = False
@@ -65,7 +64,6 @@ def compute_covariance_sum(
     kind="full",
     parameter_values_dict=None,
 ):
-
     if kind == "density":
         keys = ["gg"]
     elif kind == "velocity":
@@ -77,12 +75,21 @@ def compute_covariance_sum(
 
     covariance_sum_ = {}
 
-    if not cov_matrix_prefactor_dict:
-        cov_matrix_prefactor_dict = {k: jnp.ones(covariance_dict[k].shape[0]) for k in keys}
+    if cov_matrix_prefactor_dict is None:
+        cov_matrix_prefactor_dict = {k: 1 for k in keys}
 
     for k in keys:
+        if parameter_values_dict is not None:
+            covariance_evaluated = np.array(
+                [cov(parameter_values_dict) for i, cov in enumerate(covariance_dict[k])]
+            )
+        else:
+            covariance_evaluated = covariance_dict[k]
+
         covariance_sum_[k] = jnp.sum(
-            coefficients_dict[k][:, None, None] * cov_matrix_prefactor_dict[k] * covariance_dict[k],
+            coefficients_dict[k][:, None, None]
+            * cov_matrix_prefactor_dict[k]
+            * covariance_evaluated,
             axis=0,
         )
 
@@ -130,7 +137,6 @@ class CovMatrix:
         los_definition (str): Definition of the line-of-sight.
         covariance_dict (dict): Dictionary containing covariance matrices.
         matrix_form (bool): Indicates if covariance is in matrix form.
-        redshift_dict (dict): Dictionary of redshift information.
         variant (str): Variant of the model.
         number_densities (int): Number of density bins.
         number_velocities (int): Number of velocity bins.
@@ -167,7 +173,6 @@ class CovMatrix:
         los_definition=None,
         covariance_dict=None,
         matrix_form=False,
-        redshift_dict=None,
         variant=None,
         coefficients=None,
         number_densities=None,
@@ -184,7 +189,6 @@ class CovMatrix:
             los_definition (Any, optional): Definition of the line-of-sight.
             covariance_dict (dict, optional): Dictionary containing covariance data.
             matrix_form (bool, optional): If True, use matrix form for computations.
-            redshift_dict (dict, optional): Dictionary containing redshift information.
             variant (Any, optional): Variant of the model to use.
             number_densities (Any, optional): Number densities for the model.
             number_velocities (Any, optional): Number velocities for the model.
@@ -196,7 +200,6 @@ class CovMatrix:
             los_definition (Any): Definition of the line-of-sight.
             covariance_dict (dict): Dictionary containing covariance data.
             matrix_form (bool): Indicates if matrix form is used.
-            redshift_dict (dict): Dictionary containing redshift information.
             variant (Any): Variant of the model.
             coefficients (module): Imported coefficients module for the model.
             compute_covariance_sum (callable): Function to compute covariance sum.
@@ -208,7 +211,6 @@ class CovMatrix:
         self.los_definition = los_definition
         self.covariance_dict = covariance_dict
         self.matrix_form = matrix_form
-        self.redshift_dict = redshift_dict
         self.variant = variant
         self.coefficients = coefficients
         self.compute_covariance_sum = None
@@ -275,7 +277,6 @@ class CovMatrix:
             covariance_dict,
             number_densities,
             number_velocities,
-            redshift_dict,
         ) = generator_flip.generate_covariance(
             model_name,
             model_kind,
@@ -297,7 +298,6 @@ class CovMatrix:
             los_definition=los_definition,
             covariance_dict=covariance_dict,
             matrix_form=False,
-            redshift_dict=redshift_dict,
             variant=variant,
             coefficients=coefficients,
             number_densities=number_densities,
@@ -362,7 +362,6 @@ class CovMatrix:
             number_densities,
             number_velocities,
             los_definition,
-            redshift_dict,
         ) = generator.generate_covariance(
             model_kind,
             power_spectrum_dict,
@@ -381,7 +380,6 @@ class CovMatrix:
             los_definition=los_definition,
             covariance_dict=covariance_dict,
             matrix_form=False,
-            redshift_dict=redshift_dict,
             variant=variant,
             coefficients=coefficients,
             number_densities=number_densities,
@@ -398,7 +396,6 @@ class CovMatrix:
         parameter_names,
         **kwargs,
     ):
-
         begin = time.time()
         from flip.covariance.emulators import generator as generator_emulators
 
@@ -421,7 +418,6 @@ class CovMatrix:
             los_definition=covariance_list[0].los_definition,
             covariance_dict=emulator_covariance_dict,
             matrix_form=False,
-            redshift_dict=covariance_list[0].redshift_dict,
             variant=covariance_list[0].variant,
             coefficients=covariance_list[0].coefficients,
             number_densities=covariance_list[0].number_densities,
@@ -529,7 +525,6 @@ class CovMatrix:
             self.coefficients.get_coefficients,
             model_kind=self.model_kind,
             variant=self.variant,
-            redshift_dict=self.redshift_dict,
         )
 
         get_diagonal_coefficients = partial(
@@ -553,7 +548,9 @@ class CovMatrix:
         def _compute_covariance_sum(parameter_values_dict, vector_variance, *args):
             coefficients_dict = {
                 k: jnp.array(v)
-                for k, v in get_coefficients(parameter_values_dict=parameter_values_dict).items()
+                for k, v in get_coefficients(
+                    parameter_values_dict=parameter_values_dict
+                ).items()
             }
 
             coefficients_dict_diagonal = get_diagonal_coefficients(
@@ -655,7 +652,6 @@ class CovMatrix:
             self.matrix_form = True
 
     def compute_flat_covariance(self, verbose=True):
-
         if not self.matrix_form:
             if verbose:
                 log.add("Flat covariance already computed")
@@ -744,7 +740,6 @@ class CovMatrix:
             np.savez(f"{filename}.npz", **class_attrs_dictionary)
 
     def mask(self, mask_vel=None, mask_dens=None):
-
         Ng = self.number_densities
         Nv = self.number_velocities
 
@@ -825,6 +820,5 @@ class CovMatrix:
             matrix_form=self.matrix_form,
             number_densities=np.sum(mask_dens),
             number_velocities=np.sum(mask_vel),
-            redshift_dict=self.redshift_dict,
             variant=self.variant,
         )

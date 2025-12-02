@@ -53,7 +53,10 @@ def compute_sep(
 
     return sep, sep_perp, sep_par
 
-def compute_function_sym_matrix(f, *args, compute_diag=True, fill_diag=0, size_batch=10_000):
+
+def compute_function_sym_matrix(
+    f, *args, compute_diag=True, fill_diag=0, size_batch=10_000
+):
     number_objects = len(args[0])
     if compute_diag:
         k = 0
@@ -73,8 +76,9 @@ def compute_function_sym_matrix(f, *args, compute_diag=True, fill_diag=0, size_b
     res = np.concatenate(res)
 
     if fill_diag:
-        res = np.insert(    res, 0, 0)
+        res = np.insert(res, 0, 0)
     return res
+
 
 def compute_i_j(N, seq):
     """
@@ -416,43 +420,3 @@ def check_generator_need(model_kind, coordinates_density, coordinates_velocity):
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
         )
-
-
-def generate_redshift_dict(
-    redshift_dependent_model,
-    model_kind,
-    redshift_velocity=None,
-    redshift_density=None,
-    coordinates_velocity=None,
-    coordinates_density=None,
-):
-
-    redshift_dict = {}
-
-    if model_kind in ["density", "full", "density_velocity"]:
-        if redshift_dependent_model:
-            if redshift_density is not None:
-                redshift_dict["g"] = redshift_density
-            else:
-                if len(coordinates_density) < 4:
-                    raise ValueError(
-                        "You are using a model which is redshift dependent."
-                        "Please provide redshifts as the fourth field"
-                        "of the coordinates_density value"
-                    )
-                else:
-                    redshift_dict["g"] = coordinates_density[3]
-    if model_kind in ["velocity", "full", "density_velocity"]:
-        if redshift_dependent_model:
-            if redshift_velocity is not None:
-                redshift_dict["v"] = redshift_velocity
-            else:
-                if len(coordinates_velocity) < 4:
-                    raise ValueError(
-                        "You are using a model which is redshift dependent."
-                        "Please provide redshifts as the fourth field"
-                        "of the coordinates_velocity value"
-                    )
-                else:
-                    redshift_dict["v"] = coordinates_velocity[3]
-    return redshift_dict

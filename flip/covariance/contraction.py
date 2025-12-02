@@ -17,7 +17,6 @@ class Contraction:
         contraction_dict=None,
         coordinates_dict=None,
         basis_definition=None,
-        redshift_dict=None,
         variant=None,
     ):
         self.model_name = model_name
@@ -25,7 +24,6 @@ class Contraction:
         self.contraction_dict = contraction_dict
         self.coordinates_dict = coordinates_dict
         self.basis_definition = basis_definition
-        self.redshift_dict = redshift_dict
         self.variant = variant
 
     @classmethod
@@ -48,7 +46,6 @@ class Contraction:
         (
             contraction_dict,
             coordinates_dict,
-            redshift_dict,
         ) = contract_covariance(
             model_name,
             model_kind,
@@ -70,7 +67,6 @@ class Contraction:
             contraction_dict=contraction_dict,
             coordinates_dict=coordinates_dict,
             basis_definition=basis_definition,
-            redshift_dict=redshift_dict,
             variant=variant,
         )
 
@@ -128,7 +124,6 @@ class Contraction:
             parameter_values_dict,
             self.model_kind,
             variant=self.variant,
-            redshift_dict=self.redshift_dict,
         )
         contraction_covariance_sum_dict = {}
         if self.model_kind == "density":
@@ -295,19 +290,6 @@ def contract_covariance(
         basis_definition,
     )
 
-    redshift_dependent_model = generator_flip.get_redshift_dependent_model_flag(
-        model_name
-    )
-    if redshift_dependent_model:
-        redshift_dict = cov_utils.generate_redshift_dict(
-            model_name,
-            model_kind,
-            redshift_velocity=redshift,
-            redshift_density=redshift,
-        )
-    else:
-        redshift_dict = None
-
     contraction_dict = {}
     if model_kind in ["density", "full", "density_velocity"]:
         contraction_dict["gg"] = generator_flip.compute_coeficient(
@@ -342,4 +324,4 @@ def contract_covariance(
             hankel=hankel,
         )[:, :].reshape(-1, len(coord_1), len(coord_2))
 
-    return contraction_dict, coordinates_dict, redshift_dict
+    return contraction_dict, coordinates_dict

@@ -204,7 +204,6 @@ def get_coefficients(
     parameter_values_dict,
     model_kind,
     variant=None,
-    redshift_dict=None,
 ):
     redshift_velocities = redshift_dict["v"]
     a = 1 / (1 + redshift_velocities)

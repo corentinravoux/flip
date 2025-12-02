@@ -11,10 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/flipcosmo
+      url: https://pypi.org/project/flipcosmo
     permissions:
       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
-      
+      contents: read    # recommended
+
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python

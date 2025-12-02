@@ -129,6 +129,7 @@ class BaseLikelihood(abc.ABC):
         }
 
         self.verify_covariance()
+        self.verify_properties()
         self.prior = self.initialize_prior()
 
         self.likelihood_call, self.likelihood_grad = self._init_likelihood()
@@ -234,6 +235,16 @@ class BaseLikelihood(abc.ABC):
             ):
                 self.covariance.init_compute_covariance_sum()
 
+    def verify_properties(self):
+        if (
+            self.likelihood_properties["inversion_method"]
+            not in _available_inversion_methods
+        ):
+            raise ValueError(
+                f"""The inversion method {self.likelihood_properties['inversion_method']} is not available. """
+                f"""Please choose between {_available_inversion_methods}"""
+            )
+
 
 class MultivariateGaussianLikelihood(BaseLikelihood):
     def __init__(
@@ -261,6 +272,7 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
 
         give_data_and_variance = eval(f"self.data.give_data_and_variance{suffix}")
         compute_covariance_sum = eval(f"self.covariance.compute_covariance_sum{suffix}")
+
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}{suffix}"
         )
@@ -270,34 +282,33 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         else:
             prior = self.prior
 
-        def likelihood_evaluation(parameter_values, neg_like=False):
+        def likelihood_evaluation(
+            parameter_values,
+            covariance_prefactor_dict=None,
+        ):
             parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
             vector, vector_variance = give_data_and_variance(parameter_values_dict)
             covariance_sum = compute_covariance_sum(
-                parameter_values_dict, vector_variance
+                parameter_values_dict,
+                vector_variance,
+                covariance_prefactor_dict=covariance_prefactor_dict,
             )
             likelihood_value = likelihood_function(vector, covariance_sum) + prior(
                 parameter_values_dict
             )
 
-            if neg_like:
+            if self.likelihood_properties["negative_log_likelihood"]:
                 likelihood_value *= -1
             return likelihood_value
 
-        if self.likelihood_properties["negative_log_likelihood"]:
-            neg_like = True
-        else:
-            neg_like = False
-
-        likelihood_fun = partial(likelihood_evaluation, neg_like=neg_like)
         if jax_installed:
-            likelihood_grad = grad(likelihood_fun)
+            likelihood_grad = grad(likelihood_evaluation)
             if use_jit:
-                likelihood_fun = jit(likelihood_fun)
+                likelihood_evaluation = jit(likelihood_evaluation)
                 likelihood_grad = jit(likelihood_grad)
         else:
             likelihood_grad = None
-        return likelihood_fun, likelihood_grad
+        return likelihood_evaluation, likelihood_grad
 
 
 class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
@@ -367,7 +378,10 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         else:
             prior = self.prior
 
-        def likelihood_evaluation(parameter_values, neg_like=False):
+        def likelihood_evaluation(
+            parameter_values,
+            covariance_prefactor_dict=None,
+        ):
             parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
             interpolation_value = parameter_values_dict[self.interpolation_value_name]
 
@@ -386,7 +400,11 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
 
             covariance_sum_list = jnp.array(
                 [
-                    compute_covariance_sum(parameter_values_dict, vector_variance)
+                    compute_covariance_sum(
+                        parameter_values_dict,
+                        vector_variance,
+                        covariance_prefactor_dict=covariance_prefactor_dict,
+                    )
                     for compute_covariance_sum in compute_covariance_sum_list
                 ]
             )
@@ -414,26 +432,22 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
                 + prior_interpolation_range
             )
 
-            if neg_like:
+            if self.likelihood_properties["negative_log_likelihood"]:
                 likelihood_value *= -1
             return likelihood_value
 
-        if self.likelihood_properties["negative_log_likelihood"]:
-            neg_like = True
-        else:
-            neg_like = False
-
-        likelihood_fun = partial(likelihood_evaluation, neg_like=neg_like)
-
         if jax_installed:
-            likelihood_grad = grad(likelihood_fun)
+            likelihood_grad = grad(likelihood_evaluation)
             if use_jit:
-                likelihood_fun = jit(likelihood_fun)
+                likelihood_evaluation = jit(likelihood_evaluation)
                 likelihood_grad = jit(likelihood_grad)
         else:
             likelihood_grad = None
 
-        return likelihood_fun, likelihood_grad
+        return likelihood_evaluation, likelihood_grad
+
+
+# CR - This class is no deprecated, do not use it for now.
 
 
 class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
@@ -482,6 +496,7 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
     def __call__(
         self,
         parameter_values,
+        covariance_prefactor_dict=None,
     ):
         """
         The __call__ function is the function that will be called when the likelihood
@@ -524,7 +539,9 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
             for j in range(len(self.covariance[i])):
                 covariance_sum_matrix_i.append(
                     self.covariance[i][j].compute_covariance_sum(
-                        parameter_values_dict, vector_variance
+                        parameter_values_dict,
+                        vector_variance,
+                        covariance_prefactor_dict=covariance_prefactor_dict,
                     )
                 )
             covariance_sum_matrix.append(covariance_sum_matrix_i)

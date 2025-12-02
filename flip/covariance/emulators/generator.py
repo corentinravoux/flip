@@ -10,6 +10,7 @@ log = create_log()
 _avail_emulator_models = [
     "gpmatrix",
     "nnmatrix",
+    "skgpmatrix",
 ]
 
 

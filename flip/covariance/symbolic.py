@@ -172,7 +172,6 @@ def write_output(
     l1max_list=None,
     l2max_list=None,
     multi_index_model=False,
-    redshift_dependent_model=False,
     regularize_M_terms="None",
 ):
     """
@@ -286,8 +285,6 @@ def write_output(
     f.write(f"multi_index_model = {multi_index_model}")
     f.write("\n")
 
-    f.write(f"redshift_dependent_model = {redshift_dependent_model}")
-    f.write("\n")
     f.write(f"regularize_M_terms = {regularize_M_terms}")
     f.write("\n")
     f.close()
@@ -305,7 +302,6 @@ def write_M_N_functions(
     l1max_list=None,
     l2max_list=None,
     multi_index_model=False,
-    redshift_dependent_model=False,
     regularize_M_terms="None",
 ):
     """
@@ -383,7 +379,6 @@ def write_M_N_functions(
         l1max_list=l1max_list,
         l2max_list=l2max_list,
         multi_index_model=multi_index_model,
-        redshift_dependent_model=redshift_dependent_model,
         regularize_M_terms=regularize_M_terms,
     )
 
@@ -413,11 +408,10 @@ def generate_generalized_genericzdep_functions(
     l1max_list = [[1, 1, 1]]
     l2max_list = [[1, 1, 1]]
     dict_B = {
-              "B_vv_0": mu1 * mu2 / k**2,
-              "B_vv_1": mu1 * mu2 / kNL**2,
-              "B_vv_2": mu1 * mu2 * k**2 / kNL**4
-              }
-
+        "B_vv_0": mu1 * mu2 / k**2,
+        "B_vv_1": mu1 * mu2 / kNL**2,
+        "B_vv_2": mu1 * mu2 * k**2 / kNL**4,
+    }
 
     regularize_M_terms = "None"
     write_M_N_functions(
@@ -431,7 +425,7 @@ def generate_generalized_genericzdep_functions(
         l1max_list=l1max_list,
         l2max_list=l2max_list,
         regularize_M_terms=regularize_M_terms,
-        additional_parameters=additional_parameters
+        additional_parameters=additional_parameters,
     )
 
 
@@ -795,7 +789,6 @@ def generate_generalized_rcrk24_functions(
         wide_angle=True,
         l1max_list=l1max_list,
         l2max_list=l2max_list,
-        redshift_dependent_model=True,
         regularize_M_terms=regularize_M_terms,
     )
 
@@ -876,7 +869,7 @@ def write_partial_derivatives(
         )
 
         f.write(
-            "def get_partial_derivative_coefficients(model_kind,parameter_values_dict,variant=None,redshift_dict=None,):\n"
+            "def get_partial_derivative_coefficients(model_kind,parameter_values_dict,variant=None,covariance_prefactor_dict=None,):\n"
         )
         write_one_function(
             f,
@@ -887,7 +880,7 @@ def write_partial_derivatives(
         )
     else:
         f.write(
-            "def get_partial_derivative_coefficients(model_kind,parameter_values_dict,variant=None,):\n"
+            "def get_partial_derivative_coefficients(model_kind,parameter_values_dict,variant=None,covariance_prefactor_dict=None,):\n"
         )
         f.write("    if model_kind == 'density':\n")
         f.write(

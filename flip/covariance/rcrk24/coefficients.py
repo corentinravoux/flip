@@ -204,10 +204,10 @@ def get_coefficients(
     parameter_values_dict,
     model_kind,
     variant=None,
-    redshift_dict=None,
+    covariance_prefactor_dict=None,
 ):
-    redshift_velocities = redshift_dict["v"]
-    a = 1 / (1 + redshift_velocities)
+    redshift_velocity = covariance_prefactor_dict["redshift_velocity"]
+    a = 1 / (1 + redshift_velocity)
 
     coefficients_dict = {}
     if variant == "growth_index":
@@ -220,9 +220,9 @@ def get_coefficients(
         gamma = parameter_values_dict["gamma"]
 
         coefficient_vector = (
-            aH(1 / (1 + redshift_velocities))
+            aH(1 / (1 + redshift_velocity))
             * f(a, Om0, gamma)
-            * s8_approx(redshift_velocities, Om0, gamma)
+            * s8_approx(redshift_velocity, Om0, gamma)
         )
 
         coefficients_dict["vv"] = [np.outer(coefficient_vector, coefficient_vector)]
@@ -233,7 +233,7 @@ def get_coefficients(
         #      P = (aHfs8)(aHfs8) (P_fid/s8^2_fid)
 
         fs8 = parameter_values_dict["fs8"]
-        coefficient_vector = aH(1 / (1 + redshift_velocities)) * fs8
+        coefficient_vector = aH(1 / (1 + redshift_velocity)) * fs8
 
         coefficients_dict["vv"] = [np.outer(coefficient_vector, coefficient_vector)]
     else:

@@ -5,7 +5,7 @@ def get_partial_derivative_coefficients(
     model_kind,
     parameter_values_dict,
     variant=None,
-    redshift_dict=None,
+    covariance_prefactor_dict=None,
 ):
     if model_kind == "density":
         return get_partial_derivative_coefficients_density(

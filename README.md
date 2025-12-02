@@ -13,12 +13,14 @@ git clone https://github.com/corentinravoux/flip.git
 cd flip
 pip install .
 ```
+For now, the package requires you to install manually cosmoprimo: pip install git+https://github.com/cosmodesi/cosmoprimo
+
 
 ## Required packages
 
 Mandatory: numpy, scipy, matplotlib, [cosmoprimo](https://github.com/adematti/cosmoprimo), iminuit, emcee, sympy
 
-Optional: classy, pypower
+Optional: classy, pyccl, pypower, GPy, tensorflow 
 
 ## Examples
 

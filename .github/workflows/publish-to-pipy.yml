@@ -1,4 +1,4 @@
-name: Publish Picca 📦 to PyPI and TestPyPI
+name: Publish flip to PyPI and TestPyPI
 
 on: 
   push:
@@ -7,9 +7,11 @@ on:
 
 jobs:
   build-n-publish:
-    name: Build and publish Flip 📦 to PyPI and TestPyPI
+    name: Build and publish flip to PyPI and TestPyPI
     runs-on: ubuntu-latest
-    environment: Release
+    environment:
+      name: pypi
+      url: https://pypi.org/p/flipcosmo
     permissions:
       id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
       
@@ -19,27 +21,18 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.x"
-
     - name: Install pypa/build
-      run: >-
-        python3 -m
-        pip install
-        build
-        --user
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install --upgrade build setuptools wheel packaging --user
     - name: Build a binary wheel and a source tarball
-      run: >-
-        python3 -m
-        build
-        --sdist
-        --wheel
-        --outdir dist/
-        .
-    - name: Publish distribution 📦 to Test PyPI
+      run: |
+        python3 -m build --sdist --wheel --outdir dist/ .
+    - name: Publish distribution to Test PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         repository_url: https://test.pypi.org/legacy/
         attestations: false
-        
-    - name: Publish distribution 📦 to PyPI
+    - name: Publish distribution to PyPI
       if: startsWith(github.ref, 'refs/tags')
       uses: pypa/gh-action-pypi-publish@release/v1

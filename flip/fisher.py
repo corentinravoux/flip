@@ -41,6 +41,7 @@ class FisherMatrix:
         data,
         parameter_values_dict,
         fisher_properties={},
+        covariance_prefactor_dict=None,
     ):
         if covariance.matrix_form is False and covariance.emulator_flag is False:
             covariance.compute_matrix_covariance()
@@ -58,7 +59,9 @@ class FisherMatrix:
         vector_error = data(parameter_values_dict)
 
         covariance_sum = covariance.compute_covariance_sum(
-            parameter_values_dict, vector_error
+            parameter_values_dict,
+            vector_error,
+            covariance_prefactor_dict=covariance_prefactor_dict,
         )
 
         inverse_covariance_sum = eval(
@@ -148,7 +151,6 @@ class FisherMatrix:
             self.covariance.model_kind,
             self.parameter_values_dict,
             variant=self.covariance.variant,
-            redshift_dict=self.covariance.redshift_dict,
         )
         parameter_name_list = []
         covariance_derivative_sum_list = []

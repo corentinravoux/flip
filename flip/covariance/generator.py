@@ -1,3 +1,4 @@
+import importlib
 import multiprocessing as mp
 from functools import partial
 
@@ -9,14 +10,6 @@ from scipy.signal import savgol_filter
 from scipy.special import spherical_jn
 
 from flip.covariance import cov_utils
-from flip.covariance.adamsblake17 import flip_terms as flip_terms_adamsblake17
-from flip.covariance.adamsblake17plane import flip_terms as flip_terms_adamsblake17plane
-from flip.covariance.adamsblake20 import flip_terms as flip_terms_adamsblake20
-from flip.covariance.carreres23 import flip_terms as flip_terms_carreres23
-from flip.covariance.lai22 import flip_terms as flip_terms_lai22
-from flip.covariance.ravouxcarreres import flip_terms as flip_terms_ravouxcarreres
-from flip.covariance.ravouxnoanchor25 import flip_terms as flip_terms_ravouxnoanchor25
-from flip.covariance.rcrk24 import flip_terms as flip_terms_rcrk24
 from flip.utils import create_log
 
 log = create_log()
@@ -137,20 +130,21 @@ def coefficient_hankel(
         The covariance of the a-th and b-th terms
 
     """
+    flip_terms = importlib.import_module(
+        f".{model_name}.flip_terms", package=__package__
+    )
+
     cov_ab_i = 0
-    flip_terms = eval(f"flip_terms_{model_name}")
     flip_terms.set_backend("numpy")
     dictionary_subterms = flip_terms.dictionary_subterms
     regularize_M_terms = flip_terms.regularize_M_terms
-    Z_ab_i = 1
-    if eval(f"flip_terms.redshift_dependent_model"):
-        Z_ab_i = eval(f"flip_terms.Z_{covariance_type}_{term_index}")(
-            wavenumber, coord[3], coord[4], *additional_parameters_values
-        )  # Shape issue: Z_ab_i is an outer product. How to include that in the Hankel transform?
+
     for l in range(lmax + 1):
         number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
         for j in range(number_terms):
-            M_ab_i_l_j = eval(f"flip_terms.M_{covariance_type}_{term_index}_{l}_{j}")
+            M_ab_i_l_j = getattr(
+                flip_terms, f"M_{covariance_type}_{term_index}_{l}_{j}"
+            )
             M_ab_i_l_j_evaluated = regularize_M(
                 M_ab_i_l_j,
                 wavenumber,
@@ -159,10 +153,10 @@ def coefficient_hankel(
                 flip_terms,
                 additional_parameters_values,
             )
-            M_ab_i_l_j_evaluated = M_ab_i_l_j_evaluated * Z_ab_i
-            N_ab_i_l_j = eval(f"flip_terms.N_{covariance_type}_{term_index}_{l}_{j}")(
-                coord[1], coord[2]
-            )
+
+            N_ab_i_l_j = getattr(
+                flip_terms, f"N_{covariance_type}_{term_index}_{l}_{j}"
+            )(coord[1], coord[2])
             hankel_ab_i_l_j = correlation_hankel(
                 l,
                 coord[0],
@@ -170,7 +164,7 @@ def coefficient_hankel(
                 M_ab_i_l_j_evaluated * power_spectrum,
                 **kwargs,
             )
-            cov_ab_i = cov_ab_i + N_ab_i_l_j * hankel_ab_i_l_j
+            cov_ab_i += N_ab_i_l_j * hankel_ab_i_l_j
     return cov_ab_i
 
 
@@ -204,19 +198,17 @@ def coefficient_trapz(
 
     """
     cov_ab_i = 0
-    flip_terms = eval(f"flip_terms_{model_name}")
+    flip_terms = importlib.import_module(f"{model_name}.flip_terms")
     flip_terms.set_backend("numpy")
     dictionary_subterms = flip_terms.dictionary_subterms
     regularize_M_terms = flip_terms.regularize_M_terms
-    Z_ab_i = 1
-    if eval(f"flip_terms.redshift_dependent_model"):
-        Z_ab_i = eval(f"flip_terms.Z_{covariance_type}_{term_index}")(
-            wavenumber, coord[3], coord[4], *additional_parameters_values
-        )
+
     for l in range(lmax + 1):
         number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
         for j in range(number_terms):
-            M_ab_i_l_j = eval(f"flip_terms.M_{covariance_type}_{term_index}_{l}_{j}")
+            M_ab_i_l_j = getattr(
+                flip_terms, f"M_{covariance_type}_{term_index}_{l}_{j}"
+            )
             M_ab_i_l_j_evaluated = regularize_M(
                 M_ab_i_l_j,
                 wavenumber,
@@ -225,10 +217,9 @@ def coefficient_trapz(
                 flip_terms,
                 additional_parameters_values,
             )
-            M_ab_i_l_j_evaluated = M_ab_i_l_j_evaluated * Z_ab_i
-            N_ab_i_l_j = eval(f"flip_terms.N_{covariance_type}_{term_index}_{l}_{j}")(
-                coord[1], coord[2]
-            )
+            N_ab_i_l_j = getattr(
+                flip_terms, f"N_{covariance_type}_{term_index}_{l}_{j}"
+            )(coord[1], coord[2])
             kr = np.outer(wavenumber, coord[0])
             integrand = (
                 (-1) ** (l // 2)
@@ -237,8 +228,8 @@ def coefficient_trapz(
                 * power_spectrum
                 * spherical_jn(l, kr).T
             )
-            hankel_ab_i_l_j = (-1) ** (l % 2) * np.trapz(integrand, x=wavenumber)
-            cov_ab_i = cov_ab_i + N_ab_i_l_j * hankel_ab_i_l_j
+            hankel_ab_i_l_j = (-1) ** (l % 2) * np.trapezoid(integrand, x=wavenumber)
+            cov_ab_i += N_ab_i_l_j * hankel_ab_i_l_j
     return cov_ab_i
 
 
@@ -257,12 +248,12 @@ def regularize_M(
 ):
 
     if regularize_M_terms is None:
-        return M_function(*additional_parameters_values)(wavenumber)
+        return M_function(**additional_parameters_values)(wavenumber)
     else:
         regularization_option = regularize_M_terms[covariance_type]
 
         if regularization_option is None:
-            return M_function(*additional_parameters_values)(wavenumber)
+            return M_function(**additional_parameters_values)(wavenumber)
 
         elif regularization_option == "mpmath":
             flip_terms.set_backend("mpmath")
@@ -272,7 +263,7 @@ def regularize_M(
                 [mpmath.mpf(par) for par in additional_parameters_values]
             )
             M_function_evaluated = np.array(
-                np.frompyfunc(M_function(*additional_parameters_values_mpf), 1, 1)(
+                np.frompyfunc(M_function(**additional_parameters_values_mpf), 1, 1)(
                     wavenumber_mpmath
                 ).tolist(),
                 dtype=float,
@@ -280,7 +271,9 @@ def regularize_M(
             flip_terms.set_backend("numpy")
 
         elif regularization_option == "savgol":
-            M_function_evaluated = M_function(*additional_parameters_values)(wavenumber)
+            M_function_evaluated = M_function(**additional_parameters_values)(
+                wavenumber
+            )
             M_function_evaluated = savgol_filter(
                 M_function_evaluated,
                 savgol_window,
@@ -291,7 +284,9 @@ def regularize_M(
             # The low k region presents numerical instabilities for density models.
             # All the M density function should present and asymptotic behaviour at low k.
             # This method detect low k asymptote and force it for all M functions.
-            M_function_evaluated = M_function(*additional_parameters_values)(wavenumber)
+            M_function_evaluated = M_function(**additional_parameters_values)(
+                wavenumber
+            )
             diff = np.diff(M_function_evaluated, append=[M_function_evaluated[-1]])
             mask_asymptote = np.abs(diff) < lowk_unstable_threshold * np.mean(
                 np.abs(diff[wavenumber > wavenumber[len(wavenumber) // 2]])
@@ -331,7 +326,6 @@ def compute_coordinates(
     covariance_type,
     coordinates_density=None,
     coordinates_velocity=None,
-    redshift_dict=None,
     size_batch=10_000,
     los_definition="bisector",
 ):
@@ -352,15 +346,11 @@ def compute_coordinates(
         ra = coordinates_density[0]
         dec = coordinates_density[1]
         comoving_distance = coordinates_density[2]
-        if redshift_dict is not None:
-            redshift = redshift_dict["g"]
         number_objects = len(ra)
     elif covariance_type == "vv":
         ra = coordinates_velocity[0]
         dec = coordinates_velocity[1]
         comoving_distance = coordinates_velocity[2]
-        if redshift_dict is not None:
-            redshift = redshift_dict["v"]
         number_objects = len(ra)
     elif covariance_type == "gv":
         ra_g = coordinates_density[0]
@@ -368,9 +358,6 @@ def compute_coordinates(
         comoving_distance_g = coordinates_density[2]
         ra_v = coordinates_velocity[0]
         dec_v = coordinates_velocity[1]
-        if redshift_dict is not None:
-            redshift_g = redshift_dict["g"]
-            redshift_v = redshift_dict["v"]
         comoving_distance_v = coordinates_velocity[2]
         number_objects_g = len(ra_g)
         number_objects_v = len(ra_v)
@@ -399,9 +386,6 @@ def compute_coordinates(
                 dec_v[j_list],
                 comoving_distance_v[j_list],
             )
-            if redshift_dict is not None:
-                z_i = redshift_g[i_list]
-                z_j = redshift_v[j_list]
         else:
             i_list, j_list = cov_utils.compute_i_j(number_objects, batches)
             ra_i, dec_i, r_i = (
@@ -414,16 +398,10 @@ def compute_coordinates(
                 dec[j_list],
                 comoving_distance[j_list],
             )
-            if redshift_dict is not None:
-                z_i = redshift[i_list]
-                z_j = redshift[j_list]
         r, theta, phi = cov_utils.angle_separation(
             ra_i, ra_j, dec_i, dec_j, r_i, r_j, los_definition=los_definition
         )
-        if redshift_dict is not None:
-            parameters.append([r, theta, phi, z_i, z_j])
-        else:
-            parameters.append([r, theta, phi])
+        parameters.append([r, theta, phi])
     return parameters
 
 
@@ -454,15 +432,18 @@ def compute_coeficient(
         A list of arrays
     """
     if additional_parameters_values is None:
-        additional_parameters_values = ()
+        additional_parameters_values = {}
     if hankel:
         coefficient = coefficient_hankel
     else:
         coefficient = coefficient_trapz
 
-    term_index_list = eval(f"flip_terms_{model_name}.dictionary_terms")[covariance_type]
-    lmax_list = eval(f"flip_terms_{model_name}.dictionary_lmax")[covariance_type]
-    multi_index_model = eval(f"flip_terms_{model_name}.multi_index_model")
+    flip_terms = importlib.import_module(
+        f".{model_name}.flip_terms", package=__package__
+    )
+    term_index_list = getattr(flip_terms, "dictionary_terms")[covariance_type]
+    lmax_list = getattr(flip_terms, "dictionary_lmax")[covariance_type]
+    multi_index_model = getattr(flip_terms, "multi_index_model")
 
     function_covariance_dict = {}
     for i, index in enumerate(term_index_list):
@@ -540,7 +521,6 @@ def compute_cov(
     power_spectrum_list,
     coordinates_density=None,
     coordinates_velocity=None,
-    redshift_dict=None,
     additional_parameters_values=None,
     size_batch=10_000,
     number_worker=8,
@@ -577,7 +557,6 @@ def compute_cov(
         covariance_type,
         coordinates_density=coordinates_density,
         coordinates_velocity=coordinates_velocity,
-        redshift_dict=redshift_dict,
         size_batch=size_batch,
         los_definition=los_definition,
     )
@@ -593,17 +572,6 @@ def compute_cov(
     )
 
     return covariance
-
-
-def get_redshift_dependent_model_flag(model_name):
-    """
-    The get_redshift_dependent_model_flag function returns a boolean indicating whether the model is redshift dependent or not.
-
-    Args:
-        model_name: Determine which model to use
-    """
-    redshift_dependent_model = eval(f"flip_terms_{model_name}.redshift_dependent_model")
-    return redshift_dependent_model
 
 
 def generate_covariance(
@@ -645,17 +613,6 @@ def generate_covariance(
     )
     covariance_dict = {}
 
-    redshift_dependent_model = get_redshift_dependent_model_flag(model_name)
-    if redshift_dependent_model:
-        redshift_dict = cov_utils.generate_redshift_dict(
-            redshift_dependent_model,
-            model_kind,
-            coordinates_velocity=coordinates_velocity,
-            coordinates_density=coordinates_density,
-        )
-    else:
-        redshift_dict = None
-
     if model_kind in ["density", "full", "density_velocity"]:
         covariance_dict["gg"] = compute_cov(
             model_name,
@@ -663,7 +620,6 @@ def generate_covariance(
             power_spectrum_dict["gg"],
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
-            redshift_dict=redshift_dict,
             additional_parameters_values=additional_parameters_values,
             size_batch=size_batch,
             number_worker=number_worker,
@@ -682,7 +638,6 @@ def generate_covariance(
             power_spectrum_dict["vv"],
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
-            redshift_dict=redshift_dict,
             additional_parameters_values=additional_parameters_values,
             size_batch=size_batch,
             number_worker=number_worker,
@@ -701,7 +656,6 @@ def generate_covariance(
             power_spectrum_dict["gv"],
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
-            redshift_dict=redshift_dict,
             additional_parameters_values=additional_parameters_values,
             size_batch=size_batch,
             number_worker=number_worker,
@@ -710,4 +664,4 @@ def generate_covariance(
             kmin=kmin,
         )
 
-    return covariance_dict, number_densities, number_velocities, redshift_dict
+    return covariance_dict, number_densities, number_velocities

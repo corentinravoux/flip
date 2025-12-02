@@ -7,11 +7,12 @@ def get_coefficients(
     model_kind,
     parameter_values_dict,
     variant=None,
-    redshift_dict=None,
+    covariance_prefactor_dict=None,
 ):
     H0 = parameter_values_dict["H0"]
     Omega_m0 = parameter_values_dict["Omega_m0"]
-    redshift_velocity = redshift_dict["v"]
+
+    redshift_velocity = covariance_prefactor_dict["redshift_velocity"]
 
     D1_z = D1_function(redshift_velocity, Omega_m0)
     D1_0 = D1_function(0, Omega_m0)

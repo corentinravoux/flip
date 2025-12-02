@@ -155,6 +155,7 @@ def plot_2d_contraction(
 def plot_correlation_from_likelihood(
     likelihood,
     parameter_dict,
+    covariance_prefactor_dict=None,
     **kwargs,
 ):
     vmin = utils.return_key(kwargs, "vmin", -0.1)
@@ -170,7 +171,9 @@ def plot_correlation_from_likelihood(
         parameter_values_dict,
     )
     covariance_sum = likelihood.covariance.compute_covariance_sum(
-        parameter_values_dict, vector_variance
+        parameter_values_dict,
+        vector_variance,
+        covariance_prefactor_dict=covariance_prefactor_dict,
     )
 
     correlation_sum = cov_utils.return_correlation_matrix(covariance_sum)

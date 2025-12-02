@@ -2,8 +2,6 @@ import importlib
 
 import numpy as np
 
-import flip.covariance.emulators.gpmatrix as gpmatrix
-import flip.covariance.emulators.nnmatrix as nnmatrix
 from flip.covariance import cov_utils
 from flip.utils import create_log
 
@@ -12,6 +10,7 @@ log = create_log()
 _avail_emulator_models = [
     "gpmatrix",
     "nnmatrix",
+    "skgpmatrix",
 ]
 
 

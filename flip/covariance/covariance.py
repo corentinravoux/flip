@@ -538,28 +538,22 @@ class CovMatrix:
             kind=self.model_kind,
         )
 
-        if "get_cov_matrix_prefactor" in dict(
-            inspect.getmembers(self.coefficients, inspect.isfunction)
+        def _compute_covariance_sum(
+            parameter_values_dict,
+            vector_variance,
+            covariance_prefactor_dict=None,
         ):
-            get_cov_matrix_prefactor = self.coefficients.get_cov_matrix_prefactor
-        else:
-            get_cov_matrix_prefactor = lambda: {}
-
-        def _compute_covariance_sum(parameter_values_dict, vector_variance, *args):
             coefficients_dict = {
                 k: jnp.array(v)
                 for k, v in get_coefficients(
-                    parameter_values_dict=parameter_values_dict
+                    parameter_values_dict=parameter_values_dict,
+                    covariance_prefactor_dict=covariance_prefactor_dict,
                 ).items()
             }
 
             coefficients_dict_diagonal = get_diagonal_coefficients(
-                parameter_values_dict=parameter_values_dict
+                parameter_values_dict=parameter_values_dict,
             )
-
-            cov_matrix_prefactor_dict = {
-                k: jnp.array(v) for k, v in get_cov_matrix_prefactor(*args).items()
-            }
 
             covariance_sum = compute_covariance_sum_fun(
                 coefficients_dict=coefficients_dict,
@@ -568,7 +562,6 @@ class CovMatrix:
                 parameter_values_dict=(
                     parameter_values_dict if self.emulator_flag else None
                 ),
-                cov_matrix_prefactor_dict=cov_matrix_prefactor_dict,
             )
 
             return covariance_sum
@@ -582,10 +575,12 @@ class CovMatrix:
         self,
         parameter_values_dict,
         vector_variance,
+        covariance_prefactor_dict=None,
     ):
         covariance_sum = self.compute_covariance_sum(
             parameter_values_dict,
             vector_variance,
+            covariance_prefactor_dict=covariance_prefactor_dict,
         )
         return np.linalg.eigvals(covariance_sum)
 

@@ -29,10 +29,11 @@ def get_partial_derivative_coefficients(
     model_kind,
     parameter_values_dict,
     variant=None,
+    covariance_prefactor_dict=None,
 ):
     partial_coefficients_dict = None
-    redshift_velocities = redshift_dict["v"]
-    a = 1 / (1 + redshift_velocities)
+    redshift_velocity = covariance_prefactor_dict["redshift_velocity"]
+    a = 1 / (1 + redshift_velocity)
 
     if variant == "growth_index":
         # vv
@@ -45,20 +46,20 @@ def get_partial_derivative_coefficients(
         # The Om0-gamma model f=Omega(Om0)^gamma
         aH_values = aH(a)
         f_values = f(a, Om0, gamma)  # cosmoOm ** parameter_values_dict["gamma"]
-        s8_values = s8(redshift_velocities, Om0, gamma)
+        s8_values = s8(redshift_velocity, Om0, gamma)
         aHfs8 = aH_values * f_values * s8_values
 
         dfdOm0_values = dfdOm0(a, Om0, gamma)
         dfdgamma_values = dfdgamma(a, Om0, gamma)
 
         ds8dO0_values = ds8dO0(
-            redshift_velocities,
+            redshift_velocity,
             Om0,
             gamma,
             s8_values=s8_values,
         )
         ds8dgamma_values = ds8dgamma(
-            redshift_velocities,
+            redshift_velocity,
             Om0,
             gamma,
             s8_values=s8_values,

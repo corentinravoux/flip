@@ -869,7 +869,7 @@ def write_partial_derivatives(
         )
 
         f.write(
-            "def get_partial_derivative_coefficients(model_kind,parameter_values_dict,variant=None,):\n"
+            "def get_partial_derivative_coefficients(model_kind,parameter_values_dict,variant=None,covariance_prefactor_dict=None,):\n"
         )
         write_one_function(
             f,
@@ -880,7 +880,7 @@ def write_partial_derivatives(
         )
     else:
         f.write(
-            "def get_partial_derivative_coefficients(model_kind,parameter_values_dict,variant=None,):\n"
+            "def get_partial_derivative_coefficients(model_kind,parameter_values_dict,variant=None,covariance_prefactor_dict=None,):\n"
         )
         f.write("    if model_kind == 'density':\n")
         f.write(

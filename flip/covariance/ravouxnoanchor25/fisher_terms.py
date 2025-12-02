@@ -5,6 +5,7 @@ def get_partial_derivative_coefficients(
     model_kind,
     parameter_values_dict,
     variant=None,
+    covariance_prefactor_dict=None,
 ):
     if variant == "growth_index":
         partial_coefficients_dict = {

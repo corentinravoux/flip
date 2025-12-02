@@ -259,14 +259,9 @@ def regularize_M(
             flip_terms.set_backend("mpmath")
             mpmath.mp.dps = mpmmath_decimal_precision
             wavenumber_mpmath = wavenumber * mpmath.mpf(1)
-            additional_parameters_values_mpf = {
-                k: mpmath.mpf(v) for k, par in additional_parameters_values.items()
-            }
-
-            # additional_parameters_values_mpf = tuple(
-            #     [mpmath.mpf(par) for par in additional_parameters_values]
-            # )
-
+            additional_parameters_values_mpf = tuple(
+                [mpmath.mpf(par) for par in additional_parameters_values]
+            )
             M_function_evaluated = np.array(
                 np.frompyfunc(M_function(**additional_parameters_values_mpf), 1, 1)(
                     wavenumber_mpmath

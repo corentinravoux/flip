@@ -44,9 +44,7 @@ docs = [
 package-dir = { "" = "." }
 
 [tool.setuptools.packages.find]
-where = ["flip"]
-namespaces = true
-
+where = ["."]
 
 [tool.setuptools.package-data]
 flip = [

@@ -31,7 +31,7 @@ _avail_regularization_option = [
 ]
 
 
-def correlation_integration(l, r, k, integrand):
+def correlation_integration(ell, r, k, integrand):
     """
     The correlation_integration function is used to calculate the correlation function for a given multipole.
     It does this by integrating over k, which is the magnitude of the wavevector. The integration is performed using
@@ -51,12 +51,15 @@ def correlation_integration(l, r, k, integrand):
     """
     kr = np.outer(k, r)
     integrand = (
-        (-1) ** (l // 2) * (k**2 / (2 * np.pi**2)) * integrand * spherical_jn(l, kr).T
+        (-1) ** (ell // 2)
+        * (k**2 / (2 * np.pi**2))
+        * integrand
+        * spherical_jn(ell, kr).T
     )
-    return (-1) ** (l % 2) * integrate.simpson(integrand, x=k)
+    return (-1) ** (ell % 2) * integrate.simpson(integrand, x=k)
 
 
-def correlation_hankel(l, r, k, integrand, hankel_overhead_coefficient=2, kmin=None):
+def correlation_hankel(ell, r, k, integrand, hankel_overhead_coefficient=2, kmin=None):
     """
     The correlation_hankel function is a wrapper for the cosmoprimo.fftlog.PowerToCorrelation function,
     which computes the correlation function from power spectrum using FFTLog (Hamilton 2000).
@@ -77,7 +80,7 @@ def correlation_hankel(l, r, k, integrand, hankel_overhead_coefficient=2, kmin=N
     Note:
         If l is odd, count a 1j term in the integrand, without the need for adding it
     """
-    Hankel = cosmoprimo.fftlog.PowerToCorrelation(k, ell=l, q=0, complex=False)
+    Hankel = cosmoprimo.fftlog.PowerToCorrelation(k, ell=ell, q=0, complex=False)
     Hankel.set_fft_engine("numpy")
     r_hankel, xi_hankel = Hankel(integrand)
     mask = r < np.min(r_hankel) * hankel_overhead_coefficient
@@ -86,13 +89,13 @@ def correlation_hankel(l, r, k, integrand, hankel_overhead_coefficient=2, kmin=N
             "Min pw spectrum k is too high, please take a lower one. Use kmin parameter to lower bound integration."
         )
     output = np.empty_like(r)
-    output[mask] = correlation_integration(l, r[mask], k, integrand)
-    output[~mask] = (-1) ** (l % 2) * np.interp(r[~mask], r_hankel, xi_hankel)
+    output[mask] = correlation_integration(ell, r[mask], k, integrand)
+    output[~mask] = (-1) ** (ell % 2) * np.interp(r[~mask], r_hankel, xi_hankel)
 
     # Regularization
     if kmin is not None:
         kreg = np.geomspace(np.min(k), kmin, int(len(k) / 20))
-        output -= correlation_integration(l, r, kreg, np.interp(kreg, k, integrand))
+        output -= correlation_integration(ell, r, kreg, np.interp(kreg, k, integrand))
     return output
 
 
@@ -139,11 +142,11 @@ def coefficient_hankel(
     dictionary_subterms = flip_terms.dictionary_subterms
     regularize_M_terms = flip_terms.regularize_M_terms
 
-    for l in range(lmax + 1):
-        number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
+    for ell in range(lmax + 1):
+        number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{ell}"]
         for j in range(number_terms):
             M_ab_i_l_j = getattr(
-                flip_terms, f"M_{covariance_type}_{term_index}_{l}_{j}"
+                flip_terms, f"M_{covariance_type}_{term_index}_{ell}_{j}"
             )
             M_ab_i_l_j_evaluated = regularize_M(
                 M_ab_i_l_j,
@@ -155,10 +158,10 @@ def coefficient_hankel(
             )
 
             N_ab_i_l_j = getattr(
-                flip_terms, f"N_{covariance_type}_{term_index}_{l}_{j}"
+                flip_terms, f"N_{covariance_type}_{term_index}_{ell}_{j}"
             )(coord[1], coord[2])
             hankel_ab_i_l_j = correlation_hankel(
-                l,
+                ell,
                 coord[0],
                 wavenumber,
                 M_ab_i_l_j_evaluated * power_spectrum,
@@ -203,11 +206,11 @@ def coefficient_trapz(
     dictionary_subterms = flip_terms.dictionary_subterms
     regularize_M_terms = flip_terms.regularize_M_terms
 
-    for l in range(lmax + 1):
-        number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{l}"]
+    for ell in range(lmax + 1):
+        number_terms = dictionary_subterms[f"{covariance_type}_{term_index}_{ell}"]
         for j in range(number_terms):
             M_ab_i_l_j = getattr(
-                flip_terms, f"M_{covariance_type}_{term_index}_{l}_{j}"
+                flip_terms, f"M_{covariance_type}_{term_index}_{ell}_{j}"
             )
             M_ab_i_l_j_evaluated = regularize_M(
                 M_ab_i_l_j,
@@ -218,17 +221,17 @@ def coefficient_trapz(
                 additional_parameters_values,
             )
             N_ab_i_l_j = getattr(
-                flip_terms, f"N_{covariance_type}_{term_index}_{l}_{j}"
+                flip_terms, f"N_{covariance_type}_{term_index}_{ell}_{j}"
             )(coord[1], coord[2])
             kr = np.outer(wavenumber, coord[0])
             integrand = (
-                (-1) ** (l // 2)
+                (-1) ** (ell // 2)
                 * (wavenumber**2 / (2 * np.pi**2))
                 * M_ab_i_l_j_evaluated
                 * power_spectrum
-                * spherical_jn(l, kr).T
+                * spherical_jn(ell, kr).T
             )
-            hankel_ab_i_l_j = (-1) ** (l % 2) * np.trapezoid(integrand, x=wavenumber)
+            hankel_ab_i_l_j = (-1) ** (ell % 2) * np.trapezoid(integrand, x=wavenumber)
             cov_ab_i += N_ab_i_l_j * hankel_ab_i_l_j
     return cov_ab_i
 

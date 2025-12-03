@@ -6,7 +6,7 @@ import scipy as sc
 
 from flip.utils import create_log
 
-from .config import __use_jax__
+from ._config import __use_jax__
 
 if __use_jax__:
     try:
@@ -66,7 +66,7 @@ def log_likelihood_gaussian_cholesky(vector, covariance_sum):
 def log_likelihood_gaussian_cholesky_inverse(vector, covariance_sum):
     try:
         return log_likelihood_gaussian_cholesky(vector, covariance_sum)
-    except:
+    except jnp.linalg.LinAlgError:
         return log_likelihood_gaussian_inverse(vector, covariance_sum)
 
 

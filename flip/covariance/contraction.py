@@ -2,7 +2,6 @@ import importlib
 
 import numpy as np
 
-from flip.covariance import cov_utils
 from flip.covariance import generator as generator_flip
 from flip.utils import create_log
 
@@ -169,7 +168,7 @@ class Contraction:
                 axis=0,
             )
         else:
-            log.add(f"Wrong model type in the loaded covariance.")
+            log.add("Wrong model type in the loaded covariance.")
 
         return contraction_covariance_sum_dict
 

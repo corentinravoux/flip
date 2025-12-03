@@ -9,7 +9,7 @@ try:
 
     torch_install = True
 
-except:
+except ImportError:
     torch_install = False
     log.add(
         "Install pytorch to use the nnmatrix emulator",

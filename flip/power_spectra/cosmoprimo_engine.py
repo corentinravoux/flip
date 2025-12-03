@@ -6,7 +6,7 @@ log = create_log()
 
 try:
     from cosmoprimo import Fourier
-except:
+except ImportError:
     log.add(
         "Install cosmoprimo https://github.com/cosmodesi/cosmoprimo to use cosmoprimo_engine.py module",
         level="warning",
@@ -30,7 +30,7 @@ def compute_power_spectrum(
     non_linear_model=None,
     logspace=True,
 ):
-    if type(cosmology) == dict:
+    if type(cosmology) is dict:
         raise ValueError(
             "power_spectrum_settings should be an instance of Cosmology, not a dict"
         )

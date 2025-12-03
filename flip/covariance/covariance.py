@@ -1,5 +1,4 @@
 import importlib
-import inspect
 import pickle
 import time
 from functools import partial
@@ -9,7 +8,7 @@ import numpy as np
 from flip.covariance import cov_utils
 from flip.utils import create_log
 
-from ..config import __use_jax__
+from .._config import __use_jax__
 
 if __use_jax__:
     try:
@@ -735,9 +734,6 @@ class CovMatrix:
             np.savez(f"{filename}.npz", **class_attrs_dictionary)
 
     def mask(self, mask_vel=None, mask_dens=None):
-        Ng = self.number_densities
-        Nv = self.number_velocities
-
         if mask_vel is None and mask_dens is None:
             raise ValueError("No mask set")
 

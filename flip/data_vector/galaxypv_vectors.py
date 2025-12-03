@@ -1,6 +1,4 @@
-import numpy as np
-
-from ..config import __use_jax__
+from .._config import __use_jax__
 from . import vector_utils
 from .basic import DataVector
 

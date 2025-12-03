@@ -20,7 +20,7 @@ def simplify_h(H, max_simplification=20):
     return H_simplified
 
 
-def generate_h_term(l, p, q):
+def generate_h_term(ell, p, q):
     theta, phi = sy.symbols("theta phi")
     mu = sy.symbols("mu")
     l1max = int(2 * p + 1)
@@ -50,12 +50,12 @@ def generate_h_term(l, p, q):
 
             h_sum = 0
 
-            for m in range(-l, l + 1):
+            for m in range(-ell, ell + 1):
                 for m1 in range(-l1, l1 + 1):
                     for m2 in range(-l2, l2 + 1):
-                        sum_term = wigner.gaunt(l, l1, l2, m, m1, m2)
+                        sum_term = wigner.gaunt(ell, l1, l2, m, m1, m2)
                         sum_term *= (
-                            sy.Ynm(l, m, sy.pi - phi, 0)
+                            sy.Ynm(ell, m, sy.pi - phi, 0)
                             * sy.Ynm(l1, m1, theta / 2, 0)
                             * sy.Ynm(l2, m2, theta / 2, sy.pi)
                         )
@@ -72,8 +72,8 @@ def write_h_terms(pmax, qmax, filename="./h_terms.py", number_worker=1):
     for p in range(pmax + 1):
         for q in range(qmax + 1):
             lmax = 2 * (p + q + 1)
-            for l in range(0, lmax + 1, 2):
-                params_pool.append([l, p, q])
+            for ell in range(0, lmax + 1, 2):
+                params_pool.append([ell, p, q])
 
     if number_worker == 1:
         output_H_gg = [generate_h_term(*param) for param in params_pool]
@@ -84,8 +84,8 @@ def write_h_terms(pmax, qmax, filename="./h_terms.py", number_worker=1):
     params_pool = []
     for p in range(pmax + 1):
         lmax = 2 * (p + 1)
-        for l in range(1, lmax + 1, 2):
-            params_pool.append([l, p, 1 / 2])
+        for ell in range(1, lmax + 1, 2):
+            params_pool.append([ell, p, 1 / 2])
 
     if number_worker == 1:
         output_H_gv = [generate_h_term(*param) for param in params_pool]
@@ -95,8 +95,8 @@ def write_h_terms(pmax, qmax, filename="./h_terms.py", number_worker=1):
 
     params_pool = []
     lmax = 2
-    for l in range(0, lmax + 1, 2):
-        params_pool.append([l, 1 / 2, 1 / 2])
+    for ell in range(0, lmax + 1, 2):
+        params_pool.append([ell, 1 / 2, 1 / 2])
 
     if number_worker == 1:
         output_H_vv = [generate_h_term(*param) for param in params_pool]
@@ -114,10 +114,10 @@ def write_h_terms(pmax, qmax, filename="./h_terms.py", number_worker=1):
     for p in range(pmax + 1):
         for q in range(qmax + 1):
             lmax = 2 * (p + q + 1)
-            for l in range(0, lmax + 1, 2):
+            for ell in range(0, lmax + 1, 2):
                 H_txt = pycode(output_H_gg[i]).replace("math.", "np.")
                 i = i + 1
-                f.write(f"def H_gg_l{l}_p{p}_q{q}(theta,phi):\n")
+                f.write(f"def H_gg_l{ell}_p{p}_q{q}(theta,phi):\n")
                 f.write(f"    return({H_txt})\n")
                 f.write("\n")
 
@@ -126,10 +126,10 @@ def write_h_terms(pmax, qmax, filename="./h_terms.py", number_worker=1):
     i = 0
     for p in range(pmax + 1):
         lmax = 2 * (p + 1)
-        for l in range(1, lmax + 1, 2):
+        for ell in range(1, lmax + 1, 2):
             H_txt = pycode(output_H_gv[i]).replace("math.", "np.")
             i = i + 1
-            f.write(f"def H_gv_l{l}_p{p}(theta,phi):\n")
+            f.write(f"def H_gv_l{ell}_p{p}(theta,phi):\n")
             f.write(f"    return({H_txt})\n")
             f.write("\n")
 
@@ -137,10 +137,10 @@ def write_h_terms(pmax, qmax, filename="./h_terms.py", number_worker=1):
     f.write("# Velocity-Velocity \n")
     lmax = 2
     i = 0
-    for l in range(0, lmax + 1, 2):
+    for ell in range(0, lmax + 1, 2):
         H_txt = pycode(output_H_vv[i]).replace("math.", "np.")
         i = i + 1
-        f.write(f"def H_vv_l{l}(theta,phi):\n")
+        f.write(f"def H_vv_l{ell}(theta,phi):\n")
         f.write(f"    return({H_txt})\n")
         f.write("\n")
 

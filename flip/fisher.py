@@ -1,5 +1,4 @@
 import importlib
-import time
 
 import numpy as np
 
@@ -138,7 +137,7 @@ class FisherMatrix:
                 ]
             )
         else:
-            log.add(f"Wrong model type in the loaded covariance.")
+            log.add("Wrong model type in the loaded covariance.")
 
         return covariance_derivative_sum
 

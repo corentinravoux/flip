@@ -1,5 +1,4 @@
 import numpy as np
-from astropy.cosmology import FlatLambdaCDM
 
 from flip.covariance.rcrk24.coefficients import (
     aH,

@@ -2,8 +2,6 @@ import mpmath
 import numpy
 import scipy
 
-from flip.covariance.ravouxnoanchor25.coefficients import D1_function
-
 
 def set_backend(module):
     global np, erf

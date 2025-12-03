@@ -379,13 +379,13 @@ def generator_need(
     if coordinates_density is not False:
         if coordinates_density is None:
             log.add(
-                f"The coordinates_density input is needed to proceed covariance generation, please provide it"
+                "The coordinates_density input is needed to proceed covariance generation, please provide it"
             )
             raise ValueError("Density coordinates not provided")
     if coordinates_velocity is not False:
         if coordinates_velocity is None:
             log.add(
-                f"The coordinates_velocity input is needed to proceed covariance generation, please provide it"
+                "The coordinates_velocity input is needed to proceed covariance generation, please provide it"
             )
             raise ValueError("Velocity coordinates not provided")
 

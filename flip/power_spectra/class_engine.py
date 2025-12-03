@@ -6,7 +6,7 @@ log = create_log()
 
 try:
     from classy import Class
-except:
+except ImportError:
     log.add(
         "Install CLASS https://github.com/lesgourg/class_public to use class_engine.py module",
         level="warning",

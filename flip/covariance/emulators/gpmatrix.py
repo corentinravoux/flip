@@ -8,7 +8,7 @@ try:
     import GPy
 
     gpy_installed = True
-except:
+except ImportError:
     gpy_installed = False
     log.add(
         "Install GPy to use the gpmatrix emulator",

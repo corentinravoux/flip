@@ -65,7 +65,7 @@ def simplify_term(
 
 def generate_MN_ab_i_l_function_wide_angle(
     term_B,
-    l,
+    ell,
     l1,
     l2,
 ):
@@ -90,10 +90,10 @@ def generate_MN_ab_i_l_function_wide_angle(
         integral_mu1_M_l * legendre_poly(l2, x=mu2), (mu2, -1, 1)
     )
     term_N_l_l1_l2 = 0
-    for m in range(-l, l + 1):
+    for m in range(-ell, ell + 1):
         for m1 in range(-l1, l1 + 1):
             for m2 in range(-l2, l2 + 1):
-                term_N_l_l1_l2_m_m1_m2 = wigner.gaunt(l, l1, l2, m, m1, m2)
+                term_N_l_l1_l2_m_m1_m2 = wigner.gaunt(ell, l1, l2, m, m1, m2)
                 # The two comments are for the following line, they are the results of an intense
                 # head scratching and are quite important for all the modeling of flip.
 
@@ -107,7 +107,7 @@ def generate_MN_ab_i_l_function_wide_angle(
                 # For the order of term chosen, the sy.pi must be added here.
                 # If not, it will give wrong results for cross-terms (gv).
                 term_N_l_l1_l2_m_m1_m2 *= (
-                    sy.Ynm(l, m, sy.pi - phi, 0)
+                    sy.Ynm(ell, m, sy.pi - phi, 0)
                     * sy.Ynm(l1, m1, theta / 2, 0)
                     * sy.Ynm(l2, m2, theta / 2, sy.pi)
                 )
@@ -126,7 +126,7 @@ def generate_MN_ab_i_l_function_wide_angle(
     return term_M_l_l1_l2, term_N_l_l1_l2
 
 
-def generate_MN_ab_i_l_function_parallel_plane(term_B, l):
+def generate_MN_ab_i_l_function_parallel_plane(term_B, ell):
     """
     The generate_MN_ab_i_l_function_parallel_plane function takes in a term_B and an l value.
     It then generates the M_l and N_l functions for that particular term B, which is used to calculate the parallel plane integral.
@@ -143,12 +143,12 @@ def generate_MN_ab_i_l_function_parallel_plane(term_B, l):
     phi = sy.symbols("phi")
     mu = sy.symbols("mu")
     M_l = sy.Rational(1 / 2) * sy.integrate(
-        term_B * legendre_poly(l, x=mu), (mu, -1, 1)
+        term_B * legendre_poly(ell, x=mu), (mu, -1, 1)
     )
     # The sy.pi term is directly linked to the definition of r chosen in flip.
     # For the order of term chosen, the sy.pi must be added here.
     # If not, it will give wrong results for cross-terms (gv).
-    N_l = sy.Rational(2 * l + 1) * legendre_poly(l, x=sy.cos(sy.pi - phi))
+    N_l = sy.Rational(2 * ell + 1) * legendre_poly(ell, x=sy.cos(sy.pi - phi))
     M_l = simplify_term(
         M_l.expand(func=True),
         simplification_method="simplify_iteration",
@@ -223,26 +223,26 @@ def write_output(
         dict_terms[f"{type}"] = term_index_list[k]
         dict_lmax[f"{type}"] = lmax_list[k]
         for i, t in enumerate(term_index_list[k]):
-            for l in range(lmax_list[k][i] + 1):
+            for ell in range(lmax_list[k][i] + 1):
                 list_M_ab_i_l = []
                 list_N_ab_i_l = []
                 if wide_angle:
                     for l1 in range(l1max_list[k][i] + 1):
                         for l2 in range(l2max_list[k][i] + 1):
                             M_ab_i_l_l1_l2, N_ab_i_l_l1_l2 = output_pool[
-                                index_pool[f"{type}_{t}_{l}_{l1}_{l2}"]
+                                index_pool[f"{type}_{t}_{ell}_{l1}_{l2}"]
                             ]
                             if (M_ab_i_l_l1_l2 != 0) & (N_ab_i_l_l1_l2 != 0):
                                 list_M_ab_i_l.append(M_ab_i_l_l1_l2)
                                 list_N_ab_i_l.append(N_ab_i_l_l1_l2)
                 else:
                     M_ab_i_l_l1_l2, N_ab_i_l_l1_l2 = output_pool[
-                        index_pool[f"{type}_{t}_{l}"]
+                        index_pool[f"{type}_{t}_{ell}"]
                     ]
                     if (M_ab_i_l_l1_l2 != 0) & (N_ab_i_l_l1_l2 != 0):
                         list_M_ab_i_l.append(M_ab_i_l_l1_l2)
                         list_N_ab_i_l.append(N_ab_i_l_l1_l2)
-                dict_j[f"{type}_{t}_{l}"] = len(list_M_ab_i_l)
+                dict_j[f"{type}_{t}_{ell}"] = len(list_M_ab_i_l)
                 for j in range(len(list_M_ab_i_l)):
                     M_ab_i_l_j = (
                         pycode(list_M_ab_i_l[j])
@@ -260,13 +260,13 @@ def write_output(
                         for add in additional_parameters:
                             additional_str = additional_str + f"{add},"
                     additional_str = additional_str[:-1]
-                    f.write(f"def M_{type}_{t}_{l}_{j}({additional_str}):\n")
+                    f.write(f"def M_{type}_{t}_{ell}_{j}({additional_str}):\n")
                     f.write("    def func(k):\n")
                     f.write(f"        return {M_ab_i_l_j}\n")
                     f.write("    return func\n")
                     f.write("\n")
 
-                    f.write(f"def N_{type}_{t}_{l}_{j}(theta,phi):\n")
+                    f.write(f"def N_{type}_{t}_{ell}_{j}(theta,phi):\n")
                     f.write(f"    return({N_ab_i_l_j})\n")
                     f.write("\n")
 
@@ -332,17 +332,17 @@ def write_M_N_functions(
     index = 0
     for k, type in enumerate(type_list):
         for i, t in enumerate(term_index_list[k]):
-            for l in range(lmax_list[k][i] + 1):
+            for ell in range(lmax_list[k][i] + 1):
                 B_ab_i = dict_B[f"B_{type}_{t}"]
                 if wide_angle:
                     for l1 in range(l1max_list[k][i] + 1):
                         for l2 in range(l2max_list[k][i] + 1):
-                            params_pool.append([B_ab_i, l, l1, l2])
-                            index_pool[f"{type}_{t}_{l}_{l1}_{l2}"] = index
+                            params_pool.append([B_ab_i, ell, l1, l2])
+                            index_pool[f"{type}_{t}_{ell}_{l1}_{l2}"] = index
                             index = index + 1
                 else:
-                    params_pool.append([B_ab_i, l])
-                    index_pool[f"{type}_{t}_{l}"] = index
+                    params_pool.append([B_ab_i, ell])
+                    index_pool[f"{type}_{t}_{ell}"] = index
                     index = index + 1
 
     if number_worker == 1:

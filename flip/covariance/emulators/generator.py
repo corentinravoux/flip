@@ -37,7 +37,7 @@ def compute_cov(
         f"flip.covariance.emulators.{emulator_model_name}"
     )
 
-    emulator_type = emulator_module._emulator_type
+    # emulator_type = emulator_module._emulator_type
     # Only implemented for matrix emulators, so far.
 
     square_covariance, emulator_output_variance, emulator_output_non_diagonal = (

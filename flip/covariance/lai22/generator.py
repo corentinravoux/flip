@@ -9,19 +9,20 @@ from scipy.interpolate import interp1d
 from scipy.special import factorial, spherical_jn
 
 from flip.covariance import cov_utils
-from flip.covariance.lai22 import h_terms
 
 
-def compute_correlation_coefficient_simple_integration(p, q, l, r, k, pk):
+def compute_correlation_coefficient_simple_integration(p, q, ell, r, k, pk):
     """ " Here the sigma_u is added to pk later.
     The (2*np.pi**2) is added here in the Lai et al. formalism."""
     kr = np.outer(k, r)
-    integrand = spherical_jn(l, kr).T * k**2 * k ** (2 * (p + q)) * pk / (2 * np.pi**2)
+    integrand = (
+        spherical_jn(ell, kr).T * k**2 * k ** (2 * (p + q)) * pk / (2 * np.pi**2)
+    )
     return integrate.simpson(integrand, x=k)
 
 
 def compute_correlation_coefficient_hankel(
-    p, q, l, r, k, pk, hankel_overhead_coefficient=2
+    p, q, ell, r, k, pk, hankel_overhead_coefficient=2
 ):
     """Highly decrease time and memory consumption.
     Cosmoprimo prefactor is removed here
@@ -29,15 +30,15 @@ def compute_correlation_coefficient_hankel(
     To avoid edge effects when using hankel, the mask have an overhead
     """
     integrand = k ** (2 * (p + q)) * pk
-    Hankel = cosmoprimo.fftlog.PowerToCorrelation(k, ell=l, q=0, complex=False)
+    Hankel = cosmoprimo.fftlog.PowerToCorrelation(k, ell=ell, q=0, complex=False)
     Hankel.set_fft_engine("numpy")
     r_hankel, xi_hankel = Hankel(integrand)
     mask = r < np.min(r_hankel) * hankel_overhead_coefficient
     output = np.empty_like(r)
     output[mask] = compute_correlation_coefficient_simple_integration(
-        p, q, l, r[mask], k, pk
+        p, q, ell, r[mask], k, pk
     )
-    output[~mask] = (-1) ** (l // 2) * interp1d(r_hankel, xi_hankel)(r[~mask])
+    output[~mask] = (-1) ** (ell // 2) * interp1d(r_hankel, xi_hankel)(r[~mask])
     return output
 
 
@@ -93,17 +94,17 @@ def compute_cov_vv(
 
 def coefficient_vv(wavenumber, power_spectrum_tt, coord, hankel=True):
     result = 0
-    for l in [0, 2]:
+    for ell in [0, 2]:
         if hankel:
             correlation = compute_correlation_coefficient_hankel(
-                -0.5, -0.5, l, coord[0], wavenumber, power_spectrum_tt
+                -0.5, -0.5, ell, coord[0], wavenumber, power_spectrum_tt
             )
         else:
             correlation = compute_correlation_coefficient_simple_integration(
-                -0.5, -0.5, l, coord[0], wavenumber, power_spectrum_tt
+                -0.5, -0.5, ell, coord[0], wavenumber, power_spectrum_tt
             )
-        h_function = eval(f"h_terms.H_vv_l{l}")(coord[1], coord[2])
-        result = result + np.real(1j ** (l)) * correlation * h_function
+        h_function = eval(f"h_terms.H_vv_l{ell}")(coord[1], coord[2])
+        result = result + np.real(1j ** (ell)) * correlation * h_function
     return result
 
 
@@ -392,18 +393,18 @@ def coefficient_gg_b2_m(
     for pq in pq_index:
         p, q = pq[0], pq[1]
         lmax = 2 * (p + q + 1)
-        for l in range(0, lmax + 1, 2):
+        for ell in range(0, lmax + 1, 2):
             if hankel:
                 correlation = compute_correlation_coefficient_hankel(
-                    p, q, l, coord[0], wavenumber_mm, power_spectrum_mm
+                    p, q, ell, coord[0], wavenumber_mm, power_spectrum_mm
                 )
             else:
                 correlation = compute_correlation_coefficient_simple_integration(
-                    p, q, l, coord[0], wavenumber_mm, power_spectrum_mm
+                    p, q, ell, coord[0], wavenumber_mm, power_spectrum_mm
                 )
-            h_function = eval(f"h_terms.H_gg_l{l}_p{p}_q{q}")(coord[1], coord[2])
+            h_function = eval(f"h_terms.H_gg_l{ell}_p{p}_q{q}")(coord[1], coord[2])
             coeff = (
-                np.real(1j ** (l))
+                np.real(1j ** (ell))
                 * ((-1) ** (p + q))
                 / (2 ** (p + q) * factorial(p) * factorial(q))
             )
@@ -425,18 +426,18 @@ def coefficient_gg_f2_m(
     for pq in pq_index:
         p, q = pq[0], pq[1]
         lmax = 2 * (p + q + 1)
-        for l in range(0, lmax + 1, 2):
+        for ell in range(0, lmax + 1, 2):
             if hankel:
                 correlation = compute_correlation_coefficient_hankel(
-                    p, q, l, coord[0], wavenumber_tt, power_spectrum_tt
+                    p, q, ell, coord[0], wavenumber_tt, power_spectrum_tt
                 )
             else:
                 correlation = compute_correlation_coefficient_simple_integration(
-                    p, q, l, coord[0], wavenumber_tt, power_spectrum_tt
+                    p, q, ell, coord[0], wavenumber_tt, power_spectrum_tt
                 )
-            h_function = eval(f"h_terms.H_gg_l{l}_p{p+1}_q{q+1}")(coord[1], coord[2])
+            h_function = eval(f"h_terms.H_gg_l{ell}_p{p+1}_q{q+1}")(coord[1], coord[2])
             coeff = (
-                np.real(1j ** (l))
+                np.real(1j ** (ell))
                 * ((-1) ** (p + q))
                 / (2 ** (p + q) * factorial(p) * factorial(q))
             )
@@ -458,20 +459,20 @@ def coefficient_gg_bf_m(
     for pq in pq_index:
         p, q = pq[0], pq[1]
         lmax = 2 * (p + q + 1)
-        for l in range(0, lmax + 1, 2):
+        for ell in range(0, lmax + 1, 2):
             if hankel:
                 correlation = compute_correlation_coefficient_hankel(
-                    p, q, l, coord[0], wavenumber_mt, power_spectrum_mt
+                    p, q, ell, coord[0], wavenumber_mt, power_spectrum_mt
                 )
             else:
                 correlation = compute_correlation_coefficient_simple_integration(
-                    p, q, l, coord[0], wavenumber_mt, power_spectrum_mt
+                    p, q, ell, coord[0], wavenumber_mt, power_spectrum_mt
                 )
-            h_function = eval(f"h_terms.H_gg_l{l}_p{p+1}_q{q}")(
+            h_function = eval(f"h_terms.H_gg_l{ell}_p{p+1}_q{q}")(
                 coord[1], coord[2]
-            ) + eval(f"h_terms.H_gg_l{l}_p{p}_q{q+1}")(coord[1], coord[2])
+            ) + eval(f"h_terms.H_gg_l{ell}_p{p}_q{q+1}")(coord[1], coord[2])
             coeff = (
-                np.real(1j ** (l))
+                np.real(1j ** (ell))
                 * ((-1) ** (p + q))
                 / (2 ** (p + q) * factorial(p) * factorial(q))
             )
@@ -599,17 +600,17 @@ def coefficient_gv_f2_p(
 ):
     result = 0
     lmax = 2 * (p + 1)
-    for l in range(1, lmax + 1, 2):
+    for ell in range(1, lmax + 1, 2):
         if hankel:
             correlation = compute_correlation_coefficient_hankel(
-                p, -0.5, l, coord[0], wavenumber_tt, power_spectrum_tt
+                p, -0.5, ell, coord[0], wavenumber_tt, power_spectrum_tt
             )
         else:
             correlation = compute_correlation_coefficient_simple_integration(
-                p, -0.5, l, coord[0], wavenumber_tt, power_spectrum_tt
+                p, -0.5, ell, coord[0], wavenumber_tt, power_spectrum_tt
             )
-        h_function = eval(f"h_terms.H_gv_l{l}_p{p+1}")(coord[1], coord[2])
-        coeff = np.real(1j ** (l + 1)) * ((-1) ** p) / (2**p * factorial(p))
+        h_function = eval(f"h_terms.H_gv_l{ell}_p{p+1}")(coord[1], coord[2])
+        coeff = np.real(1j ** (ell + 1)) * ((-1) ** p) / (2**p * factorial(p))
         result = result + coeff * correlation * h_function
     return result
 
@@ -623,17 +624,17 @@ def coefficient_gv_bf_p(
 ):
     result = 0
     lmax = 2 * (p + 1)
-    for l in range(1, lmax + 1, 2):
+    for ell in range(1, lmax + 1, 2):
         if hankel:
             correlation = compute_correlation_coefficient_hankel(
-                p, -0.5, l, coord[0], wavenumber_mt, power_spectrum_mt
+                p, -0.5, ell, coord[0], wavenumber_mt, power_spectrum_mt
             )
         else:
             correlation = compute_correlation_coefficient_simple_integration(
-                p, -0.5, l, coord[0], wavenumber_mt, power_spectrum_mt
+                p, -0.5, ell, coord[0], wavenumber_mt, power_spectrum_mt
             )
-        h_function = eval(f"h_terms.H_gv_l{l}_p{p}")(coord[1], coord[2])
-        coeff = np.real(1j ** (l + 1)) * ((-1) ** p) / (2**p * factorial(p))
+        h_function = eval(f"h_terms.H_gv_l{ell}_p{p}")(coord[1], coord[2])
+        coeff = np.real(1j ** (ell + 1)) * ((-1) ** p) / (2**p * factorial(p))
         result = result + coeff * correlation * h_function
     return result
 

@@ -15,9 +15,6 @@ def set_backend(module):
 
 set_backend("numpy")
 
-import scipy.integrate as integrate
-from astropy.cosmology import FlatLambdaCDM
-
 exact = False
 
 

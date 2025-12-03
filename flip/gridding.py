@@ -5,7 +5,7 @@ from flip import utils
 log = utils.create_log()
 try:
     from pypower import CatalogMesh
-except:
+except ImportError:
     log.add("No pypower module detected, gridding with this method is unavailable")
 
 # CR - No cut in healpix implemented with randoms
@@ -743,7 +743,7 @@ def grid_data_velocity_pypower(
         resampler=kind,
         position_type="pos",
     )
-    if type(velocity) != type(None):
+    if velocity is not None:
         weights_weighted_mean = velocity / variance
         catalog_mesh_weighted_vel = CatalogMesh(
             data_positions=data_positions,
@@ -771,7 +771,7 @@ def grid_data_velocity_pypower(
     variance_grid = np.ravel(mesh_var.value) / (
         N_in_cell**2
     )  # *N_in_cell/np.abs(N_in_cell)
-    if type(velocity) != type(None):
+    if velocity is not None:
         mesh_weighted_vel = catalog_mesh_weighted_vel.to_mesh(
             field="data", compensate=compensate
         )
@@ -792,7 +792,7 @@ def grid_data_velocity_pypower(
     ygrid = np.ravel(coord_mesh[1, :, :, :]) + grid_size / 2
     zgrid = np.ravel(coord_mesh[2, :, :, :]) + grid_size / 2
     rcomgrid, ragrid, decgrid = utils.cart2radec(xgrid, ygrid, zgrid)
-    if type(velocity) != type(None):
+    if velocity is not None:
         grid = {
             "x": xgrid,
             "y": ygrid,

@@ -6,7 +6,7 @@ from scipy.sparse import coo_array
 
 import flip.utils as utils
 
-from ..config import __use_jax__
+from .._config import __use_jax__
 
 if __use_jax__:
     try:

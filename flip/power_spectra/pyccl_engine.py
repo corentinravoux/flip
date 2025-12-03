@@ -6,7 +6,7 @@ log = create_log()
 
 try:
     import pyccl as ccl
-except:
+except ImportError:
     log.add(
         "Install CCL https://github.com/LSSTDESC/CCL to use pyccl_engine.py module",
         level="warning",

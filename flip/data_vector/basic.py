@@ -7,7 +7,7 @@ import numpy as np
 from flip.covariance import CovMatrix
 from flip.utils import create_log
 
-from ..config import __use_jax__
+from .._config import __use_jax__
 from . import vector_utils
 
 if __use_jax__:

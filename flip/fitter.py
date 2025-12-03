@@ -7,13 +7,11 @@ import emcee
 import iminuit
 import numpy as np
 
+import flip.likelihood as flik
+from flip.covariance.covariance import CovMatrix
 from flip.utils import create_log
 
 log = create_log()
-
-import flip.likelihood as flik
-from flip.covariance.covariance import CovMatrix
-
 
 class BaseFitter(abc.ABC):
     def __init__(
@@ -331,7 +329,7 @@ class FitMinuit(BaseFitter):
         if minos:
             try:
                 log.add(self.minuit.minos())
-            except:
+            except RuntimeError:
                 pass
 
         return self.minuit.values.to_dict()

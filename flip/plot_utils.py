@@ -333,7 +333,7 @@ def plot_all_mean_fits(
                             error_bs8_high = fits[i][3][index_bs8].upper
                             error_betaf_low = fits[i][3][index_beta_f].lower
                             error_betaf_high = fits[i][3][index_beta_f].upper
-                        except:
+                        except IndexError:
                             print("Minos failed, taking hessian error")
                     errors = [
                         [
@@ -368,7 +368,7 @@ def plot_all_mean_fits(
                             index = np.argwhere(np.array(names) == param_name)[0][0]
                             errors[0].append(abs(fits[i][3][index].lower))
                             errors[1].append(abs(fits[i][3][index].upper))
-                        except:
+                        except IndexError:
                             errors[0].append(fits[i][2][param_name])
                             errors[1].append(fits[i][2][param_name])
                 else:

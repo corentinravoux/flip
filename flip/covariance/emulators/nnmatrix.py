@@ -92,6 +92,7 @@ def train(
     activation_function=default_activation_function,
     loss_function=default_loss_function,
     tolerance_optimizer=1e-3,
+    **kwargs,
 ):
 
     parameter_values_mean, parameter_values_std = (

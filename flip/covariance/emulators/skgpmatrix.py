@@ -37,9 +37,8 @@ def train(
     parameter_values,
     kernel_variance=None,
     kernel_non_diagonal=None,
-    verbose=False,
-    num_restarts_variance=None,
-    num_restarts_non_diagonal=None,
+    num_restarts_variance=0,
+    num_restarts_non_diagonal=0,
     **kwargs,
 ):
 

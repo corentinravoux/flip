@@ -9,6 +9,13 @@ log = create_log()
 
 
 class Contraction:
+    """Container for contracted covariance components and coordinates.
+
+    Holds precomputed contraction tensors (per block gg/gv/vv) and the
+    corresponding coordinate grids. Provides utilities to build from flip
+    covariance generators and to evaluate weighted sums via model coefficients.
+    """
+
     def __init__(
         self,
         model_name=None,
@@ -18,6 +25,16 @@ class Contraction:
         basis_definition=None,
         variant=None,
     ):
+        """Initialize the contraction container.
+
+        Args:
+            model_name (str|None): Covariance model package name.
+            model_kind (str|None): `"density"`, `"velocity"`, `"full"`, or `"density_velocity"`.
+            contraction_dict (dict|None): Arrays per block (e.g., `{"gg": [..], "vv": [..]}`).
+            coordinates_dict (dict|None): Coordinates like `r_perpendicular`, `r_parallel`, etc.
+            basis_definition (str|None): Basis choice, e.g., `"bisector"`, `"mean"`, `"endpoint"`.
+            variant (str|None): Optional model variant.
+        """
         self.model_name = model_name
         self.model_kind = model_kind
         self.contraction_dict = contraction_dict
@@ -42,6 +59,26 @@ class Contraction:
         variant=None,
         **kwargs,
     ):
+        """Build a `Contraction` from flip covariance generator outputs.
+
+        Args:
+            model_name (str): Covariance model name under `flip.covariance`.
+            model_kind (str): `"density"`, `"velocity"`, `"full"`, or `"density_velocity"`.
+            power_spectrum_dict (dict): Power spectra per block: keys `gg`, `vv`, and optional `gv`.
+            coord_1 (ndarray): First coordinate grid (e.g., `r_perp` or `r`).
+            coord_2 (ndarray): Second coordinate grid (e.g., `r_par` or `mu`).
+            coord_1_reference (float): Reference point first coordinate.
+            coord_2_reference (float): Reference point second coordinate.
+            coordinate_type (str): `"rprt"` or `"rmu"`.
+            additional_parameters_values (dict|None): Extra model parameters.
+            basis_definition (str): Basis choice for angular definitions.
+            redshift (float|None): Optional redshift context.
+            variant (str|None): Model variant.
+            **kwargs: Options forwarded to generator.
+
+        Returns:
+            Contraction: Initialized instance with tensors and coordinates.
+        """
         (
             contraction_dict,
             coordinates_dict,
@@ -71,19 +108,10 @@ class Contraction:
 
     @property
     def type(self):
-        """
-        The type function is used to determine the type of covariance model that will be computed.
-        The options are:
-            - velocity: The covariance model is computed for velocity only.
-            - density: The covariance model is computed for density only.
-            - density_velocity: The covariance model is computed for both velocity and density, without cross-term (i.e., the covariances between velocities and densities are zero). This option should be used when computing a full 3D tomography in which we want to compute a separate 1D tomography along each axis (x, y, z
-
-        Args:
-            self: Represent the instance of the class
+        """Return the model kind and log a short description.
 
         Returns:
-            The type of the model
-
+            str: `model_kind` as provided on initialization.
         """
         if self.model_kind == "velocity":
             log.add("The covariance model is computed for velocity")
@@ -103,17 +131,13 @@ class Contraction:
         self,
         parameter_values_dict,
     ):
-        """
-        The compute_contraction_sum function computes the sum of all the contractions
-            for a given model type and parameter values.
+        """Compute weighted sum of contraction tensors using model coefficients.
 
         Args:
-            self: Make the function a method of the class
-            parameter_values_dict: Get the coefficients for each of the covariances
-            : Get the coefficients of the model
+            parameter_values_dict (dict): Parameters to obtain coefficients.
 
         Returns:
-            A dictionary of contraction_covariance_sum
+            dict: Sum per block, e.g., `{"gg": array, "vv": array, "gv": array}`.
         """
         coefficients = importlib.import_module(
             f"flip.covariance.{self.model_name}.coefficients"
@@ -181,6 +205,23 @@ def compute_contraction_coordinates(
     coordinate_type,
     basis_definition,
 ):
+    """Compute coordinate grids and derived angles for contractions.
+
+    Supports `rmu` and `rprt` input coordinate parameterizations and basis
+    definitions `bisector`, `mean`, and `endpoint`.
+
+    Args:
+        coord_1 (ndarray): First coordinate grid.
+        coord_2 (ndarray): Second coordinate grid.
+        coord_1_reference (float): Reference first coordinate.
+        coord_2_reference (float): Reference second coordinate.
+        coordinate_type (str): `"rmu"` or `"rprt"`.
+        basis_definition (str): `"bisector"`, `"mean"`, or `"endpoint"`.
+
+    Returns:
+        tuple: `(coordinates_dict, coordinates)` where `coordinates_dict` holds
+        2D grids and `coordinates` is a stacked array `[r, theta, phi]` per point.
+    """
     shape_coord_1_coord_2 = len(coord_1) * len(coord_2)
 
     if coordinate_type == "rmu":
@@ -279,6 +320,26 @@ def contract_covariance(
     number_worker=8,
     hankel=True,
 ):
+    """Generate contraction tensors for the specified model and blocks.
+
+    Args:
+        model_name (str): Covariance model name under `flip.covariance`.
+        model_kind (str): `"density"`, `"velocity"`, `"full"`, or `"density_velocity"`.
+        power_spectrum_dict (dict): Power spectra per block.
+        coord_1 (ndarray): First coordinate grid.
+        coord_2 (ndarray): Second coordinate grid.
+        coord_1_reference (float): Reference first coordinate.
+        coord_2_reference (float): Reference second coordinate.
+        coordinate_type (str): Input parameterization, `"rprt"` or `"rmu"`.
+        additional_parameters_values (dict|None): Extra model parameters.
+        basis_definition (str): Basis choice.
+        redshift (float|None): Optional redshift context.
+        number_worker (int): Parallel workers used by generator.
+        hankel (bool): Use FFTLog Hankel transform when True.
+
+    Returns:
+        tuple: `(contraction_dict, coordinates_dict)`.
+    """
     # r_perpendicular : coord_1, r_parallel : coord_2
     coordinates_dict, coordinates = compute_contraction_coordinates(
         coord_1,

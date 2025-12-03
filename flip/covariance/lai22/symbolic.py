@@ -8,9 +8,17 @@ from sympy.simplify.fu import TR8
 
 
 def simplify_h(H, max_simplification=20):
-    """simplification tests with https://docs.sympy.org/latest/tutorials/intro-tutorial/simplification.html
-    https://docs.sympy.org/latest/modules/simplify/simplify.html#ratsimpmodprime
-    https://docs.sympy.org/dev/modules/simplify/fu.html#sympy.simplify.fu
+    """Iteratively simplify a symbolic expression for H terms.
+
+    Applies ``TR8`` and factoring repeatedly up to ``max_simplification`` times
+    or until convergence. See SymPy docs on simplification strategies.
+
+    Args:
+        H: SymPy expression representing an H term.
+        max_simplification: Maximum number of iterations to apply.
+
+    Returns:
+        Simplified SymPy expression.
     """
     H_simplified = sy.factor(TR8(H))
     i = 0
@@ -21,6 +29,19 @@ def simplify_h(H, max_simplification=20):
 
 
 def generate_h_term(ell, p, q):
+    """Generate the H term for Lai22 wide-angle coefficients.
+
+    Constructs the angular function ``H_{ℓ}^{p,q}(θ,ϕ)`` using Gaunt integrals
+    and Legendre polynomials, then simplifies the symbolic result.
+
+    Args:
+        ell: Multipole order ℓ (integer).
+        p: Half-integer or integer index for point 1 (interpreted as rational).
+        q: Half-integer or integer index for point 2 (interpreted as rational).
+
+    Returns:
+        SymPy expression of ``H(θ, ϕ)``.
+    """
     theta, phi = sy.symbols("theta phi")
     mu = sy.symbols("mu")
     l1max = int(2 * p + 1)
@@ -68,6 +89,21 @@ def generate_h_term(ell, p, q):
 
 
 def write_h_terms(pmax, qmax, filename="./h_terms.py", number_worker=1):
+    """Generate and write H-term Python functions to a file.
+
+    Produces three sets of functions: gg with even ℓ up to ``2(p+q+1)``, gv with
+    odd ℓ up to ``2(p+1)``, and vv with even ℓ up to 2. The functions are
+    emitted as NumPy-evaluable code via ``pycode``.
+
+    Args:
+        pmax: Maximum p index.
+        qmax: Maximum q index.
+        filename: Output Python file path for the generated H-term functions.
+        number_worker: Number of workers for parallel generation.
+
+    Returns:
+        None. Writes functions to ``filename``.
+    """
     params_pool = []
     for p in range(pmax + 1):
         for q in range(qmax + 1):

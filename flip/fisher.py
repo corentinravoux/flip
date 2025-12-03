@@ -8,10 +8,33 @@ log = create_log()
 
 
 def inverse_covariance_inverse(covariance):
+    """Return the explicit inverse of a covariance matrix.
+
+    Args:
+        covariance (array-like): Positive-definite covariance matrix of shape `(N, N)`.
+
+    Returns:
+        numpy.ndarray: The matrix inverse `covariance^{-1}`.
+
+    Notes:
+        For Fisher computations, explicit inversion is acceptable on modest sizes,
+        but Cholesky-based solves are usually more stable for ill-conditioned matrices.
+    """
     return np.linalg.inv(covariance)
 
 
 class FisherMatrix:
+    """Compute Fisher information matrix from covariance derivatives.
+
+    Builds the Fisher matrix $F_{ij} = \tfrac{1}{2}\,\mathrm{Tr}[C^{-1} \partial_i C\, C^{-1} \partial_j C]$
+    using model-specific derivative coefficients and a provided inverse covariance.
+
+    Attributes:
+        covariance (CovMatrix): Covariance model describing blocks gg/gv/vv.
+        inverse_covariance_sum (numpy.ndarray): Precomputed `C^{-1}` used in traces.
+        parameter_values_dict (dict): Parameter values for computing coefficients.
+        free_par (list[str]): Combined free parameters from covariance and data.
+    """
 
     _default_fisher_properties = {
         "inversion_method": "inverse",
@@ -42,6 +65,22 @@ class FisherMatrix:
         fisher_properties={},
         covariance_prefactor_dict=None,
     ):
+        """Initialize a FisherMatrix instance from a covariance and data model.
+
+        Ensures the covariance is in matrix form, prepares the `compute_covariance_sum`
+        functions, computes the data variance and the full covariance sum, and inverts
+        it according to the selected method.
+
+        Args:
+            covariance (CovMatrix): Covariance model to use.
+            data (object): Data model; called to obtain vector errors given parameters.
+            parameter_values_dict (dict): Parameter values for coefficient evaluation.
+            fisher_properties (dict, optional): Options including `inversion_method`.
+            covariance_prefactor_dict (dict, optional): Prefactors per block (gg/gv/vv).
+
+        Returns:
+            FisherMatrix: Ready-to-use Fisher matrix builder instance.
+        """
         if covariance.matrix_form is False and covariance.emulator_flag is False:
             covariance.compute_matrix_covariance()
         if (
@@ -78,6 +117,20 @@ class FisherMatrix:
         self,
         partial_coefficients_dict_param,
     ):
+        """Assemble covariance derivative matrix for a single parameter.
+
+        Uses model-kind-specific blocks and partial derivative coefficients to form
+        $\partial_i C$ for the parameter `i`.
+
+        Args:
+            partial_coefficients_dict_param (dict): Coefficients for blocks `gg/gv/vv`.
+
+        Returns:
+            numpy.ndarray: Covariance derivative matrix $\partial_i C$.
+
+        Raises:
+            ValueError: If the covariance model kind is unsupported.
+        """
 
         if self.covariance.model_kind == "density":
             covariance_derivative_sum = np.sum(
@@ -142,7 +195,12 @@ class FisherMatrix:
         return covariance_derivative_sum
 
     def compute_fisher_matrix(self):
+        """Compute the Fisher matrix using covariance derivatives.
 
+        Returns:
+            tuple[list[str], numpy.ndarray]: Parameter names list and Fisher matrix
+            of shape `(n_params, n_params)`.
+        """
         coefficients = importlib.import_module(
             f"flip.covariance.{self.covariance.model_name}.fisher_terms"
         )

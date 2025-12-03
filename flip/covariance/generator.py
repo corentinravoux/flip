@@ -46,7 +46,7 @@ def correlation_integration(ell, r, k, integrand):
         integrand: Calculate the integrand of the correlation function
 
     Returns:
-        The integral of the integrand
+        ndarray: Correlation function $\xi_\ell(r)$ via Simpson integration.
 
     """
     kr = np.outer(k, r)
@@ -75,7 +75,7 @@ def correlation_hankel(ell, r, k, integrand, hankel_overhead_coefficient=2, kmin
         hankel_overhead_coefficient: Determine the minimum r value for which to use the hankel transform
 
     Returns:
-        The correlation function
+        ndarray: Correlation function $\xi_\ell(r)$ combining Hankel and direct integration.
 
     Note:
         If l is odd, count a 1j term in the integrand, without the need for adding it
@@ -130,7 +130,7 @@ def coefficient_hankel(
         : Define the model name
 
     Returns:
-        The covariance of the a-th and b-th terms
+        ndarray: Covariance contribution for term `term_index`.
 
     """
     flip_terms = importlib.import_module(
@@ -197,7 +197,7 @@ def coefficient_trapz(
         : Determine the model to be used
 
     Returns:
-        A matrix
+        ndarray: Covariance contribution for term `term_index`.
 
     """
     cov_ab_i = 0
@@ -237,6 +237,28 @@ def coefficient_trapz(
 
 
 def regularize_M(
+        """Evaluate and optionally regularize M(k) term.
+
+        Applies one of the supported regularizations to stabilize numerical
+        behavior (mpmath high-precision, Savitzky–Golay smoothing, or low-k
+        asymptote detection).
+
+        Args:
+            M_function (callable): Function returning M(k) given additional parameters.
+            wavenumber (ndarray): k samples.
+            regularize_M_terms (dict|None): Per type regularization option.
+            covariance_type (str): `"gg"`, `"gv"`, or `"vv"`.
+            flip_terms (module): Terms module to switch backend when needed.
+            additional_parameters_values (dict|tuple): Extra parameters for M.
+            savgol_window (int): Window size for Savitzky–Golay.
+            savgol_polynomial (int): Polynomial order for Savitzky–Golay.
+            lowk_unstable_threshold (float): Threshold for low-k asymptote detection.
+            lowk_unstable_mean_filtering (int): Window for mean filtering indices.
+            mpmmath_decimal_precision (int): Decimal precision for mpmath.
+
+        Returns:
+            ndarray: Evaluated M(k) after regularization.
+        """
     M_function,
     wavenumber,
     regularize_M_terms,
@@ -343,7 +365,7 @@ def compute_coordinates(
         : Compute the angle separation between two objects
 
     Returns:
-        A list of parameters
+        list: Per-batch arrays `[r, theta, phi]`.
     """
     if covariance_type == "gg":
         ra = coordinates_density[0]
@@ -432,7 +454,7 @@ def compute_coeficient(
         : Define the number of threads used to compute the covariance matrix
 
     Returns:
-        A list of arrays
+        ndarray: Stacked covariance arrays per term index.
     """
     if additional_parameters_values is None:
         additional_parameters_values = {}
@@ -547,7 +569,7 @@ def compute_cov(
         : Compute the covariance matrix for a given model
 
     Returns:
-        The covariance matrix for a given model and set of parameters
+        ndarray: Covariance arrays per term index.
 
     """
     if model_name not in _avail_models:
@@ -606,7 +628,7 @@ def generate_covariance(
         : Define the number of workers to use for the computation
 
     Returns:
-        A dictionary with the covariance matrices and their dimensions
+        tuple: `(covariance_dict, number_densities, number_velocities)`.
 
     """
     cov_utils.check_generator_need(

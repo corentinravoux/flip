@@ -41,6 +41,22 @@ def train(
     num_restarts_non_diagonal=0,
     **kwargs,
 ):
+    """Train scikit-learn GP emulators for covariance matrices.
+
+    Args:
+        square_covariance: Whether covariance is square (gg/vv) or rectangular (gv).
+        output_variance: Array ``(n_terms, n_samples)`` of diagonal entries; ignored if not square.
+        output_non_diagonal: Array ``(n_terms, n_samples, n_nd)`` of flattened non-diagonals.
+        parameter_values: Array ``(n_samples, n_params)`` emulator inputs.
+        kernel_variance: Kernel for variance GP; defaults to ``RBF + Constant``.
+        kernel_non_diagonal: Kernel for non-diagonal GP; defaults to ``RBF + Constant``.
+        num_restarts_variance: Optimizer restarts for variance GP.
+        num_restarts_non_diagonal: Optimizer restarts for non-diagonal GP.
+        **kwargs: Extra keyword arguments (unused).
+
+    Returns:
+        Tuple of models and evaluation dictionaries analogous to other emulator backends.
+    """
 
     if square_covariance:
         if kernel_variance is None:
@@ -95,5 +111,15 @@ def evaluate(
     evaluation_value,
     evaluation_dictionary,
 ):
+    """Evaluate a scikit-learn GP model.
+
+    Args:
+        model: Trained ``GaussianProcessRegressor``.
+        evaluation_value: Array ``(1, n_params)`` input values.
+        evaluation_dictionary: Placeholder for API consistency (unused).
+
+    Returns:
+        Tuple ``(mean, std)`` from ``GaussianProcessRegressor.predict``.
+    """
     output = model.predict(evaluation_value, return_std=True)
     return output

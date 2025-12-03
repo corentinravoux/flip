@@ -19,6 +19,11 @@ def get_power_spectrum_suffix(
     number_points,
     log_space,
 ):
+    """Build a filename suffix encoding spectrum sampling settings.
+
+    Returns:
+        str: Suffix including z, kmin, kmax, N, and log/lin tag.
+    """
     return f"z{redshift}_kmin{minimal_wavenumber:.4f}_kmax{maximal_wavenumber:.4f}_N{number_points}{'_log' if log_space else '_lin'}"
 
 
@@ -27,6 +32,16 @@ def get_power_spectrum_name(
     power_spectrum_type,
     suffix,
 ):
+    """Construct a power spectrum filename for saving.
+
+    Args:
+        power_spectrum_model (str): Model name, e.g., `linearbel`.
+        power_spectrum_type (str): One of `mm`, `mt`, `tt`.
+        suffix (str): Sampling suffix from `get_power_spectrum_suffix`.
+
+    Returns:
+        str: Filename `power_spectrum_<model>_<type>_<suffix>.txt`.
+    """
     return f"power_spectrum_{power_spectrum_model}_{power_spectrum_type}_{suffix}.txt"
 
 
@@ -39,6 +54,17 @@ def save_power_spectrum(
     header,
     path,
 ):
+    """Save a power spectrum to disk as a two-row text file.
+
+    Args:
+        wavenumber (ndarray): $k$ samples.
+        power_spectrum (ndarray): Spectrum values.
+        power_spectrum_model (str): Model name.
+        power_spectrum_type (str): `mm`, `mt`, or `tt`.
+        suffix (str): Sampling suffix.
+        header (str): Header string with metadata.
+        path (str): Directory where to save.
+    """
     power_spectrum_name = get_power_spectrum_name(
         power_spectrum_model,
         power_spectrum_type,
@@ -65,29 +91,26 @@ def compute_power_spectra(
     power_spectrum_model="linearbel",
     save_path=None,
 ):
-    """Compute the power spectrum.
+    """Compute and optionally save MM/MT/TT power spectra.
 
     Args:
-        power_spectrum_engine (str): engine to use to compute the power spectrum, see _available_engines.
-        power_spectrum_settings (dic or cosmo): configuration for the engine.
-        redshift (float): the redshift at which compute the power spectrum.
-        minimal_wavenumber (float): minimum k in h/Mpc.
-        maximal_wavenumber (float): maximum k in h/Mpc.
-        number_points (int): Sampling of the power spectrum.
-        logspace (bool, optional): Sample the power spectrum in logspace or linspace. Defaults to True.
-        normalization_power_spectrum (str, optional): which normalisation to use. Defaults to "no_normalization".
-            Available options are: "no_normalization", "growth_rate" or "growth_amplitude".
-        power_spectrum_non_linear_model (str, optional): Non-linear model to compute. Defaults to None.
-        power_spectrum_model (str, optional): Non-linear model to apply to the computed power spectrum, see _available_power_spectrum_model. Defaults to "linearbel".
-        save_path (str, optional): Path to save the computed power spectrum. Defaults to None.
-
-    Raises:
-        ValueError: power_spectrum_engine is not available
-        ValueError: power_spectrum_model is not available
-        ValueError: _description_
+        power_spectrum_engine (str): Engine module, one of `_available_engines`.
+        power_spectrum_settings (dict|object): Engine configuration.
+        redshift (float): Target redshift.
+        minimal_wavenumber (float): Minimum $k$ in h/Mpc.
+        maximal_wavenumber (float): Maximum $k$ in h/Mpc.
+        number_points (int): Number of $k$ samples.
+        logspace (bool): Sample $k$ in log-space if True.
+        normalization_power_spectrum (str): One of `_available_power_spectrum_normalizaton`.
+        power_spectrum_non_linear_model (str|None): Non-linear engine flag for CLASS.
+        power_spectrum_model (str): One of `_available_power_spectrum_model`.
+        save_path (str|None): Directory to save spectra.
 
     Returns:
-        _type_: _description_
+        tuple: `(k, P_mm, P_mt, P_tt, fiducial_dict)`.
+
+    Raises:
+        ValueError: If engine or model name is unsupported.
     """
     if power_spectrum_engine not in _available_engines:
         raise ValueError(

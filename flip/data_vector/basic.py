@@ -32,43 +32,99 @@ log = create_log()
 
 
 class DataVector(abc.ABC):
+    """Abstract base for data vectors used in fits.
+
+    Provides common storage, key validation, optional JAX acceleration,
+    covariance-aware masking, and covariance construction helpers.
+
+    Attributes:
+        _free_par (list[str]): Model parameters this vector depends on.
+        _kind (str): One of "velocity", "density" or "cross".
+    """
     _free_par = []
     _kind = ""  # 'velocity', 'density' or 'cross'
 
     @property
     def conditional_free_par(self):
+        """Conditional extra parameters required by this vector.
+
+        Returns:
+            list[str]: Parameter names required depending on data content.
+        """
         return []
 
     @property
     def free_par(self):
+        """All free parameters for this vector.
+
+        Returns:
+            list[str]: Base plus conditional parameters.
+        """
         return self._free_par + self.conditional_free_par
 
     @property
     def kind(self):
+        """Return the data vector type.
+
+        Returns:
+            str: "velocity", "density" or "cross".
+        """
         return self._kind
 
     @property
     def conditional_needed_keys(self):
+        """Keys conditionally required in input `data`.
+
+        Returns:
+            list[str]: Extra keys required depending on configuration.
+        """
         return []
 
     @property
     def needed_keys(self):
+        """All required keys for this data vector.
+
+        Returns:
+            list[str]: Static plus conditional keys.
+        """
         return self._needed_keys + self.conditional_needed_keys
 
     @property
     def data(self):
+        """Access the underlying data dictionary.
+
+        Returns:
+            dict: Data fields as arrays.
+        """
         return self._data
 
     @abc.abstractmethod
     def give_data_and_variance(self, **kwargs):
+        """Return data vector and its variance/covariance.
+
+        Returns:
+            tuple: (data_array, variance_or_cov).
+        """
         pass
 
     def _check_keys(self, data):
+        """Validate that `data` contains all required keys.
+
+        Raises:
+            ValueError: When a required key is missing.
+        """
         for k in self.needed_keys:
             if k not in data:
                 raise ValueError(f"{k} field is needed in data")
 
     def __init__(self, data, covariance_observation=None, **kwargs):
+        """Initialize data vector with data and optional observation covariance.
+
+        Args:
+            data (dict): Mapping of required fields to arrays.
+            covariance_observation (ndarray|None): Observation covariance matrix or None.
+            **kwargs: Extra configuration for subclasses.
+        """
         self._covariance_observation = covariance_observation
         self._check_keys(data)
         self._data = copy.copy(data)
@@ -82,9 +138,25 @@ class DataVector(abc.ABC):
 
     # TODO: deprecate this call
     def __call__(self, *args):
+        """Deprecated alias for `give_data_and_variance`.
+
+        Returns:
+            tuple: Output of `give_data_and_variance`.
+        """
         return self.give_data_and_variance(*args)
 
     def get_masked_data_and_cov(self, bool_mask):
+        """Return masked data and corresponding masked observation covariance.
+
+        Args:
+            bool_mask (array-like): Boolean mask aligned with first data key length.
+
+        Returns:
+            tuple: (new_data_dict, new_cov) with covariance masked or None.
+
+        Raises:
+            ValueError: If mask length mismatches data length.
+        """
         if len(bool_mask) != len(self.data[self.needed_keys[0]]):
             raise ValueError("Boolean mask does not align with data")
         new_data = {k: v[bool_mask] for k, v in self._data.items()}
@@ -95,6 +167,16 @@ class DataVector(abc.ABC):
         return new_data, new_cov
 
     def compute_covariance(self, model, power_spectrum_dict, **kwargs):
+        """Build a `CovMatrix` for this vector and model.
+
+        Args:
+            model (str): Covariance model module under `flip.covariance`.
+            power_spectrum_dict (dict): Power spectra inputs for model.
+            **kwargs: Model-specific options.
+
+        Returns:
+            CovMatrix: Initialized covariance matrix object.
+        """
 
         coordinate_keys = importlib.import_module(
             f"flip.covariance.{model}"
@@ -116,6 +198,11 @@ class Dens(DataVector):
     _needed_keys = ["density", "density_error"]
 
     def give_data_and_variance(self, *args):
+        """Return density data and diagonal variance from `density_error`.
+
+        Returns:
+            tuple: (density, density_error^2).
+        """
         return self._data["density"], self._data["density_error"] ** 2
 
 

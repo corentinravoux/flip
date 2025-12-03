@@ -14,6 +14,13 @@ def plot_1d_contraction(
     parameter_dict,
     rs_multiplied=True,
 ):
+    """Plot 1D slices of contraction sums for gg/gv/vv blocks.
+
+    Args:
+        contraction (object): Contraction object with `compute_contraction_sum` and `coordinates_dict`.
+        parameter_dict (dict): Parameter values for evaluation.
+        rs_multiplied (bool): Multiply gg by r^2 for visualization.
+    """
     contraction_sum = contraction.compute_contraction_sum(parameter_dict)
     coord = contraction.coordinates_dict
 
@@ -87,6 +94,13 @@ def plot_2d_contraction(
     parameter_dict,
     rs_multiplied=True,
 ):
+    """Plot 2D images of contraction sums for gg/gv/vv blocks.
+
+    Args:
+        contraction (object): Contraction with `compute_contraction_sum` & `coordinates_dict`.
+        parameter_dict (dict): Parameter values for evaluation.
+        rs_multiplied (bool): Multiply gg by r^2 for visualization.
+    """
     contraction_sum = contraction.compute_contraction_sum(parameter_dict)
     coord = contraction.coordinates_dict
 
@@ -158,6 +172,14 @@ def plot_correlation_from_likelihood(
     covariance_prefactor_dict=None,
     **kwargs,
 ):
+    """Plot correlation matrix computed from a likelihood’s covariance.
+
+    Args:
+        likelihood (BaseLikelihood): Likelihood instance providing data/covariance.
+        parameter_dict (dict): Parameter specs; values read to form vector and variance.
+        covariance_prefactor_dict (dict, optional): Prefactors per covariance block.
+        **kwargs: Plot options, e.g., `vmin`, `vmax`.
+    """
     vmin = utils.return_key(kwargs, "vmin", -0.1)
     vmax = utils.return_key(kwargs, "vmax", 0.1)
 
@@ -192,6 +214,22 @@ def plot_all_fits(
     plot=True,
     **kwargs,
 ):
+    """Scatter all fit results per parameter with errors.
+
+    Args:
+        fit_output (str): Directory containing pickled fit outputs.
+        parameters (list[str]): Parameters to plot.
+        fiducials (list[float]|None): Optional reference lines per parameter.
+        compute_fs8_from_beta (bool): Plot `fs8 = beta_f * bs8` when requested.
+        subset_plot (list[str]|None): Only include fit files whose names contain these substrings.
+        remove_lower (dict|None): Exclude fits where param < threshold.
+        remove_higher (dict|None): Exclude fits where param > threshold.
+        plot (bool): Whether to render the plots.
+        **kwargs: Matplotlib options, e.g., `figsize`.
+
+    Returns:
+        tuple: `(fit_name_to_plot, param_dict, error_dict)`.
+    """
 
     fit_to_plot, fit_name_to_plot = select_valid_fits(
         fit_output,
@@ -261,6 +299,29 @@ def plot_all_mean_fits(
     use_minos=False,
     **kwargs,
 ):
+    """Plot mean parameter values and errors across grouped fits.
+
+    Groups fits by a substring in filenames, computes mean and error metrics, and
+    optionally plots both means and errors.
+
+    Args:
+        fit_output (str): Directory containing pickled fit outputs.
+        parameters (list[str]): Parameters to summarize.
+        fiducials (list[float]|None): Reference lines per parameter.
+        weighted_mean (bool): Weight by inverse Hessian variance when True.
+        compute_fs8_from_beta (bool): Use `fs8 = beta_f * bs8`.
+        plot_std_error (bool): Plot standard deviation instead of mean error.
+        plot_error_bar_of_mean (bool): Plot error-of-the-mean instead of mean error.
+        subset_plot (list[str]|None): Only include fits matching substrings.
+        remove_lower (dict|None): Exclude fits where param < threshold.
+        remove_higher (dict|None): Exclude fits where param > threshold.
+        plot (bool): Whether to render plots.
+        use_minos (bool): Use MINOS errors if available; fall back to Hessian.
+        **kwargs: Matplotlib options, e.g., `figsize`.
+
+    Returns:
+        tuple: `(unique_fit_prop, mean_param_dict, mean_error_dict, error_mean_dict, std_dict, count_dict)`.
+    """
 
     fit_to_plot, fit_name_to_plot = select_valid_fits(
         fit_output,
@@ -450,6 +511,17 @@ def select_valid_fits(
     remove_lower=None,
     remove_higher=None,
 ):
+    """Select valid fit files based on status flags and filters.
+
+    Args:
+        fit_output (str): Directory of pickled fit outputs.
+        subset_plot (list[str]|None): Only include filenames containing these substrings.
+        remove_lower (dict|None): Exclude fits where param < threshold.
+        remove_higher (dict|None): Exclude fits where param > threshold.
+
+    Returns:
+        tuple[list, list]: Fit objects and their filenames.
+    """
     all_fit = glob.glob(os.path.join(fit_output, "*"))
 
     fit_to_plot = []
@@ -481,6 +553,11 @@ def select_valid_fits(
 
 
 def __secret_logo__(first_album=False):
+    """Show the hidden flip WEBP logo.
+
+    Args:
+        first_album (bool): Show the first album variant.
+    """
     from PIL import Image
 
     from flip import __flip_dir_path__

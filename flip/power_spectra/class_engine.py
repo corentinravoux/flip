@@ -85,10 +85,28 @@ _class_acuracy_setting_defaults = {
 
 
 def get_fiducial_fs8(model, redshift):
+    """Return fiducial $f\sigma_8$ from a CLASS model at redshift.
+
+    Args:
+        model (Class): Initialized and computed CLASS wrapper.
+        redshift (float): Target redshift.
+
+    Returns:
+        float: Scale-independent $f\sigma_8(z)$.
+    """
     return model.scale_independent_f_sigma8(redshift)
 
 
 def get_fiducial_s8(model, redshift):
+    """Return fiducial $\sigma_8$ from a CLASS model at redshift.
+
+    Args:
+        model (Class): Initialized and computed CLASS wrapper.
+        redshift (float): Target redshift.
+
+    Returns:
+        float: $\sigma(R=8\,\mathrm{Mpc}/h, z)$.
+    """
     return model.sigma(8 / model.h(), redshift)
 
 
@@ -101,6 +119,23 @@ def compute_power_spectrum(
     non_linear_model=None,
     logspace=True,
 ):
+    """Compute linear/non-linear $P(k)$ using CLASS.
+
+    Args:
+        power_spectrum_settings (dict): CLASS settings (cosmology + outputs).
+        redshift (float): Redshift for $P(k)$.
+        minimal_wavenumber (float): Minimum $k$ in h/Mpc.
+        maximal_wavenumber (float): Maximum $k$ in h/Mpc.
+        number_points (int): Number of $k$ samples.
+        non_linear_model (str|None): Enable non-linear engine in CLASS.
+        logspace (bool): Sample $k$ in log-space when True.
+
+    Returns:
+        tuple: `(k, P_lin, P_nl_or_None, fiducial_dict)`.
+
+    Raises:
+        Exception: Propagates CLASS errors with a helpful message.
+    """
     if logspace:
         wavenumber = np.logspace(
             np.log10(minimal_wavenumber),

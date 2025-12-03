@@ -14,6 +14,15 @@ from flip.utils import create_log
 log = create_log()
 
 class BaseFitter(abc.ABC):
+    """Abstract interface for fitters.
+
+    Provides common wiring between covariance, data, and likelihood construction,
+    and defines the contract for initialization from covariance or files.
+
+    Attributes:
+        covariance (CovMatrix): Covariance model to use for fits.
+        data (object): Data provider passed to likelihoods.
+    """
     def __init__(
         self,
         covariance=None,
@@ -40,13 +49,10 @@ class BaseFitter(abc.ABC):
     def init_from_covariance(
         cls,
     ):
-        """
-        The init_from_covariance function is a class method that initializes the
-            fitter from the covariance matrix. It is here an abstract method that
-            needs to be override
+        """Initialize fitter from covariance.
 
-        Args:
-            cls: Pass a class object into a method
+        Returns:
+            BaseFitter: Implementations must return an initialized fitter.
         """
         return
 
@@ -54,13 +60,10 @@ class BaseFitter(abc.ABC):
     def init_from_file(
         cls,
     ):
-        """
-        The init_from_covariance function is a class method that initializes the
-            fitter from the a file containing covariance matrix. It is here an
-            abstract method that needs to be override
+        """Initialize fitter from a covariance file.
 
-        Args:
-            cls: Pass a class object into a method
+        Returns:
+            BaseFitter: Implementations must return an initialized fitter.
         """
         return
 
@@ -71,20 +74,16 @@ class BaseFitter(abc.ABC):
         likelihood_properties=None,
         **kwargs,
     ):
-        """
-        The get_likelihood function is used to create a likelihood object from the covariance matrix.
-        The function takes in a dictionary of parameters, and returns an instance of the likelihood class.
-
+        """Construct a likelihood from the fitter's covariance and data.
 
         Args:
-            self: Bind the method to a class
-            parameter_dict: Pass the parameters to be used in the likelihood function
-            likelihood_type: Select the likelihood class
-            : Select the likelihood function
+            parameter_dict (dict): Parameters with keys as names and values/priors.
+            likelihood_type (str): Likelihood class key; see `select_likelihood`.
+            likelihood_properties (dict, optional): Options overriding defaults.
+            **kwargs: Extra args forwarded to likelihood constructors.
 
         Returns:
-            A likelihood object
-
+            BaseLikelihood: Initialized likelihood instance.
         """
 
         parameter_names = [parameters for parameters in parameter_dict]
@@ -103,15 +102,14 @@ class BaseFitter(abc.ABC):
 
     @staticmethod
     def select_likelihood(likelihood_type):
-        """
-        The select_likelihood function takes in a string, likelihood_type, and returns the corresponding class.
+        """Map a likelihood type key to its class.
 
         Args:
-            likelihood_type: Determine which likelihood function to use
+            likelihood_type (str): One of `multivariate_gaussian`,
+                `multivariate_gaussian_interp1d`, `multivariate_gaussian_interp2d`.
 
         Returns:
-            The likelihood class
-
+            type: Likelihood class.
         """
         if likelihood_type == "multivariate_gaussian":
             likelihood_class = flik.MultivariateGaussianLikelihood
@@ -132,22 +130,13 @@ class FitMinuit(BaseFitter):
         likelihood=None,
         minuit=None,
     ):
-        """
-        The __init__ function is called when the class is instantiated.
-        It sets up the instance of the class, and defines all of its attributes.
-        The self argument refers to the instance of this object that has been created.
+        """Initialize Minuit fitter.
 
         Args:
-            self: Represent the instance of the class
-            covariance: Pass the covariance matrix to the fit
-            data: Pass the data to be fitted
-            likelihood: Pass the likelihood function to the fit
-            minuit: Pass a minuit object to the fitminuit class
-            : Set the minuit object
-
-        Returns:
-            The object that is being created
-
+            covariance (CovMatrix, optional): Covariance model for the fit.
+            data (object, optional): Data provider passed to likelihoods.
+            likelihood (BaseLikelihood, optional): Prebuilt likelihood.
+            minuit (iminuit.Minuit, optional): Preconfigured Minuit instance.
         """
         super(FitMinuit, self).__init__(
             covariance=covariance,
@@ -166,26 +155,18 @@ class FitMinuit(BaseFitter):
         likelihood_properties={},
         **kwargs,
     ):
-        """
-        The init_from_covariance function is a class method that initializes the MinuitFitter object.
-        It takes in the covariance matrix, data, parameter dictionary and likelihood type as arguments.
-        The minuit_fitter object is initialized with the covariance matrix and data. The likelihood function
-        is then calculated using get_likelihood() which returns an instance of LikelihoodFunction(). This
-        instance is assigned to minuit_fitter's attribute 'likelihood'. The parameter values are extracted from
-        the parameter dictionary and stored in a list called 'parameter_values'. A Minuit object called 'minuit'
-        is
+        """Build a Minuit fitter from covariance and data.
 
         Args:
-            cls: Create a new instance of the class
-            covariance: Initialize the covariance matrix of the likelihood
-            data: Pass the data to the likelihood function
-            parameter_dict: Pass the parameters to be fitted
-            likelihood_type: Specify the type of likelihood function to be used
-            : Set the covariance matrix of the data
+            covariance (CovMatrix): Covariance model.
+            data (object): Data provider.
+            parameter_dict (dict): Parameter specs including values, errors, limits.
+            likelihood_type (str): Likelihood variant key.
+            likelihood_properties (dict): Options (e.g., use_jit, use_gradient).
+            **kwargs: Extra args forwarded to likelihood construction.
 
         Returns:
-            A minuit_fitter object
-
+            FitMinuit: Configured fitter with `iminuit.Minuit` ready.
         """
         minuit_fitter = cls(
             covariance=covariance,
@@ -235,22 +216,22 @@ class FitMinuit(BaseFitter):
         likelihood_type="multivariate_gaussian",
         likelihood_properties=None,
     ):
-        """
-        The init_from_file function is a class method that initializes the fitter object from a covariance matrix.
+        """Initialize a Minuit fitter from a covariance file.
+
+        Detects supported formats by extension (`.pickle`, `.npz`), loads a
+        `CovMatrix`, and delegates to `init_from_covariance`.
 
         Args:
-            cls: Pass the class object to the function
-            model_name: Specify the name of the model
-            model_kind: Specify the type of model
-            filename: Load the covariance matrix from a file
-            data: Initialize the fitter's data attribute
-            parameter_dict: Pass in the parameters that are used to
-            likelihood_type: Specify the type of likelihood function to use
-            : Specify the type of likelihood
+            model_name (str): Model name (unused here; kept for API parity).
+            model_kind (str): Model kind (unused here).
+            filename (str): Path with or without extension.
+            data (object): Data provider.
+            parameter_dict (dict): Parameter specs.
+            likelihood_type (str): Likelihood variant key.
+            likelihood_properties (dict): Likelihood options.
 
         Returns:
-            A fitter object
-
+            FitMinuit: Configured fitter with `iminuit.Minuit` ready.
         """
         # Detect supported formats by extension
         if filename.endswith(".pickle"):
@@ -278,18 +259,11 @@ class FitMinuit(BaseFitter):
         )
 
     def setup_minuit(self, parameter_dict):
-        """
-        The setup_minuit function is used to set up the minuit object.
-        It takes a dictionary of parameters as input and sets the errors, fixed values, and limits for each parameter.
-        The error is set to be equal to the value if no error is specified in the dictionary. If a parameter has been fixed then its error will be zero.
+        """Configure Minuit parameter errors, limits, and fixed flags.
 
         Args:
-            self: Refer to the object itself
-            parameter_dict: Set the initial values of the parameters
-
-        Returns:
-            A minuit object
-
+            parameter_dict (dict): Parameter config with keys `value`, optional
+                `error`, `fixed`, `limit_low`, `limit_up`.
         """
         self.minuit.errordef = iminuit.Minuit.LIKELIHOOD
         for parameters in parameter_dict:
@@ -304,20 +278,16 @@ class FitMinuit(BaseFitter):
             self.minuit.limits[parameters] = (limit_low, limit_up)
 
     def run(self, migrad=True, hesse=False, minos=False, n_iter=1):
-        """
-        The run function is the main function of the class. It takes in a number of
-        arguments, and then runs them through Minuit. The arguments are:
+        """Run Minuit optimization and return fitted parameter values.
 
         Args:
-            self: Bind the method to the object
-            migrad: Run the migrad algorithm
-            hesse: Run the hesse function
-            minos: Run the minos function, which is a
-            : Set the number of iterations for migrad
+            migrad (bool): Run MIGRAD algorithm.
+            hesse (bool): Compute HESSE errors.
+            minos (bool): Compute MINOS intervals (may be slow).
+            n_iter (int): Number of MIGRAD iterations to perform.
 
         Returns:
-            A dictionary with the results of the minimization
-
+            dict: Fitted parameter values.
         """
         if migrad:
             for i in range(n_iter):
@@ -344,23 +314,12 @@ class FitMCMC(BaseFitter):
         data=None,
         sampler_name="emcee",
     ):
-        """
-        The __init__ function is called when the class is instantiated.
-        It sets up the instance of the class, and defines all of its attributes.
-        The __init__ function should always accept at least one argument, self,
-        which refers to the instance of the object being created.
+        """Initialize MCMC fitter.
 
         Args:
-            self: Represent the instance of the object itself
-            covariance: Set the covariance matrix of the fit
-            data: Pass the data to the likelihood function
-            likelihood: Define the likelihood function
-            sampler: Pass the sampler object to the fit
-            : Define the sampler that will be used in the fit
-
-        Returns:
-            The object itself, so the return value is self
-
+            covariance (CovMatrix, optional): Covariance model.
+            data (object, optional): Data provider.
+            sampler_name (str): Sampler backend name (only `emcee` supported).
         """
         super().__init__(
             covariance=covariance,
@@ -382,20 +341,21 @@ class FitMCMC(BaseFitter):
         backend_file=None,
         **kwargs,
     ):
-        """
-        The init_from_covariance function is a class method that initializes the MCMC fitter from a covariance matrix.
+        """Build an MCMC fitter from covariance and data.
 
         Args:
-            cls: Create a new instance of the class
-            covariance: Set the covariance matrix of the multivariate gaussian
-            data: Calculate the likelihood
-            parameter_dict: Pass in the parameters of the model
-            likelihood_type: Specify the type of likelihood function to use
-            : Set the covariance matrix
+            covariance (CovMatrix): Covariance model.
+            data (object): Data provider.
+            parameter_dict (dict): Parameter specs including random initialization.
+            likelihood_type (str): Likelihood variant key.
+            likelihood_properties (dict): Options; sets negative_log_likelihood=False.
+            sampler_name (str): Sampler backend (`emcee`).
+            nwalkers (int): Number of walkers.
+            backend_file (str, optional): HDF backend path for resume/checkpoint.
+            **kwargs: Extra args forwarded to likelihood.
 
         Returns:
-            A mcmc_fitter object
-
+            FitMCMC: Configured fitter with sampler set.
         """
 
         mcmc_fitter = cls(
@@ -430,18 +390,22 @@ class FitMCMC(BaseFitter):
     def init_from_file(
         cls,
     ):
-        """
-        The init_from_covariance function is a class method that initializes the
-            fitter from the a file containing covariance matrix. It is here an
-            abstract method that needs to be override
+        """Not implemented for MCMC from file.
 
-        Args:
-            cls: Pass a class object into a method
+        Raises:
+            NotImplementedError: Always.
         """
 
         raise NotImplementedError
 
     def set_sampler(self, likelihood, p0=None, **kwargs):
+        """Create sampler backend from likelihood and initial positions.
+
+        Args:
+            likelihood (Callable): Log-probability callable.
+            p0 (numpy.ndarray, optional): Initial walker positions `(nwalkers, ndim)`.
+            **kwargs: Backend-specific options (e.g., `backend_file`).
+        """
         if self.sampler_name == "emcee":
             self.sampler = EMCEESampler(likelihood, p0=p0, **kwargs)
         else:
@@ -449,8 +413,15 @@ class FitMCMC(BaseFitter):
 
 
 class Sampler(abc.ABC):
+    """Abstract sampler interface wrapping different MCMC engines."""
 
     def __init__(self, likelihood, p0=None):
+        """Initialize sampler.
+
+        Args:
+            likelihood (Callable): Log-probability function.
+            p0 (numpy.ndarray, optional): Initial positions `(nwalkers, ndim)`.
+        """
         self.likelihood = likelihood
         self._p0 = None
         if p0 is not None:
@@ -458,18 +429,44 @@ class Sampler(abc.ABC):
 
     @abc.abstractmethod
     def run_chains(self, nsteps):
+        """Run sampler chains for a fixed number of steps.
+
+        Args:
+            nsteps (int): Number of steps per walker.
+
+        Returns:
+            Any: Backend-specific sampler object.
+        """
         return
 
     @property
     def ndim(self):
+        """Return dimensionality of parameter space.
+
+        Returns:
+            int: Number of parameters.
+        """
         return len(self.likelihood.parameter_names)
 
     @property
     def p0(self):
+        """Initial positions of walkers.
+
+        Returns:
+            numpy.ndarray: Array of shape `(nwalkers, ndim)`.
+        """
         return self._p0
 
     @p0.setter
     def p0(self, value):
+        """Set initial positions ensuring shape consistency.
+
+        Args:
+            value (numpy.ndarray): Initial positions `(nwalkers, ndim)`.
+
+        Raises:
+            ValueError: If `ndim` mismatch.
+        """
         if value.shape[1] != self.ndim:
             raise ValueError(
                 f"p0.shape[1] is equal to ndim={self.ndim}, currently {value.shape[1]}"
@@ -481,7 +478,13 @@ class Sampler(abc.ABC):
 class EMCEESampler(Sampler):
     def __init__(self, likelihood, p0=None, backend_file=None):
         super().__init__(likelihood, p0=p0)
+        """Create an emcee sampler with optional HDF backend.
 
+        Args:
+            likelihood (Callable): Log-probability function.
+            p0 (numpy.ndarray, optional): Initial positions.
+            backend_file (str, optional): HDF backend filename to resume/checkpoint.
+        """
         self.backend = None
         if backend_file is not None:
             backend_file_exists = os.path.exists(backend_file)
@@ -502,6 +505,16 @@ class EMCEESampler(Sampler):
             self.backend_file_exists = False
 
     def run_chains(self, nsteps, number_worker=1, progress=False):
+        """Run emcee chains for a fixed number of steps.
+
+        Args:
+            nsteps (int): Number of steps to run.
+            number_worker (int): Parallel workers via multiprocessing.
+            progress (bool): Show progress bar.
+
+        Returns:
+            emcee.EnsembleSampler: The sampler instance.
+        """
         with mp.Pool(number_worker) if number_worker != 1 else nullcontext() as pool:
             sampler = emcee.EnsembleSampler(
                 self.nwalkers,
@@ -524,7 +537,20 @@ class EMCEESampler(Sampler):
         tau_conv=0.01,
         progress=False,
     ):
-        """Run chains until reaching auto correlation convergence criteria."""
+        """Run chains until reaching autocorrelation convergence criteria.
+
+        Uses emcee's `get_autocorr_time` to check stabilization of autocorrelation
+        time and sufficient chain length.
+
+        Args:
+            number_worker (int): Parallel workers.
+            maxstep (int): Maximum steps if not converged earlier.
+            tau_conv (float): Relative change threshold for convergence.
+            progress (bool): Show progress bar.
+
+        Returns:
+            emcee.EnsembleSampler: The sampler instance.
+        """
         old_tau = np.inf
         with mp.Pool(number_worker) if number_worker != 1 else nullcontext() as pool:
             sampler = emcee.EnsembleSampler(

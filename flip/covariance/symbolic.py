@@ -1302,6 +1302,11 @@ def generate_files():
 
 
 def generate_fisher_files():
+    """Generate Fisher coefficient modules across supported covariance models.
+
+    Writes `fisher_terms.py` files for each model with partial derivative
+    coefficient dictionaries tailored to their parameterizations.
+    """
     generate_fisher_coefficients_dictionnary_carreres23()
     generate_fisher_coefficients_dictionnary_adamsblake17()
     generate_fisher_coefficients_dictionnary_adamsblake17plane()

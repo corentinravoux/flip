@@ -44,6 +44,21 @@ _available_inversion_methods = [
 
 
 def log_likelihood_gaussian_inverse(vector, covariance_sum):
+    """Compute multivariate Gaussian log-likelihood using explicit inverse.
+
+    This evaluates $\mathcal{L} = -\tfrac{1}{2}[N\log(2\pi) + \log|C| + \chi^2]$
+    with $\chi^2 = v^T C^{-1} v$ by explicitly inverting the covariance matrix.
+
+    Args:
+        vector (array-like): Residual data vector `v` of shape `(N,)`.
+        covariance_sum (array-like): Total covariance matrix `C` of shape `(N, N)`.
+
+    Returns:
+        float: Log-likelihood value of the Gaussian model.
+
+    Notes:
+        Prefer solve or Cholesky variants for better numerical stability on ill-conditioned matrices.
+    """
     _, logdet = jnp.linalg.slogdet(covariance_sum)
     inverse_covariance_sum = jnp.linalg.inv(covariance_sum)
     chi2 = jnp.dot(vector, jnp.dot(inverse_covariance_sum, vector))
@@ -51,12 +66,36 @@ def log_likelihood_gaussian_inverse(vector, covariance_sum):
 
 
 def log_likelihood_gaussian_solve(vector, covariance_sum):
+    """Compute multivariate Gaussian log-likelihood via linear solver.
+
+    Uses `solve(C, v)` to avoid explicit inversion when computing $\chi^2 = v^T C^{-1} v$.
+
+    Args:
+        vector (array-like): Residual data vector `v` of shape `(N,)`.
+        covariance_sum (array-like): Total covariance matrix `C` of shape `(N, N)`.
+
+    Returns:
+        float: Log-likelihood value of the Gaussian model.
+
+    """
     _, logdet = jnp.linalg.slogdet(covariance_sum)
     chi2 = jnp.dot(vector.T, jnp.linalg.solve(covariance_sum, vector))
     return -0.5 * (vector.size * jnp.log(2 * jnp.pi) + logdet + chi2)
 
 
 def log_likelihood_gaussian_cholesky(vector, covariance_sum):
+    """Compute Gaussian log-likelihood using Cholesky factorization.
+
+    Factorizes `C = L L^T` to compute both `log|C|` and $\chi^2$ stably.
+
+    Args:
+        vector (array-like): Residual data vector `v` of shape `(N,)`.
+        covariance_sum (array-like): Positive-definite covariance matrix `C`.
+
+    Returns:
+        float: Log-likelihood value of the Gaussian model.
+
+    """
     cholesky = jsc.linalg.cho_factor(covariance_sum)
     logdet = 2 * jnp.sum(jnp.log(jnp.diag(cholesky[0])))
     chi2 = jnp.dot(vector, jsc.linalg.cho_solve(cholesky, vector))
@@ -64,6 +103,18 @@ def log_likelihood_gaussian_cholesky(vector, covariance_sum):
 
 
 def log_likelihood_gaussian_cholesky_inverse(vector, covariance_sum):
+    """Compute Gaussian log-likelihood using Cholesky, fallback to inverse.
+
+    Attempts a Cholesky factorization; if it fails (non-PD matrix), falls back to
+    explicit inversion-based computation.
+
+    Args:
+        vector (array-like): Residual data vector `v` of shape `(N,)`.
+        covariance_sum (array-like): Covariance matrix `C` (ideally PD).
+
+    Returns:
+        float: Log-likelihood value of the Gaussian model.
+    """
     try:
         return log_likelihood_gaussian_cholesky(vector, covariance_sum)
     except jnp.linalg.LinAlgError:
@@ -71,6 +122,18 @@ def log_likelihood_gaussian_cholesky_inverse(vector, covariance_sum):
 
 
 def log_likelihood_gaussian_cholesky_regularized(vector, covariance_sum):
+    """Compute Gaussian log-likelihood with eigenvalue regularization.
+
+    Ensures positive-definiteness by replacing negative eigenvalues with their absolute
+    values before Cholesky factorization.
+
+    Args:
+        vector (array-like): Residual data vector `v` of shape `(N,)`.
+        covariance_sum (array-like): Covariance matrix `C` that may be indefinite.
+
+    Returns:
+        float: Log-likelihood value of the Gaussian model.
+    """
     eigval, eigvec = jnp.linalg.eig(covariance_sum)
     cov_sum_regularized = eigvec @ jnp.abs(jnp.diag(eigval)) @ jnp.linalg.inv(eigvec)
     cholesky = jsc.linalg.cho_factor(cov_sum_regularized)
@@ -89,14 +152,47 @@ if jax_installed:
 
 
 def no_prior(x):
+    """Return zero prior contribution.
+
+    Args:
+        x (Any): Ignored parameter values input.
+
+    Returns:
+        int: Zero.
+    """
     return 0
 
 
 def prior_sum(priors, x):
+    """Sum multiple prior contributions.
+
+    Args:
+        priors (list[Callable]): List of prior callables accepting a parameter dict.
+        x (dict): Parameter values dictionary.
+
+    Returns:
+        float: Sum of all prior log-probabilities.
+    """
     return sum(prior(x) for prior in priors)
 
 
 class BaseLikelihood(abc.ABC):
+    """Abstract base class for likelihood evaluation.
+
+    Provides common setup for covariance verification, properties validation, prior
+    initialization, and building the callable likelihood and optional gradient.
+
+    Attributes:
+        covariance (CovMatrix or list[CovMatrix]): Covariance model(s).
+        data (object): Data provider with `free_par` and `give_data_and_variance`.
+        parameter_names (list[str]): Ordered parameter names.
+        free_par (list[str]): Combined free parameters from data and covariance.
+        likelihood_properties (dict): Controls inversion method, sign, JIT, gradients.
+        prior (Callable): Prior function returning log-prior given parameter dict.
+        likelihood_call (Callable): Callable evaluating the likelihood.
+        likelihood_grad (Callable|None): Gradient of likelihood if JAX is available.
+
+    """
 
     _default_likelihood_properties = {
         "inversion_method": "inverse",
@@ -135,10 +231,23 @@ class BaseLikelihood(abc.ABC):
         self.likelihood_call, self.likelihood_grad = self._init_likelihood()
 
     def __call__(self, parameter_values):
+        """Evaluate likelihood at parameter values.
+
+        Args:
+            parameter_values (array-like): Parameter vector aligned with `parameter_names`.
+
+        Returns:
+            float: Likelihood value, sign controlled by `negative_log_likelihood`.
+        """
         return self.likelihood_call(parameter_values)
 
     @abc.abstractmethod
     def _init_likelihood(self, *args):
+        """Initialize likelihood and optional gradient.
+
+        Returns:
+            tuple[Callable, Callable|None]: `(likelihood_call, likelihood_grad)`.
+        """
         likelihood_fun = None
         likelihood_grad = None
         return likelihood_fun, likelihood_grad
@@ -152,21 +261,17 @@ class BaseLikelihood(abc.ABC):
         likelihood_properties={},
         **kwargs,
     ):
-        """
-        The init_from_covariance function is a class method that initializes the likelihood object from a covariance matrix.
+        """Construct a likelihood instance from a covariance.
 
         Args:
-            cls: Create a new instance of the class
-            covariance: Compute the full matrix of the covariance
-            parameter_names: Set the names of the parameters
-            density: Compute the vector and its error
-            density_err: Compute the vector_err
-            velocity: Compute the vector and vector_err
-            velocity_err: Compute the error in the vector
-            : Compute the vector
+            covariance (CovMatrix or list[CovMatrix]): Covariance model(s) to use.
+            data (object): Data provider used by likelihood to build residuals/errors.
+            parameter_names (list[str]): Parameter names ordering the input vector.
+            likelihood_properties (dict, optional): Likelihood options overriding defaults.
+            **kwargs: Extra arguments forwarded to subclass constructor.
 
         Returns:
-            A likelihood object
+            BaseLikelihood: Initialized likelihood instance.
 
         """
 
@@ -183,6 +288,14 @@ class BaseLikelihood(abc.ABC):
     def initialize_prior(
         self,
     ):
+        """Build prior function from likelihood properties.
+
+        Returns:
+            Callable: Prior function mapping parameter dict to log-prior.
+
+        Raises:
+            ValueError: If an unsupported prior type is requested.
+        """
         if "prior" not in self.likelihood_properties.keys():
             return no_prior
         else:
@@ -215,6 +328,11 @@ class BaseLikelihood(abc.ABC):
             return prior_function
 
     def verify_covariance(self):
+        """Ensure covariance matrices are ready for likelihood evaluation.
+
+        Converts flat covariances to matrix form if required and initializes the
+        cached `compute_covariance_sum` (and JIT variant) functions.
+        """
         if isinstance(self.covariance, list):
             for i in range(len(self.covariance)):
                 if self.covariance[i].matrix_form is False:
@@ -236,6 +354,11 @@ class BaseLikelihood(abc.ABC):
                 self.covariance.init_compute_covariance_sum()
 
     def verify_properties(self):
+        """Validate likelihood properties such as inversion method.
+
+        Raises:
+            ValueError: If the inversion method is not supported.
+        """
         if (
             self.likelihood_properties["inversion_method"]
             not in _available_inversion_methods
@@ -247,6 +370,10 @@ class BaseLikelihood(abc.ABC):
 
 
 class MultivariateGaussianLikelihood(BaseLikelihood):
+    """Gaussian likelihood for a single covariance model.
+
+    Supports multiple inversion strategies and optional JAX JIT/grad for speed.
+    """
     def __init__(
         self,
         covariance=None,
@@ -262,6 +389,11 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         )
 
     def _init_likelihood(self):
+        """Build callable likelihood and optional gradient for Gaussian model.
+
+        Returns:
+            tuple[Callable, Callable|None]: `(likelihood_call, likelihood_grad)`.
+        """
 
         use_jit = self.likelihood_properties["use_jit"]
 
@@ -286,6 +418,15 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
             parameter_values,
             covariance_prefactor_dict=None,
         ):
+            """Evaluate likelihood for given parameters.
+
+            Args:
+                parameter_values (array-like): Parameter vector aligned to names.
+                covariance_prefactor_dict (dict, optional): Prefactors per block (gg/gv/vv).
+
+            Returns:
+                float: Likelihood value (sign depends on `negative_log_likelihood`).
+            """
             parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
             vector, vector_variance = give_data_and_variance(parameter_values_dict)
             covariance_sum = compute_covariance_sum(
@@ -312,6 +453,11 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
 
 
 class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
+    """Gaussian likelihood with 1D interpolation over precomputed covariances.
+
+    Interpolates the covariance matrix across a scalar parameter grid to avoid
+    regeneration during fits.
+    """
     def __init__(
         self,
         covariance=None,
@@ -321,23 +467,18 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         interpolation_value_name=None,
         interpolation_value_range=None,
     ):
-        """
-        The __init__ function is called when the class is instantiated.
-        It sets up the instance of the class, and defines all its attributes.
-        The __init__ function takes arguments, which are then assigned to object attributes:
+        """Initialize 1D interpolation likelihood.
 
         Args:
-            self: Represent the instance of the class
-            covariance: Set the covariance matrix of the likelihood
-            data: Store the data
-            parameter_names: Specify the names of the parameters that are used in this likelihood
-            likelihood_properties: Pass in the interpolation_value_name and interpolation_value_range
-            interpolation_value_name: Specify the name of the parameter that is being interpolated
-            interpolation_value_range: Specify the range of values that will be used to interpolate
-            : Define the interpolation value name
+            covariance (list[CovMatrix]): Covariance models sampled along interpolation axis.
+            data (object): Data provider with residuals and variance.
+            parameter_names (list[str]): Parameter names ordering the input vector.
+            likelihood_properties (dict, optional): Likelihood options overriding defaults.
+            interpolation_value_name (str): Name of the interpolation parameter.
+            interpolation_value_range (array-like): Sorted grid of interpolation values.
 
         Returns:
-            The object itself
+            None: Initializes attributes and base class.
         """
         self.interpolation_value_name = interpolation_value_name
         self.interpolation_value_range = interpolation_value_range
@@ -352,6 +493,11 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         self.free_par = [interpolation_value_name] + self.free_par
 
     def _init_likelihood(self):
+        """Build callable likelihood and optional gradient for 1D interpolation.
+
+        Returns:
+            tuple[Callable, Callable|None]: `(likelihood_call, likelihood_grad)`.
+        """
         use_jit = self.likelihood_properties["use_jit"]
 
         if jax_installed & use_jit:
@@ -382,6 +528,18 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
             parameter_values,
             covariance_prefactor_dict=None,
         ):
+            """Evaluate likelihood with interpolated covariance.
+
+            Performs linear interpolation between nearest covariances along the
+            interpolation axis.
+
+            Args:
+                parameter_values (array-like): Parameter vector.
+                covariance_prefactor_dict (dict, optional): Prefactors per block.
+
+            Returns:
+                float: Likelihood value including prior on interpolation range.
+            """
             parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
             interpolation_value = parameter_values_dict[self.interpolation_value_name]
 
@@ -451,6 +609,12 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
 
 
 class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
+    """Deprecated 2D interpolation Gaussian likelihood.
+
+    Note:
+        Uses `scipy.interpolate.interp2d`, which is deprecated upstream.
+        Prefer emulator-based or grid-based approaches.
+    """
     def __init__(
         self,
         covariance=None,
@@ -498,21 +662,14 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
         parameter_values,
         covariance_prefactor_dict=None,
     ):
-        """
-        The __call__ function is the function that will be called when the likelihood
-        object is called. It takes in a list of parameter values, and returns a float
-        value representing the log-likelihood value for those parameters. The __call__
-        method should not be overwritten by subclasses unless you know what you are doing!
+        """Evaluate 2D interpolated likelihood.
 
         Args:
-            self: Refer to the object itself
-            parameter_values: Compute the covariance matrix
-            interpolation_value_0: Interpolate the covariance matrix along the first dimension
-            interpolation_value_1: Interpolate the covariance matrix
-            : Compute the covariance sum
+            parameter_values (array-like): Parameter vector aligned to names.
+            covariance_prefactor_dict (dict, optional): Prefactors per covariance block.
 
         Returns:
-            The log-likelihood function
+            float: Log-likelihood value (sign depends on `negative_log_likelihood`).
         """
         parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
 
@@ -566,6 +723,11 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
 
 
 class Prior:
+    """Base prior class encapsulating parameter-specific priors.
+
+    Attributes:
+        parameter_name (str): Name of the parameter this prior applies to.
+    """
     def __init__(
         self,
         parameter_name=None,
@@ -574,6 +736,10 @@ class Prior:
 
 
 class GaussianPrior(Prior):
+    """Univariate Gaussian prior on a parameter.
+
+    Models $p(\theta) \propto \exp\{-\tfrac{1}{2}[(\theta-\mu)^2/\sigma^2]\}$.
+    """
 
     def __init__(
         self,
@@ -589,6 +755,14 @@ class GaussianPrior(Prior):
         self,
         parameter_values_dict,
     ):
+        """Return Gaussian log-prior for the parameter value.
+
+        Args:
+            parameter_values_dict (dict): Map of parameter names to values.
+
+        Returns:
+            float: Log-prior value.
+        """
         return -0.5 * (
             np.log(2 * jnp.pi * self.prior_standard_deviation**2)
             + (parameter_values_dict[self.parameter_name] - self.prior_mean) ** 2
@@ -597,6 +771,10 @@ class GaussianPrior(Prior):
 
 
 class PositivePrior(Prior):
+    """Log-prior enforcing parameter positivity via Heaviside function.
+
+    Returns `log(Heaviside(value))`, which is `0` for positive values and `-inf` otherwise.
+    """
 
     def __init__(
         self,
@@ -608,10 +786,22 @@ class PositivePrior(Prior):
         self,
         parameter_values_dict,
     ):
+        """Return log-prior that is zero for positive values, -inf otherwise.
+
+        Args:
+            parameter_values_dict (dict): Map of parameter names to values.
+
+        Returns:
+            float: Log-prior (0 or -inf).
+        """
         return jnp.log(jnp.heaviside(parameter_values_dict[self.parameter_name], 0))
 
 
 class UniformPrior(Prior):
+    """Uniform prior over a finite interval for a parameter.
+
+    Uses `scipy.stats.uniform.logpdf` for the specified range.
+    """
 
     def __init__(self, parameter_name=None, range=None):
         super().__init__(parameter_name=parameter_name)
@@ -621,6 +811,14 @@ class UniformPrior(Prior):
         self,
         parameter_values_dict,
     ):
+        """Return uniform log-prior over `[range[0], range[1]]`.
+
+        Args:
+            parameter_values_dict (dict): Map of parameter names to values.
+
+        Returns:
+            float: Log-prior value (constant inside range, -inf outside).
+        """
         value = parameter_values_dict[self.parameter_name]
         return jsc.stats.uniform.logpdf(
             value, loc=self.range[0], scale=self.range[1] - self.range[0]

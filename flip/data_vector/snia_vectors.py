@@ -27,6 +27,11 @@ class VelFromSALTfit(DataVector):
 
     @property
     def conditional_needed_keys(self):
+        """Conditionally required SALT2 error and covariance fields.
+
+        Returns:
+            list[str]: Includes errors and covariances when covariance is absent.
+        """
         cond_keys = []
         if self._covariance_observation is None:
             cond_keys += ["e_mb", "e_x1", "e_c", "cov_mb_x1", "cov_mb_c", "cov_x1_c"]
@@ -34,12 +39,25 @@ class VelFromSALTfit(DataVector):
 
     @property
     def conditional_free_par(self):
+        """Conditionally required parameters based on host mass.
+
+        Returns:
+            list[str]: Includes `gamma` when `host_logmass` is present.
+        """
         _cond_fpar = []
         if "host_logmass" in self.data:
             _cond_fpar += ["gamma"]
         return _cond_fpar
 
     def compute_observed_distance_modulus(self, parameter_values_dict):
+        """Compute observed distance modulus from SALT2 fit parameters.
+
+        Args:
+            parameter_values_dict (dict): Includes `alpha`, `beta`, `M_0`, optionally `gamma`.
+
+        Returns:
+            ndarray: Distance modulus per object.
+        """
         observed_distance_modulus = (
             self._data["mb"]
             + parameter_values_dict["alpha"] * self._data["x1"]
@@ -55,6 +73,14 @@ class VelFromSALTfit(DataVector):
         return observed_distance_modulus
 
     def compute_distance_modulus_difference(self, parameter_values_dict):
+        """Compute residual distance modulus relative to cosmological expectation.
+
+        Args:
+            parameter_values_dict (dict): SALT2 relation parameters.
+
+        Returns:
+            ndarray: Residual distance modulus.
+        """
         distance_modulus_difference = self.compute_observed_distance_modulus(
             parameter_values_dict
         )
@@ -72,6 +98,14 @@ class VelFromSALTfit(DataVector):
         return distance_modulus_difference
 
     def compute_observed_distance_modulus_variance(self, parameter_values_dict):
+        """Compute variance/covariance of observed SALT2 distance modulus.
+
+        Args:
+            parameter_values_dict (dict): Includes `alpha`, `beta`, and `sigma_M`.
+
+        Returns:
+            float|ndarray: Variance or covariance depending on inputs.
+        """
         if self._covariance_observation is None:
             variance_distance_modulus = (
                 self._data["e_mb"] ** 2
@@ -96,6 +130,14 @@ class VelFromSALTfit(DataVector):
         return variance_distance_modulus
 
     def give_data_and_variance(self, parameter_values_dict):
+        """Compute velocities and their variance from SALT2 relation.
+
+        Args:
+            parameter_values_dict (dict): Relation parameters and `sigma_M`.
+
+        Returns:
+            tuple: `(velocities, velocity_variance_or_cov)`.
+        """
         observed_distance_modulus_variance = (
             self.compute_observed_distance_modulus_variance(parameter_values_dict)
         )
@@ -132,6 +174,11 @@ class VelFromSALTfit(DataVector):
         return velocities, velocity_variance
 
     def _init_A(self):
+        """Initialize design matrices for linear covariance propagation.
+
+        Returns:
+            ndarray: Matrix A blocks.
+        """
         N = len(self._data)
         A = jnp.ones((3, N, 3 * N))
         ij = jnp.ogrid[:N, : 3 * N]
@@ -147,6 +194,18 @@ class VelFromSALTfit(DataVector):
         velocity_estimator="full",
         mass_step=10,
     ):
+        """Initialize SN Ia velocity vector from SALT2 fits.
+
+        Args:
+            data (dict): Includes SALT2 parameters and cosmology fields.
+            h (float): Little-h scaling for distances.
+            covariance_observation (ndarray|None): Optional observation covariance.
+            velocity_estimator (str): Estimator name.
+            mass_step (float): Threshold for host mass step correction.
+
+        Raises:
+            ValueError: If covariance shape is not `3N x 3N` when provided.
+        """
         super().__init__(data, covariance_observation=covariance_observation)
         self.velocity_estimator = velocity_estimator
         self.h = h

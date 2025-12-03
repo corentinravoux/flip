@@ -26,12 +26,10 @@ class VelFromLogDist(DataVector):
 
     @property
     def conditional_needed_keys(self):
-        """
-        Returns a list of keys needed for the data vector calculation,
-        including any additional keys that are conditionally required.
+        """Conditionally required keys for log-distance estimator.
 
         Returns:
-            list: A list of keys needed for the data vector calculation.
+            list[str]: Includes `eta_error` when covariance is absent.
         """
         cond_keys = []
         if self._covariance_observation is None:
@@ -39,18 +37,13 @@ class VelFromLogDist(DataVector):
         return self._needed_keys + cond_keys
 
     def give_data_and_variance(self, parameter_values_dict, *args):
-        """
-        Returns the data and variance for the velocity.
+        """Return velocity and variance for log-distance based estimator.
 
-        If the covariance observation is available, it returns the velocity data and the covariance observation.
-        Otherwise, it returns the velocity data and the squared velocity error.
-
-        Parameters:
-            *args: Additional arguments (not used in this method).
+        Args:
+            parameter_values_dict (dict): Estimator parameters.
 
         Returns:
-            tuple: A tuple containing the velocity data and the variance.
-
+            tuple: `(velocity, covariance_or_variance)`.
         """
         log_distance_to_velocity = 5 * (
             vector_utils.redshift_dependence_velocity(
@@ -73,15 +66,12 @@ class VelFromLogDist(DataVector):
         covariance_observation=None,
         velocity_estimator="full",
     ):
-        """
-        Initialize the GalaxypvVectors class.
+        """Initialize velocity from log-distance `eta`.
 
-        Parameters:
-        - data: DataFrame containing the data.
-        - covariance_observation: Covariance matrix of the observations (optional).
-        - velocity_estimator: Velocity estimator method (default: "full").
-        - **kwargs: Additional keyword arguments.
-
+        Args:
+            data (dict): Must include `eta` and optionally `eta_error`.
+            covariance_observation (ndarray|None): Observed covariance.
+            velocity_estimator (str): Estimator name, default `"full"`.
         """
         self.velocity_estimator = velocity_estimator
         super().__init__(
@@ -98,13 +88,10 @@ class VelFromTullyFisher(DataVector):
 
     @property
     def conditional_needed_keys(self):
-        """
-        Returns a list of conditional keys based on the availability of covariance observation.
-
-        If the covariance observation is None, the method adds "e_logW" and "e_m_mean" to the list of conditional keys.
+        """Conditionally required keys when covariance is absent.
 
         Returns:
-            list: A list of conditional keys.
+            list[str]: Includes `e_logW` and `e_m_mean` when needed.
         """
         cond_keys = []
         if self._covariance_observation is None:
@@ -112,14 +99,13 @@ class VelFromTullyFisher(DataVector):
         return cond_keys
 
     def compute_observed_distance_modulus(self, parameter_values_dict):
-        """
-        Compute the observed distance modulus based on the given parameter values.
+        """Compute observed distance modulus from Tully–Fisher relation.
 
         Args:
-            parameter_values_dict (dict): A dictionary containing the parameter values.
+            parameter_values_dict (dict): Includes `a` and `b`.
 
         Returns:
-            float: The observed distance modulus.
+            ndarray: Distance modulus per object.
         """
         observed_distance_modulus = (
             self._data["m_mean"]
@@ -130,16 +116,13 @@ class VelFromTullyFisher(DataVector):
         return observed_distance_modulus
 
     def compute_distance_modulus_difference(self, parameter_values_dict):
-        """
-        Compute the difference in distance modulus.
+        """Compute residual distance modulus relative to cosmological expectation.
 
-        This method calculates the difference in distance modulus based on the provided parameter values.
-
-        Parameters:
-            parameter_values_dict (dict): A dictionary containing the parameter values.
+        Args:
+            parameter_values_dict (dict): Includes relation parameters.
 
         Returns:
-            float: The difference in distance modulus.
+            ndarray: Residual distance modulus.
         """
         distance_modulus_difference = self.compute_observed_distance_modulus(
             parameter_values_dict
@@ -161,14 +144,13 @@ class VelFromTullyFisher(DataVector):
         self,
         parameter_values_dict,
     ):
-        """
-        Compute the variance of the observed distance modulus.
+        """Compute variance of the observed distance modulus.
 
         Args:
-            parameter_values_dict (dict): A dictionary containing parameter values.
+            parameter_values_dict (dict): Includes `a` and `sigma_M`.
 
         Returns:
-            float or ndarray: The variance of the observed distance modulus.
+            float|ndarray: Variance or covariance depending on input.
         """
         if self._covariance_observation is None:
             variance_distance_modulus = (
@@ -185,14 +167,13 @@ class VelFromTullyFisher(DataVector):
         return variance_distance_modulus
 
     def give_data_and_variance(self, parameter_values_dict):
-        """
-        Compute the velocities and velocity variances based on the given parameter values.
+        """Compute velocities and their variance from Tully–Fisher relation.
 
         Args:
-            parameter_values_dict (dict): A dictionary containing the parameter values.
+            parameter_values_dict (dict): Includes relation parameters and `sigma_M`.
 
         Returns:
-            tuple: A tuple containing the velocities and velocity variances.
+            tuple: `(velocities, velocity_variance_or_cov)`.
         """
 
         distance_modulus_difference_to_velocity = (
@@ -227,11 +208,10 @@ class VelFromTullyFisher(DataVector):
         return velocities, velocity_variance
 
     def _init_A(self):
-        """
-        Initializes the matrix A for the galaxypv_vectors class.
+        """Initialize design matrices for linear propagation with covariance.
 
         Returns:
-            A (ndarray): The initialized matrix A.
+            ndarray: Matrix A blocks.
         """
         N = len(self._data)
         A = jnp.ones((2, N, 2 * N))
@@ -247,18 +227,16 @@ class VelFromTullyFisher(DataVector):
         covariance_observation=None,
         velocity_estimator="full",
     ):
-        """
-        Initialize the GalaxypvVectors class.
+        """Initialize Tully–Fisher velocity vector.
 
         Args:
-            data (dict): The data dictionary containing information about the galaxies.
-            h (float): The Hubble constant.
-            covariance_observation (ndarray, optional): The covariance matrix of the observations. Defaults to None.
-            velocity_estimator (str, optional): The velocity estimator. Defaults to "full".
-            **kwargs: Additional keyword arguments.
+            data (dict): Includes `logW`, `m_mean`, redshifts and distances.
+            h (float): Little-h scaling for distances.
+            covariance_observation (ndarray|None): Optional observation covariance.
+            velocity_estimator (str): Estimator name.
 
         Raises:
-            ValueError: If the shape of the covariance_observation is not (2 * len(data), 2 * len(data)).
+            ValueError: If covariance shape is not `2N x 2N` when provided.
         """
         super().__init__(data, covariance_observation=covariance_observation)
         self.velocity_estimator = velocity_estimator
@@ -289,13 +267,10 @@ class VelFromFundamentalPlane(DataVector):
 
     @property
     def conditional_needed_keys(self):
-        """
-        Returns a list of conditional keys based on the availability of covariance observation.
-
-        If the covariance observation is None, the method adds "e_logW" and "e_m_mean" to the list of conditional keys.
+        """Conditionally required keys when covariance is absent.
 
         Returns:
-            list: A list of conditional keys.
+            list[str]: Includes `e_logRe`, `e_logsig`, `e_logI` when needed.
         """
         cond_keys = []
         if self._covariance_observation is None:
@@ -303,14 +278,13 @@ class VelFromFundamentalPlane(DataVector):
         return cond_keys
 
     def compute_observed_distance_modulus(self, parameter_values_dict):
-        """
-        Compute the observed distance modulus based on the given parameter values.
+        """Compute observed distance modulus from Fundamental Plane relation.
 
         Args:
-            parameter_values_dict (dict): A dictionary containing the parameter values.
+            parameter_values_dict (dict): Includes `a`, `b`, `c`.
 
         Returns:
-            float: The observed distance modulus.
+            ndarray: Distance modulus per object.
         """
         observed_distance_modulus = 5 * (
             self._data["logRe"]
@@ -322,16 +296,13 @@ class VelFromFundamentalPlane(DataVector):
         return observed_distance_modulus
 
     def compute_distance_modulus_difference(self, parameter_values_dict):
-        """
-        Compute the difference in distance modulus.
+        """Compute residual distance modulus relative to cosmological expectation.
 
-        This method calculates the difference in distance modulus based on the provided parameter values.
-
-        Parameters:
-            parameter_values_dict (dict): A dictionary containing the parameter values.
+        Args:
+            parameter_values_dict (dict): Relation parameters.
 
         Returns:
-            float: The difference in distance modulus.
+            ndarray: Residual distance modulus.
         """
         distance_modulus_difference = self.compute_observed_distance_modulus(
             parameter_values_dict
@@ -353,14 +324,13 @@ class VelFromFundamentalPlane(DataVector):
         self,
         parameter_values_dict,
     ):
-        """
-        Compute the variance of the observed distance modulus.
+        """Compute variance of the observed distance modulus.
 
         Args:
-            parameter_values_dict (dict): A dictionary containing parameter values.
+            parameter_values_dict (dict): Includes `a`, `b`, and `sigma_M`.
 
         Returns:
-            float or ndarray: The variance of the observed distance modulus.
+            float|ndarray: Variance or covariance depending on input.
         """
         if self._covariance_observation is None:
             variance_distance_modulus = (
@@ -378,14 +348,13 @@ class VelFromFundamentalPlane(DataVector):
         return variance_distance_modulus
 
     def give_data_and_variance(self, parameter_values_dict):
-        """
-        Compute the velocities and velocity variances based on the given parameter values.
+        """Compute velocities and their variance from Fundamental Plane relation.
 
         Args:
-            parameter_values_dict (dict): A dictionary containing the parameter values.
+            parameter_values_dict (dict): Includes relation parameters and `sigma_M`.
 
         Returns:
-            tuple: A tuple containing the velocities and velocity variances.
+            tuple: `(velocities, velocity_variance_or_cov)`.
         """
 
         distance_modulus_difference_to_velocity = (
@@ -424,11 +393,10 @@ class VelFromFundamentalPlane(DataVector):
         return velocities, velocity_variance
 
     def _init_A(self):
-        """
-        Initializes the matrix A for the galaxypv_vectors class.
+        """Initialize design matrices for linear propagation with covariance.
 
         Returns:
-            A (ndarray): The initialized matrix A.
+            ndarray: Matrix A blocks.
         """
         N = len(self._data)
         A = jnp.ones((3, N, 3 * N))
@@ -444,18 +412,16 @@ class VelFromFundamentalPlane(DataVector):
         covariance_observation=None,
         velocity_estimator="full",
     ):
-        """
-        Initialize the GalaxypvVectors class.
+        """Initialize Fundamental Plane velocity vector.
 
         Args:
-            data (dict): The data dictionary containing information about the galaxies.
-            h (float): The Hubble constant.
-            covariance_observation (ndarray, optional): The covariance matrix of the observations. Defaults to None.
-            velocity_estimator (str, optional): The velocity estimator. Defaults to "full".
-            **kwargs: Additional keyword arguments.
+            data (dict): Includes `logRe`, `logsig`, `logI`, redshifts and distances.
+            h (float): Little-h scaling for distances.
+            covariance_observation (ndarray|None): Optional observation covariance.
+            velocity_estimator (str): Estimator name.
 
         Raises:
-            ValueError: If the shape of the covariance_observation is not (2 * len(data), 2 * len(data)).
+            ValueError: If covariance shape is not `3N x 3N` when provided.
         """
         super().__init__(data, covariance_observation=covariance_observation)
         self.velocity_estimator = velocity_estimator

@@ -26,6 +26,26 @@ def fit_density_minuit(
     additional_parameters_values=(),
     maximum_number_coordinates=None,
 ):
+    """Fit density field parameters with Minuit.
+
+    Loads a grid from parquet, builds a density covariance via `flip.covariance`,
+    constructs the likelihood, runs Minuit, and pickle-dumps fit results.
+
+    Args:
+        parameter_dict (dict): Parameter specs with values/errors/limits.
+        model_name (str): Covariance model name.
+        likelihood_type (str): Likelihood variant key.
+        likelihood_properties (dict): Likelihood options.
+        parameter_fit (tuple): `(grid_name, power_spectrum_dict, name_out_fit, str_fit)`.
+        overwrite (bool): Overwrite existing pickle output.
+        size_batch (int): Batch size for covariance generation.
+        number_worker (int): Parallel workers for covariance generation.
+        additional_parameters_values (tuple): Extra parameters for covariance.
+        maximum_number_coordinates (int, optional): Early stop if grid too large.
+
+    Returns:
+        None: Writes results to `name_out_fit`.
+    """
     grid_name = parameter_fit[0]
     power_spectrum_dict = parameter_fit[1]
     name_out_fit = parameter_fit[2]
@@ -96,6 +116,27 @@ def fit_density_interp_sigg_minuit(
     number_worker=32,
     maximum_number_coordinates=None,
 ):
+    """Fit density with 1D interpolation over `sigg` using Minuit.
+
+    Precomputes covariances over `interpolation_value_range`, interpolates during
+    likelihood evaluation, and runs Minuit.
+
+    Args:
+        parameter_dict (dict): Parameter specs.
+        model_name (str): Covariance model name.
+        likelihood_type (str): Likelihood variant key.
+        likelihood_properties (dict): Likelihood options.
+        interpolation_value_name (str): Interpolation parameter name.
+        interpolation_value_range (array-like): Grid of `sigg` values.
+        parameter_fit (tuple): `(grid_name, power_spectrum_dict, name_out_fit, str_fit)`.
+        overwrite (bool): Overwrite existing output.
+        size_batch (int): Covariance generation batch size.
+        number_worker (int): Parallel workers for covariance.
+        maximum_number_coordinates (int, optional): Early stop if grid too large.
+
+    Returns:
+        None: Writes results to `name_out_fit`.
+    """
     grid_name = parameter_fit[0]
     power_spectrum_dict = parameter_fit[1]
     name_out_fit = parameter_fit[2]
@@ -172,6 +213,27 @@ def fit_velocity_true_minuit(
     size_batch=10_000,
     number_worker=32,
 ):
+    """Fit true peculiar velocities (no measurement error) with Minuit.
+
+    Extracts light curves from simulation, applies selection masks, builds the
+    velocity covariance with appropriate cosmological scaling, and runs Minuit.
+
+    Args:
+        parameter_dict (dict): Parameter specs.
+        likelihood_type (str): Likelihood variant key.
+        likelihood_properties (dict): Likelihood options.
+        zmin (float): Minimum redshift for selection.
+        z_simu (float): Simulation redshift for scaling.
+        photo_type (str): Phototyping mode for selection.
+        completeness_file (str): Path to completeness table.
+        parameter_fit (tuple): `(sim_name, fit_name, zmax, power_spectrum_dict, name_out_fit, str_fit)`.
+        overwrite (bool): Overwrite existing output.
+        size_batch (int): Covariance generation batch size.
+        number_worker (int): Parallel workers for covariance.
+
+    Returns:
+        None: Writes results to `name_out_fit`.
+    """
 
     sim_name = parameter_fit[0]
     fit_name = parameter_fit[1]
@@ -283,6 +345,29 @@ def fit_velocity_true_interp_sigu_minuit(
     size_batch=10_000,
     number_worker=32,
 ):
+    """Fit true velocities with 1D interpolation over `sigu` using Minuit.
+
+    Precomputes velocity covariances for multiple `sigu` values and interpolates
+    during likelihood evaluation.
+
+    Args:
+        parameter_dict (dict): Parameter specs.
+        likelihood_type (str): Likelihood variant key.
+        likelihood_properties (dict): Likelihood options.
+        interpolation_value_name (str): Name of interpolation parameter.
+        interpolation_value_range (array-like): Grid of `sigu` values.
+        zmin (float): Minimum redshift.
+        z_simu (float): Simulation redshift for scaling.
+        photo_type (str): Phototyping mode.
+        completeness_file (str): Path to completeness table.
+        parameter_fit (tuple): `(sim_name, fit_name, zmax, power_spectrum_dict_list, name_out_fit, str_fit)`.
+        overwrite (bool): Overwrite existing output.
+        size_batch (int): Covariance generation batch size.
+        number_worker (int): Parallel workers for covariance.
+
+    Returns:
+        None
+    """
 
     sim_name = parameter_fit[0]
     fit_name = parameter_fit[1]
@@ -400,6 +485,26 @@ def fit_velocity_estimated_minuit(
     size_batch=10_000,
     number_worker=32,
 ):
+    """Fit estimated peculiar velocities (with measurement error) using Minuit.
+
+    Similar to true velocity fit but uses observed velocity estimates with errors.
+
+    Args:
+        parameter_dict (dict): Parameter specs.
+        likelihood_type (str): Likelihood variant key.
+        likelihood_properties (dict): Likelihood options.
+        zmin (float): Minimum redshift.
+        z_simu (float): Simulation redshift for scaling.
+        photo_type (str): Phototyping mode.
+        completeness_file (str): Path to completeness table.
+        parameter_fit (tuple): `(sim_name, fit_name, zmax, power_spectrum_dict, name_out_fit, str_fit)`.
+        overwrite (bool): Overwrite existing output.
+        size_batch (int): Covariance generation batch size.
+        number_worker (int): Parallel workers for covariance.
+
+        Returns:
+            None
+    """
 
     sim_name = parameter_fit[0]
     fit_name = parameter_fit[1]
@@ -507,6 +612,28 @@ def fit_velocity_estimated_interp_sigu_minuit(
     size_batch=10_000,
     number_worker=32,
 ):
+    """Fit estimated velocities with 1D interpolation over `sigu` using Minuit.
+
+    Args follow the non-interpolated version, with additional interpolation controls.
+
+    Args:
+        parameter_dict (dict): Parameter specs.
+        likelihood_type (str): Likelihood variant key.
+        likelihood_properties (dict): Likelihood options.
+        interpolation_value_name (str): Interpolation parameter name.
+        interpolation_value_range (array-like): Grid of `sigu` values.
+        zmin (float): Minimum redshift.
+        z_simu (float): Simulation redshift for scaling.
+        photo_type (str): Phototyping mode.
+        completeness_file (str): Path to completeness.
+        parameter_fit (tuple): `(sim_name, fit_name, zmax, power_spectrum_dict_list, name_out_fit, str_fit)`.
+        overwrite (bool): Overwrite existing output.
+        size_batch (int): Covariance generation batch size.
+        number_worker (int): Parallel workers.
+
+    Returns:
+        None
+    """
 
     sim_name = parameter_fit[0]
     fit_name = parameter_fit[1]
@@ -623,6 +750,30 @@ def fit_full_velocity_estimated_minuit(
     additional_parameters_values=(),
     maximum_number_coordinates=None,
 ):
+    """Joint density-velocity fit with cross-terms using Minuit.
+
+    Builds full covariance blocks (gg, gv, vv), applies cosmological scaling
+    to velocity terms, and runs Minuit.
+
+    Args:
+        parameter_dict (dict): Parameter specs.
+        model_name (str): Covariance model name.
+        likelihood_type (str): Likelihood variant key.
+        likelihood_properties (dict): Likelihood options.
+        zmin (float): Minimum redshift for SN selection.
+        z_simu (float): Simulation redshift for scaling.
+        photo_type (str): Phototyping mode.
+        completeness_file (str): Path to completeness table.
+        parameter_fit (tuple): `(sim_name, fit_name, grid_name, zmax, power_spectrum_dict, name_out_fit, str_fit)`.
+        overwrite (bool): Overwrite existing output.
+        size_batch (int): Covariance generation batch size.
+        number_worker (int): Parallel workers for covariance.
+        additional_parameters_values (tuple): Extra parameters for covariance.
+        maximum_number_coordinates (int, optional): Early stop for large grids.
+
+    Returns:
+        None
+    """
 
     sim_name = parameter_fit[0]
     fit_name = parameter_fit[1]
@@ -757,6 +908,31 @@ def fit_full_velocity_estimated_interp_sigu_minuit(
     additional_parameters_values=(),
     maximum_number_coordinates=None,
 ):
+    """Joint density-velocity fit with 1D interpolation over `sigu` using Minuit.
+
+    Args mirror the non-interpolated full fit plus interpolation controls.
+
+    Args:
+        parameter_dict (dict): Parameter specs.
+        model_name (str): Covariance model name.
+        likelihood_type (str): Likelihood variant key.
+        likelihood_properties (dict): Likelihood options.
+        interpolation_value_name (str): Interpolation parameter name.
+        interpolation_value_range (array-like): Grid of values.
+        zmin (float): Minimum redshift.
+        z_simu (float): Simulation redshift for scaling.
+        photo_type (str): Phototyping mode.
+        completeness_file (str): Path to completeness.
+        parameter_fit (tuple): `(sim_name, fit_name, grid_name, zmax, power_spectrum_dict_list, name_out_fit, str_fit)`.
+        overwrite (bool): Overwrite existing output.
+        size_batch (int): Covariance generation batch size.
+        number_worker (int): Parallel workers.
+        additional_parameters_values (tuple): Extra parameters for covariance.
+        maximum_number_coordinates (int, optional): Early stop.
+
+    Returns:
+        None
+    """
 
     sim_name = parameter_fit[0]
     fit_name = parameter_fit[1]

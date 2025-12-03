@@ -16,6 +16,7 @@ from . import (
     power_spectra,
     utils,
 )
+from .plot_utils import __secret_logo__
 
 try:
     import jax

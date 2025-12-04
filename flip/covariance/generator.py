@@ -46,7 +46,7 @@ def correlation_integration(ell, r, k, integrand):
         integrand: Calculate the integrand of the correlation function
 
     Returns:
-        ndarray: Correlation function $\xi_\ell(r)$ via Simpson integration.
+        ndarray: Correlation function $xi_\ell(r)$ via Simpson integration.
 
     """
     kr = np.outer(k, r)
@@ -75,7 +75,7 @@ def correlation_hankel(ell, r, k, integrand, hankel_overhead_coefficient=2, kmin
         hankel_overhead_coefficient: Determine the minimum r value for which to use the hankel transform
 
     Returns:
-        ndarray: Correlation function $\xi_\ell(r)$ combining Hankel and direct integration.
+        ndarray: Correlation function $xi_\ell(r)$ combining Hankel and direct integration.
 
     Note:
         If l is odd, count a 1j term in the integrand, without the need for adding it
@@ -237,28 +237,6 @@ def coefficient_trapz(
 
 
 def regularize_M(
-        """Evaluate and optionally regularize M(k) term.
-
-        Applies one of the supported regularizations to stabilize numerical
-        behavior (mpmath high-precision, Savitzky–Golay smoothing, or low-k
-        asymptote detection).
-
-        Args:
-            M_function (callable): Function returning M(k) given additional parameters.
-            wavenumber (ndarray): k samples.
-            regularize_M_terms (dict|None): Per type regularization option.
-            covariance_type (str): `"gg"`, `"gv"`, or `"vv"`.
-            flip_terms (module): Terms module to switch backend when needed.
-            additional_parameters_values (dict|tuple): Extra parameters for M.
-            savgol_window (int): Window size for Savitzky–Golay.
-            savgol_polynomial (int): Polynomial order for Savitzky–Golay.
-            lowk_unstable_threshold (float): Threshold for low-k asymptote detection.
-            lowk_unstable_mean_filtering (int): Window for mean filtering indices.
-            mpmmath_decimal_precision (int): Decimal precision for mpmath.
-
-        Returns:
-            ndarray: Evaluated M(k) after regularization.
-        """
     M_function,
     wavenumber,
     regularize_M_terms,
@@ -271,7 +249,28 @@ def regularize_M(
     lowk_unstable_mean_filtering=10,
     mpmmath_decimal_precision=50,
 ):
+    """Evaluate and optionally regularize M(k) term.
 
+    Applies one of the supported regularizations to stabilize numerical
+    behavior (mpmath high-precision, Savitzky–Golay smoothing, or low-k
+    asymptote detection).
+
+    Args:
+        M_function (callable): Function returning M(k) given additional parameters.
+        wavenumber (ndarray): k samples.
+        regularize_M_terms (dict|None): Per type regularization option.
+        covariance_type (str): `"gg"`, `"gv"`, or `"vv"`.
+        flip_terms (module): Terms module to switch backend when needed.
+        additional_parameters_values (dict|tuple): Extra parameters for M.
+        savgol_window (int): Window size for Savitzky–Golay.
+        savgol_polynomial (int): Polynomial order for Savitzky–Golay.
+        lowk_unstable_threshold (float): Threshold for low-k asymptote detection.
+        lowk_unstable_mean_filtering (int): Window for mean filtering indices.
+        mpmmath_decimal_precision (int): Decimal precision for mpmath.
+
+    Returns:
+        ndarray: Evaluated M(k) after regularization.
+    """
     if regularize_M_terms is None:
         return M_function(**additional_parameters_values)(wavenumber)
     else:

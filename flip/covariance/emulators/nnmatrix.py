@@ -9,7 +9,7 @@ try:
 
     torch_install = True
 
-except:
+except ImportError:
     torch_install = False
     log.add(
         "Install pytorch to use the nnmatrix emulator",
@@ -36,6 +36,15 @@ class RegressionNet(default_regression_object):
         output_dimension=1,
         activation_function=default_activation_function,
     ):
+        """Simple fully connected regression network.
+
+        Args:
+            input_dimension: Number of input features.
+            dimension_hidden_layers: Width of hidden layers.
+            number_hidden_layers: Number of hidden layers.
+            output_dimension: Number of output targets.
+            activation_function: Torch activation class to use.
+        """
         super().__init__()
         layers = []
 
@@ -52,6 +61,7 @@ class RegressionNet(default_regression_object):
         self.model = torch.nn.Sequential(*layers)
 
     def forward(self, x):
+        """Forward pass returning network output."""
         return self.model(x)
 
 
@@ -65,6 +75,18 @@ def train_torch_model(
     verbose,
     model_name,
 ):
+    """Train a torch model on normalized data.
+
+    Args:
+        number_epochs: Number of training epochs.
+        model: Torch model to train.
+        normalized_input: Normalized input array ``(n_samples, n_features)``.
+        normalized_output: Normalized target array ``(n_samples, n_targets)``.
+        optimizer: Torch optimizer instance.
+        loss_function: Torch loss function.
+        verbose: If True, logs periodic losses.
+        model_name: Label used in logging.
+    """
     normalized_input = torch.tensor(normalized_input, dtype=torch.float32)
     normalized_output = torch.tensor(normalized_output, dtype=torch.float32)
     for epoch in range(1, number_epochs + 1):
@@ -92,7 +114,31 @@ def train(
     activation_function=default_activation_function,
     loss_function=default_loss_function,
     tolerance_optimizer=1e-3,
+    **kwargs,
 ):
+    """Train neural network emulators for covariance matrices.
+
+    Normalizes inputs and outputs; trains separate nets per covariance term.
+    For square covariances (gg/vv) also trains a variance net.
+
+    Args:
+        square_covariance: Whether the covariance is square (gg/vv) or rectangular (gv).
+        output_variance: Array ``(n_terms, n_samples)`` diagonal entries; ignored if not square.
+        output_non_diagonal: Array ``(n_terms, n_samples, n_nd)`` flattened non-diagonals.
+        parameter_values: Array ``(n_samples, n_params)`` emulator inputs.
+        verbose: If True, prints training progress.
+        dimension_hidden_layers: Hidden layer width.
+        number_hidden_layers: Hidden layer count.
+        number_epochs: Epochs to train.
+        activation_function: Torch activation class.
+        loss_function: Torch loss function.
+        tolerance_optimizer: Learning rate for Adam optimizer.
+        **kwargs: Extra keyword arguments (unused).
+
+    Returns:
+        Tuple of lists/dicts: ``(nn_models_variance, nn_models_non_diagonal,
+        nn_evaluation_dictionary_variance, nn_evaluation_dictionary_non_diagonal)``.
+    """
 
     parameter_values_mean, parameter_values_std = (
         parameter_values.mean(axis=0),
@@ -202,6 +248,16 @@ def evaluate(
     evaluation_value,
     evaluation_dictionary,
 ):
+    """Evaluate a trained NN emulator, denormalizing output.
+
+    Args:
+        model: Trained torch model.
+        evaluation_value: Array ``(1, n_params)`` input values.
+        evaluation_dictionary: Dict with normalization stats (input_mean/std, output_mean/std).
+
+    Returns:
+        Tuple ``(output, None)`` where output is the denormalized numpy array.
+    """
 
     normalized_evaluation_value = (
         evaluation_value - evaluation_dictionary["input_mean"]

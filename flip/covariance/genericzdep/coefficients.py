@@ -1,9 +1,8 @@
-from ...config import __use_jax__
+from ..._config import __use_jax__
 
 if __use_jax__:
     try:
         import jax.numpy as jnp
-        from jax import jit
 
         jax_installed = True
 

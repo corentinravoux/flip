@@ -8,7 +8,17 @@ from flip.covariance import cov_utils
 
 
 def angle_between(ra_0, ra_1, dec_0, dec_1):
-    """Compute cos of the angle between r0 and r1."""
+    """Compute cos of the angle between two sky directions.
+
+    Args:
+        ra_0: Right ascension of first object (radians).
+        ra_1: Right ascension of second object (radians).
+        dec_0: Declination of first object (radians).
+        dec_1: Declination of second object (radians).
+
+    Returns:
+        Cosine of the angular separation.
+    """
     cos_alpha = np.cos(ra_1 - ra_0) * np.cos(dec_0) * np.cos(dec_1) + np.sin(
         dec_0
     ) * np.sin(dec_1)
@@ -16,12 +26,31 @@ def angle_between(ra_0, ra_1, dec_0, dec_1):
 
 
 def separation(r_0, r_1, cos_alpha):
-    """Compute separation between r_0 and r_1."""
+    """Compute comoving separation given distances and angular cosine.
+
+    Args:
+        r_0: Comoving distance of first object.
+        r_1: Comoving distance of second object.
+        cos_alpha: Cosine of angular separation.
+
+    Returns:
+        Scalar separation between points.
+    """
     return np.sqrt(r_0**2 + r_1**2 - 2 * r_0 * r_1 * cos_alpha)
 
 
 def window_vv(r_0, r_1, cos_alpha, sep, j0kr, j2kr):
-    """Note: here, the bisector angle definition is used to compute"""
+    """Wide-angle window for vv using bisector definition.
+
+    Args:
+        r_0, r_1: Comoving distances of the two objects.
+        cos_alpha: Cosine of angle between directions.
+        sep: Comoving separation.
+        j0kr, j2kr: Spherical Bessel terms evaluated on ``k*sep``.
+
+    Returns:
+        Window values per k contributing to vv covariance integral.
+    """
     win = 1 / 3 * (j0kr + j2kr)
     alpha = np.arccos(np.clip(cos_alpha, -1.0, 1.0))
     phi = cov_utils.compute_phi_bisector_theorem(sep, alpha, r_0, r_1)
@@ -30,7 +59,17 @@ def window_vv(r_0, r_1, cos_alpha, sep, j0kr, j2kr):
 
 
 def window_vg(r_0, r_1, cos_alpha, sep, j1kr):
-    """Note: here, the bisector angle definition is used to compute"""
+    """Wide-angle window for gv using bisector definition.
+
+    Args:
+        r_0, r_1: Comoving distances of the two objects.
+        cos_alpha: Cosine of angle between directions.
+        sep: Comoving separation.
+        j1kr: Spherical Bessel term ``j_1(k*sep)``.
+
+    Returns:
+        Window values per k contributing to gv covariance integral.
+    """
     alpha = np.arccos(np.clip(cos_alpha, -1.0, 1.0))
     phi = cov_utils.compute_phi_bisector_theorem(sep, alpha, r_0, r_1)
     win = j1kr * np.cos(phi)
@@ -38,11 +77,31 @@ def window_vg(r_0, r_1, cos_alpha, sep, j1kr):
 
 
 def intp(win, k, pk):
+    """Integrate window times spectrum over k using trapezoidal rule.
+
+    Args:
+        win: Window array per k.
+        k: Wavenumber grid.
+        pk: Spectrum values at k.
+
+    Returns:
+        Scalar integral value.
+    """
     pint = win.T * pk
     return np.trapz(pint, x=k)
 
 
 def compute_coef_gg(k, pk, coord):
+    """Coefficient contributing to gg covariance for a single pair.
+
+    Args:
+        k: Wavenumber grid.
+        pk: Matter spectrum values at k.
+        coord: Tuple/list ``(ra_i, ra_j, dec_i, dec_j, r_i, r_j)``.
+
+    Returns:
+        Scalar integral value for gg.
+    """
     cos = angle_between(coord[0], coord[1], coord[2], coord[3])
     sep = separation(coord[4], coord[5], cos)
     ksep = np.outer(k, sep)
@@ -52,6 +111,13 @@ def compute_coef_gg(k, pk, coord):
 
 
 def compute_coef_gv(k, pk, coord):
+    """Coefficient contributing to gv covariance for a single pair.
+
+    Args mirror those of ``compute_coef_gg`` but using cross-spectrum and window.
+
+    Returns:
+        Scalar integral value for gv.
+    """
     cos = angle_between(coord[0], coord[1], coord[2], coord[3])
     sep = separation(coord[4], coord[5], cos)
     ksep = np.outer(k, sep)
@@ -62,6 +128,13 @@ def compute_coef_gv(k, pk, coord):
 
 
 def compute_coef_vv(k, pk, coord):
+    """Coefficient contributing to vv covariance for a single pair.
+
+    Args mirror those of ``compute_coef_gg`` but using velocity spectrum and window.
+
+    Returns:
+        Scalar integral value for vv.
+    """
     cos = angle_between(coord[0], coord[1], coord[2], coord[3])
     sep = separation(coord[4], coord[5], cos)
     ksep = np.outer(k, sep)
@@ -81,6 +154,18 @@ def covariance_vv(
     size_batch=100_000,
     number_worker=8,
 ):
+    """Compute velocity-velocity covariance (plane-parallel wide-angle bisector).
+
+    Args:
+        ra_v, dec_v, rcomov_v: Velocity tracer coordinates and distances.
+        wavenumber: Wavenumber grid for velocity spectrum.
+        power_spectrum: Spectrum values at wavenumber.
+        size_batch: Number of pairs per batch.
+        number_worker: Number of parallel workers.
+
+    Returns:
+        Flattened covariance vector with variance at index 0.
+    """
     N = len(ra_v)
     n_task = int((N * (N + 1)) / 2) - N
     batches = []
@@ -114,6 +199,10 @@ def covariance_gv(
     size_batch=100_000,
     number_worker=8,
 ):
+    """Compute density-velocity covariance (plane-parallel wide-angle bisector).
+
+    Returns flattened covariance vector with variance at index 0.
+    """
     number_objects_g = len(ra_g)
     number_objects_v = len(ra_v)
 
@@ -147,6 +236,7 @@ def covariance_gg(
     size_batch=100_000,
     number_worker=8,
 ):
+    """Compute density-density covariance (plane-parallel)."
     N = len(ra_g)
     n_task = int((N * (N + 1)) / 2) - N
     batches = []
@@ -176,23 +266,19 @@ def generate_covariance(
     coordinates_density=None,
     **kwargs,
 ):
-    """
-    The generate_covariance function generates the covariance matrix for a given model type, power spectrum, and coordinates.
+    """Generate covariance blocks using Adams & Blake (2017) plane approximation.
+
+    Wide-angle definition uses the bisector. Supports ``gg``, ``vv``, and ``gv``.
 
     Args:
-        model_kind: Determine which covariance matrices are generated, and the coordinates_density and coordinates_velocity parameters are used to generate the covariance matrices
-        power_spectrum_dict: Pass the power spectrum to the function
-        coordinates_velocity: Define the coordinates of the velocity field
-        coordinates_density: Define the coordinates of the density field
-        **kwargs: Pass keyword arguments to the function
-        : Generate the covariance matrix for a given model
-        The wide angle definition is bisector.
+        model_kind: One of ``"density"``, ``"velocity"``, ``"full"``, ``"density_velocity"``.
+        power_spectrum_dict: Dict providing required spectra grids and values.
+        coordinates_velocity: Tuple ``(ra, dec, rcom)`` for velocity tracers.
+        coordinates_density: Tuple ``(ra, dec, rcom)`` for density tracers.
+        **kwargs: Forwarded to low-level covariance functions (batch/workers).
 
     Returns:
-        A dictionary of covariance matrices
-
-    Doc Author:
-        Trelent
+        Tuple ``(covariance_dict, number_densities, number_velocities, los_definition)``.
     """
     cov_utils.check_generator_need(
         model_kind,

@@ -374,6 +374,7 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
 
     Supports multiple inversion strategies and optional JAX JIT/grad for speed.
     """
+
     def __init__(
         self,
         covariance=None,
@@ -458,6 +459,7 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
     Interpolates the covariance matrix across a scalar parameter grid to avoid
     regeneration during fits.
     """
+
     def __init__(
         self,
         covariance=None,
@@ -555,6 +557,7 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
             upper_index = jnp.searchsorted(
                 interpolation_value_range, interpolation_value
             )
+            upper_index = jnp.min([upper_index, len(interpolation_value_range) - 1])
 
             covariance_sum_list = jnp.array(
                 [
@@ -615,6 +618,7 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
         Uses `scipy.interpolate.interp2d`, which is deprecated upstream.
         Prefer emulator-based or grid-based approaches.
     """
+
     def __init__(
         self,
         covariance=None,
@@ -728,6 +732,7 @@ class Prior:
     Attributes:
         parameter_name (str): Name of the parameter this prior applies to.
     """
+
     def __init__(
         self,
         parameter_name=None,

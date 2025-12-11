@@ -272,12 +272,12 @@ def regularize_M(
         ndarray: Evaluated M(k) after regularization.
     """
     if regularize_M_terms is None:
-        return M_function(**additional_parameters_values)(wavenumber)
+        return M_function(*additional_parameters_values)(wavenumber)
     else:
         regularization_option = regularize_M_terms[covariance_type]
 
         if regularization_option is None:
-            return M_function(**additional_parameters_values)(wavenumber)
+            return M_function(*additional_parameters_values)(wavenumber)
 
         elif regularization_option == "mpmath":
             flip_terms.set_backend("mpmath")
@@ -287,7 +287,7 @@ def regularize_M(
                 [mpmath.mpf(par) for par in additional_parameters_values]
             )
             M_function_evaluated = np.array(
-                np.frompyfunc(M_function(**additional_parameters_values_mpf), 1, 1)(
+                np.frompyfunc(M_function(*additional_parameters_values_mpf), 1, 1)(
                     wavenumber_mpmath
                 ).tolist(),
                 dtype=float,
@@ -295,9 +295,7 @@ def regularize_M(
             flip_terms.set_backend("numpy")
 
         elif regularization_option == "savgol":
-            M_function_evaluated = M_function(**additional_parameters_values)(
-                wavenumber
-            )
+            M_function_evaluated = M_function(*additional_parameters_values)(wavenumber)
             M_function_evaluated = savgol_filter(
                 M_function_evaluated,
                 savgol_window,
@@ -308,9 +306,7 @@ def regularize_M(
             # The low k region presents numerical instabilities for density models.
             # All the M density function should present and asymptotic behaviour at low k.
             # This method detect low k asymptote and force it for all M functions.
-            M_function_evaluated = M_function(**additional_parameters_values)(
-                wavenumber
-            )
+            M_function_evaluated = M_function(*additional_parameters_values)(wavenumber)
             diff = np.diff(M_function_evaluated, append=[M_function_evaluated[-1]])
             mask_asymptote = np.abs(diff) < lowk_unstable_threshold * np.mean(
                 np.abs(diff[wavenumber > wavenumber[len(wavenumber) // 2]])

@@ -557,7 +557,9 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
             upper_index = jnp.searchsorted(
                 interpolation_value_range, interpolation_value
             )
-            upper_index = jnp.min([upper_index, len(interpolation_value_range) - 1])
+            upper_index = jnp.min(
+                jnp.array([upper_index, len(interpolation_value_range) - 1])
+            )
 
             covariance_sum_list = jnp.array(
                 [

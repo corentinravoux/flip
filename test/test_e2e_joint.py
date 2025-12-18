@@ -1,46 +1,30 @@
-import json
-from pathlib import Path
-
 import numpy as np
-import pandas as pd
+from flip.data import load_data_test
 
-from flip import __flip_dir_path__, data_vector, fitter, utils
+from flip import covariance, data_vector, fitter
 
 
-def test_e2e_joint_short():
-    base_path = Path(__flip_dir_path__)
-    data_path = base_path / "data"
+def test_e2e_joint(debug_return=False):
+    n = 50
+    coordinates_density, density_data = load_data_test.load_density_data(subsample=n)
+    density_data_vector = data_vector.Dens(density_data)
 
-    # Density subset
-    grid = pd.read_parquet(data_path / "density_data.parquet")
-    grid = grid.rename(columns={"density_err": "density_error", "rcom": "rcom_zobs"})
-    grid = grid.iloc[:30]
-    density_data_vector = data_vector.Dens(grid.to_dict(orient="list"))
-
-    # Velocity subset (true velocities, zero noise)
-    velocity_df = pd.read_parquet(data_path / "velocity_data.parquet")
-    velocity_sample = velocity_df.rename(columns={"vpec": "velocity"}).iloc[:30]
-    velocity_dict = velocity_sample.to_dict(orient="list")
-    velocity_dict["velocity_error"] = np.zeros(len(velocity_sample))
-    velocity_data_vector = data_vector.DirectVel(velocity_dict)
+    coordinates_velocity, velocity_data = load_data_test.load_velocity_data(subsample=n)
+    velocity_data_vector = data_vector.DirectVel(velocity_data)
 
     density_velocity_data_vector = data_vector.DensVel(
         density_data_vector, velocity_data_vector
     )
+    power_spectrum_dict = load_data_test.load_power_spectrum_dict()
 
-    # Power spectra
-    kmm, pmm = np.loadtxt(data_path / "power_spectrum_mm.txt")
-    kmt, pmt = np.loadtxt(data_path / "power_spectrum_mt.txt")
-    ktt, ptt = np.loadtxt(data_path / "power_spectrum_tt.txt")
-    sigma_u = 15.0
-    power_spectra = {
-        "gg": [[kmm, pmm]],
-        "gv": [[kmt, pmt]],
-        "vv": [[ktt, ptt * utils.Du(ktt, sigma_u) ** 2]],
-    }
-
-    covariance = density_velocity_data_vector.compute_covariance(
-        "adamsblake17plane", power_spectra, size_batch=2000, number_worker=1
+    covariance_object = covariance.CovMatrix.init_from_flip(
+        "adamsblake17plane",
+        "full",
+        power_spectrum_dict,
+        coordinates_density=coordinates_density,
+        coordinates_velocity=coordinates_velocity,
+        size_batch=50_000,
+        number_worker=1,
     )
 
     like_props = {"inversion_method": "cholesky"}
@@ -51,7 +35,7 @@ def test_e2e_joint_short():
     }
 
     fit_minuit = fitter.FitMinuit.init_from_covariance(
-        covariance,
+        covariance_object,
         density_velocity_data_vector,
         params,
         likelihood_type="multivariate_gaussian",
@@ -60,6 +44,10 @@ def test_e2e_joint_short():
 
     vals1 = fit_minuit.run(migrad=True, hesse=False, minos=False, n_iter=1)
     vals2 = fit_minuit.run(migrad=True, hesse=False, minos=False, n_iter=1)
+
+    if debug_return:
+        return vals1
+
     assert 0.2 <= vals1["bs8"] <= 1.8
     assert 0.1 <= vals1["fs8"] <= 0.9
     assert 0.0 <= vals1["sigv"] <= 300.0
@@ -68,9 +56,12 @@ def test_e2e_joint_short():
     assert abs(vals1["sigv"] - vals2["sigv"]) < 1e-1
 
     # Compare against saved reference
-    with open(data_path / "test_e2e_refs.json", "r") as f:
-        refs = json.load(f)["e2e_joint"]
+    reference_values = load_data_test.load_e2e_test_reference_values()["e2e_joint"]
     # Joint fit can drift slightly due to degeneracies; keep tolerances modest
-    np.testing.assert_allclose(vals1["bs8"], refs["bs8"], rtol=7e-2, atol=0)
-    np.testing.assert_allclose(vals1["fs8"], refs["fs8"], rtol=6e-1, atol=0)
-    np.testing.assert_allclose(vals1["sigv"], refs["sigv"], rtol=2e-1, atol=0)
+    np.testing.assert_allclose(vals1["bs8"], reference_values["bs8"], rtol=7e-2, atol=0)
+    np.testing.assert_allclose(vals1["fs8"], reference_values["fs8"], rtol=6e-1, atol=0)
+    np.testing.assert_allclose(
+        vals1["sigv"], reference_values["sigv"], rtol=2e-1, atol=0
+    )
+
+    return vals1

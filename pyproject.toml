@@ -49,6 +49,7 @@ where = ["."]
 [tool.setuptools.package-data]
 flip = [
     "data/*.txt",
+    "data/*.json",
     "data/*.parquet",
     "data/*.mplstyle"
     ]

@@ -6,7 +6,7 @@ import scipy as sc
 
 from flip.utils import create_log
 
-from ._config import __use_jax__
+from .._config import __use_jax__
 
 if __use_jax__:
     try:

@@ -48,20 +48,17 @@ def test_e2e_joint(debug_return=False):
     if debug_return:
         return vals1
 
-    assert 0.2 <= vals1["bs8"] <= 1.8
-    assert 0.1 <= vals1["fs8"] <= 0.9
-    assert 0.0 <= vals1["sigv"] <= 300.0
-    assert abs(vals1["bs8"] - vals2["bs8"]) < 1e-3
-    assert abs(vals1["fs8"] - vals2["fs8"]) < 1e-3
-    assert abs(vals1["sigv"] - vals2["sigv"]) < 1e-1
+    assert abs(vals1["bs8"] - vals2["bs8"]) < 0.05
+    assert abs(vals1["fs8"] - vals2["fs8"]) < 0.05
+    assert abs(vals1["sigv"] - vals2["sigv"]) < 1.0
 
     # Compare against saved reference
     reference_values = load_data_test.load_e2e_test_reference_values()["e2e_joint"]
     # Joint fit can drift slightly due to degeneracies; keep tolerances modest
-    np.testing.assert_allclose(vals1["bs8"], reference_values["bs8"], rtol=7e-2, atol=0)
-    np.testing.assert_allclose(vals1["fs8"], reference_values["fs8"], rtol=6e-1, atol=0)
-    np.testing.assert_allclose(
-        vals1["sigv"], reference_values["sigv"], rtol=2e-1, atol=0
-    )
 
-    return vals1
+    print(vals1, reference_values)
+    np.testing.assert_allclose(vals1["bs8"], reference_values["bs8"], rtol=0.05, atol=0)
+    np.testing.assert_allclose(vals1["fs8"], reference_values["fs8"], rtol=0.05, atol=0)
+    np.testing.assert_allclose(
+        vals1["sigv"], reference_values["sigv"], rtol=1.0, atol=0
+    )

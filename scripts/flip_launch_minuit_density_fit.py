@@ -1,15 +1,15 @@
 import os
+
 import numpy as np
 import pandas as pd
-from flip import fitter, plot_utils
-from flip.covariance import covariance, contraction
+from flip.covariance import covariance, fitter
 from pkg_resources import resource_filename
 
 flip_base = resource_filename("flip", ".")
 data_path = os.path.join(flip_base, "data")
 
 ### Load data
-grid = pd.read_parquet(os.path.join(data_path, "density_data.parquet"))
+grid = pd.read_parquet(os.path.join(data_path, "data_density.parquet"))
 grid_window = pd.read_parquet(os.path.join(data_path, "grid_window_m.parquet"))
 
 coordinates_density = np.array([grid["ra"], grid["dec"], grid["rcom"]])

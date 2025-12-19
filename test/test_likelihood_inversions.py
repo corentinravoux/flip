@@ -1,6 +1,5 @@
 import numpy as np
-
-from flip.likelihood import (
+from flip.covariance.likelihood import (
     log_likelihood_gaussian_cholesky,
     log_likelihood_gaussian_cholesky_inverse,
     log_likelihood_gaussian_inverse,

@@ -7,11 +7,12 @@ import emcee
 import iminuit
 import numpy as np
 
-import flip.likelihood as flik
-from flip.covariance.covariance import CovMatrix
+import flip.covariance.likelihood as flik
+from flip.covariance import CovMatrix
 from flip.utils import create_log
 
 log = create_log()
+
 
 class BaseFitter(abc.ABC):
     """Abstract interface for fitters.
@@ -23,6 +24,7 @@ class BaseFitter(abc.ABC):
         covariance (CovMatrix): Covariance model to use for fits.
         data (object): Data provider passed to likelihoods.
     """
+
     def __init__(
         self,
         covariance=None,

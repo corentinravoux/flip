@@ -3,7 +3,7 @@ DataVector class
 
 FLIP includes a :py:class:`~flip.data_vector.basic.DataVector` abstract class that is used to build different classes 
 to easily handle the data you want to use and to pass them to one of the different likelihood 
-implemented in the :py:mod:`flip.likelihood` module.
+implemented in the :py:mod:`flip.covariance.likelihood` module.
 
 
 Using the :py:class:`~flip.data_vector.basic.DataVector` class you can obtain data and variance / covariance:
@@ -44,7 +44,7 @@ The :py:class:`~flip.data_vector.basic.Dens` class is used on example data as:
     import pandas as pd
     from flip import data_vector
 
-    grid = pd.read_parquet("flip/flip/data/density_data.parquet")
+    grid = pd.read_parquet("flip/flip/data/data_density.parquet")
     grid.rename(columns={'density_err': 'density_error', 
                         'rcom': 'rcom_zobs'}, inplace=True)
     DataDensity = data_vector.Dens(grid.to_dict(orient='list'))
@@ -65,7 +65,7 @@ The :py:class:`~flip.data_vector.basic.DirectVel` class is used on example data 
     import numpy as np
     from flip import data_vector
 
-    data_velocity = pd.read_parquet("flip/flip/data/velocity_data.parquet"))
+    data_velocity = pd.read_parquet("flip/flip/data/data_velocity.parquet"))
     data_velocity.rename(columns={'vpec': 'velocity'}, inplace=True)
     data_velocity["velocity_error"] = np.zeros(len(data_velocity["vpec"])
 
@@ -108,7 +108,7 @@ The DataVector is initialised as:
     import pandas as pd
     from flip import data_vector
 
-    data_velocity = pd.read_parquet("flip/flip/data/velocity_data.parquet"))
+    data_velocity = pd.read_parquet("flip/flip/data/data_velocity.parquet"))
     DataVel = data_vector.snia_vectors.VelFromSALTfit(
         data_velocity.to_dict(orient='list'), 
         velocity_estimator='full'
@@ -142,13 +142,13 @@ It is initialised as:
     import pandas as pd
     from flip import data_vector
     
-    grid = pd.read_parquet("flip/flip/data/density_data.parquet")
+    grid = pd.read_parquet("flip/flip/data/data_density.parquet")
     grid.rename(columns={'density_err': 'density_error', 
                         'rcom': 'rcom_zobs'}, inplace=True)
 
     DataDensity = data_vector.Dens(grid.to_dict(orient='list'))
 
-    data_velocity = pd.read_parquet("flip/flip/data/velocity_data.parquet"))
+    data_velocity = pd.read_parquet("flip/flip/data/data_velocity.parquet"))
     DataVel = data_vector.snia_vectors.VelFromSALTfit(
         data_velocity.to_dict(orient='list'), 
         velocity_estimator='full'

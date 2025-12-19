@@ -7,8 +7,7 @@ import snsim
 import snutils
 from astropy.cosmology import FlatLambdaCDM
 
-from flip import fitter
-from flip.covariance import covariance
+from flip.covariance import covariance, fitter
 from flip.utils import create_log
 
 log = create_log()

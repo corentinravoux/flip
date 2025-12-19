@@ -1,7 +1,8 @@
 import numpy as np
+from flip.covariance import covariance, fitter
 from flip.data import load_data_test
 
-from flip import covariance, data_vector, fitter
+from flip import data_vector
 
 
 def test_e2e_velocity(debug_return=False):

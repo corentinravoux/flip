@@ -5,12 +5,17 @@ from . import (
     adamsblake17plane,
     adamsblake20,
     carreres23,
+    contraction,
     cov_utils,
     emulators,
+    fisher,
+    fitter,
+    generator,
     lai22,
+    likelihood,
     ravouxcarreres,
     ravouxnoanchor25,
     rcrk24,
+    symbolic,
 )
 from .covariance import CovMatrix
-

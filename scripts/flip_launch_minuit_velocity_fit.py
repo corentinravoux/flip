@@ -1,18 +1,18 @@
 import os
+
 import numpy as np
 import pandas as pd
-from flip import fitter, plot_utils, utils
-from flip.covariance import covariance, contraction
+from flip.covariance import covariance, fitter
 from pkg_resources import resource_filename
+
+from flip import utils
 
 flip_base = resource_filename("flip", ".")
 data_path = os.path.join(flip_base, "data")
 
 ### Load data
-sn_data = pd.read_parquet(os.path.join(data_path, "velocity_data.parquet"))
+sn_data = pd.read_parquet(os.path.join(data_path, "data_velocity.parquet"))
 
-sn_data = sn_data[np.array(sn_data["status"]) != False]
-sn_data = sn_data[np.array(sn_data["status"]) != None]
 
 coordinates_velocity = np.array([sn_data["ra"], sn_data["dec"], sn_data["rcom_zobs"]])
 

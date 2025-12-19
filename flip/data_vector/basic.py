@@ -41,6 +41,7 @@ class DataVector(abc.ABC):
         _free_par (list[str]): Model parameters this vector depends on.
         _kind (str): One of "velocity", "density" or "cross".
     """
+
     _free_par = []
     _kind = ""  # 'velocity', 'density' or 'cross'
 
@@ -135,15 +136,6 @@ class DataVector(abc.ABC):
 
         if jax_installed:
             self.give_data_and_variance_jit = jit(self.give_data_and_variance)
-
-    # TODO: deprecate this call
-    def __call__(self, *args):
-        """Deprecated alias for `give_data_and_variance`.
-
-        Returns:
-            tuple: Output of `give_data_and_variance`.
-        """
-        return self.give_data_and_variance(*args)
 
     def get_masked_data_and_cov(self, bool_mask):
         """Return masked data and corresponding masked observation covariance.
@@ -380,6 +372,8 @@ class FisherVelMesh(DataVector):
                 self._data, velocity_estimator, **kwargs
             )
         )
+
+
 class FisherVelFromHDres(DataVector):
     _kind = "velocity"
     _needed_keys = ["zobs", "ra", "dec", "rcom_zobs"]

@@ -2,10 +2,10 @@ import os
 
 import numpy as np
 import pandas as pd
-from flip.covariance import covariance
+from flip.covariance import covariance, fisher
 from pkg_resources import resource_filename
 
-from flip import fisher, utils
+from flip import data_vector, utils
 
 
 def main(parameter_dict=None, variant="growth_rate"):
@@ -16,11 +16,8 @@ def main(parameter_dict=None, variant="growth_rate"):
     sn_data = pd.read_parquet(os.path.join(data_path, "data_velocity.parquet"))
 
     coordinates_velocity = np.array(
-        [sn_data["ra"], sn_data["dec"], sn_data["rcom_zobs"], sn_data["zobs"]]
+        [sn_data["ra"], sn_data["dec"], sn_data["rcom_zobs"]]
     )
-
-    # plt.hist(sn_data["zobs"])
-    # plt.show()
 
     data_velocity = sn_data.to_dict("list")
     for key in data_velocity.keys():
@@ -28,24 +25,19 @@ def main(parameter_dict=None, variant="growth_rate"):
     data_velocity["velocity"] = data_velocity.pop("vpec")
     data_velocity["velocity_error"] = np.zeros_like(data_velocity["velocity"])
 
+    data_velocity_object = data_vector.DirectVel(data_velocity)
+
     ktt, ptt = np.loadtxt(os.path.join(data_path, "power_spectrum_tt.txt"))
-    kmt, pmt = np.loadtxt(os.path.join(data_path, "power_spectrum_mt.txt"))
-    kmm, pmm = np.loadtxt(os.path.join(data_path, "power_spectrum_mm.txt"))
 
     sigmau_fiducial = 15
 
     power_spectrum_dict = {"vv": [[ktt, ptt * utils.Du(ktt, sigmau_fiducial) ** 2]]}
 
-    ### Compute covariance
     size_batch = 10_000
     number_worker = 16
-    # variant = "growth_rate"  # can be replaced by growth_index
-    # variant = "growth_index"
 
     covariance_fit = covariance.CovMatrix.init_from_flip(
         "rcrk24",
-        # "agk24"
-        # 'carreres23',
         "velocity",
         power_spectrum_dict,
         coordinates_velocity=coordinates_velocity,
@@ -63,9 +55,10 @@ def main(parameter_dict=None, variant="growth_rate"):
 
     Fisher = fisher.FisherMatrix.init_from_covariance(
         covariance_fit,
-        data_velocity,
+        data_velocity_object,
         parameter_dict,
         fisher_properties=fisher_properties,
+        covariance_prefactor_dict={"redshift_velocity": data_velocity["zobs"]},
     )
 
     parameter_name_list, fisher_matrix = Fisher.compute_fisher_matrix(

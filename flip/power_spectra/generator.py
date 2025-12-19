@@ -139,10 +139,8 @@ def compute_power_spectra(
         logspace=logspace,
         non_linear_model=power_spectrum_non_linear_model,
     )
-
-    model_function = importlib.import_module(
-        f"flip.power_spectra.models.get_{power_spectrum_model}_model"
-    )
+    module = importlib.import_module("flip.power_spectra.models")
+    model_function = getattr(module, f"get_{power_spectrum_model}_model")
 
     power_spectrum_mm, power_spectrum_mt, power_spectrum_tt = model_function(
         wavenumber,

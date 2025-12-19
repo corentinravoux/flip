@@ -109,7 +109,7 @@ def construct_grid_regular_sphere(grid_size, rcom_max):
     grid = {
         "ra": center_ra,
         "dec": center_dec,
-        "rcom": center_r_comov,
+        "rcom_zobs": center_r_comov,
         "x": cp_x,
         "y": cp_y,
         "z": cp_z,
@@ -150,7 +150,7 @@ def construct_grid_regular_rectangular(grid_size, rcom_max):
     grid = {
         "ra": center_ra,
         "dec": center_dec,
-        "rcom": center_r_comov,
+        "rcom_zobs": center_r_comov,
         "x": cp_x,
         "y": cp_y,
         "z": cp_z,
@@ -397,7 +397,7 @@ def grid_data_density(
         )
 
     xobj, yobj, zobj = utils.radec2cart(rcom, ra, dec)
-    xgrid, ygrid, zgrid = utils.radec2cart(grid["rcom"], grid["ra"], grid["dec"])
+    xgrid, ygrid, zgrid = utils.radec2cart(grid["rcom_zobs"], grid["ra"], grid["dec"])
 
     # Compute weight
     weight_fun = globals()[kind + "_weight"]
@@ -449,7 +449,7 @@ def grid_data_density(
             / (sum_weights_random / np.sum(sum_weights_random))
         ) - 1
 
-        grid["density_err"] = np.sqrt(
+        grid["density_error"] = np.sqrt(
             1 / (n_in_cell_random * (np.sum(n_in_cell) / np.sum(n_in_cell_random)))
         )
 
@@ -500,7 +500,7 @@ def cut_grid(
     if weight_min is not None:
         mask &= grid["sum_weights"] > weight_min
     if rcom_max is not None:
-        mask &= grid["rcom"] < rcom_max
+        mask &= grid["rcom_zobs"] < rcom_max
     if xmax is not None:
         mask &= np.abs(grid["x"]) < xmax
     if ymax is not None:
@@ -510,8 +510,8 @@ def cut_grid(
     if remove_nan_density:
         if "density" in grid:
             mask &= ~(np.isnan(grid["density"]))
-        if "density_err" in grid:
-            mask &= ~(np.isnan(grid["density_err"]))
+        if "density_error" in grid:
+            mask &= ~(np.isnan(grid["density_error"]))
     if remove_empty_cells:
         if "N_in_cell" in grid:
             mask &= ~(grid["N_in_cell"].astype(int) == 0)
@@ -648,9 +648,9 @@ def grid_data_density_pypower(
         "z": zgrid,
         "ra": ragrid,
         "dec": decgrid,
-        "rcom": rcomgrid,
+        "rcom_zobs": rcomgrid,
         "density": density_contrast,
-        "density_err": density_contrast_err,
+        "density_error": density_contrast_err,
         "count_random": count_randoms,
     }
 
@@ -794,7 +794,7 @@ def grid_data_velocity_pypower(
             "z": zgrid,
             "ra": ragrid,
             "dec": decgrid,
-            "rcom": rcomgrid,
+            "rcom_zobs": rcomgrid,
             "velocity": velocity_grid,
             "velocity_variance": variance_grid,
             "N_in_cell": N_in_cell,
@@ -806,7 +806,7 @@ def grid_data_velocity_pypower(
             "z": zgrid,
             "ra": ragrid,
             "dec": decgrid,
-            "rcom": rcomgrid,
+            "rcom_zobs": rcomgrid,
             "velocity_variance": variance_grid,
             "N_in_cell": N_in_cell,
         }

@@ -1,8 +1,23 @@
 import importlib
 
-import numpy as np
-
 from flip.utils import create_log
+
+from .._config import __use_jax__
+
+if __use_jax__:
+    try:
+        import jax.numpy as jnp
+
+        jax_installed = True
+
+    except ImportError:
+        import numpy as jnp
+
+        jax_installed = False
+else:
+    import numpy as jnp
+
+    jax_installed = False
 
 log = create_log()
 
@@ -20,7 +35,43 @@ def inverse_covariance_inverse(covariance):
         For Fisher computations, explicit inversion is acceptable on modest sizes,
         but Cholesky-based solves are usually more stable for ill-conditioned matrices.
     """
-    return np.linalg.inv(covariance)
+    return jnp.linalg.inv(covariance)
+
+
+def inverse_covariance_cholesky(covariance):
+    """Return the explicit inverse of a covariance matrix.
+
+    Args:
+        covariance (array-like): Positive-definite covariance matrix of shape `(N, N)`.
+
+    Returns:
+        numpy.ndarray: The matrix inverse `covariance^{-1}`.
+
+    Notes:
+        For Fisher computations, explicit inversion is acceptable on modest sizes,
+        but Cholesky-based solves are usually more stable for ill-conditioned matrices.
+    """
+    c = jnp.linalg.inv(jnp.linalg.cholesky(covariance))
+    inverse = jnp.dot(c.T, c)
+    return inverse
+
+
+def inverse_covariance_cholesky_inverse(covariance):
+    """Return the explicit inverse of a covariance matrix.
+
+    Args:
+        covariance (array-like): Positive-definite covariance matrix of shape `(N, N)`.
+
+    Returns:
+        numpy.ndarray: The matrix inverse `covariance^{-1}`.
+
+    Notes:
+        For Fisher computations, explicit inversion is acceptable on modest sizes,
+        but Cholesky-based solves are usually more stable for ill-conditioned matrices.
+    """
+    c = jnp.linalg.inv(jnp.linalg.cholesky(covariance))
+    inverse = jnp.dot(c.T, c)
+    return inverse
 
 
 class FisherMatrix:
@@ -94,11 +145,12 @@ class FisherMatrix:
             **fisher_properties,
         }
 
-        vector_error = data(parameter_values_dict)
-
+        _, vector_variance = data.give_data_and_variance(
+            parameter_values_dict,
+        )
         covariance_sum = covariance.compute_covariance_sum(
             parameter_values_dict,
-            vector_error,
+            vector_variance,
             covariance_prefactor_dict=covariance_prefactor_dict,
         )
 
@@ -133,7 +185,7 @@ class FisherMatrix:
         """
 
         if self.covariance.model_kind == "density":
-            covariance_derivative_sum = np.sum(
+            covariance_derivative_sum = jnp.sum(
                 [
                     partial_coefficients_dict_param["gg"][i] * cov
                     for i, cov in enumerate(self.covariance.covariance_dict["gg"])
@@ -142,7 +194,7 @@ class FisherMatrix:
             )
 
         elif self.covariance.model_kind == "velocity":
-            covariance_derivative_sum = np.sum(
+            covariance_derivative_sum = jnp.sum(
                 [
                     partial_coefficients_dict_param["vv"][i] * cov
                     for i, cov in enumerate(self.covariance.covariance_dict["vv"])
@@ -155,18 +207,18 @@ class FisherMatrix:
             number_velocities = self.covariance.number_velocities
 
             if self.covariance.model_kind == "density_velocity":
-                covariance_derivative_sum_gv = np.zeros(
+                covariance_derivative_sum_gv = jnp.zeros(
                     (number_densities, number_velocities)
                 )
             elif self.covariance.model_kind == "full":
-                covariance_derivative_sum_gv = np.sum(
+                covariance_derivative_sum_gv = jnp.sum(
                     [
                         partial_coefficients_dict_param["gv"][i] * cov
                         for i, cov in enumerate(self.covariance.covariance_dict["gv"])
                     ],
                     axis=0,
                 )
-            covariance_derivative_sum_gg = np.sum(
+            covariance_derivative_sum_gg = jnp.sum(
                 [
                     partial_coefficients_dict_param["gg"][i] * cov
                     for i, cov in enumerate(self.covariance.covariance_dict["gg"])
@@ -174,7 +226,7 @@ class FisherMatrix:
                 axis=0,
             )
 
-            covariance_derivative_sum_vv = np.sum(
+            covariance_derivative_sum_vv = jnp.sum(
                 [
                     partial_coefficients_dict_param["vv"][i] * cov
                     for i, cov in enumerate(self.covariance.covariance_dict["vv"])
@@ -183,7 +235,7 @@ class FisherMatrix:
             )
             covariance_derivative_sum_vg = covariance_derivative_sum_gv.T
 
-            covariance_derivative_sum = np.block(
+            covariance_derivative_sum = jnp.block(
                 [
                     [covariance_derivative_sum_gg, covariance_derivative_sum_gv],
                     [covariance_derivative_sum_vg, covariance_derivative_sum_vv],
@@ -218,7 +270,7 @@ class FisherMatrix:
         ) in partial_coefficients_dict.items():
             parameter_name_list.append(parameter_name)
             covariance_derivative_sum_list.append(
-                np.dot(
+                jnp.dot(
                     self.inverse_covariance_sum,
                     self.compute_covariance_derivative(
                         partial_coefficients_dict_param,
@@ -227,23 +279,15 @@ class FisherMatrix:
             )
 
         fisher_matrix_size = len(partial_coefficients_dict.keys())
-        fisher_matrix = np.zeros((fisher_matrix_size, fisher_matrix_size))
+        fisher_matrix = jnp.zeros((fisher_matrix_size, fisher_matrix_size))
 
-        tri_i, tri_j = np.triu_indices_from(fisher_matrix)
+        tri_i, tri_j = jnp.triu_indices_from(fisher_matrix)
 
         for i, j in zip(tri_i, tri_j):
-            fisher_matrix[i][j] = 0.5 * np.trace(
+            fisher_matrix[i][j] = 0.5 * jnp.trace(
                 covariance_derivative_sum_list[i] @ covariance_derivative_sum_list[j]
             )
             if i != j:
                 fisher_matrix[j][i] = fisher_matrix[i][j]
-
-        # fisher_matrix_size = len(partial_coefficients_dict.keys()
-        # fisher_matrix = np.zeros((fisher_matrix_size,
-        #                           fisher_matrix_size))
-
-        # for i in range(len(fisher_matrix)):
-        #     for j in range(i):
-        #         fisher_matrix[i][j] = fisher_matrix[j][i]
 
         return parameter_name_list, fisher_matrix

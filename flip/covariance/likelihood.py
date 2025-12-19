@@ -693,7 +693,7 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
             else:
                 return -np.inf
 
-        vector, vector_variance = self.data(parameter_values)
+        vector, vector_variance = self.data.give_data_and_variance(parameter_values)
 
         covariance_sum_matrix = []
 

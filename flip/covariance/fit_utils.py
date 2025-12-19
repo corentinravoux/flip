@@ -64,10 +64,10 @@ def fit_density_minuit(
     for i in range(len(str_fit)):
         log.add(str_fit[i])
 
-    coordinates_density = np.array([grid["ra"], grid["dec"], grid["rcom"]])
+    coordinates_density = np.array([grid["ra"], grid["dec"], grid["rcom_zobs"]])
     data_density = {
         "density": np.array(grid["density"]),
-        "density_error": np.array(grid["density_err"]),
+        "density_error": np.array(grid["density_error"]),
     }
 
     covariance_fit = covariance.CovMatrix.init_from_flip(
@@ -155,10 +155,10 @@ def fit_density_interp_sigg_minuit(
     for i in range(len(str_fit)):
         log.add(str_fit[i])
 
-    coordinates_density = np.array([grid["ra"], grid["dec"], grid["rcom"]])
+    coordinates_density = np.array([grid["ra"], grid["dec"], grid["rcom_zobs"]])
     data_density = {
         "density": np.array(grid["density"]),
-        "density_error": np.array(grid["density_err"]),
+        "density_error": np.array(grid["density_error"]),
     }
 
     covariance_list = []
@@ -796,10 +796,10 @@ def fit_full_velocity_estimated_minuit(
     for i in range(len(str_fit)):
         log.add(str_fit[i])
 
-    coordinates_density = np.array([grid["ra"], grid["dec"], grid["rcom"]])
+    coordinates_density = np.array([grid["ra"], grid["dec"], grid["rcom_zobs"]])
     data_density = {
         "density": np.array(grid["density"]),
-        "density_error": np.array(grid["density_err"]),
+        "density_error": np.array(grid["density_error"]),
     }
 
     fit = snsim.io_utils.open_fit(fit_name)
@@ -955,10 +955,10 @@ def fit_full_velocity_estimated_interp_sigu_minuit(
     for i in range(len(str_fit)):
         log.add(str_fit[i])
 
-    coordinates_density = np.array([grid["ra"], grid["dec"], grid["rcom"]])
+    coordinates_density = np.array([grid["ra"], grid["dec"], grid["rcom_zobs"]])
     data_density = {
         "density": np.array(grid["density"]),
-        "density_error": np.array(grid["density_err"]),
+        "density_error": np.array(grid["density_error"]),
     }
 
     fit = snsim.io_utils.open_fit(fit_name)

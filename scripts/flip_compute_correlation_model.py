@@ -1,9 +1,11 @@
 import os
+
 import numpy as np
-from scipy.interpolate import RegularGridInterpolator
 from flip.covariance import contraction
-from flip import utils
 from pkg_resources import resource_filename
+from scipy.interpolate import RegularGridInterpolator
+
+from flip import utils
 
 flip_base = resource_filename("flip", ".")
 data_path = os.path.join(flip_base, "data")
@@ -46,6 +48,7 @@ correlation = contraction.Contraction.init_from_flip(
     basis_definition="bisector",
     number_worker=8,
     hankel=True,
+    variant="nobeta",
 )
 
 

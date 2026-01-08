@@ -140,7 +140,7 @@ class Contraction:
             dict: Sum per block, e.g., `{"gg": array, "vv": array, "gv": array}`.
         """
         coefficients = importlib.import_module(
-            f"flip.covariance.{self.model_name}.coefficients"
+            f"flip.covariance.analytical.{self.model_name}.coefficients"
         )
 
         coefficients_dict = coefficients.get_coefficients(

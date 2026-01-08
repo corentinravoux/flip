@@ -254,7 +254,7 @@ class FisherMatrix:
             of shape `(n_params, n_params)`.
         """
         coefficients = importlib.import_module(
-            f"flip.covariance.{self.covariance.model_name}.fisher_terms"
+            f"flip.covariance.analytical.{self.covariance.model_name}.fisher_terms"
         )
         partial_coefficients_dict = coefficients.get_partial_derivative_coefficients(
             self.covariance.model_kind,

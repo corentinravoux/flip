@@ -1,6 +1,5 @@
 import numpy as np
-
-from flip.covariance.rcrk24.coefficients import (
+from flip.covariance.analytical.rcrk24.coefficients import (
     aH,
     dfdgamma,
     dfdOm0,

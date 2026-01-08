@@ -45,7 +45,9 @@ def _read_free_par(
     Returns:
         list[str]: Unique free parameter names used by the model and variant.
     """
-    _free_par = importlib.import_module(f"flip.covariance.{model_name}")._free_par
+    _free_par = importlib.import_module(
+        f"flip.covariance.analytical.{model_name}"
+    )._free_par
     model_kind = model_kind.split("_")
 
     if variant is None:
@@ -269,7 +271,7 @@ class CovMatrix:
         from flip.covariance import generator as generator_flip
 
         _available_variants = importlib.import_module(
-            f"flip.covariance.{model_name}"
+            f"flip.covariance.analytical.{model_name}"
         )._variant
         if variant not in _available_variants:
             raise ValueError(
@@ -279,7 +281,7 @@ class CovMatrix:
         free_par = _read_free_par(model_name, model_kind, variant=variant)
 
         coefficients = importlib.import_module(
-            f"flip.covariance.{model_name}.coefficients"
+            f"flip.covariance.analytical.{model_name}.coefficients"
         )
 
         (
@@ -341,10 +343,12 @@ class CovMatrix:
             CovMatrix: Initialized covariance matrix in matrix form.
         """
         begin = time.time()
-        generator = importlib.import_module(f"flip.covariance.{model_name}.generator")
+        generator = importlib.import_module(
+            f"flip.covariance.analytical.{model_name}.generator"
+        )
 
         _available_variants = importlib.import_module(
-            f"flip.covariance.{model_name}"
+            f"flip.covariance.analytical.{model_name}"
         )._variant
         if variant not in _available_variants:
             raise ValueError(
@@ -354,7 +358,7 @@ class CovMatrix:
         free_par = _read_free_par(model_name, model_kind, variant=variant)
 
         coefficients = importlib.import_module(
-            f"flip.covariance.{model_name}.coefficients"
+            f"flip.covariance.analytical.{model_name}.coefficients"
         )
 
         (

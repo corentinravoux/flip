@@ -171,7 +171,7 @@ class DataVector(abc.ABC):
         """
 
         coordinate_keys = importlib.import_module(
-            f"flip.covariance.{model}"
+            f"flip.covariance.analytical.{model}"
         )._coordinate_keys
 
         coords = np.vstack([self.data[k] for k in coordinate_keys])

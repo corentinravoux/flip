@@ -384,7 +384,7 @@ def write_M_N_functions(
 
 
 def generate_generalized_genericzdep_functions(
-    filename="./genericzdep/flip_terms.py", number_worker=8
+    filename="./analytical/genericzdep/flip_terms.py", number_worker=8
 ):
     """
     The generate_generalized_genericzdep_functions function generates the flip_terms.py file in the genericzdep directory, which contains functions that calculate M and N terms for a generalized version of Carreres' (2012) model 2 and 3.
@@ -430,7 +430,7 @@ def generate_generalized_genericzdep_functions(
 
 
 def generate_generalized_adamsblake17plane_functions(
-    filename="./adamsblake17plane/flip_terms.py", number_worker=8
+    filename="./analytical/adamsblake17plane/flip_terms.py", number_worker=8
 ):
     mu = sy.symbols("mu")
     k = sy.symbols("k", positive=True, finite=True, real=True)
@@ -457,7 +457,7 @@ def generate_generalized_adamsblake17plane_functions(
 
 
 def generate_generalized_adamsblake17_functions(
-    filename="./adamsblake17/flip_terms.py", number_worker=8
+    filename="./analytical/adamsblake17/flip_terms.py", number_worker=8
 ):
 
     mu1, mu2 = sy.symbols("mu1 mu2")
@@ -489,7 +489,7 @@ def generate_generalized_adamsblake17_functions(
 
 
 def generate_generalized_adamsblake20_functions(
-    filename="./adamsblake20/flip_terms.py", number_worker=8
+    filename="./analytical/adamsblake20/flip_terms.py", number_worker=8
 ):
     """
     The generate_generalized_adamsblake20_functions function generates the functions needed to compute the M and N matrices for a generalized version of Adams, Blake &amp; Kitching (2020).
@@ -533,7 +533,7 @@ def generate_generalized_adamsblake20_functions(
 
 
 def generate_generalized_lai22_functions(
-    filename="./lai22/flip_terms.py", number_worker=8
+    filename="./analytical/lai22/flip_terms.py", number_worker=8
 ):
     """
     The generate_generalized_lai22_functions function generates the functions for calculating the M and N terms in
@@ -666,7 +666,7 @@ def generate_generalized_lai22_functions(
 
 
 def generate_generalized_carreres23_functions(
-    filename="./carreres23/flip_terms.py", number_worker=8
+    filename="./analytical/carreres23/flip_terms.py", number_worker=8
 ):
     """
     The generate_generalized_carreres23_functions function generates the flip_terms.py file in the carreres23 directory, which contains functions that calculate M and N terms for a generalized version of Carreres' (2012) model 2 and 3.
@@ -704,7 +704,7 @@ def generate_generalized_carreres23_functions(
 
 
 def generate_generalized_ravouxcarreres_functions(
-    filename="./ravouxcarreres/flip_terms.py", number_worker=8
+    filename="./analytical/ravouxcarreres/flip_terms.py", number_worker=8
 ):
     """
     The generate_generalized_ravouxcarreres_functions function generates the functions needed to compute the generalized Ravoux-Carreres model.
@@ -756,7 +756,7 @@ def generate_generalized_ravouxcarreres_functions(
 
 
 def generate_generalized_rcrk24_functions(
-    filename="./rcrk24/flip_terms.py", number_worker=8
+    filename="./analytical/rcrk24/flip_terms.py", number_worker=8
 ):
     """
     The generate_generalized_rcrk24_functions function generates the flip_terms.py file in the carreres23 directory, which contains functions that calculate M and N terms for a generalized version of Carreres' (2012) model 2 and 3.
@@ -979,7 +979,7 @@ def write_one_function(
 
 
 def generate_fisher_coefficients_dictionnary_carreres23(
-    filename="./carreres23/fisher_terms.py",
+    filename="./analytical/carreres23/fisher_terms.py",
 ):
 
     name_models = ["growth_index", None]
@@ -999,7 +999,7 @@ def generate_fisher_coefficients_dictionnary_carreres23(
 
 
 def generate_fisher_coefficients_dictionnary_adamsblake17(
-    filename="./adamsblake17/fisher_terms.py",
+    filename="./analytical/adamsblake17/fisher_terms.py",
 ):
 
     name_models = ["growth_index", None]
@@ -1033,7 +1033,7 @@ def generate_fisher_coefficients_dictionnary_adamsblake17(
 
 
 def generate_fisher_coefficients_dictionnary_adamsblake17plane(
-    filename="./adamsblake17plane/fisher_terms.py",
+    filename="./analytical/adamsblake17plane/fisher_terms.py",
 ):
 
     name_models = ["growth_index", None]
@@ -1113,9 +1113,9 @@ def generate_fisher_coefficients_dictionnary_full_nosigmag(
 
 
 def generate_fisher_coefficients_dictionnary_lai22(
-    filename="./lai22/fisher_terms.py",
+    filename="./analytical/lai22/fisher_terms.py",
 ):
-    from flip.covariance.lai22.flip_terms import dictionary_terms
+    from flip.covariance.analytical.lai22.flip_terms import dictionary_terms
 
     name_models = ["growth_index", "growth_index_nobeta", "nobeta", None]
     components = ["gg", "gv", "vv"]
@@ -1311,9 +1311,9 @@ def generate_fisher_files():
     generate_fisher_coefficients_dictionnary_adamsblake17()
     generate_fisher_coefficients_dictionnary_adamsblake17plane()
     generate_fisher_coefficients_dictionnary_full_nosigmag(
-        "./adamsblake20/fisher_terms.py"
+        "./analytical/adamsblake20/fisher_terms.py"
     )
     generate_fisher_coefficients_dictionnary_full_nosigmag(
-        "./ravouxcarreres/fisher_terms.py"
+        "./analytical/ravouxcarreres/fisher_terms.py"
     )
     generate_fisher_coefficients_dictionnary_lai22()

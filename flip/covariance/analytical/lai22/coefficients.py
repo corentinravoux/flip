@@ -1,6 +1,5 @@
 import numpy as np
-
-from flip.covariance.lai22.flip_terms import dictionary_terms
+from flip.covariance.analytical.lai22.flip_terms import dictionary_terms
 
 
 def get_coefficients(

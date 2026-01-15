@@ -2,6 +2,7 @@ import logging
 import time
 
 import astropy.constants as acst
+import matplotlib.pyplot as plt
 import numpy as np
 
 _C_LIGHT_KMS_ = acst.c.to("km/s").value
@@ -68,6 +69,28 @@ def return_key(dictionary, string, default_value):
         Any: `dictionary[string]` if present, else `default_value`.
     """
     return dictionary[string] if string in dictionary.keys() else default_value
+
+
+def __secret_logo__(first_album=False):
+    """Show the hidden flip WEBP logo.
+
+    Args:
+        first_album (bool): Show the first album variant.
+    """
+    from PIL import Image
+
+    from flip import __flip_dir_path__
+
+    if first_album:
+        img = Image.open(f"{__flip_dir_path__}/data/.htmp/flip_first_album.webp")
+    else:
+        # Load the WEBP image
+        img = Image.open(f"{__flip_dir_path__}/data/.htmp/flip_heavy.webp")
+
+    # Display it with matplotlib
+    plt.imshow(img)
+    plt.axis("off")
+    plt.show()
 
 
 def create_log(log_level="info"):

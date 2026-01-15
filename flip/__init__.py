@@ -6,7 +6,7 @@ from flip.utils import create_log
 
 log = create_log()
 from . import covariance, data, data_vector, power_spectra, utils
-from .covariance.plot_utils import __secret_logo__
+from .utils import __secret_logo__
 
 try:
     import jax

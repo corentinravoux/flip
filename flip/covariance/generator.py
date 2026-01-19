@@ -134,7 +134,7 @@ def coefficient_hankel(
 
     """
     flip_terms = importlib.import_module(
-        f".{model_name}.flip_terms", package=__package__
+        f"flip.covariance.analytical.{model_name}.flip_terms", package=__package__
     )
 
     cov_ab_i = 0
@@ -201,7 +201,9 @@ def coefficient_trapz(
 
     """
     cov_ab_i = 0
-    flip_terms = importlib.import_module(f"{model_name}.flip_terms")
+    flip_terms = importlib.import_module(
+        f"flip.covariance.analytical.{model_name}.flip_terms", package=__package__
+    )
     flip_terms.set_backend("numpy")
     dictionary_subterms = flip_terms.dictionary_subterms
     regularize_M_terms = flip_terms.regularize_M_terms
@@ -459,7 +461,7 @@ def compute_coeficient(
         coefficient = coefficient_trapz
 
     flip_terms = importlib.import_module(
-        f".{model_name}.flip_terms", package=__package__
+        f"flip.covariance.analytical.{model_name}.flip_terms", package=__package__
     )
     term_index_list = getattr(flip_terms, "dictionary_terms")[covariance_type]
     lmax_list = getattr(flip_terms, "dictionary_lmax")[covariance_type]

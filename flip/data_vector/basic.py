@@ -13,7 +13,7 @@ from . import vector_utils
 if __use_jax__:
     try:
         import jax.numpy as jnp
-        from jax import jit
+        from jax import jit, random
         from jax.experimental.sparse import BCOO
 
         jax_installed = True
@@ -25,6 +25,7 @@ if __use_jax__:
 else:
 
     import numpy as jnp
+    from numpy import random
 
     jax_installed = False
 
@@ -309,7 +310,7 @@ class DensVel(DataVector):
         )
 
 
-class VelFromHDres(DirectVel):
+class VelFromHDres(DataVector):
     _needed_keys = ["dmu", "zobs"]
     _free_par = ["M_0"]
 
@@ -327,31 +328,64 @@ class VelFromHDres(DirectVel):
             )
         )
         velocity = (
-            self._data["velocity"]
+            distance_modulus_difference_to_velocity * self._data["dmu"]
             - distance_modulus_difference_to_velocity * parameter_values_dict["M_0"]
         )
+        if self._covariance_observation is None and "dmu_error" in self._data:
+            velocity_error = (
+                distance_modulus_difference_to_velocity * self._data["dmu_error"]
+            )
+            return velocity, velocity_error**2
 
-        if self._covariance_observation is not None:
+        elif self._covariance_observation is not None:
             J = jnp.diag(self._distance_modulus_difference_to_velocity)
             velocity_variance = J @ self._covariance_observation @ J.T
             return velocity, velocity_variance
-        return velocity, self._data["velocity_error"] ** 2
+        else:
+            raise ValueError(
+                "Cannot compute velocity variance without dmu_error or covariance_observation"
+            )
 
     def __init__(
         self, data, covariance_observation=None, velocity_estimator="full", **kwargs
     ):
         # Compute conversion using provided input data, not uninitialized self._data
+
+        self.velocity_estimator = velocity_estimator
+
+        super().__init__(data, covariance_observation=covariance_observation)
+
+
+class VelFromIntrinsicScatter(DataVector):
+    _kind = "velocity"
+    _needed_keys = ["zobs"]
+    _free_par = ["sigma_M"]
+
+    def give_data_and_variance(self, parameter_values_dict):
         distance_modulus_difference_to_velocity = (
             vector_utils.redshift_dependence_velocity(
-                data, velocity_estimator, **kwargs
+                self._data, self.velocity_estimator, **parameter_values_dict
             )
         )
-        self.velocity_estimator = velocity_estimator
-        data = dict(data)  # shallow copy to avoid side-effects upstream
-        data["velocity"] = distance_modulus_difference_to_velocity * data["dmu"]
-
-        if covariance_observation is None and "dmu_error" in data:
-            data["velocity_error"] = (
-                distance_modulus_difference_to_velocity * data["dmu_error"]
+        if jax_installed:
+            key = random.PRNGKey(0)
+            distance_modulus = parameter_values_dict["sigma_M"] * random.normal(
+                key, (len(self._data["zobs"]),)
             )
-        super().__init__(data, covariance_observation=covariance_observation)
+        else:
+            distance_modulus = random.normal(
+                loc=0.0,
+                scale=parameter_values_dict["sigma_M"],
+                size=len(self._data["zobs"]),
+            )
+
+        variance = parameter_values_dict["sigma_M"] ** 2
+
+        return (
+            distance_modulus_difference_to_velocity * distance_modulus,
+            distance_modulus_difference_to_velocity**2 * variance,
+        )
+
+    def __init__(self, data, velocity_estimator="full"):
+        super().__init__(data)
+        self.velocity_estimator = velocity_estimator

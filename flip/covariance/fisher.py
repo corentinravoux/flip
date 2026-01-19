@@ -186,19 +186,23 @@ class FisherMatrix:
 
         if self.covariance.model_kind == "density":
             covariance_derivative_sum = jnp.sum(
-                [
-                    partial_coefficients_dict_param["gg"][i] * cov
-                    for i, cov in enumerate(self.covariance.covariance_dict["gg"])
-                ],
+                jnp.array(
+                    [
+                        partial_coefficients_dict_param["gg"][i] * cov
+                        for i, cov in enumerate(self.covariance.covariance_dict["gg"])
+                    ]
+                ),
                 axis=0,
             )
 
         elif self.covariance.model_kind == "velocity":
             covariance_derivative_sum = jnp.sum(
-                [
-                    partial_coefficients_dict_param["vv"][i] * cov
-                    for i, cov in enumerate(self.covariance.covariance_dict["vv"])
-                ],
+                jnp.array(
+                    [
+                        partial_coefficients_dict_param["vv"][i] * cov
+                        for i, cov in enumerate(self.covariance.covariance_dict["vv"])
+                    ]
+                ),
                 axis=0,
             )
 
@@ -246,7 +250,7 @@ class FisherMatrix:
 
         return covariance_derivative_sum
 
-    def compute_fisher_matrix(self):
+    def compute_fisher_matrix(self, covariance_prefactor_dict=None):
         """Compute the Fisher matrix using covariance derivatives.
 
         Returns:
@@ -260,6 +264,7 @@ class FisherMatrix:
             self.covariance.model_kind,
             self.parameter_values_dict,
             variant=self.covariance.variant,
+            covariance_prefactor_dict=covariance_prefactor_dict,
         )
         parameter_name_list = []
         covariance_derivative_sum_list = []
@@ -280,14 +285,23 @@ class FisherMatrix:
 
         fisher_matrix_size = len(partial_coefficients_dict.keys())
         fisher_matrix = jnp.zeros((fisher_matrix_size, fisher_matrix_size))
-
         tri_i, tri_j = jnp.triu_indices_from(fisher_matrix)
 
         for i, j in zip(tri_i, tri_j):
-            fisher_matrix[i][j] = 0.5 * jnp.trace(
-                covariance_derivative_sum_list[i] @ covariance_derivative_sum_list[j]
-            )
-            if i != j:
-                fisher_matrix[j][i] = fisher_matrix[i][j]
+            if jax_installed:
+                fisher_matrix = fisher_matrix.at[i, j].set(
+                    0.5
+                    * jnp.trace(
+                        covariance_derivative_sum_list[i]
+                        @ covariance_derivative_sum_list[j]
+                    )
+                )
+                fisher_matrix = fisher_matrix.at[j, i].set(fisher_matrix[i, j])
+            else:
+                fisher_matrix[i][j] = 0.5 * jnp.trace(
+                    covariance_derivative_sum_list[i]
+                    @ covariance_derivative_sum_list[j]
+                )
+                fisher_matrix[j, i] = fisher_matrix[i, j]
 
         return parameter_name_list, fisher_matrix

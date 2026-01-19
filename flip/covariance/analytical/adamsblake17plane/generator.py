@@ -236,7 +236,7 @@ def covariance_gg(
     size_batch=100_000,
     number_worker=8,
 ):
-    """Compute density-density covariance (plane-parallel)."
+    """Compute density-density covariance (plane-parallel)."""
     N = len(ra_g)
     n_task = int((N * (N + 1)) / 2) - N
     batches = []

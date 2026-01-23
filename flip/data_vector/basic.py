@@ -190,7 +190,7 @@ class Dens(DataVector):
     _kind = "density"
     _needed_keys = ["density", "density_error"]
 
-    def give_data_and_variance(self, **kwargs):
+    def give_data_and_variance(self, *args):
         """Return density data and diagonal variance from `density_error`.
 
         Returns:
@@ -210,7 +210,7 @@ class DirectVel(DataVector):
             cond_keys += ["velocity_error"]
         return cond_keys
 
-    def give_data_and_variance(self, **kwargs):
+    def give_data_and_variance(self, *args):
         if self._covariance_observation is not None:
             return self._data["velocity"], self._covariance_observation
         return self._data["velocity"], self._data["velocity_error"] ** 2
@@ -264,11 +264,9 @@ class DensVel(DataVector):
     def free_par(self):
         return self.densities.free_par + self.velocities.free_par
 
-    def give_data_and_variance(self, **kwargs):
-        data_density, density_variance = self.densities.give_data_and_variance(**kwargs)
-        data_velocity, velocity_variance = self.velocities.give_data_and_variance(
-            **kwargs
-        )
+    def give_data_and_variance(self, *args):
+        data_density, density_variance = self.densities.give_data_and_variance(*args)
+        data_velocity, velocity_variance = self.velocities.give_data_and_variance(*args)
         data = jnp.hstack((data_density, data_velocity))
         variance = jnp.hstack((density_variance, velocity_variance))
         return data, variance

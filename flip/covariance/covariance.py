@@ -109,8 +109,10 @@ def compute_covariance_sum(
         else:
             covariance_evaluated = covariance_dict[k]
 
+        coefficient_3d = jnp.atleast_3d(jnp.atleast_2d(coefficients_dict[k].T).T)
+
         covariance_sum_[k] = jnp.sum(
-            coefficients_dict[k] * covariance_evaluated,
+            coefficient_3d * covariance_evaluated,
             axis=0,
         )
 

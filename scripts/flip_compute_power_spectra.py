@@ -34,6 +34,7 @@ save_path = "./"  # If not None, will save all calculated power spectra in this 
     power_spectrum_mm,
     power_spectrum_mt,
     power_spectrum_tt,
+    fiducial,
 ) = generator.compute_power_spectra(
     power_spectrum_engine,
     power_spectrum_settings,

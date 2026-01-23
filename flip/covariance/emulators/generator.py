@@ -23,6 +23,23 @@ def compute_cov(
     test_emulator=False,
     **kwargs,
 ):
+    """Train an emulator for a given covariance type and return evaluators.
+
+    Args:
+        emulator_model_name: Backend name, one of ``gpmatrix``, ``nnmatrix``, ``skgpmatrix``.
+        covariance_list: List of covariance objects with precomputed matrices.
+        parameter_values: Array ``(n_samples, n_params)`` training inputs.
+        emulator_parameter_names: Names of parameters to pass at evaluation time.
+        covariance_type: One of ``"gg"``, ``"vv"``, ``"gv"`` indicating block type.
+        test_emulator: If True, runs a quick evaluation vs. training data and logs errors.
+        **kwargs: Extra keyword arguments forwarded to backend ``train``.
+
+    Returns:
+        List of callables, one per covariance term, taking a parameter dict and returning a matrix.
+
+    Raises:
+        ValueError: If list lengths mismatch or model name is invalid.
+    """
     if len(covariance_list) != len(parameter_values):
         raise ValueError(
             "covariance_list and parameter_values must have the same length."
@@ -37,7 +54,7 @@ def compute_cov(
         f"flip.covariance.emulators.{emulator_model_name}"
     )
 
-    emulator_type = emulator_module._emulator_type
+    # emulator_type = emulator_module._emulator_type
     # Only implemented for matrix emulators, so far.
 
     square_covariance, emulator_output_variance, emulator_output_non_diagonal = (
@@ -85,6 +102,19 @@ def prepare_covariance_matrices(
     covariance_list,
     covariance_type,
 ):
+    """Extract and stack covariance training targets for emulator backends.
+
+    Converts each covariance object into arrays for diagonal and non-diagonal
+    parts depending on the covariance type.
+
+    Args:
+        covariance_list: List of covariance objects.
+        covariance_type: Block type ``("gg"|"vv"|"gv")``.
+
+    Returns:
+        Tuple ``(square_covariance, output_variance, output_non_diagonal)`` where
+        arrays have shapes compatible with backend trainers.
+    """
     if covariance_type[0] == covariance_type[1]:
         square_covariance = True
     else:
@@ -131,6 +161,21 @@ def return_evaluation_functions(
     covariance_type,
     **kwargs,
 ):
+    """Wrap backend models into per-term evaluation functions.
+
+    Each returned function accepts a parameter dict mapping names to values and
+    returns either a square matrix (gg/vv) or a flattened vector (gv).
+
+    Args:
+        models: Tuple of backend-trained models and evaluation dictionaries.
+        emulator_module: Module providing ``evaluate(model, x, dict)`` function.
+        emulator_parameter_names: Names used to extract parameter order from dict.
+        covariance_type: Block type ``("gg"|"vv"|"gv")``.
+        **kwargs: Extra keyword arguments (unused).
+
+    Returns:
+        List of evaluation callables for each covariance term.
+    """
 
     if covariance_type[0] == covariance_type[1]:
         square_covariance = True
@@ -221,6 +266,19 @@ def test_training(
     verbose=True,
     **kwargs,
 ):
+    """Compute emulator errors against training covariances for sanity checks.
+
+    Args:
+        evaluation_functions: List of term evaluators returned by ``return_evaluation_functions``.
+        covariance_list: List of covariance objects (ground truth).
+        parameter_values_dict: List of parameter dicts matching training inputs.
+        covariance_type: Block type ``("gg"|"vv"|"gv")``.
+        verbose: If True, logs per-term maximal relative errors.
+        **kwargs: Extra keyword arguments (unused).
+
+    Returns:
+        Nested list of errors per sample and term: ``[ [err_diag, rel_err_diag, err_all, rel_err_all], ... ]``.
+    """
     if covariance_type[0] == covariance_type[1]:
         square_covariance = True
     else:
@@ -280,6 +338,19 @@ def generate_covariance(
     emulator_parameter_names,
     **kwargs,
 ):
+    """Generate emulator evaluators for requested covariance blocks.
+
+    Args:
+        emulator_model_name: Backend name.
+        model_kind: One of ``"density"``, ``"velocity"``, ``"full"``, ``"density_velocity"``.
+        covariance_list: List of covariance objects for training.
+        parameter_values: Array ``(n_samples, n_params)`` training inputs.
+        emulator_parameter_names: Parameter names used at evaluation.
+        **kwargs: Forwarded to backend trainers.
+
+    Returns:
+        Dict with keys among ``{"gg","vv","gv"}`` mapping to lists of evaluator functions.
+    """
 
     emulator_covariance_dict = {}
 

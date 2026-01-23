@@ -6,7 +6,7 @@ from scipy.sparse import coo_array
 
 import flip.utils as utils
 
-from ..config import __use_jax__
+from .._config import __use_jax__
 
 if __use_jax__:
     try:
@@ -28,6 +28,19 @@ _avail_velocity_estimator = ["watkins", "lowz", "hubblehighorder", "full"]
 
 
 def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
+    """Compute the redshift-dependent conversion from distance modulus to velocity.
+
+    Args:
+        data (dict): Must include `zobs` and, for `full`, `hubble_norm` and `rcom_zobs`.
+        velocity_estimator (str): One of `"watkins"`, `"lowz"`, `"hubblehighorder"`, `"full"`, `"full_lcdm"`.
+        **kwargs: Additional parameters required by specific estimators (e.g., `q0`, `j0`, `H0`, `Omega_m0`).
+
+    Returns:
+        ndarray: Conversion factor per object.
+
+    Raises:
+        ValueError: If required fields or parameters are missing or estimator unknown.
+    """
     prefactor = -1.0 * utils._C_LIGHT_KMS_ * jnp.log(10) / 5
     redshift_obs = data["zobs"]
 
@@ -89,6 +102,17 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
 
 
 def compute_host_matrix(host_group_id):
+    """Build a sparse host-group assignment matrix and mapping.
+
+    Args:
+        host_group_id (array-like): Group id per object.
+
+    Returns:
+        tuple: `(coo_array, data_to_host_mapping)`.
+
+    Raises:
+        ValueError: If no grouping is present (all ids unique).
+    """
     host_list, data_to_host_mapping = np.unique(host_group_id, return_inverse=True)
     if len(host_list) == len(host_group_id):
         raise ValueError(
@@ -104,6 +128,18 @@ def compute_host_matrix(host_group_id):
 
 
 def format_data_multiple_host(data, sparse_host_matrix):
+    """Aggregate per-host values and add `_full` copies of originals.
+
+    For `ra`, use circular mean; for other supported fields, compute arithmetic
+    means per host.
+
+    Args:
+        data (dict): Original per-object data.
+        sparse_host_matrix (coo_array|BCOO): Host assignment matrix.
+
+    Returns:
+        dict: Aggregated data with host-level values.
+    """
     data = data.copy()
     variable_to_mean = ["ra", "dec", "zobs", "rcom_zobs", "hubble_norm"]
 
@@ -128,6 +164,16 @@ def format_data_multiple_host(data, sparse_host_matrix):
 
 
 def get_grouped_data_variance(sparse_host_matrix, velocities, velocity_variance):
+    """Compute grouped velocities and their propagated variance.
+
+    Args:
+        sparse_host_matrix (sparse matrix): Host assignment matrix.
+        velocities (ndarray): Per-object velocities.
+        velocity_variance (ndarray): Per-object variance or full covariance.
+
+    Returns:
+        tuple: `(group_velocities, group_variance_or_cov)`.
+    """
     if velocity_variance.ndim == 1:
         weights = sparse_host_matrix / velocity_variance
     else:

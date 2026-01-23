@@ -1,22 +1,26 @@
 import os
+
 import numpy as np
 import pandas as pd
-from flip import fitter, plot_utils
-from flip.covariance import covariance, contraction
+from flip.covariance import covariance, fitter
 from pkg_resources import resource_filename
+
+from flip import data_vector
 
 flip_base = resource_filename("flip", ".")
 data_path = os.path.join(flip_base, "data")
 
 ### Load data
-grid = pd.read_parquet(os.path.join(data_path, "density_data.parquet"))
-grid_window = pd.read_parquet(os.path.join(data_path, "grid_window_m.parquet"))
+grid = pd.read_parquet(os.path.join(data_path, "data_density.parquet"))
+grid_window = pd.read_parquet(os.path.join(data_path, "data_window_density.parquet"))
 
-coordinates_density = np.array([grid["ra"], grid["dec"], grid["rcom"]])
+coordinates_density = np.array([grid["ra"], grid["dec"], grid["rcom_zobs"]])
 data_density = {
     "density": np.array(grid["density"]),
-    "density_error": np.array(grid["density_err"]),
+    "density_error": np.array(grid["density_error"]),
 }
+
+data_density_object = data_vector.Dens(data_density)
 
 
 ktt, ptt = np.loadtxt(os.path.join(data_path, "power_spectrum_tt.txt"))
@@ -38,45 +42,8 @@ power_spectrum_dict = {
 }
 
 
-### Fit bias
-size_batch = 10_000
-number_worker = 1
-
-covariance_bias = covariance.CovMatrix.init_from_flip(
-    "adamsblake17plane",
-    "density",
-    power_spectrum_dict_bias,
-    coordinates_density=coordinates_density,
-    size_batch=size_batch,
-    number_worker=number_worker,
-)
-
-likelihood_type_bias = "multivariate_gaussian"
-likelihood_properties_bias = {"inversion_method": "cholesky"}
-
-
-parameter_dict_bias = {
-    "bs8": {
-        "value": 1.0,
-        "limit_low": 0.0,
-        "limit_up": 20.0,
-        "fixed": False,
-    },
-}
-
-
-minuit_fitter_bias = fitter.FitMinuit.init_from_covariance(
-    covariance_bias,
-    data_density,
-    parameter_dict_bias,
-    likelihood_type=likelihood_type_bias,
-    likelihood_properties=likelihood_properties_bias,
-)
-
-minuit_fitter_bias.run()
-
 ### Compute covariance
-size_batch = 10_000
+size_batch = 500_000
 number_worker = 8
 
 covariance_fit = covariance.CovMatrix.init_from_flip(
@@ -87,17 +54,20 @@ covariance_fit = covariance.CovMatrix.init_from_flip(
     size_batch=size_batch,
     number_worker=number_worker,
     additional_parameters_values=(sigmag_fiducial,),
+    variant="nobeta",
 )
 
 
 ### Load fitter
 likelihood_type = "multivariate_gaussian"
-likelihood_properties = {"inversion_method": "inverse"}
+likelihood_properties = {"inversion_method": "cholesky_inverse"}
 
 parameter_dict = {
     "bs8": {
-        "value": minuit_fitter_bias.minuit.values["bs8"],
-        "fixed": True,
+        "value": 1.0,
+        "limit_low": 0.0,
+        "limit_up": 3.0,
+        "fixed": False,
     },
     "fs8": {
         "value": 0.4,
@@ -110,7 +80,7 @@ parameter_dict = {
 
 minuit_fitter = fitter.FitMinuit.init_from_covariance(
     covariance_fit,
-    data_density,
+    data_density_object,
     parameter_dict,
     likelihood_type=likelihood_type,
     likelihood_properties=likelihood_properties,

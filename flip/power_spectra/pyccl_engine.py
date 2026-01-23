@@ -6,7 +6,7 @@ log = create_log()
 
 try:
     import pyccl as ccl
-except:
+except ImportError:
     log.add(
         "Install CCL https://github.com/LSSTDESC/CCL to use pyccl_engine.py module",
         level="warning",
@@ -19,10 +19,28 @@ _pyccl_setting_default = {}
 
 
 def get_fiducial_fs8(model, redshift):
+    """Return fiducial $f\sigma_8$ using PyCCL at redshift.
+
+    Args:
+        model (ccl.Cosmology): PyCCL cosmology.
+        redshift (float): Target redshift.
+
+    Returns:
+        float: $f(z)\,\sigma_8(z)$ (using PyCCL conventions).
+    """
     return model.growth_rate(1 / (1 + redshift))
 
 
 def get_fiducial_s8(model, redshift):
+    """Return fiducial $\sigma_8$ using PyCCL at redshift.
+
+    Args:
+        model (ccl.Cosmology): PyCCL cosmology.
+        redshift (float): Target redshift.
+
+    Returns:
+        float: $\sigma_8(z)$.
+    """
     return model.sigmaR(8 / model.to_dict()["h"], 1 / (1 + redshift))
 
 
@@ -35,6 +53,23 @@ def compute_power_spectrum(
     non_linear_model=None,
     logspace=True,
 ):
+    """Compute linear/non-linear $P(k)$ using PyCCL.
+
+    Args:
+        power_spectrum_settings (dict): PyCCL settings (cosmology + flags).
+        redshift (float): Redshift for $P(k)$.
+        minimal_wavenumber (float): Minimum $k$ in h/Mpc.
+        maximal_wavenumber (float): Maximum $k$ in h/Mpc.
+        number_points (int): Number of $k$ samples.
+        non_linear_model (str|None): PyCCL matter power spectrum model key.
+        logspace (bool): Sample $k$ in log-space when True.
+
+    Returns:
+        tuple: `(k, P_lin, P_nl_or_None, fiducial_dict)`.
+
+    Raises:
+        Exception: Propagates PyCCL errors with a helpful message.
+    """
     if logspace:
         wavenumber = np.logspace(
             np.log10(minimal_wavenumber),

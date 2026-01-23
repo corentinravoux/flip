@@ -1,16 +1,14 @@
 """Init file of the flip.covariance package."""
 
 from . import (
-    adamsblake17,
-    adamsblake17plane,
-    adamsblake20,
-    carreres23,
+    analytical,
+    contraction,
     cov_utils,
     emulators,
-    lai22,
-    ravouxcarreres,
-    ravouxnoanchor25,
-    rcrk24,
+    fisher,
+    fitter,
+    generator,
+    likelihood,
+    symbolic,
 )
 from .covariance import CovMatrix
-

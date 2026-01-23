@@ -12,19 +12,17 @@ def compute_sep(
     los_definition="bisector",
     size_batch=10_000,
 ):
-    """
-    The compute_sep function computes the separation between all pairs of objects in a catalog.
+    """Compute pair separations in batches, returning r, r_perp, r_par.
 
     Args:
-        ra: Store the right ascension of each object
-        dec: Compute the angular separation between two objects
-        comoving_distance: Calculate the separation between two objects
-        size_batch: Control the number of objects that are processed at a time
-        : Set the number of objects in a batch
+        ra (ndarray): Right ascensions in radians.
+        dec (ndarray): Declinations in radians.
+        comoving_distance (ndarray): Comoving distances in Mpc/h.
+        los_definition (str): Line-of-sight convention: `"bisector"`, `"mean"`, `"endpoint"`.
+        size_batch (int): Batch size for pairwise computation.
 
     Returns:
-        The separation, the perpendicular component of the separation, and
-
+        tuple: `(sep, sep_perp, sep_par)` as 1D arrays including a leading zero for diagonal.
     """
     number_objects = len(ra)
     n_task = int((number_objects * (number_objects + 1)) / 2) - number_objects
@@ -57,6 +55,18 @@ def compute_sep(
 def compute_function_sym_matrix(
     f, *args, compute_diag=True, fill_diag=0, size_batch=10_000
 ):
+    """Apply a symmetric function over upper-triangular indices in batches.
+
+    Args:
+        f (callable): Function accepting stacked pair arrays per argument.
+        *args: Vectors to index into; each should be 1D arrays of same length.
+        compute_diag (bool): Include diagonal pairs when True.
+        fill_diag (int|float): Value inserted at the start when diagonal excluded.
+        size_batch (int): Batch size.
+
+    Returns:
+        ndarray: Concatenated results from `f` over all pairs.
+    """
     number_objects = len(args[0])
     if compute_diag:
         k = 0
@@ -93,7 +103,7 @@ def compute_i_j(N, seq):
         seq: Find the row and column of the element in a matrix
 
     Returns:
-        The row and column of the lower triangle matrix
+        tuple: `(i, j)` index arrays for the upper triangle.
 
     """
     i = (N - 2 - np.floor(np.sqrt(-8 * seq + 4 * N * (N - 1) - 7) / 2.0 - 0.5)).astype(
@@ -104,6 +114,17 @@ def compute_i_j(N, seq):
 
 
 def flatshape_to_fullshape(flat_shape_non_diagonal):
+    """Infer full matrix size from number of upper-triangular elements.
+
+    Args:
+        flat_shape_non_diagonal (int): Count of off-diagonal upper-triangular elements.
+
+    Returns:
+        int: Size `N` of the full square matrix.
+
+    Raises:
+        ValueError: If the provided count is not valid for any `N`.
+    """
     Delta = 1 + 8 * flat_shape_non_diagonal
     Nfull = (1 + np.sqrt(Delta)) / 2
     if Nfull - int(Nfull) > 0:
@@ -122,7 +143,7 @@ def compute_i_j_cross_matrix(Nv, seq):
         seq: Create the i and j arrays
 
     Returns:
-        The indices of the cross-terms in the matrix
+        tuple: `(i, j)` index arrays for the rectangular cross matrix.
 
     """
     i = np.floor(1 + (seq - Nv) / Nv).astype("int")
@@ -148,7 +169,7 @@ def compute_phi(ra_0, ra_1, dec_0, dec_1, r_0, r_1, los_definition):
         los_definition: Define the line of sight
 
     Returns:
-        The angle between the line of sight and the separation vector
+        ndarray: Angle `phi` in radians.
     """
     x_0, y_0, z_0 = utils.radec2cart(r_0, ra_0, dec_0)
     x_1, y_1, z_1 = utils.radec2cart(r_1, ra_1, dec_1)
@@ -202,21 +223,19 @@ def angle_separation(
     r_1,
     los_definition="bisector",
 ):
-    """
-    The angle_separation function computes the angle between two points on a sphere.
+    """Compute pair separation `r` and angles `theta`, `phi` between two points.
 
     Args:
-        ra_0: Set the right ascension of the first galaxy
-        ra_1: Calculate the angle between two points in the sky
-        dec_0: Define the declination of the first galaxy
-        dec_1: Calculate the cosine of theta
-        r_0: Compute the distance between two points
-        r_1: Compute the distance between two points in space
-        los_definition: Define the line of sight
-        : Define the line of sight
+        ra_0 (ndarray): RA for point 0.
+        ra_1 (ndarray): RA for point 1.
+        dec_0 (ndarray): Dec for point 0.
+        dec_1 (ndarray): Dec for point 1.
+        r_0 (ndarray): Comoving distance for point 0.
+        r_1 (ndarray): Comoving distance for point 1.
+        los_definition (str): Line-of-sight convention.
 
     Returns:
-        The separation between two points in
+        tuple: `(r, theta, phi)` arrays.
     """
 
     cos_theta = np.cos(ra_1 - ra_0) * np.cos(dec_0) * np.cos(dec_1) + np.sin(
@@ -246,7 +265,7 @@ def return_matrix_covariance(flat_covariance):
             the upper-triangular elements of the covariance matrix.
 
     Returns:
-        np.ndarray: The reconstructed full covariance matrix.
+        np.ndarray: Reconstructed full covariance matrix.
 
     Notes:
         - The function uses `flatshape_to_fullshape` to determine the size of the full matrix.
@@ -273,15 +292,11 @@ def return_flat_covariance(matrix_covariance):
     The returned array starts with the variance value (element at position [0, 0]),
     followed by the upper triangular elements of the covariance matrix (excluding the diagonal).
 
-    Parameters
-    ----------
-    cov : numpy.ndarray
-        A square covariance matrix.
+    Args:
+        matrix_covariance (ndarray): Square covariance matrix.
 
-    Returns
-    -------
-    numpy.ndarray
-        A one-dimensional array containing the variance and upper triangular covariance values.
+    Returns:
+        ndarray: 1D array containing variance then upper-triangular values.
     """
     variance_val = matrix_covariance[0, 0]
     flat_cov = matrix_covariance[np.triu_indices_from(matrix_covariance, k=1)]
@@ -290,6 +305,14 @@ def return_flat_covariance(matrix_covariance):
 
 
 def return_flat_cross_cov(cov):
+    """Flatten a rectangular cross-covariance matrix.
+
+    Args:
+        cov (ndarray): Rectangular covariance.
+
+    Returns:
+        ndarray: Flattened 1D array.
+    """
     return cov.flatten()
 
 
@@ -304,7 +327,7 @@ def return_matrix_covariance_cross(cov, number_objects_g, number_objects_v):
         number_objects_v: Reshape the covariance matrix into a full covariance matrix
 
     Returns:
-        The full covariance matrix
+        ndarray: Reconstructed full cross-covariance matrix.
 
     """
     full_cov = cov.reshape((number_objects_g, number_objects_v))
@@ -320,7 +343,7 @@ def return_correlation_matrix(cov):
         cov: Calculate the correlation matrix
 
     Returns:
-        The correlation matrix
+        ndarray: Correlation matrix.
 
     """
     sigma = np.sqrt(np.diag(cov))
@@ -337,7 +360,7 @@ def save_matrix(matrix, name):
         name: Save the matrix with a name
 
     Returns:
-        The name of the file that was saved
+        str: Path of the saved file.
 
     """
     np.save(f"{name}.npy", matrix)
@@ -351,7 +374,7 @@ def open_matrix(name):
         name: Specify the name of the matrix to be loaded
 
     Returns:
-        A matrix
+        ndarray: Loaded matrix.
 
     """
     matrix = np.load(f"{name}.npy")
@@ -373,19 +396,19 @@ def generator_need(
         : Check if the coordinates are provided or not
 
     Returns:
-        A list of the coordinates that are needed to proceed with covariance generation
+        None
 
     """
     if coordinates_density is not False:
         if coordinates_density is None:
             log.add(
-                f"The coordinates_density input is needed to proceed covariance generation, please provide it"
+                "The coordinates_density input is needed to proceed covariance generation, please provide it"
             )
             raise ValueError("Density coordinates not provided")
     if coordinates_velocity is not False:
         if coordinates_velocity is None:
             log.add(
-                f"The coordinates_velocity input is needed to proceed covariance generation, please provide it"
+                "The coordinates_velocity input is needed to proceed covariance generation, please provide it"
             )
             raise ValueError("Velocity coordinates not provided")
 
@@ -402,7 +425,7 @@ def check_generator_need(model_kind, coordinates_density, coordinates_velocity):
         coordinates_velocity: Determine whether the velocity model is needed
 
     Returns:
-        A boolean
+        None
 
     """
     if model_kind == "density":

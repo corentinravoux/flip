@@ -2,17 +2,16 @@ import numpy as np
 
 
 def bel_coefficients(sigma_8):
-    """
-    The bel_coefficients function takes in a value for sigma_8 and returns the values of the coefficients
-    a_i, i = 1, 2, 3 and invkdelta as well as b. These are used to calculate the non-linear power spectrum using
-    the fitting formula from Bel et al. (2007). The function is called by Class when calculating P(k)
+    """Compute BEL model coefficients as a function of $\sigma_8$.
+
+    Uses the parameterization from Bel et al. to construct coefficients
+    for the non-linear damping terms.
 
     Args:
-        sigma_8: Calculate the coefficients of the bessel function
+        sigma_8 (float): Amplitude of matter fluctuations in 8 Mpc/h spheres.
 
     Returns:
-        The coefficients a_i, i = 1,
-
+        tuple: `(a1, a2, a3, invkdelta, b)` coefficients.
     """
     a1 = -0.817 + 3.198 * sigma_8
     a2 = 0.877 - 4.191 * sigma_8
@@ -27,19 +26,15 @@ def get_bel_model(
     power_spectrum_linear,
     **kwargs,
 ):
-    """
-    The get_bel_model function takes in the linear power spectrum, wavenumber, and sigma_8 value.
-    It then calculates the nonlinear matter-matter power spectrum using a fitting function from Bel et al. (2014).
-    The function also returns the nonlinear matter-matter cross correlation coefficient.
+    """Apply BEL damping to linear spectrum to get TT and MT forms.
 
     Args:
-        wavenumber: Calculate the power spectrum
-        power_spectrum_linear: Calculate the nonlinear power spectrum
-        **kwargs: Pass a variable number of keyword arguments to a function
-        : Calculate the nonlinear power spectrum
+        wavenumber (ndarray): $k$ values in h/Mpc.
+        power_spectrum_linear (ndarray): Linear matter power spectrum $P_{mm}^{lin}(k)$.
+        **kwargs: Must include `sigma_8`.
 
     Returns:
-        The nonlinear matter power spectrum and the nonlinear galaxy clustering power spectrum
+        tuple: `(P_mt(k), P_tt(k))` BEL-damped spectra.
     """
     if "sigma_8" not in kwargs.keys():
         raise ValueError("Fiducial sigma_8 value is needed for nonlinearbel model")
@@ -62,18 +57,15 @@ def get_nonlinearbel_model(
     power_spectrum_linear,
     **kwargs,
 ):
-    """
-    The get_nonlinearbel_model function returns the nonlinear power spectra for a given linear power spectrum.
+    """Return BEL-damped spectra using an external non-linear $P_{mm}$.
 
     Args:
-        wavenumber: Get the wavenumber of the power spectrum
-        power_spectrum_linear: Calculate the power_spectrum_mt and power_spectrum_tt
-        **kwargs: Pass a variable number of keyword arguments to a function
-        : Get the nonlinear power spectrum
+        wavenumber (ndarray): $k$ values in h/Mpc.
+        power_spectrum_linear (ndarray): Linear $P_{mm}^{lin}(k)$.
+        **kwargs: Must include `power_spectrum_non_linear` and `sigma_8`.
 
     Returns:
-        The nonlinear power spectrum of matter, the cross power spectrum of matter and tracers and the auto-power spectrum of tracers
-
+        tuple: `(P_mm(k), P_mt(k), P_tt(k))` with $P_mm$ taken from engine.
     """
     if "power_spectrum_non_linear" not in kwargs.keys():
         raise ValueError("Non linear power spectrum is needed for nonlinearbel model")
@@ -95,17 +87,15 @@ def get_linearbel_model(
     power_spectrum_linear,
     **kwargs,
 ):
-    """
-    The get_linearbel_model function returns the linear BEL model for a given power spectrum.
+    """Return linear spectra with BEL damping applied to MT and TT.
 
     Args:
-        wavenumber: Calculate the wavenumber in h/mpc
-        power_spectrum_linear: Calculate the power spectrum of the matter field
-        **kwargs: Pass a variable number of keyword arguments to the function
-        : Set the value of the power spectrum
+        wavenumber (ndarray): $k$ values in h/Mpc.
+        power_spectrum_linear (ndarray): Linear $P_{mm}^{lin}(k)$.
+        **kwargs: Must include `sigma_8`.
 
     Returns:
-        The linear power spectrum and the
+        tuple: `(P_mm, P_mt, P_tt)` with `P_mm = P_lin`.
     """
     power_spectrum_mt, power_spectrum_tt = get_bel_model(
         wavenumber, power_spectrum_linear, **kwargs
@@ -120,5 +110,14 @@ def get_linear_model(
     power_spectrum_linear,
     **kwargs,
 ):
+    """Return purely linear spectra for MM, MT, and TT.
+
+    Args:
+        wavenumber (ndarray): $k$ values (unused).
+        power_spectrum_linear (ndarray): Linear $P_{mm}^{lin}(k)$.
+
+    Returns:
+        tuple: `(P_mm, P_mt, P_tt)` all equal to `P_lin`.
+    """
 
     return power_spectrum_linear, power_spectrum_linear, power_spectrum_linear

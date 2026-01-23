@@ -1,5 +1,4 @@
 import importlib
-import inspect
 import pickle
 import time
 from functools import partial
@@ -9,7 +8,7 @@ import numpy as np
 from flip.covariance import cov_utils
 from flip.utils import create_log
 
-from ..config import __use_jax__
+from .._config import __use_jax__
 
 if __use_jax__:
     try:
@@ -36,7 +35,19 @@ def _read_free_par(
     model_kind,
     variant=None,
 ):
-    _free_par = importlib.import_module(f"flip.covariance.{model_name}")._free_par
+    """Read free parameter names for a given model kind and variant.
+
+    Args:
+        model_name (str): Covariance model package name.
+        model_kind (str): Kind string (`density`, `velocity`, `density_velocity`, `full`).
+        variant (str, optional): Model variant; defaults to `baseline`.
+
+    Returns:
+        list[str]: Unique free parameter names used by the model and variant.
+    """
+    _free_par = importlib.import_module(
+        f"flip.covariance.analytical.{model_name}"
+    )._free_par
     model_kind = model_kind.split("_")
 
     if variant is None:
@@ -60,10 +71,25 @@ def compute_covariance_sum(
     coefficients_dict,
     coefficients_dict_diagonal,
     vector_variance,
-    cov_matrix_prefactor_dict=None,
     kind="full",
     parameter_values_dict=None,
 ):
+    """Compose the total covariance matrix from blocks and coefficients.
+
+    Assembles `gg`, `gv`, and `vv` blocks with optional diagonal terms and adds
+    data variance. Supports special cases like `density_velocity` (no cross-term).
+
+    Args:
+        covariance_dict (dict): Covariance blocks keyed by `gg/gv/vv`.
+        coefficients_dict (dict): Coefficient arrays per block.
+        coefficients_dict_diagonal (dict): Diagonal noise terms per block.
+        vector_variance (array-like): Data variance vector or matrix.
+        kind (str): Model kind.
+        parameter_values_dict (dict, optional): Values for callable covariances (emulator).
+
+    Returns:
+        array-like: Total covariance matrix `C`.
+    """
     if kind == "density":
         keys = ["gg"]
     elif kind == "velocity":
@@ -75,9 +101,6 @@ def compute_covariance_sum(
 
     covariance_sum_ = {}
 
-    if cov_matrix_prefactor_dict is None:
-        cov_matrix_prefactor_dict = {k: 1 for k in keys}
-
     for k in keys:
         if parameter_values_dict is not None:
             covariance_evaluated = np.array(
@@ -86,10 +109,10 @@ def compute_covariance_sum(
         else:
             covariance_evaluated = covariance_dict[k]
 
+        coefficient_3d = jnp.atleast_3d(jnp.atleast_2d(coefficients_dict[k].T).T)
+
         covariance_sum_[k] = jnp.sum(
-            coefficients_dict[k][:, None, None]
-            * cov_matrix_prefactor_dict[k]
-            * covariance_evaluated,
+            coefficient_3d * covariance_evaluated,
             axis=0,
         )
 
@@ -179,31 +202,20 @@ class CovMatrix:
         number_velocities=None,
         emulator_flag=False,
     ):
-        """
-        Initialize the covariance model with specified parameters.
+        """Initialize the covariance model.
 
         Args:
-            model_name (str, optional): Name of the covariance model to use.
-            model_kind (str, optional): Type or kind of the model.
-            free_par (Any, optional): Free parameters for the model.
-            los_definition (Any, optional): Definition of the line-of-sight.
-            covariance_dict (dict, optional): Dictionary containing covariance data.
-            matrix_form (bool, optional): If True, use matrix form for computations.
-            variant (Any, optional): Variant of the model to use.
-            number_densities (Any, optional): Number densities for the model.
-            number_velocities (Any, optional): Number velocities for the model.
-
-        Attributes:
-            model_name (str): Name of the covariance model.
-            model_kind (str): Type or kind of the model.
-            free_par (Any): Free parameters for the model.
-            los_definition (Any): Definition of the line-of-sight.
-            covariance_dict (dict): Dictionary containing covariance data.
-            matrix_form (bool): Indicates if matrix form is used.
-            variant (Any): Variant of the model.
-            coefficients (module): Imported coefficients module for the model.
-            compute_covariance_sum (callable): Function to compute covariance sum.
-            compute_covariance_sum_jit (callable): JIT-compiled function to compute covariance sum.
+            model_name (str, optional): Name of the covariance model.
+            model_kind (str, optional): Kind (`density`, `velocity`, `density_velocity`, `full`).
+            free_par (list[str], optional): Free parameters names for the model.
+            los_definition (str, optional): Line-of-sight definition.
+            covariance_dict (dict, optional): Covariance blocks.
+            matrix_form (bool, optional): Whether blocks are in matrix form.
+            variant (str, optional): Model variant.
+            coefficients (module, optional): Coefficients provider module.
+            number_densities (int, optional): Density block size.
+            number_velocities (int, optional): Velocity block size.
+            emulator_flag (bool, optional): Whether covariances are emulator callables.
         """
         self.model_name = model_name
         self.model_kind = model_kind
@@ -234,33 +246,27 @@ class CovMatrix:
         variant=None,
         **kwargs,
     ):
-        """
-        The init_from_flip function is a function that initializes the covariance matrix from the flip code.
-        It takes as input:
-            - model_name: name of the model used to generate the covariance matrix (e.g., 'lai22')
-            - model_kind: kind of data used to generate the covariance matrix (e.g., 'density' or 'velocity')
-            - power_spectrum_dict: dictionary containing all information about power spectrum, including k and P(k) values, redshift, etc...
-                It is generated by calling getPowerSpectrumDict() in
+        """Initialize covariance from flip code generator.
 
         Args:
-            cls: Indicate that the function is a class method
-            model_name: Determine which model to use for the covariance matrix
-            model_kind: Determine the kind of model to be used
-            power_spectrum_dict: Pass the power spectrum of the model
-            coordinates_density: Specify the coordinates of the density field
-            coordinates_velocity: Define the velocity coordinates of the covariance matrix
-            additional_parameters_values: Pass the values of additional parameters to the flip code
-            **kwargs: Pass a variable number of keyword arguments to the function
+            model_name (str): Covariance model package.
+            model_kind (str): Kind (`density`, `velocity`, `density_velocity`, `full`).
+            power_spectrum_dict (dict): Power spectrum inputs for the model.
+            coordinates_density (array-like, optional): Density coordinates.
+            coordinates_velocity (array-like, optional): Velocity coordinates.
+            additional_parameters_values (tuple, optional): Extra parameters for generator.
+            los_definition (str): LOS choice; defaults to `bisector`.
+            variant (str): Model variant.
+            **kwargs: Extra generator options.
 
         Returns:
-            A covariancematrix object
-
+            CovMatrix: Initialized covariance matrix in matrix form.
         """
         begin = time.time()
         from flip.covariance import generator as generator_flip
 
         _available_variants = importlib.import_module(
-            f"flip.covariance.{model_name}"
+            f"flip.covariance.analytical.{model_name}"
         )._variant
         if variant not in _available_variants:
             raise ValueError(
@@ -270,7 +276,7 @@ class CovMatrix:
         free_par = _read_free_par(model_name, model_kind, variant=variant)
 
         coefficients = importlib.import_module(
-            f"flip.covariance.{model_name}.coefficients"
+            f"flip.covariance.analytical.{model_name}.coefficients"
         )
 
         (
@@ -316,35 +322,28 @@ class CovMatrix:
         variant=None,
         **kwargs,
     ):
-        """
-        The init_from_generator function is a helper function that allows the user to initialize
-        a Covariance object from a generator. The init_from_generator function takes in as arguments:
-            - cls: the class of the object being initialized (Covariance)
-            - model_name: name of covariance model used to generate covariance matrix (e.g., 'lai22')
-            - model_kind: kind of covariance matrix generated ('density' or 'velocity')
-            - power spectrum dictionary containing keys for each redshift bin and values corresponding to
-                power spectra at those red
+        """Initialize covariance from a model-local generator implementation.
 
         Args:
-            cls: Refer to the class itself
-            model_name: Specify the kind of model used to generate the covariance matrix
-            model_kind: Determine which model to use
-            power_spectrum_dict: Pass the power spectrum to the generate_* functions
-            coordinates_velocity: Generate the velocity covariance matrix
-            coordinates_density: Generate the density field
-            additional_parameters_values: Pass additional parameters to the generator function
-            **kwargs: Pass a variable number of keyword arguments to the function
-            : Generate the covariance matrix from a given model
+            model_name (str): Covariance model package.
+            model_kind (str): Kind (`density`, `velocity`, `density_velocity`, `full`).
+            power_spectrum_dict (dict): Power spectrum inputs.
+            coordinates_velocity (array-like, optional): Velocity coordinates.
+            coordinates_density (array-like, optional): Density coordinates.
+            additional_parameters_values (tuple, optional): Extra generator params.
+            variant (str): Model variant.
+            **kwargs: Extra generator options.
 
         Returns:
-            An object of the class covariancematrix
-
+            CovMatrix: Initialized covariance matrix in matrix form.
         """
         begin = time.time()
-        generator = importlib.import_module(f"flip.covariance.{model_name}.generator")
+        generator = importlib.import_module(
+            f"flip.covariance.analytical.{model_name}.generator"
+        )
 
         _available_variants = importlib.import_module(
-            f"flip.covariance.{model_name}"
+            f"flip.covariance.analytical.{model_name}"
         )._variant
         if variant not in _available_variants:
             raise ValueError(
@@ -354,7 +353,7 @@ class CovMatrix:
         free_par = _read_free_par(model_name, model_kind, variant=variant)
 
         coefficients = importlib.import_module(
-            f"flip.covariance.{model_name}.coefficients"
+            f"flip.covariance.analytical.{model_name}.coefficients"
         )
 
         (
@@ -396,6 +395,19 @@ class CovMatrix:
         parameter_names,
         **kwargs,
     ):
+        """Initialize covariance from an emulator over precomputed covariances.
+
+        Args:
+            emulator_model_name (str): Emulator model name.
+            model_kind (str): Kind (`density`, `velocity`, `density_velocity`, `full`).
+            covariance_list (list[CovMatrix]): Base covariances forming the grid.
+            emulator_parameter_values (array-like): Emulator parameter vector.
+            parameter_names (list[str]): Names aligned with emulator parameters.
+            **kwargs: Extra emulator options.
+
+        Returns:
+            CovMatrix: Covariance matrix with emulator-backed blocks.
+        """
         begin = time.time()
         from flip.covariance.emulators import generator as generator_emulators
 
@@ -431,6 +443,18 @@ class CovMatrix:
         filename,
         file_format,
     ):
+        """Load a CovMatrix from file.
+
+        Args:
+            filename (str): Path without extension.
+            file_format (str): One of `pickle`, `npz` (parquet not yet implemented).
+
+        Returns:
+            CovMatrix: Loaded covariance matrix.
+
+        Raises:
+            NotImplementedError: For parquet reading.
+        """
         if file_format == "parquet":
             raise NotImplementedError("Reading from parquet not implemented yet")
         if file_format == "pickle":
@@ -447,19 +471,10 @@ class CovMatrix:
 
     @property
     def kind(self):
-        """
-        The kind function is used to determine the kind of covariance model that will be computed.
-        The options are:
-            - velocity: The covariance model is computed for velocity only.
-            - density: The covariance model is computed for density only.
-            - density_velocity: The covariance model is computed for both velocity and density, without cross-term (i.e., the covariances between velocities and densities are zero). This option should be used when computing a full 3D tomography in which we want to compute a separate 1D tomography along each axis (x, y, z
-
-        Args:
-            self: Represent the instance of the class
+        """Return and log the covariance model kind.
 
         Returns:
-            The kind of the model
-
+            str: One of `velocity`, `density`, `density_velocity`, `full`.
         """
         if self.model_kind == "velocity":
             log.add("The covariance model is computed for velocity")
@@ -477,15 +492,10 @@ class CovMatrix:
 
     @property
     def loaded(self):
-        """
-        The loaded function checks if the covariance matrix is loaded.
-
-        Args:
-            self: Refer to the object itself
+        """Check that required covariance blocks are present for the kind.
 
         Returns:
-            A boolean
-
+            bool: True if the covariance has necessary blocks, False otherwise.
         """
         if self.model_kind == "density":
             if "gg" in self.covariance_dict.keys():
@@ -518,6 +528,11 @@ class CovMatrix:
             return False
 
     def init_compute_covariance_sum(self):
+        """Prepare functions to compute covariance sums.
+
+        Ensures matrix form, binds coefficient accessors, and defines (optionally
+        JIT-compiled) functions combining blocks and data variance.
+        """
         if not self.matrix_form and not self.emulator_flag:
             self.compute_matrix_covariance()
 
@@ -543,6 +558,16 @@ class CovMatrix:
             vector_variance,
             covariance_prefactor_dict=None,
         ):
+            """Compute total covariance given parameters and data variance.
+
+            Args:
+                parameter_values_dict (dict): Parameter values for coefficients.
+                vector_variance (array-like): Data variance vector or matrix.
+                covariance_prefactor_dict (dict, optional): Prefactors per block.
+
+            Returns:
+                array-like: Total covariance matrix.
+            """
             coefficients_dict = {
                 k: jnp.array(v)
                 for k, v in get_coefficients(
@@ -577,6 +602,16 @@ class CovMatrix:
         vector_variance,
         covariance_prefactor_dict=None,
     ):
+        """Return eigenvalues of the covariance sum for diagnostics.
+
+        Args:
+            parameter_values_dict (dict): Parameter values.
+            vector_variance (array-like): Data variance.
+            covariance_prefactor_dict (dict, optional): Prefactors per block.
+
+        Returns:
+            numpy.ndarray: Eigenvalues of `C`.
+        """
         covariance_sum = self.compute_covariance_sum(
             parameter_values_dict,
             vector_variance,
@@ -587,15 +622,10 @@ class CovMatrix:
     # CR - the two next functions should be more general (covariance_type[0] != covariance_type[1] case or not)
 
     def compute_matrix_covariance(self, verbose=True):
-        """
-        The compute_matrix_covariance function takes the covariance matrix and fills in all of the missing values.
+        """Convert flat covariance vectors to full matrix blocks.
 
-        Args:
-            self: Bind the method to the object
-
-        Returns:
-            A dictionary with the full covariance matrices for each redshift bin
-
+        For each block (`gg`, `gv`, `vv`), reconstruct the 2D matrices from their
+        flattened representation and set `matrix_form=True`.
         """
         if self.matrix_form:
             if verbose:
@@ -647,6 +677,10 @@ class CovMatrix:
             self.matrix_form = True
 
     def compute_flat_covariance(self, verbose=True):
+        """Convert full matrix blocks back to flat vector representation.
+
+        Updates `covariance_dict` blocks and sets `matrix_form=False`.
+        """
         if not self.matrix_form:
             if verbose:
                 log.add("Flat covariance already computed")
@@ -691,17 +725,11 @@ class CovMatrix:
         filename,
         file_format,
     ):
-        """
-        The write function writes the covariance matrix to a file.
+        """Write the covariance matrix to disk.
 
         Args:
-            self: Represent the instance of the class
-            filename: Specify the name of the file to be written
-            : Specify the name of the file in which we want to save our covariance matrix
-
-        Returns:
-            Nothing
-
+            filename (str): Output path without extension.
+            file_format (str): One of `parquet`, `pickle`, `npz`.
         """
         class_attrs_dictionary = {
             key: eval(f"self.{key}", {"self": self}) for key in vars(self)
@@ -735,9 +763,18 @@ class CovMatrix:
             np.savez(f"{filename}.npz", **class_attrs_dictionary)
 
     def mask(self, mask_vel=None, mask_dens=None):
-        Ng = self.number_densities
-        Nv = self.number_velocities
+        """Return a masked copy of the covariance restricting indices.
 
+        Args:
+            mask_vel (array-like, optional): Boolean mask for velocity indices.
+            mask_dens (array-like, optional): Boolean mask for density indices.
+
+        Returns:
+            CovMatrix: Masked covariance object.
+
+        Raises:
+            ValueError: If no mask is provided or sizes mismatch.
+        """
         if mask_vel is None and mask_dens is None:
             raise ValueError("No mask set")
 

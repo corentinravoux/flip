@@ -1,5 +1,4 @@
 import numpy as np
-
 from flip.covariance import cov_utils
 
 

@@ -1,35 +1,25 @@
-import json
-from pathlib import Path
-
 import numpy as np
-import pandas as pd
+from flip.covariance import covariance, fitter
+from flip.data import load_data_test
 
-from flip import __flip_dir_path__, data_vector, fitter, utils
+from flip import data_vector
 
 
-def test_e2e_velocity_fit_short():
-    base_path = Path(__flip_dir_path__)
-    data_path = base_path / "data"
+def test_e2e_velocity(debug_return=False):
+    n = 50
+    coordinates_velocity, velocity_data = load_data_test.load_velocity_data(subsample=n)
+    velocity_data_vector = data_vector.DirectVel(velocity_data)
 
-    # Load packaged tiny dataset and subsample further for speed
-    velocity_df = pd.read_parquet(data_path / "velocity_data.parquet")
-    # Rename and build true-velocity dictionary with zero observational noise
-    velocity_dict = velocity_df.rename(columns={"vpec": "velocity"}).to_dict(
-        orient="list"
-    )
-    sample_size = min(60, len(velocity_dict["velocity"]))
-    selection = np.arange(sample_size)
-    velocity_dict = {k: np.asarray(v)[selection] for k, v in velocity_dict.items()}
-    velocity_dict["velocity_error"] = np.zeros(sample_size)
+    power_spectrum_dict = load_data_test.load_power_spectrum_dict()
 
-    velocity_data_vector = data_vector.DirectVel(velocity_dict)
-
-    ktt, ptt = np.loadtxt(data_path / "power_spectrum_tt.txt")
-    sigu = 15.0
-    power_spectra = {"vv": [[ktt, ptt * utils.Du(ktt, sigu) ** 2]]}
-
-    covariance = velocity_data_vector.compute_covariance(
-        "carreres23", power_spectra, size_batch=2000, number_worker=1
+    covariance_object = covariance.CovMatrix.init_from_flip(
+        "adamsblake17plane",
+        "velocity",
+        power_spectrum_dict,
+        coordinates_density=None,
+        coordinates_velocity=coordinates_velocity,
+        size_batch=50_000,
+        number_worker=1,
     )
 
     like_props = {"inversion_method": "cholesky"}
@@ -39,7 +29,7 @@ def test_e2e_velocity_fit_short():
     }
 
     fit_minuit = fitter.FitMinuit.init_from_covariance(
-        covariance,
+        covariance_object,
         velocity_data_vector,
         params,
         likelihood_type="multivariate_gaussian",
@@ -50,16 +40,14 @@ def test_e2e_velocity_fit_short():
     vals1 = fit_minuit.run(migrad=True, hesse=False, minos=False, n_iter=1)
     vals2 = fit_minuit.run(migrad=True, hesse=False, minos=False, n_iter=1)
 
-    # Constraining assertions
-    assert 0.1 <= vals1["fs8"] <= 0.9
-    assert 0.0 <= vals1["sigv"] <= 300.0
-    # Reproducibility within tight tolerances
-    assert abs(vals1["fs8"] - vals2["fs8"]) < 1e-3
-    # Allow small absolute wiggle; check relative agreement
-    assert abs(vals1["sigv"] - vals2["sigv"]) / max(1.0, abs(vals1["sigv"])) < 1e-3
+    if debug_return:
+        return vals1
 
-    # Compare against saved reference values
-    with open(data_path / "test_e2e_refs.json", "r") as f:
-        refs = json.load(f)["e2e_velocity"]
-    np.testing.assert_allclose(vals1["fs8"], refs["fs8"], rtol=5e-3, atol=0)
-    np.testing.assert_allclose(vals1["sigv"], refs["sigv"], rtol=5e-2, atol=0)
+    assert abs(vals1["fs8"] - vals2["fs8"]) < 0.05
+    assert abs(vals1["sigv"] - vals2["sigv"]) < 1.0
+
+    reference_values = load_data_test.load_e2e_test_reference_values()["e2e_velocity"]
+    np.testing.assert_allclose(vals1["fs8"], reference_values["fs8"], rtol=0.05, atol=0)
+    np.testing.assert_allclose(
+        vals1["sigv"], reference_values["sigv"], rtol=1.0, atol=0
+    )

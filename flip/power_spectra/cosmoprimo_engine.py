@@ -6,7 +6,7 @@ log = create_log()
 
 try:
     from cosmoprimo import Fourier
-except:
+except ImportError:
     log.add(
         "Install cosmoprimo https://github.com/cosmodesi/cosmoprimo to use cosmoprimo_engine.py module",
         level="warning",
@@ -14,10 +14,28 @@ except:
 
 
 def get_fiducial_fs8(cosmology, redshift):
+    """Return fiducial $f\sigma_8$ using Cosmoprimo at redshift.
+
+    Args:
+        cosmology: Cosmoprimo cosmology instance.
+        redshift (float): Target redshift.
+
+    Returns:
+        float: $\sigma_8(z) \times f(z)$.
+    """
     return cosmology.sigma8_z(redshift) * cosmology.growth_rate(redshift)
 
 
 def get_fiducial_s8(cosmology, redshift):
+    """Return fiducial $\sigma_8$ using Cosmoprimo at redshift.
+
+    Args:
+        cosmology: Cosmoprimo cosmology instance.
+        redshift (float): Target redshift.
+
+    Returns:
+        float: $\sigma_8(z)$.
+    """
     return cosmology.sigma8_z(redshift)
 
 
@@ -30,7 +48,24 @@ def compute_power_spectrum(
     non_linear_model=None,
     logspace=True,
 ):
-    if type(cosmology) == dict:
+    """Compute linear/non-linear $P(k)$ using Cosmoprimo Fourier interface.
+
+    Args:
+        cosmology: Cosmoprimo cosmology instance.
+        redshift (float): Redshift for $P(k)$.
+        minimal_wavenumber (float): Minimum $k$ in h/Mpc.
+        maximal_wavenumber (float): Maximum $k$ in h/Mpc.
+        number_points (int): Number of $k$ samples.
+        non_linear_model (str|None): If not None, compute non-linear spectrum.
+        logspace (bool): Sample $k$ in log-space when True.
+
+    Returns:
+        tuple: `(k, P_lin, P_nl_or_None, fiducial_dict)`.
+
+    Raises:
+        ValueError: If a dict is provided instead of a Cosmology instance.
+    """
+    if type(cosmology) is dict:
         raise ValueError(
             "power_spectrum_settings should be an instance of Cosmology, not a dict"
         )

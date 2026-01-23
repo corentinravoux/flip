@@ -36,11 +36,6 @@ def load_power_spectrum_dict(
     from flip import utils
 
     (kmm, pmm), (kmt, pmt), (ktt, ptt) = load_power_spectra()
-    power_spectrum_dict = {
-        "gg": [[kmm, pmm]],
-        "vv": [[ktt, ptt]],
-        "gv": [[kmt, pmt]],
-    }
 
     window_density = load_grid_windows()
 

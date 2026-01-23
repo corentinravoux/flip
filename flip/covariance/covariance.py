@@ -71,7 +71,6 @@ def compute_covariance_sum(
     coefficients_dict,
     coefficients_dict_diagonal,
     vector_variance,
-    cov_matrix_prefactor_dict=None,
     kind="full",
     parameter_values_dict=None,
 ):
@@ -85,7 +84,6 @@ def compute_covariance_sum(
         coefficients_dict (dict): Coefficient arrays per block.
         coefficients_dict_diagonal (dict): Diagonal noise terms per block.
         vector_variance (array-like): Data variance vector or matrix.
-        cov_matrix_prefactor_dict (dict, optional): Prefactors per block.
         kind (str): Model kind.
         parameter_values_dict (dict, optional): Values for callable covariances (emulator).
 
@@ -103,9 +101,6 @@ def compute_covariance_sum(
 
     covariance_sum_ = {}
 
-    if cov_matrix_prefactor_dict is None:
-        cov_matrix_prefactor_dict = {k: 1 for k in keys}
-
     for k in keys:
         if parameter_values_dict is not None:
             covariance_evaluated = np.array(
@@ -115,9 +110,7 @@ def compute_covariance_sum(
             covariance_evaluated = covariance_dict[k]
 
         covariance_sum_[k] = jnp.sum(
-            coefficients_dict[k][:, None, None]
-            * cov_matrix_prefactor_dict[k]
-            * covariance_evaluated,
+            coefficients_dict[k] * covariance_evaluated,
             axis=0,
         )
 

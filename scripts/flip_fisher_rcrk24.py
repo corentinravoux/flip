@@ -62,7 +62,7 @@ def main(parameter_dict=None, variant="growth_rate"):
     )
 
     parameter_name_list, fisher_matrix = Fisher.compute_fisher_matrix(
-        parameter_dict, variant=variant
+        covariance_prefactor_dict={"redshift_velocity": np.array(data_velocity["zobs"])}
     )
     return parameter_name_list, fisher_matrix
 

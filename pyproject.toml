@@ -40,6 +40,9 @@ docs = [
     "sphinx-autoapi",
 ]
 
+[tool.setuptools.dynamic]
+version = {attr = "flip.__version__"}
+
 [tool.setuptools]
 package-dir = { "" = "." }
 
@@ -53,3 +56,4 @@ flip = [
     "data/*.parquet",
     "data/*.mplstyle"
     ]
+

@@ -15,6 +15,6 @@ try:
 except:
     log.add("Jax is not available, loading numpy and scipy instead")
 
-from ._version import __version__
-
 __flip_dir_path__ = os.path.dirname(__file__)
+
+__version__ = "1.2.0"

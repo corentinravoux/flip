@@ -122,11 +122,17 @@ class VelFromSALTfit(DataVector):
             )
             variance_distance_modulus += parameter_values_dict["sigma_M"] ** 2
         else:
-            variance_distance_modulus = (
-                self._covariance_observation
-                + jnp.eye(self._covariance_observation.shape[0])
-                * parameter_values_dict["sigma_M"] ** 2
+            A = self._A
+            J = (
+                A[0]
+                + parameter_values_dict["alpha"] * A[1]
+                - parameter_values_dict["beta"] * A[2]
             )
+            variance_distance_modulus = J @ self._covariance_observation @ J.T
+            variance_distance_modulus += (
+                jnp.eye(self._data.shape[0]) * parameter_values_dict["sigma_M"] ** 2
+            )
+
         return variance_distance_modulus
 
     def give_data_and_variance(self, parameter_values_dict):
@@ -152,14 +158,13 @@ class VelFromSALTfit(DataVector):
                 * distance_modulus_difference_to_velocity**2
             )
         else:
-            A = self._init_A()
-            J = (
-                A[0]
-                + parameter_values_dict["alpha"] * A[1]
-                - parameter_values_dict["beta"] * A[2]
+            conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
+
+            velocity_variance = (
+                conversion_matrix
+                @ observed_distance_modulus_variance
+                @ conversion_matrix.T
             )
-            J = jnp.diag(distance_modulus_difference_to_velocity) @ J
-            velocity_variance = J @ observed_distance_modulus_variance @ J.T
 
         velocities = (
             distance_modulus_difference_to_velocity

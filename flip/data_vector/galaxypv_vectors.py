@@ -1,3 +1,5 @@
+from flip.utils import create_log
+
 from .._config import __use_jax__
 from . import vector_utils
 from .basic import DataVector
@@ -19,10 +21,15 @@ else:
 
     jax_installed = False
 
+log = create_log()
+
 
 class VelFromLogDist(DataVector):
     _kind = "velocity"
     _needed_keys = ["eta"]
+    _free_par = []
+    _number_dimension_observation_covariance = 1
+    _parameters_observation_covariance = ["eta"]
 
     @property
     def conditional_needed_keys(self):
@@ -35,6 +42,22 @@ class VelFromLogDist(DataVector):
         if self._covariance_observation is None:
             cond_keys += ["eta_error"]
         return self._needed_keys + cond_keys
+
+    def __init__(
+        self,
+        data,
+        covariance_observation=None,
+        velocity_estimator="full",
+    ):
+        """Initialize velocity from log-distance `eta`.
+
+        Args:
+            data (dict): Must include `eta` and optionally `eta_error`.
+            covariance_observation (ndarray|None): Observed covariance.
+            velocity_estimator (str): Estimator name, default `"full"`.
+        """
+        self.velocity_estimator = velocity_estimator
+        super().__init__(data, covariance_observation=covariance_observation)
 
     def give_data_and_variance(self, parameter_values_dict, *args):
         """Return velocity and variance for log-distance based estimator.
@@ -53,31 +76,19 @@ class VelFromLogDist(DataVector):
 
         velocity = log_distance_to_velocity * self._data["eta"]
 
-        if self._covariance_observation is not None:
-            J = jnp.diag(log_distance_to_velocity)
-            velocity_variance = J @ self._covariance_observation @ J.T
-            return velocity, velocity_variance
+        if self._covariance_observation is None:
+            velocity_variance = (
+                log_distance_to_velocity * self._data["eta_error"]
+            ) ** 2
 
-        return velocity, (log_distance_to_velocity * self._data["eta_error"]) ** 2
+        else:
+            conversion_matrix = jnp.diag(log_distance_to_velocity)
 
-    def __init__(
-        self,
-        data,
-        covariance_observation=None,
-        velocity_estimator="full",
-    ):
-        """Initialize velocity from log-distance `eta`.
+            velocity_variance = (
+                conversion_matrix @ self._covariance_observation @ conversion_matrix.T
+            )
 
-        Args:
-            data (dict): Must include `eta` and optionally `eta_error`.
-            covariance_observation (ndarray|None): Observed covariance.
-            velocity_estimator (str): Estimator name, default `"full"`.
-        """
-        self.velocity_estimator = velocity_estimator
-        super().__init__(
-            data,
-            covariance_observation=covariance_observation,
-        )
+        return velocity, velocity_variance
 
 
 class VelFromTullyFisher(DataVector):
@@ -85,6 +96,8 @@ class VelFromTullyFisher(DataVector):
     _kind = "velocity"
     _needed_keys = ["zobs", "logW", "m_mean", "rcom_zobs"]
     _free_par = ["a", "b"]
+    _number_dimension_observation_covariance = 2
+    _parameters_observation_covariance = ["logW", "m_mean"]
 
     @property
     def conditional_needed_keys(self):
@@ -97,6 +110,39 @@ class VelFromTullyFisher(DataVector):
         if self._covariance_observation is None:
             cond_keys += ["e_logW", "e_m_mean"]
         return cond_keys
+
+    def __init__(
+        self,
+        data,
+        h,
+        covariance_observation=None,
+        velocity_estimator="full",
+    ):
+        """Initialize Tully–Fisher velocity vector.
+
+        Args:
+            data (dict): Includes `logW`, `m_mean`, redshifts and distances.
+            h (float): Little-h scaling for distances.
+            covariance_observation (ndarray|None): Optional observation covariance.
+            velocity_estimator (str): Estimator name.
+
+        Raises:
+            ValueError: If covariance shape is not `2N x 2N` when provided.
+        """
+        super().__init__(data, covariance_observation=covariance_observation)
+        self.velocity_estimator = velocity_estimator
+        self.h = h
+        self._host_matrix = None
+
+        if "host_group_id" in data:
+            self._host_matrix, self._data_to_group_mapping = (
+                vector_utils.compute_host_matrix(self._data["host_group_id"])
+            )
+            self._data = vector_utils.format_data_multiple_host(
+                self._data, self._host_matrix
+            )
+            if jax_installed:
+                self._host_matrix = BCOO.from_scipy_sparse(self._host_matrix)
 
     def compute_observed_distance_modulus(self, parameter_values_dict):
         """Compute observed distance modulus from Tully–Fisher relation.
@@ -159,11 +205,23 @@ class VelFromTullyFisher(DataVector):
             )
             variance_distance_modulus += parameter_values_dict["sigma_M"] ** 2
         else:
-            variance_distance_modulus = (
-                self._covariance_observation
-                + jnp.eye(self._covariance_observation.shape[0])
-                * parameter_values_dict["sigma_M"] ** 2
+            weights_observation_covariance = jnp.array(
+                [
+                    1.0,
+                    parameter_values_dict["a"],
+                ]
             )
+            jacobian = jnp.kron(
+                weights_observation_covariance,
+                jnp.eye(self._number_datapoints),
+            )
+            variance_distance_modulus = (
+                jacobian @ self._covariance_observation @ jacobian.T
+            )
+            variance_distance_modulus += (
+                jnp.eye(self._number_datapoints) * parameter_values_dict["sigma_M"] ** 2
+            )
+
         return variance_distance_modulus
 
     def give_data_and_variance(self, parameter_values_dict):
@@ -190,10 +248,13 @@ class VelFromTullyFisher(DataVector):
                 * distance_modulus_difference_to_velocity**2
             )
         else:
-            A = self._init_A()
-            J = A[0] + parameter_values_dict["a"] * A[1]
-            J = jnp.diag(distance_modulus_difference_to_velocity) @ J
-            velocity_variance = J @ observed_distance_modulus_variance @ J.T
+            conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
+
+            velocity_variance = (
+                conversion_matrix
+                @ observed_distance_modulus_variance
+                @ conversion_matrix.T
+            )
 
         velocities = (
             distance_modulus_difference_to_velocity
@@ -207,63 +268,13 @@ class VelFromTullyFisher(DataVector):
 
         return velocities, velocity_variance
 
-    def _init_A(self):
-        """Initialize design matrices for linear propagation with covariance.
-
-        Returns:
-            ndarray: Matrix A blocks.
-        """
-        N = len(self._data)
-        A = jnp.ones((2, N, 2 * N))
-        ij = jnp.ogrid[:N, : 2 * N]
-        for k in range(2):
-            A[k][ij[1] == 2 * ij[0] + k] = 1
-        return A
-
-    def __init__(
-        self,
-        data,
-        h,
-        covariance_observation=None,
-        velocity_estimator="full",
-    ):
-        """Initialize Tully–Fisher velocity vector.
-
-        Args:
-            data (dict): Includes `logW`, `m_mean`, redshifts and distances.
-            h (float): Little-h scaling for distances.
-            covariance_observation (ndarray|None): Optional observation covariance.
-            velocity_estimator (str): Estimator name.
-
-        Raises:
-            ValueError: If covariance shape is not `2N x 2N` when provided.
-        """
-        super().__init__(data, covariance_observation=covariance_observation)
-        self.velocity_estimator = velocity_estimator
-        self.h = h
-        self._A = None
-        self._host_matrix = None
-
-        if "host_group_id" in data:
-            self._host_matrix, self._data_to_group_mapping = (
-                vector_utils.compute_host_matrix(self._data["host_group_id"])
-            )
-            self._data = vector_utils.format_data_multiple_host(
-                self._data, self._host_matrix
-            )
-            if jax_installed:
-                self._host_matrix = BCOO.from_scipy_sparse(self._host_matrix)
-
-        if self._covariance_observation is not None:
-            if self._covariance_observation.shape != (2 * len(data), 2 * len(data)):
-                raise ValueError("Cov should be 2N x 2N")
-
 
 class VelFromFundamentalPlane(DataVector):
-
     _kind = "velocity"
     _needed_keys = ["zobs", "logRe", "logsig", "logI", "rcom_zobs"]
     _free_par = ["a", "b", "c"]
+    _number_dimension_observation_covariance = 3
+    _parameters_observation_covariance = ["logRe", "logsig", "logI"]
 
     @property
     def conditional_needed_keys(self):
@@ -276,6 +287,39 @@ class VelFromFundamentalPlane(DataVector):
         if self._covariance_observation is None:
             cond_keys += ["e_logRe", "e_logsig", "e_logI"]
         return cond_keys
+
+    def __init__(
+        self,
+        data,
+        h,
+        covariance_observation=None,
+        velocity_estimator="full",
+    ):
+        """Initialize Fundamental Plane velocity vector.
+
+        Args:
+            data (dict): Includes `logRe`, `logsig`, `logI`, redshifts and distances.
+            h (float): Little-h scaling for distances.
+            covariance_observation (ndarray|None): Optional observation covariance.
+            velocity_estimator (str): Estimator name.
+
+        Raises:
+            ValueError: If covariance shape is not `3N x 3N` when provided.
+        """
+        super().__init__(data, covariance_observation=covariance_observation)
+        self.velocity_estimator = velocity_estimator
+        self.h = h
+        self._host_matrix = None
+
+        if "host_group_id" in data:
+            self._host_matrix, self._data_to_group_mapping = (
+                vector_utils.compute_host_matrix(self._data["host_group_id"])
+            )
+            self._data = vector_utils.format_data_multiple_host(
+                self._data, self._host_matrix
+            )
+            if jax_installed:
+                self._host_matrix = BCOO.from_scipy_sparse(self._host_matrix)
 
     def compute_observed_distance_modulus(self, parameter_values_dict):
         """Compute observed distance modulus from Fundamental Plane relation.
@@ -340,11 +384,24 @@ class VelFromFundamentalPlane(DataVector):
             )
             variance_distance_modulus += parameter_values_dict["sigma_M"] ** 2
         else:
-            variance_distance_modulus = (
-                self._covariance_observation
-                + jnp.eye(self._covariance_observation.shape[0])
-                * parameter_values_dict["sigma_M"] ** 2
+            weights_observation_covariance = jnp.array(
+                [
+                    1.0,
+                    parameter_values_dict["a"],
+                    parameter_values_dict["b"],
+                ]
             )
+            jacobian = jnp.kron(
+                weights_observation_covariance,
+                jnp.eye(self._number_datapoints),
+            )
+            variance_distance_modulus = (
+                jacobian @ self._covariance_observation @ jacobian.T
+            )
+            variance_distance_modulus += (
+                jnp.eye(self._number_datapoints) * parameter_values_dict["sigma_M"] ** 2
+            )
+
         return variance_distance_modulus
 
     def give_data_and_variance(self, parameter_values_dict):
@@ -371,14 +428,13 @@ class VelFromFundamentalPlane(DataVector):
                 * distance_modulus_difference_to_velocity**2
             )
         else:
-            A = self._init_A()
-            J = (
-                A[0]
-                + parameter_values_dict["a"] * A[1]
-                + parameter_values_dict["b"] * A[2]
+            conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
+
+            velocity_variance = (
+                conversion_matrix
+                @ observed_distance_modulus_variance
+                @ conversion_matrix.T
             )
-            J = jnp.diag(distance_modulus_difference_to_velocity) @ J
-            velocity_variance = J @ observed_distance_modulus_variance @ J.T
 
         velocities = (
             distance_modulus_difference_to_velocity
@@ -391,54 +447,3 @@ class VelFromFundamentalPlane(DataVector):
             )
 
         return velocities, velocity_variance
-
-    def _init_A(self):
-        """Initialize design matrices for linear propagation with covariance.
-
-        Returns:
-            ndarray: Matrix A blocks.
-        """
-        N = len(self._data)
-        A = jnp.ones((3, N, 3 * N))
-        ij = jnp.ogrid[:N, : 3 * N]
-        for k in range(3):
-            A[k][ij[1] == 3 * ij[0] + k] = 1
-        return A
-
-    def __init__(
-        self,
-        data,
-        h,
-        covariance_observation=None,
-        velocity_estimator="full",
-    ):
-        """Initialize Fundamental Plane velocity vector.
-
-        Args:
-            data (dict): Includes `logRe`, `logsig`, `logI`, redshifts and distances.
-            h (float): Little-h scaling for distances.
-            covariance_observation (ndarray|None): Optional observation covariance.
-            velocity_estimator (str): Estimator name.
-
-        Raises:
-            ValueError: If covariance shape is not `3N x 3N` when provided.
-        """
-        super().__init__(data, covariance_observation=covariance_observation)
-        self.velocity_estimator = velocity_estimator
-        self.h = h
-        self._A = None
-        self._host_matrix = None
-
-        if "host_group_id" in data:
-            self._host_matrix, self._data_to_group_mapping = (
-                vector_utils.compute_host_matrix(self._data["host_group_id"])
-            )
-            self._data = vector_utils.format_data_multiple_host(
-                self._data, self._host_matrix
-            )
-            if jax_installed:
-                self._host_matrix = BCOO.from_scipy_sparse(self._host_matrix)
-
-        if self._covariance_observation is not None:
-            if self._covariance_observation.shape != (3 * len(data), 3 * len(data)):
-                raise ValueError("Cov should be 3N x 3N")

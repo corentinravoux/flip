@@ -130,7 +130,7 @@ class VelFromSALTfit(DataVector):
             )
             variance_distance_modulus = J @ self._covariance_observation @ J.T
             variance_distance_modulus += (
-                jnp.eye(self._data.shape[0]) * parameter_values_dict["sigma_M"] ** 2
+                jnp.eye(self.number_datapoints) * parameter_values_dict["sigma_M"] ** 2
             )
 
         return variance_distance_modulus
@@ -184,11 +184,13 @@ class VelFromSALTfit(DataVector):
         Returns:
             ndarray: Matrix A blocks.
         """
-        N = len(self._data)
-        A = jnp.ones((3, N, 3 * N))
-        ij = jnp.ogrid[:N, : 3 * N]
+        A = jnp.ones((3, self.number_datapoints, 3 * self.number_datapoints))
+        ij = jnp.ogrid[: self.number_datapoints, : 3 * self.number_datapoints]
         for k in range(3):
-            A[k][ij[1] == 3 * ij[0] + k] = 1
+            if jax_installed:
+                A = A.at[k, ij[1] == 3 * ij[0] + k].set(1)
+            else:
+                A[k][ij[1] == 3 * ij[0] + k] = 1
         return A
 
     def __init__(
@@ -217,6 +219,7 @@ class VelFromSALTfit(DataVector):
         self._A = None
         self._host_matrix = None
         self._mass_step = mass_step
+        self.number_datapoints = len(data["zobs"])
 
         if "host_group_id" in data:
             self._host_matrix, self._data_to_group_mapping = (
@@ -229,6 +232,9 @@ class VelFromSALTfit(DataVector):
                 self._host_matrix = BCOO.from_scipy_sparse(self._host_matrix)
 
         if self._covariance_observation is not None:
-            if self._covariance_observation.shape != (3 * len(data), 3 * len(data)):
+            if self._covariance_observation.shape != (
+                3 * self.number_datapoints,
+                3 * self.number_datapoints,
+            ):
                 raise ValueError("Cov should be 3N x 3N")
             self._A = self._init_A()

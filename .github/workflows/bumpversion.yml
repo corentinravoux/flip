@@ -34,7 +34,7 @@ jobs:
       run: bump2version patch --verbose
       
     - name: Bump major version
-      if: ${{ ontains(github.event.head_commit.message, '[bump major]') }}
+      if: ${{contains(github.event.head_commit.message, '[bump major]') }}
       run: bump2version major --verbose --tag
       
     - name: Bump minor version

@@ -120,11 +120,11 @@ class DataVector(abc.ABC):
             covariance_observation (ndarray|None): Observation covariance matrix or None.
             **kwargs: Extra configuration for subclasses.
         """
+        self.init_covariance_observation(covariance_observation)
         self._check_keys(data)
         self._data = copy.copy(data)
         self._kwargs = kwargs
         self._number_datapoints = len(data[self.needed_keys[0]])
-        self.init_covariance_observation(covariance_observation)
 
         for k in self._data:
             self._data[k] = jnp.array(self._data[k])

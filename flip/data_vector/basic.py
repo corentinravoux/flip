@@ -120,9 +120,10 @@ class DataVector(abc.ABC):
             covariance_observation (ndarray|None): Observation covariance matrix or None.
             **kwargs: Extra configuration for subclasses.
         """
+        self._covariance_observation = covariance_observation
         self._check_keys(data)
         self._number_datapoints = len(data[self.needed_keys[0]])
-        self.init_covariance_observation(covariance_observation)
+        self.check_covariance_observation()
         self._data = copy.copy(data)
         self._kwargs = kwargs
 
@@ -132,8 +133,7 @@ class DataVector(abc.ABC):
         if jax_installed:
             self.give_data_and_variance_jit = jit(self.give_data_and_variance)
 
-    def init_covariance_observation(self, covariance_observation):
-        self._covariance_observation = covariance_observation
+    def check_covariance_observation(self):
         if self._covariance_observation is not None:
             if self._covariance_observation.shape != (
                 self._number_dimension_observation_covariance * self._number_datapoints,

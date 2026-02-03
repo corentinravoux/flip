@@ -1,3 +1,5 @@
+from flip.utils import create_log
+
 from .._config import __use_jax__
 from . import vector_utils
 from .basic import DataVector
@@ -19,11 +21,15 @@ else:
 
     jax_installed = False
 
+log = create_log()
+
 
 class VelFromSALTfit(DataVector):
     _kind = "velocity"
     _needed_keys = ["zobs", "mb", "x1", "c", "rcom_zobs"]
     _free_par = ["alpha", "beta", "M_0", "sigma_M"]
+    _number_dimension_observation_covariance = 3
+    _parameters_observation_covariance = ["mb", "x1", "c"]
 
     @property
     def conditional_needed_keys(self):
@@ -48,6 +54,42 @@ class VelFromSALTfit(DataVector):
         if "host_logmass" in self.data:
             _cond_fpar += ["gamma"]
         return _cond_fpar
+
+    def __init__(
+        self,
+        data,
+        h,
+        covariance_observation=None,
+        velocity_estimator="full",
+        mass_step=10,
+    ):
+        """Initialize SN Ia velocity vector from SALT2 fits.
+
+        Args:
+            data (dict): Includes SALT2 parameters and cosmology fields.
+            h (float): Little-h scaling for distances.
+            covariance_observation (ndarray|None): Optional observation covariance.
+            velocity_estimator (str): Estimator name.
+            mass_step (float): Threshold for host mass step correction.
+
+        Raises:
+            ValueError: If covariance shape is not adapted
+        """
+        super().__init__(data, covariance_observation=covariance_observation)
+        self.velocity_estimator = velocity_estimator
+        self.h = h
+        self._host_matrix = None
+        self._mass_step = mass_step
+
+        if "host_group_id" in data:
+            self._host_matrix, self._data_to_group_mapping = (
+                vector_utils.compute_host_matrix(self._data["host_group_id"])
+            )
+            self._data = vector_utils.format_data_multiple_host(
+                self._data, self._host_matrix
+            )
+            if jax_installed:
+                self._host_matrix = BCOO.from_scipy_sparse(self._host_matrix)
 
     def compute_observed_distance_modulus(self, parameter_values_dict):
         """Compute observed distance modulus from SALT2 fit parameters.
@@ -122,11 +164,24 @@ class VelFromSALTfit(DataVector):
             )
             variance_distance_modulus += parameter_values_dict["sigma_M"] ** 2
         else:
-            variance_distance_modulus = (
-                self._covariance_observation
-                + jnp.eye(self._covariance_observation.shape[0])
-                * parameter_values_dict["sigma_M"] ** 2
+            weights_observation_covariance = jnp.array(
+                [
+                    1.0,
+                    parameter_values_dict["alpha"],
+                    -parameter_values_dict["beta"],
+                ]
             )
+            jacobian = jnp.kron(
+                weights_observation_covariance,
+                jnp.eye(self._number_datapoints),
+            )
+            variance_distance_modulus = (
+                jacobian @ self._covariance_observation @ jacobian.T
+            )
+            variance_distance_modulus += (
+                jnp.eye(self._number_datapoints) * parameter_values_dict["sigma_M"] ** 2
+            )
+
         return variance_distance_modulus
 
     def give_data_and_variance(self, parameter_values_dict):
@@ -152,14 +207,13 @@ class VelFromSALTfit(DataVector):
                 * distance_modulus_difference_to_velocity**2
             )
         else:
-            A = self._init_A()
-            J = (
-                A[0]
-                + parameter_values_dict["alpha"] * A[1]
-                - parameter_values_dict["beta"] * A[2]
+            conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
+
+            velocity_variance = (
+                conversion_matrix
+                @ observed_distance_modulus_variance
+                @ conversion_matrix.T
             )
-            J = jnp.diag(distance_modulus_difference_to_velocity) @ J
-            velocity_variance = J @ observed_distance_modulus_variance @ J.T
 
         velocities = (
             distance_modulus_difference_to_velocity
@@ -172,58 +226,3 @@ class VelFromSALTfit(DataVector):
             )
 
         return velocities, velocity_variance
-
-    def _init_A(self):
-        """Initialize design matrices for linear covariance propagation.
-
-        Returns:
-            ndarray: Matrix A blocks.
-        """
-        N = len(self._data)
-        A = jnp.ones((3, N, 3 * N))
-        ij = jnp.ogrid[:N, : 3 * N]
-        for k in range(3):
-            A[k][ij[1] == 3 * ij[0] + k] = 1
-        return A
-
-    def __init__(
-        self,
-        data,
-        h,
-        covariance_observation=None,
-        velocity_estimator="full",
-        mass_step=10,
-    ):
-        """Initialize SN Ia velocity vector from SALT2 fits.
-
-        Args:
-            data (dict): Includes SALT2 parameters and cosmology fields.
-            h (float): Little-h scaling for distances.
-            covariance_observation (ndarray|None): Optional observation covariance.
-            velocity_estimator (str): Estimator name.
-            mass_step (float): Threshold for host mass step correction.
-
-        Raises:
-            ValueError: If covariance shape is not `3N x 3N` when provided.
-        """
-        super().__init__(data, covariance_observation=covariance_observation)
-        self.velocity_estimator = velocity_estimator
-        self.h = h
-        self._A = None
-        self._host_matrix = None
-        self._mass_step = mass_step
-
-        if "host_group_id" in data:
-            self._host_matrix, self._data_to_group_mapping = (
-                vector_utils.compute_host_matrix(self._data["host_group_id"])
-            )
-            self._data = vector_utils.format_data_multiple_host(
-                self._data, self._host_matrix
-            )
-            if jax_installed:
-                self._host_matrix = BCOO.from_scipy_sparse(self._host_matrix)
-
-        if self._covariance_observation is not None:
-            if self._covariance_observation.shape != (3 * len(data), 3 * len(data)):
-                raise ValueError("Cov should be 3N x 3N")
-            self._A = self._init_A()

@@ -43,8 +43,11 @@ class DataVector(abc.ABC):
         _kind (str): One of "velocity", "density" or "cross".
     """
 
-    _free_par = []
     _kind = ""  # 'velocity', 'density' or 'cross'
+    _needed_keys = []
+    _free_par = []
+    _number_dimension_observation_covariance = 0
+    _parameters_observation_covariance = []
 
     @property
     def conditional_free_par(self):
@@ -109,16 +112,6 @@ class DataVector(abc.ABC):
         """
         pass
 
-    def _check_keys(self, data):
-        """Validate that `data` contains all required keys.
-
-        Raises:
-            ValueError: When a required key is missing.
-        """
-        for k in self.needed_keys:
-            if k not in data:
-                raise ValueError(f"{k} field is needed in data")
-
     def __init__(self, data, covariance_observation=None, **kwargs):
         """Initialize data vector with data and optional observation covariance.
 
@@ -129,6 +122,8 @@ class DataVector(abc.ABC):
         """
         self._covariance_observation = covariance_observation
         self._check_keys(data)
+        self._number_datapoints = len(data[self.needed_keys[0]])
+        self.check_covariance_observation()
         self._data = copy.copy(data)
         self._kwargs = kwargs
 
@@ -137,6 +132,31 @@ class DataVector(abc.ABC):
 
         if jax_installed:
             self.give_data_and_variance_jit = jit(self.give_data_and_variance)
+
+    def check_covariance_observation(self):
+        if self._covariance_observation is not None:
+            if self._covariance_observation.shape != (
+                self._number_dimension_observation_covariance * self._number_datapoints,
+                self._number_dimension_observation_covariance * self._number_datapoints,
+            ):
+                raise ValueError(
+                    f"Observation covariance matrix should be {self._number_dimension_observation_covariance}N "
+                    f"x {self._number_dimension_observation_covariance}N"
+                )
+            log.add(
+                f"Loading observation covariance matrix, "
+                f"expecting {self._parameters_observation_covariance} parameters."
+            )
+
+    def _check_keys(self, data):
+        """Validate that `data` contains all required keys.
+
+        Raises:
+            ValueError: When a required key is missing.
+        """
+        for k in self.needed_keys:
+            if k not in data:
+                raise ValueError(f"{k} field is needed in data")
 
     def get_masked_data_and_cov(self, bool_mask):
         """Return masked data and corresponding masked observation covariance.
@@ -189,6 +209,9 @@ class DataVector(abc.ABC):
 class Dens(DataVector):
     _kind = "density"
     _needed_keys = ["density", "density_error"]
+    _free_par = []
+    _number_dimension_observation_covariance = 1
+    _parameters_observation_covariance = ["density"]
 
     def give_data_and_variance(self, *args):
         """Return density data and diagonal variance from `density_error`.
@@ -196,12 +219,21 @@ class Dens(DataVector):
         Returns:
             tuple: (density, density_error^2).
         """
+
+        if self._covariance_observation is not None:
+            return self._data["density"], self._covariance_observation
         return self._data["density"], self._data["density_error"] ** 2
+
+    def __init__(self, data, covariance_observation=None):
+        super().__init__(data, covariance_observation=covariance_observation)
 
 
 class DirectVel(DataVector):
     _kind = "velocity"
     _needed_keys = ["velocity"]
+    _free_par = []
+    _number_dimension_observation_covariance = 1
+    _parameters_observation_covariance = ["velocity"]
 
     @property
     def conditional_needed_keys(self):
@@ -251,6 +283,90 @@ class DirectVel(DataVector):
                 self._data["velocity_error"] = jnp.sqrt(velocity_variance)
             else:
                 self._covariance_observation = velocity_variance
+
+
+class VelFromHDres(DataVector):
+    _kind = "velocity"
+    _needed_keys = ["dmu", "zobs"]
+    _free_par = ["M_0"]
+    _number_dimension_observation_covariance = 1
+    _parameters_observation_covariance = ["dmu"]
+
+    @property
+    def conditional_needed_keys(self):
+        cond_keys = []
+        if self._covariance_observation is None:
+            cond_keys += ["dmu_error"]
+        return self._needed_keys + cond_keys
+
+    def give_data_and_variance(self, parameter_values_dict):
+        distance_modulus_difference_to_velocity = (
+            vector_utils.redshift_dependence_velocity(
+                self._data, self.velocity_estimator, **parameter_values_dict
+            )
+        )
+        velocity = (
+            distance_modulus_difference_to_velocity * self._data["dmu"]
+            - distance_modulus_difference_to_velocity * parameter_values_dict["M_0"]
+        )
+
+        if self._covariance_observation is None:
+            velocity_variance = (
+                distance_modulus_difference_to_velocity * self._data["dmu_error"]
+            ) ** 2
+        else:
+            conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
+
+            velocity_variance = (
+                conversion_matrix @ self._covariance_observation @ conversion_matrix.T
+            )
+
+        return velocity, velocity_variance
+
+    def __init__(
+        self, data, covariance_observation=None, velocity_estimator="full", **kwargs
+    ):
+
+        self.velocity_estimator = velocity_estimator
+
+        super().__init__(data, covariance_observation=covariance_observation)
+
+
+class VelFromIntrinsicScatter(DataVector):
+    _kind = "velocity"
+    _needed_keys = ["zobs"]
+    _free_par = ["sigma_M"]
+    _number_dimension_observation_covariance = 0
+    _parameters_observation_covariance = []
+
+    def give_data_and_variance(self, parameter_values_dict):
+        distance_modulus_difference_to_velocity = (
+            vector_utils.redshift_dependence_velocity(
+                self._data, self.velocity_estimator, **parameter_values_dict
+            )
+        )
+        if jax_installed:
+            key = random.PRNGKey(0)
+            distance_modulus = parameter_values_dict["sigma_M"] * random.normal(
+                key, (len(self._data["zobs"]),)
+            )
+        else:
+            distance_modulus = random.normal(
+                loc=0.0,
+                scale=parameter_values_dict["sigma_M"],
+                size=len(self._data["zobs"]),
+            )
+
+        variance = parameter_values_dict["sigma_M"] ** 2
+
+        return (
+            distance_modulus_difference_to_velocity * distance_modulus,
+            distance_modulus_difference_to_velocity**2 * variance,
+        )
+
+    def __init__(self, data, velocity_estimator="full"):
+        super().__init__(data)
+        self.velocity_estimator = velocity_estimator
 
 
 class DensVel(DataVector):
@@ -308,84 +424,3 @@ class DensVel(DataVector):
             coordinates_velocity=coords_vel,
             **kwargs,
         )
-
-
-class VelFromHDres(DataVector):
-    _needed_keys = ["dmu", "zobs"]
-    _free_par = ["M_0"]
-
-    @property
-    def conditional_needed_keys(self):
-        cond_keys = []
-        if self._covariance_observation is None:
-            cond_keys += ["dmu_error"]
-        return self._needed_keys + cond_keys
-
-    def give_data_and_variance(self, parameter_values_dict):
-        distance_modulus_difference_to_velocity = (
-            vector_utils.redshift_dependence_velocity(
-                self._data, self.velocity_estimator, **parameter_values_dict
-            )
-        )
-        velocity = (
-            distance_modulus_difference_to_velocity * self._data["dmu"]
-            - distance_modulus_difference_to_velocity * parameter_values_dict["M_0"]
-        )
-        if self._covariance_observation is None and "dmu_error" in self._data:
-            velocity_error = (
-                distance_modulus_difference_to_velocity * self._data["dmu_error"]
-            )
-            return velocity, velocity_error**2
-
-        elif self._covariance_observation is not None:
-            J = jnp.diag(self._distance_modulus_difference_to_velocity)
-            velocity_variance = J @ self._covariance_observation @ J.T
-            return velocity, velocity_variance
-        else:
-            raise ValueError(
-                "Cannot compute velocity variance without dmu_error or covariance_observation"
-            )
-
-    def __init__(
-        self, data, covariance_observation=None, velocity_estimator="full", **kwargs
-    ):
-        # Compute conversion using provided input data, not uninitialized self._data
-
-        self.velocity_estimator = velocity_estimator
-
-        super().__init__(data, covariance_observation=covariance_observation)
-
-
-class VelFromIntrinsicScatter(DataVector):
-    _kind = "velocity"
-    _needed_keys = ["zobs"]
-    _free_par = ["sigma_M"]
-
-    def give_data_and_variance(self, parameter_values_dict):
-        distance_modulus_difference_to_velocity = (
-            vector_utils.redshift_dependence_velocity(
-                self._data, self.velocity_estimator, **parameter_values_dict
-            )
-        )
-        if jax_installed:
-            key = random.PRNGKey(0)
-            distance_modulus = parameter_values_dict["sigma_M"] * random.normal(
-                key, (len(self._data["zobs"]),)
-            )
-        else:
-            distance_modulus = random.normal(
-                loc=0.0,
-                scale=parameter_values_dict["sigma_M"],
-                size=len(self._data["zobs"]),
-            )
-
-        variance = parameter_values_dict["sigma_M"] ** 2
-
-        return (
-            distance_modulus_difference_to_velocity * distance_modulus,
-            distance_modulus_difference_to_velocity**2 * variance,
-        )
-
-    def __init__(self, data, velocity_estimator="full"):
-        super().__init__(data)
-        self.velocity_estimator = velocity_estimator

@@ -17,4 +17,4 @@ except:
 
 __flip_dir_path__ = os.path.dirname(__file__)
 
-__version__ = "1.2.1"
+__version__ = "1.2.2"

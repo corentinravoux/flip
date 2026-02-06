@@ -1,4 +1,4 @@
-<img src="[docs/_static/flip_logo.webp](https://github.com/corentinravoux/flip/blob/main/docs/_static/flip_logo.webp)" width=350>
+<img src="[docs/_static/flip_logo.webp](https://github.com/corentinravoux/flip/blob/main/docs/_static/flip_logo.webp?raw=true)" width=350>
 
 # flip: Field Level Inference Package
 

@@ -60,6 +60,7 @@ class VelFromSALTfit(DataVector):
         data,
         h,
         covariance_observation=None,
+        optional_covariance_observed_distance_modulus=None,
         velocity_estimator="full",
         mass_step=10,
     ):
@@ -76,6 +77,9 @@ class VelFromSALTfit(DataVector):
             ValueError: If covariance shape is not adapted
         """
         super().__init__(data, covariance_observation=covariance_observation)
+        self.optional_covariance_observed_distance_modulus = (
+            optional_covariance_observed_distance_modulus
+        )
         self.velocity_estimator = velocity_estimator
         self.h = h
         self._host_matrix = None
@@ -181,6 +185,10 @@ class VelFromSALTfit(DataVector):
             variance_distance_modulus += (
                 jnp.eye(self._number_datapoints) * parameter_values_dict["sigma_M"] ** 2
             )
+            if self.optional_covariance_observed_distance_modulus is not None:
+                variance_distance_modulus += (
+                    self.optional_covariance_observed_distance_modulus
+                )
 
         return variance_distance_modulus
 

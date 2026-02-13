@@ -170,7 +170,7 @@ class VelFromSALTfit(DataVector):
 
             if self.optional_covariance_observed_distance_modulus is not None:
                 variance_distance_modulus = (
-                    jnp.eye(variance_distance_modulus)
+                    jnp.diag(variance_distance_modulus)
                     + self.optional_covariance_observed_distance_modulus
                 )
         else:

@@ -167,6 +167,12 @@ class VelFromSALTfit(DataVector):
                 * self._data["cov_x1_c"]
             )
             variance_distance_modulus += parameter_values_dict["sigma_M"] ** 2
+
+            if self.optional_covariance_observed_distance_modulus is not None:
+                variance_distance_modulus = (
+                    jnp.eye(variance_distance_modulus)
+                    + self.optional_covariance_observed_distance_modulus
+                )
         else:
             weights_observation_covariance = jnp.array(
                 [
@@ -210,10 +216,20 @@ class VelFromSALTfit(DataVector):
             )
         )
         if self._covariance_observation is None:
-            velocity_variance = (
-                observed_distance_modulus_variance
-                * distance_modulus_difference_to_velocity**2
-            )
+            if self.optional_covariance_observed_distance_modulus is not None:
+                conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
+
+                velocity_variance = (
+                    conversion_matrix
+                    @ observed_distance_modulus_variance
+                    @ conversion_matrix.T
+                )
+            else:
+                velocity_variance = (
+                    observed_distance_modulus_variance
+                    * distance_modulus_difference_to_velocity**2
+                )
+
         else:
             conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
 

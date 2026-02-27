@@ -116,6 +116,7 @@ class VelFromTullyFisher(DataVector):
         data,
         h,
         covariance_observation=None,
+        optional_covariance_observed_distance_modulus=None,
         velocity_estimator="full",
     ):
         """Initialize Tully–Fisher velocity vector.
@@ -131,6 +132,18 @@ class VelFromTullyFisher(DataVector):
         """
         super().__init__(data, covariance_observation=covariance_observation)
         self.velocity_estimator = velocity_estimator
+        if self.optional_covariance_observed_distance_modulus is not None:
+            optional_covariance = jnp.array(
+                optional_covariance_observed_distance_modulus
+            )
+            if optional_covariance.shape != (
+                self._number_datapoints,
+                self._number_datapoints,
+            ):
+                raise ValueError(
+                    f"Optional covariance must be of shape {(self._number_datapoints, self._number_datapoints)}, "
+                    f"but got {optional_covariance.shape}."
+                )
         self.h = h
         self._host_matrix = None
 
@@ -204,6 +217,11 @@ class VelFromTullyFisher(DataVector):
                 + parameter_values_dict["a"] ** 2 * self._data["e_logW"] ** 2
             )
             variance_distance_modulus += parameter_values_dict["sigma_M"] ** 2
+            if self.optional_covariance_observed_distance_modulus is not None:
+                variance_distance_modulus = (
+                    jnp.diag(variance_distance_modulus)
+                    + self.optional_covariance_observed_distance_modulus
+                )
         else:
             weights_observation_covariance = jnp.array(
                 [
@@ -221,6 +239,11 @@ class VelFromTullyFisher(DataVector):
             variance_distance_modulus += (
                 jnp.eye(self._number_datapoints) * parameter_values_dict["sigma_M"] ** 2
             )
+
+            if self.optional_covariance_observed_distance_modulus is not None:
+                variance_distance_modulus += (
+                    self.optional_covariance_observed_distance_modulus
+                )
 
         return variance_distance_modulus
 
@@ -243,10 +266,19 @@ class VelFromTullyFisher(DataVector):
             self.compute_observed_distance_modulus_variance(parameter_values_dict)
         )
         if self._covariance_observation is None:
-            velocity_variance = (
-                observed_distance_modulus_variance
-                * distance_modulus_difference_to_velocity**2
-            )
+            if self.optional_covariance_observed_distance_modulus is not None:
+                conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
+
+                velocity_variance = (
+                    conversion_matrix
+                    @ observed_distance_modulus_variance
+                    @ conversion_matrix.T
+                )
+            else:
+                velocity_variance = (
+                    observed_distance_modulus_variance
+                    * distance_modulus_difference_to_velocity**2
+                )
         else:
             conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
 
@@ -293,6 +325,7 @@ class VelFromFundamentalPlane(DataVector):
         data,
         h,
         covariance_observation=None,
+        optional_covariance_observed_distance_modulus=None,
         velocity_estimator="full",
     ):
         """Initialize Fundamental Plane velocity vector.
@@ -308,6 +341,18 @@ class VelFromFundamentalPlane(DataVector):
         """
         super().__init__(data, covariance_observation=covariance_observation)
         self.velocity_estimator = velocity_estimator
+        if self.optional_covariance_observed_distance_modulus is not None:
+            optional_covariance = jnp.array(
+                optional_covariance_observed_distance_modulus
+            )
+            if optional_covariance.shape != (
+                self._number_datapoints,
+                self._number_datapoints,
+            ):
+                raise ValueError(
+                    f"Optional covariance must be of shape {(self._number_datapoints, self._number_datapoints)}, "
+                    f"but got {optional_covariance.shape}."
+                )
         self.h = h
         self._host_matrix = None
 
@@ -383,6 +428,12 @@ class VelFromFundamentalPlane(DataVector):
                 + parameter_values_dict["b"] ** 2 * self._data["logI"] ** 2
             )
             variance_distance_modulus += parameter_values_dict["sigma_M"] ** 2
+
+            if self.optional_covariance_observed_distance_modulus is not None:
+                variance_distance_modulus = (
+                    jnp.diag(variance_distance_modulus)
+                    + self.optional_covariance_observed_distance_modulus
+                )
         else:
             weights_observation_covariance = jnp.array(
                 [
@@ -401,6 +452,10 @@ class VelFromFundamentalPlane(DataVector):
             variance_distance_modulus += (
                 jnp.eye(self._number_datapoints) * parameter_values_dict["sigma_M"] ** 2
             )
+            if self.optional_covariance_observed_distance_modulus is not None:
+                variance_distance_modulus += (
+                    self.optional_covariance_observed_distance_modulus
+                )
 
         return variance_distance_modulus
 
@@ -423,10 +478,19 @@ class VelFromFundamentalPlane(DataVector):
             self.compute_observed_distance_modulus_variance(parameter_values_dict)
         )
         if self._covariance_observation is None:
-            velocity_variance = (
-                observed_distance_modulus_variance
-                * distance_modulus_difference_to_velocity**2
-            )
+            if self.optional_covariance_observed_distance_modulus is not None:
+                conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
+
+                velocity_variance = (
+                    conversion_matrix
+                    @ observed_distance_modulus_variance
+                    @ conversion_matrix.T
+                )
+            else:
+                velocity_variance = (
+                    observed_distance_modulus_variance
+                    * distance_modulus_difference_to_velocity**2
+                )
         else:
             conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
 

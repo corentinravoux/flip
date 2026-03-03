@@ -77,6 +77,9 @@ class VelFromSALTfit(DataVector):
             ValueError: If covariance shape is not adapted
         """
         super().__init__(data, covariance_observation=covariance_observation)
+        self.optional_covariance_observed_distance_modulus = (
+            optional_covariance_observed_distance_modulus
+        )
         if self.optional_covariance_observed_distance_modulus is not None:
             optional_covariance = jnp.array(
                 optional_covariance_observed_distance_modulus

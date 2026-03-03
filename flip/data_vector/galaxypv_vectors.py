@@ -131,6 +131,10 @@ class VelFromTullyFisher(DataVector):
             ValueError: If covariance shape is not `2N x 2N` when provided.
         """
         super().__init__(data, covariance_observation=covariance_observation)
+
+        self.optional_covariance_observed_distance_modulus = (
+            optional_covariance_observed_distance_modulus
+        )
         self.velocity_estimator = velocity_estimator
         if self.optional_covariance_observed_distance_modulus is not None:
             optional_covariance = jnp.array(
@@ -341,6 +345,9 @@ class VelFromFundamentalPlane(DataVector):
         """
         super().__init__(data, covariance_observation=covariance_observation)
         self.velocity_estimator = velocity_estimator
+        self.optional_covariance_observed_distance_modulus = (
+            optional_covariance_observed_distance_modulus
+        )
         if self.optional_covariance_observed_distance_modulus is not None:
             optional_covariance = jnp.array(
                 optional_covariance_observed_distance_modulus

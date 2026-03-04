@@ -7,5 +7,6 @@ from . import (
     lai22,
     ravouxcarreres,
     ravouxnoanchor25,
+    ravouxqin26,
     rcrk24,
 )

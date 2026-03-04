@@ -6,6 +6,43 @@ import numpy as np
 
 from flip import utils
 
+_grid_kind_avail = ["ngp", "ngp_errw", "cic", "tsc", "pcs"]
+
+
+def ngp_weight(ds):
+    """Nearest Grid Point."""
+    abs_ds = np.abs(ds)
+    w = 1.0 * (abs_ds < 1 / 2)
+    return w
+
+
+def ngp_errw_weight(ds):
+    """Nearest Grid Point with Weighted error."""
+    return ngp_weight(ds)
+
+
+def cic_weight(ds):
+    """Cloud In Cell."""
+    abs_ds = np.abs(ds)
+    w = (1.0 - abs_ds) * (abs_ds < 1)
+    return w
+
+
+def tsc_weight(ds):
+    """Triangular Shaped Cloud."""
+    abs_ds = np.abs(ds)
+    w = (3 / 4 - ds**2) * (abs_ds < 1 / 2)
+    w += 1 / 2 * (3 / 2 - abs_ds) ** 2 * ((1 / 2 <= abs_ds) & (abs_ds < 3 / 2))
+    return w
+
+
+def pcs_weight(ds):
+    """Triangular Shaped Cloud."""
+    abs_ds = np.abs(ds)
+    w = 1 / 6 * (4 - 6 * ds**2 + 3 * abs_ds**3) * (abs_ds < 1)
+    w += 1 / 6 * (2 - abs_ds) ** 3 * ((1 <= abs_ds) & (abs_ds < 2))
+    return w
+
 
 def _get_resampler(resampler):
     conversions = {"ngp": "nnb", "cic": "cic", "tsc": "tsc", "pcs": "pcs"}
@@ -270,9 +307,7 @@ def cut_grid(
 
 
 def grid_data_density(
-    raobj,
-    decobj,
-    rcomobj,
+    data_position_sky,
     rcom_max,
     grid_size,
     grid_type,
@@ -304,32 +339,22 @@ def grid_data_density(
     Returns:
         dict: Grid with positions, density contrast, errors, and counts.
     """
-    xobj, yobj, zobj = utils.radec2cart(rcomobj, raobj, decobj)
-    mask = np.abs(xobj) < rcom_max + overhead
-    mask &= np.abs(yobj) < rcom_max + overhead
-    mask &= np.abs(zobj) < rcom_max + overhead
-    xobj, yobj, zobj = xobj[mask], yobj[mask], zobj[mask]
-    raobj, decobj, rcomobj = raobj[mask], decobj[mask], rcomobj[mask]
 
-    (
-        xobj_random,
-        yobj_random,
-        zobj_random,
-    ) = define_randoms(
+    # Check valid input grid kind
+    kind = kind.lower()
+    if kind not in _grid_kind_avail:
+        raise ValueError(
+            "INVALID GRID TYPE ! \n Grid allowed : " + f"{k}" for k in _grid_kind_avail
+        )
+
+    data_positions, randoms_positions = prepare_data_position(
+        data_position_sky,
+        rcom_max,
+        overhead,
         random_method,
-        xobj,
-        yobj,
-        zobj,
-        raobj,
-        decobj,
-        rcomobj,
-        Nrandom=Nrandom,
-        coord_randoms=coord_randoms,
-        max_coordinates=rcom_max + overhead,
+        Nrandom,
+        coord_randoms,
     )
-
-    data_positions = np.array([xobj, yobj, zobj]).T
-    randoms_positions = np.array([xobj_random, yobj_random, zobj_random]).T
 
     data_weights = np.ones((data_positions.shape[0],))
     randoms_weights = np.ones((randoms_positions.shape[0],))
@@ -412,3 +437,46 @@ def grid_data_density(
         )
 
     return grid
+
+
+def prepare_data_position(
+    data_position_sky,
+    rcom_max,
+    overhead,
+    random_method,
+    Nrandom,
+    coord_randoms,
+):
+
+    rcomobj = data_position_sky[:, 0]
+    raobj = data_position_sky[:, 1]
+    decobj = data_position_sky[:, 2]
+
+    xobj, yobj, zobj = utils.radec2cart(rcomobj, raobj, decobj)
+    mask = np.abs(xobj) < rcom_max + overhead
+    mask &= np.abs(yobj) < rcom_max + overhead
+    mask &= np.abs(zobj) < rcom_max + overhead
+    xobj, yobj, zobj = xobj[mask], yobj[mask], zobj[mask]
+    raobj, decobj, rcomobj = raobj[mask], decobj[mask], rcomobj[mask]
+
+    (
+        xobj_random,
+        yobj_random,
+        zobj_random,
+    ) = define_randoms(
+        random_method,
+        xobj,
+        yobj,
+        zobj,
+        raobj,
+        decobj,
+        rcomobj,
+        Nrandom=Nrandom,
+        coord_randoms=coord_randoms,
+        max_coordinates=rcom_max + overhead,
+    )
+
+    data_positions = np.array([xobj, yobj, zobj]).T
+    randoms_positions = np.array([xobj_random, yobj_random, zobj_random]).T
+
+    return data_positions, randoms_positions

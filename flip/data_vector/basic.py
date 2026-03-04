@@ -5,6 +5,7 @@ import importlib
 import numpy as np
 
 from flip.covariance import CovMatrix
+from flip.data_vector import mesh
 from flip.utils import create_log
 
 from .._config import __use_jax__
@@ -204,6 +205,71 @@ class DataVector(abc.ABC):
             **{f"coordinates_{self._kind}": coords},
             **kwargs,
         )
+
+
+class DensMesh(DataVector):
+    _kind = "density"
+    _needed_keys = ["density", "density_error"]
+    _free_par = []
+    _number_dimension_observation_covariance = 1
+    _parameters_observation_covariance = ["density"]
+
+    def give_data_and_variance(self, *args):
+        """Return density data and diagonal variance from `density_error`.
+
+        Returns:
+            tuple: (density, density_error^2).
+        """
+
+        if self._covariance_observation is not None:
+            return self._data["density"], self._covariance_observation
+        return self._data["density"], self._data["density_error"] ** 2
+
+    def __init__(self, data, covariance_observation=None):
+        super().__init__(data, covariance_observation=covariance_observation)
+
+    @classmethod
+    def init_from_catalog(
+        cls,
+        data_position_sky,
+        rcom_max,
+        grid_size,
+        grid_type,
+        kind,
+        **kwargs,
+    ):
+        grid = mesh.grid_data_density(
+            data_position_sky,
+            rcom_max,
+            grid_size,
+            grid_type,
+            kind,
+            **kwargs,
+        )
+
+        return cls(grid)
+
+
+class VelMesh(DataVector):
+    _kind = "velocity"
+    _needed_keys = ["velocity", "velocity_error"]
+    _free_par = []
+    _number_dimension_observation_covariance = 1
+    _parameters_observation_covariance = ["velocity"]
+
+    def give_data_and_variance(self, *args):
+        """Return velocity data and diagonal variance from `velocity_error`.
+
+        Returns:
+            tuple: (velocity, velocity_error^2).
+        """
+
+        if self._covariance_observation is not None:
+            return self._data["velocity"], self._covariance_observation
+        return self._data["velocity"], self._data["velocity_error"] ** 2
+
+    def __init__(self, data, covariance_observation=None):
+        super().__init__(data, covariance_observation=covariance_observation)
 
 
 class Dens(DataVector):

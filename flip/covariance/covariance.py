@@ -201,6 +201,7 @@ class CovMatrix:
         number_densities=None,
         number_velocities=None,
         emulator_flag=False,
+        covariance_prefactor_dict=None,
     ):
         """Initialize the covariance model.
 
@@ -230,6 +231,7 @@ class CovMatrix:
         self.number_densities = number_densities
         self.number_velocities = number_velocities
         self.emulator_flag = emulator_flag
+        self.covariance_prefactor_dict = covariance_prefactor_dict
 
         self.init_compute_covariance_sum()
 
@@ -244,6 +246,7 @@ class CovMatrix:
         additional_parameters_values=None,
         los_definition="bisector",
         variant=None,
+        covariance_prefactor_dict=None,
         **kwargs,
     ):
         """Initialize covariance from flip code generator.
@@ -308,6 +311,7 @@ class CovMatrix:
             coefficients=coefficients,
             number_densities=number_densities,
             number_velocities=number_velocities,
+            covariance_prefactor_dict=covariance_prefactor_dict,
         )
 
     @classmethod
@@ -320,6 +324,7 @@ class CovMatrix:
         coordinates_density=None,
         additional_parameters_values=None,
         variant=None,
+        covariance_prefactor_dict=None,
         **kwargs,
     ):
         """Initialize covariance from a model-local generator implementation.
@@ -383,6 +388,7 @@ class CovMatrix:
             coefficients=coefficients,
             number_densities=number_densities,
             number_velocities=number_velocities,
+            covariance_prefactor_dict=covariance_prefactor_dict,
         )
 
     @classmethod
@@ -393,6 +399,7 @@ class CovMatrix:
         covariance_list,
         emulator_parameter_values,
         parameter_names,
+        covariance_prefactor_dict=None,
         **kwargs,
     ):
         """Initialize covariance from an emulator over precomputed covariances.
@@ -435,6 +442,7 @@ class CovMatrix:
             number_densities=covariance_list[0].number_densities,
             number_velocities=covariance_list[0].number_velocities,
             emulator_flag=True,
+            covariance_prefactor_dict=covariance_prefactor_dict,
         )
 
     @classmethod
@@ -556,14 +564,12 @@ class CovMatrix:
         def _compute_covariance_sum(
             parameter_values_dict,
             vector_variance,
-            covariance_prefactor_dict=None,
         ):
             """Compute total covariance given parameters and data variance.
 
             Args:
                 parameter_values_dict (dict): Parameter values for coefficients.
                 vector_variance (array-like): Data variance vector or matrix.
-                covariance_prefactor_dict (dict, optional): Prefactors per block.
 
             Returns:
                 array-like: Total covariance matrix.
@@ -572,7 +578,7 @@ class CovMatrix:
                 k: jnp.array(v)
                 for k, v in get_coefficients(
                     parameter_values_dict=parameter_values_dict,
-                    covariance_prefactor_dict=covariance_prefactor_dict,
+                    covariance_prefactor_dict=self.covariance_prefactor_dict,
                 ).items()
             }
 
@@ -600,14 +606,12 @@ class CovMatrix:
         self,
         parameter_values_dict,
         vector_variance,
-        covariance_prefactor_dict=None,
     ):
         """Return eigenvalues of the covariance sum for diagnostics.
 
         Args:
             parameter_values_dict (dict): Parameter values.
             vector_variance (array-like): Data variance.
-            covariance_prefactor_dict (dict, optional): Prefactors per block.
 
         Returns:
             numpy.ndarray: Eigenvalues of `C`.
@@ -615,7 +619,7 @@ class CovMatrix:
         covariance_sum = self.compute_covariance_sum(
             parameter_values_dict,
             vector_variance,
-            covariance_prefactor_dict=covariance_prefactor_dict,
+            covariance_prefactor_dict=self.covariance_prefactor_dict,
         )
         return np.linalg.eigvals(covariance_sum)
 

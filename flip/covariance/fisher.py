@@ -114,7 +114,6 @@ class FisherMatrix:
         data,
         parameter_values_dict,
         fisher_properties={},
-        covariance_prefactor_dict=None,
     ):
         """Initialize a FisherMatrix instance from a covariance and data model.
 
@@ -127,7 +126,6 @@ class FisherMatrix:
             data (object): Data model; called to obtain vector errors given parameters.
             parameter_values_dict (dict): Parameter values for coefficient evaluation.
             fisher_properties (dict, optional): Options including `inversion_method`.
-            covariance_prefactor_dict (dict, optional): Prefactors per block (gg/gv/vv).
 
         Returns:
             FisherMatrix: Ready-to-use Fisher matrix builder instance.
@@ -151,7 +149,6 @@ class FisherMatrix:
         covariance_sum = covariance.compute_covariance_sum(
             parameter_values_dict,
             vector_variance,
-            covariance_prefactor_dict=covariance_prefactor_dict,
         )
 
         inverse_covariance_sum = eval(
@@ -250,7 +247,7 @@ class FisherMatrix:
 
         return covariance_derivative_sum
 
-    def compute_fisher_matrix(self, covariance_prefactor_dict=None):
+    def compute_fisher_matrix(self):
         """Compute the Fisher matrix using covariance derivatives.
 
         Returns:
@@ -264,7 +261,7 @@ class FisherMatrix:
             self.covariance.model_kind,
             self.parameter_values_dict,
             variant=self.covariance.variant,
-            covariance_prefactor_dict=covariance_prefactor_dict,
+            covariance_prefactor_dict=self.covariance.covariance_prefactor_dict,
         )
         parameter_name_list = []
         covariance_derivative_sum_list = []

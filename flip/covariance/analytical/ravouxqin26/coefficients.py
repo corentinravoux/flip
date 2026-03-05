@@ -1,4 +1,4 @@
-from ..._config import __use_jax__
+from ...._config import __use_jax__
 
 if __use_jax__:
     try:
@@ -54,7 +54,7 @@ def get_coefficients(
         sigvv1sq = parameter_values_dict["sigvv1sq"]
         sigvv2sq = parameter_values_dict["sigvv2sq"]
 
-    if "nosigmavv" in variant & model_kind == "velocity":
+    if "nosigmavv" in variant and model_kind == "velocity":
         raise ValueError(
             "The nosigmavv variant is not applicable for the velocity model."
         )
@@ -921,7 +921,7 @@ def get_power_spectrum_dictionary(
     sig4_squre = (
         1.0
         / (24.0 * jnp.pi * jnp.pi)
-        * (integrate.simpson((I23 + 2.0 / 3.0 * I32 + I33 / 5.0) / k**2, k))
+        * (integrate.trapezoid((I23 + 2.0 / 3.0 * I32 + I33 / 5.0) / k**2, k))
     )
 
     power_spectrum_dict = {

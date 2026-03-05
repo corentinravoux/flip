@@ -24,6 +24,7 @@ class Contraction:
         coordinates_dict=None,
         basis_definition=None,
         variant=None,
+        covariance_prefactor_dict=None,
     ):
         """Initialize the contraction container.
 
@@ -41,6 +42,7 @@ class Contraction:
         self.coordinates_dict = coordinates_dict
         self.basis_definition = basis_definition
         self.variant = variant
+        self.covariance_prefactor_dict = covariance_prefactor_dict
 
     @classmethod
     def init_from_flip(
@@ -55,8 +57,8 @@ class Contraction:
         coordinate_type="rprt",
         additional_parameters_values=None,
         basis_definition="bisector",
-        redshift=None,
         variant=None,
+        covariance_prefactor_dict=None,
         **kwargs,
     ):
         """Build a `Contraction` from flip covariance generator outputs.
@@ -72,7 +74,6 @@ class Contraction:
             coordinate_type (str): `"rprt"` or `"rmu"`.
             additional_parameters_values (dict|None): Extra model parameters.
             basis_definition (str): Basis choice for angular definitions.
-            redshift (float|None): Optional redshift context.
             variant (str|None): Model variant.
             **kwargs: Options forwarded to generator.
 
@@ -93,7 +94,7 @@ class Contraction:
             coordinate_type=coordinate_type,
             additional_parameters_values=additional_parameters_values,
             basis_definition=basis_definition,
-            redshift=redshift,
+            covariance_prefactor_dict=covariance_prefactor_dict,
             **kwargs,
         )
 
@@ -104,6 +105,7 @@ class Contraction:
             coordinates_dict=coordinates_dict,
             basis_definition=basis_definition,
             variant=variant,
+            covariance_prefactor_dict=covariance_prefactor_dict,
         )
 
     @property
@@ -147,6 +149,7 @@ class Contraction:
             parameter_values_dict,
             self.model_kind,
             variant=self.variant,
+            covariance_prefactor_dict=self.covariance_prefactor_dict,
         )
         contraction_covariance_sum_dict = {}
         if self.model_kind == "density":
@@ -316,7 +319,6 @@ def contract_covariance(
     coordinate_type="rprt",
     additional_parameters_values=None,
     basis_definition="bisector",
-    redshift=None,
     number_worker=8,
     hankel=True,
 ):
@@ -333,7 +335,6 @@ def contract_covariance(
         coordinate_type (str): Input parameterization, `"rprt"` or `"rmu"`.
         additional_parameters_values (dict|None): Extra model parameters.
         basis_definition (str): Basis choice.
-        redshift (float|None): Optional redshift context.
         number_worker (int): Parallel workers used by generator.
         hankel (bool): Use FFTLog Hankel transform when True.
 

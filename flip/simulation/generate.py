@@ -211,11 +211,11 @@ def generate_density_and_velocity(
     """
     box_size = jnp.array(box_size)
 
-    def pk_fn(k):
+    def linear_pk_fn(k):
         return jc.power.linear_matter_power(cosmo, k, a=a)
 
     # Generate Gaussian random initial conditions from the linear power spectrum
-    initial_conditions = _differentiable_linear_field(mesh_shape, box_size, pk_fn, seed)
+    initial_conditions = _differentiable_linear_field(mesh_shape, box_size, linear_pk_fn, seed)
 
     # Run 1LPT to get particle displacements and momenta
     dx, p = _run_lpt(cosmo, initial_conditions, a)
@@ -319,6 +319,23 @@ def _cic_read(grid_mesh, positions):
     return (values * kernel).sum(axis=-1)  # (N,)
 
 
+def _safe_normalize(positions):
+    """Compute unit vectors along the line-of-sight, handling zero-radius positions.
+
+    Returns the unit vector for each position.  When the Euclidean norm of a
+    position is zero (observer at the origin coincides with the galaxy), the
+    unit vector is set to zero to avoid division by zero.
+
+    Args:
+        positions (jnp.ndarray): Cartesian positions in Mpc/h, shape ``(N, 3)``.
+
+    Returns:
+        jnp.ndarray: Unit vectors along line-of-sight, shape ``(N, 3)``.
+    """
+    r = jnp.linalg.norm(positions, axis=-1, keepdims=True)
+    return positions / jnp.where(r > 0, r, jnp.ones_like(r))
+
+
 def compute_los_velocity(velocities, positions):
     """Project 3D peculiar velocities onto the line-of-sight direction.
 
@@ -334,8 +351,7 @@ def compute_los_velocity(velocities, positions):
     Returns:
         jnp.ndarray: Line-of-sight peculiar velocity in km/s, shape ``(N,)``.
     """
-    r = jnp.linalg.norm(positions, axis=-1, keepdims=True)
-    los_unit = positions / jnp.where(r > 0, r, jnp.ones_like(r))
+    los_unit = _safe_normalize(positions)
     return jnp.sum(velocities * los_unit, axis=-1)
 
 

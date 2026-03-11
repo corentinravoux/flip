@@ -180,12 +180,14 @@ class SimulationFitter:
         self._result = result
 
         try:
+            n_iter = result.state.iter_num
+            final_value = result.state.value
             log.add(
                 f"SimulationFitter ({self.solver_name}) finished after "
-                f"{result.state.iter_num} iterations. "
-                f"Final loss: {result.state.value:.6g}"
+                f"{n_iter} iterations. "
+                f"Final loss: {final_value:.6g}"
             )
-        except AttributeError:
+        except (AttributeError, KeyError):
             log.add(f"SimulationFitter ({self.solver_name}) optimization complete.")
 
         return self._to_dict(result.params)

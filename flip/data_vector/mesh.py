@@ -8,6 +8,72 @@ from flip import utils
 
 _grid_kind_avail = ["ngp", "ngp_errw", "cic", "tsc", "pcs"]
 
+_grid_order_dict = {
+    "ngp": 1,
+    "ngp_errw": 1,
+    "cic": 2,
+    "tsc": 3,
+    "pcs": 4,
+}
+
+
+def _compute_grid_window(grid_size, k, order, n):
+    """Numerically compute isotropic grid assignment window.
+
+    Uses spherical averaging over directions to produce a 1D window for
+    resampler order (NGP/CIC/TSC/PCS) given grid size.
+
+    Args:
+        grid_size (float): Grid cell size.
+        k (array-like): Wavenumbers at which to evaluate the window.
+        order (int): Assignment order (1:NGP, 2:CIC, 3:TSC, 4:PCS).
+        n (int): Number of angular samples for spherical averaging.
+
+    Returns:
+        numpy.ndarray: Window values for each `k`.
+    """
+    window = np.zeros_like(k)
+    theta = np.linspace(0, np.pi, n)
+    phi = np.linspace(0, 2 * np.pi, n)
+    kx = np.outer(np.sin(theta), np.cos(phi))
+    ky = np.outer(np.sin(theta), np.sin(phi))
+    kz = np.outer(np.cos(theta), np.ones(n))
+
+    # Forgotten in Howlett et al. formula
+    # we add spherical coordinate solid angle element
+    dthetaphi = np.outer(np.sin(theta), np.ones(phi.size))
+    for i in range(k.size):
+        # the factor here has an extra np.pi because of the definition of np.sinc
+        fact = (k[i] * grid_size) / (2 * np.pi)
+        func = (
+            np.sinc(fact * kx) * np.sinc(fact * ky) * np.sinc(fact * kz)
+        ) ** order * dthetaphi
+        win_theta = np.trapz(func, x=phi)
+        window[i] = np.trapz(win_theta, x=theta)
+    window *= 1 / (4 * np.pi)
+    return window
+
+
+def compute_grid_window(grid_size, kh, kind="ngp", n=1000):
+    """Compute grid assignment window for a given resampler kind.
+
+    Args:
+        grid_size (float): Grid cell size.
+        kh (array-like): Wavenumbers at which to evaluate the window.
+        kind (str): One of `ngp`, `ngp_errw`, `cic`, `tsc`, `pcs`.
+        n (int): Angular samples for spherical averaging.
+
+    Returns:
+        numpy.ndarray|None: Window values, or None if `grid_size==0`.
+    """
+
+    if kind not in _grid_kind_avail:
+        allowed = ", ".join(_grid_kind_avail)
+        raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
+    if grid_size == 0:
+        return None
+    return _compute_grid_window(grid_size, kh, _grid_order_dict[kind], n)
+
 
 def ngp_weight(ds):
     """Nearest Grid Point."""
@@ -44,20 +110,6 @@ def pcs_weight(ds):
     return w
 
 
-def _get_resampler(resampler):
-    conversions = {"ngp": "nnb", "cic": "cic", "tsc": "tsc", "pcs": "pcs"}
-    if resampler not in conversions:
-        raise ValueError(
-            "Unknown resampler {}, choices are {}".format(
-                resampler, list(conversions.keys())
-            )
-        )
-    resampler = conversions[resampler]
-    from pmesh.window import FindResampler
-
-    return FindResampler(resampler)
-
-
 def _get_mesh_attrs(
     boxsize,
     cellsize,
@@ -87,6 +139,7 @@ def define_randoms(
     Nrandom=None,
     coord_randoms=None,
     max_coordinates=None,
+    seed=None,
 ):
     """Generate random positions for density estimation.
 
@@ -108,6 +161,8 @@ def define_randoms(
         tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]: Random x, y, z positions.
     """
     N = xobj.size
+    if seed is not None:
+        np.random.seed(seed)
 
     # Uniform in X,Y,Z
     if random_method == "cartesian":
@@ -195,7 +250,9 @@ def create_mesh(
     weights=None,
     scaling=None,
 ):
-    resampler = _get_resampler(assignement)
+
+    conversions = {"ngp": "nnb", "cic": "cic", "tsc": "tsc", "pcs": "pcs"}
+    resampler = conversions[assignement]
 
     nmesh, boxsize, boxcenter = _get_mesh_attrs(
         boxsize,
@@ -223,7 +280,7 @@ def create_mesh(
         def paint_slab(sl):
             p = positions[sl]
             size = len(p)
-            layout = pm.decompose(p, smoothing=factor * resampler.support)
+            layout = pm.decompose(p, smoothing=factor * _grid_order_dict[assignement])
             p = layout.exchange(p)
             w = layout.exchange(weights[sl])
             pm.paint(
@@ -245,8 +302,8 @@ def create_mesh(
             slab_npoints = min(_slab_npoints_max, int(slab_npoints * 1.2))
 
     out = pm.create(type="real", value=0.0)
-    for p, w in zip(positions, weights):
-        paint(p, w, scaling, out)
+    paint(positions, weights, scaling, out)
+
     return out
 
 
@@ -306,6 +363,71 @@ def cut_grid(
         grid[field] = grid[field][mask]
 
 
+def prepare_data_position(
+    data_position_sky,
+    rcom_max,
+    overhead,
+    random_method=None,
+    Nrandom=None,
+    coord_randoms=None,
+    seed=None,
+):
+
+    raobj = data_position_sky[:, 0]
+    decobj = data_position_sky[:, 1]
+    rcomobj = data_position_sky[:, 2]
+
+    xobj, yobj, zobj = utils.radec2cart(rcomobj, raobj, decobj)
+    mask = np.abs(xobj) < rcom_max + overhead
+    mask &= np.abs(yobj) < rcom_max + overhead
+    mask &= np.abs(zobj) < rcom_max + overhead
+    xobj, yobj, zobj = xobj[mask], yobj[mask], zobj[mask]
+    raobj, decobj, rcomobj = raobj[mask], decobj[mask], rcomobj[mask]
+    if random_method is not None:
+        (
+            xobj_random,
+            yobj_random,
+            zobj_random,
+        ) = define_randoms(
+            random_method,
+            xobj,
+            yobj,
+            zobj,
+            raobj,
+            decobj,
+            rcomobj,
+            Nrandom=Nrandom,
+            coord_randoms=coord_randoms,
+            max_coordinates=rcom_max + overhead,
+            seed=seed,
+        )
+        randoms_positions = np.array([xobj_random, yobj_random, zobj_random]).T
+    else:
+        randoms_positions = None
+
+    data_positions = np.array([xobj, yobj, zobj]).T
+
+    return data_positions, randoms_positions
+
+
+def define_grid_from_mesh(mesh_data, grid_size):
+    coord_mesh = np.array(
+        np.meshgrid(
+            np.sort(mesh_data.x[0][:, 0, 0]),
+            np.sort(mesh_data.x[1][0, :, 0]),
+            np.sort(mesh_data.x[2][0, 0, :]),
+            indexing="ij",
+        )
+    )
+    xgrid = np.ravel(coord_mesh[0, :, :, :]) + grid_size / 2
+    ygrid = np.ravel(coord_mesh[1, :, :, :]) + grid_size / 2
+    zgrid = np.ravel(coord_mesh[2, :, :, :]) + grid_size / 2
+
+    rcomgrid, ragrid, decgrid = utils.cart2radec(xgrid, ygrid, zgrid)
+
+    return xgrid, ygrid, zgrid, ragrid, decgrid, rcomgrid
+
+
 def grid_data_density(
     data_position_sky,
     rcom_max,
@@ -317,6 +439,7 @@ def grid_data_density(
     coord_randoms=None,
     min_count_random=0,
     overhead=20,
+    seed=None,
 ):
     """Grid data with pypower and compute density contrast on a mesh.
 
@@ -340,50 +463,51 @@ def grid_data_density(
         dict: Grid with positions, density contrast, errors, and counts.
     """
 
-    # Check valid input grid kind
     kind = kind.lower()
     if kind not in _grid_kind_avail:
-        raise ValueError(
-            "INVALID GRID TYPE ! \n Grid allowed : " + f"{k}" for k in _grid_kind_avail
-        )
+        allowed = ", ".join(_grid_kind_avail)
+        raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
 
     data_positions, randoms_positions = prepare_data_position(
         data_position_sky,
         rcom_max,
         overhead,
-        random_method,
-        Nrandom,
-        coord_randoms,
+        random_method=random_method,
+        Nrandom=Nrandom,
+        coord_randoms=coord_randoms,
+        seed=seed,
     )
 
     data_weights = np.ones((data_positions.shape[0],))
     randoms_weights = np.ones((randoms_positions.shape[0],))
 
     mesh_data = create_mesh(
-        [data_positions],
+        data_positions,
         2 * (rcom_max + overhead),
         grid_size,
         assignement=kind,
-        weights=[data_weights],
+        weights=data_weights,
     )
 
     mesh_randoms = create_mesh(
-        [randoms_positions],
+        randoms_positions,
         2 * (rcom_max + overhead),
         grid_size,
         assignement=kind,
-        weights=[randoms_weights],
+        weights=randoms_weights,
         scaling=np.sum(data_weights) / np.sum(randoms_weights),
     )
-
-    mesh_count_randoms = create_mesh(
-        [randoms_positions],
-        2 * (rcom_max + overhead),
-        grid_size,
-        assignement="ngp",
-        weights=[randoms_weights],
-        scaling=np.sum(data_weights) / np.sum(randoms_weights),
-    )
+    if kind == "ngp":
+        mesh_count_randoms = mesh_randoms.copy()
+    else:
+        mesh_count_randoms = create_mesh(
+            randoms_positions,
+            2 * (rcom_max + overhead),
+            grid_size,
+            assignement="ngp",
+            weights=randoms_weights,
+            scaling=np.sum(data_weights) / np.sum(randoms_weights),
+        )
 
     density_contrast = np.ravel(mesh_data.value / mesh_randoms.value - 1)
 
@@ -392,19 +516,10 @@ def grid_data_density(
     mask = count_randoms > min_count_random
     density_contrast_err[mask] = np.sqrt(1 / (count_randoms[mask]))
 
-    coord_mesh = np.array(
-        np.meshgrid(
-            np.sort(mesh_data.x[0][:, 0, 0]),
-            np.sort(mesh_data.x[1][0, :, 0]),
-            np.sort(mesh_data.x[2][0, 0, :]),
-            indexing="ij",
-        )
+    xgrid, ygrid, zgrid, ragrid, decgrid, rcomgrid = define_grid_from_mesh(
+        mesh_data,
+        grid_size,
     )
-    xgrid = np.ravel(coord_mesh[0, :, :, :]) + grid_size / 2
-    ygrid = np.ravel(coord_mesh[1, :, :, :]) + grid_size / 2
-    zgrid = np.ravel(coord_mesh[2, :, :, :]) + grid_size / 2
-
-    rcomgrid, ragrid, decgrid = utils.cart2radec(xgrid, ygrid, zgrid)
 
     grid = {
         "x": xgrid,
@@ -439,44 +554,140 @@ def grid_data_density(
     return grid
 
 
-def prepare_data_position(
+def grid_data_density_multivariate_kernel(
     data_position_sky,
     rcom_max,
-    overhead,
-    random_method,
-    Nrandom,
-    coord_randoms,
+    grid_size,
+    grid_type,
+    kind,
+    Nrandom=10,
+    random_method="cartesian",
+    coord_randoms=None,
+    min_count_random=0,
+    overhead=20,
+    seed=None,
 ):
+    grid = None
 
-    rcomobj = data_position_sky[:, 0]
-    raobj = data_position_sky[:, 1]
-    decobj = data_position_sky[:, 2]
+    return grid
 
-    xobj, yobj, zobj = utils.radec2cart(rcomobj, raobj, decobj)
-    mask = np.abs(xobj) < rcom_max + overhead
-    mask &= np.abs(yobj) < rcom_max + overhead
-    mask &= np.abs(zobj) < rcom_max + overhead
-    xobj, yobj, zobj = xobj[mask], yobj[mask], zobj[mask]
-    raobj, decobj, rcomobj = raobj[mask], decobj[mask], rcomobj[mask]
 
-    (
-        xobj_random,
-        yobj_random,
-        zobj_random,
-    ) = define_randoms(
-        random_method,
-        xobj,
-        yobj,
-        zobj,
-        raobj,
-        decobj,
-        rcomobj,
-        Nrandom=Nrandom,
-        coord_randoms=coord_randoms,
-        max_coordinates=rcom_max + overhead,
+def grid_data_velocity(
+    data_position_sky,
+    rcom_max,
+    grid_size,
+    grid_type,
+    kind,
+    variance,
+    velocity=None,
+    overhead=20,
+):
+    """Grid velocity catalog with pypower and compute weighted means and variance.
+
+    Args:
+        raobj (array-like): Right ascensions.
+        decobj (array-like): Declinations.
+        rcomobj (array-like): Comoving distances.
+        rcom_max (float): Outer cutoff.
+        variance (array-like): Per-object variances.
+        velocity (array-like|None): Per-object velocities (optional for variance-only).
+        grid_size (float): Cell size.
+        grid_type (str): `rect` or `sphere` cut behavior.
+        kind (str): Resampler passed to CatalogMesh.
+        interlacing (int): Interlacing factor.
+        compensate (bool): Apply resampler compensation.
+        overhead (float): Extra margin around cutoff.
+
+    Returns:
+        dict: Grid with positions, velocity (optional), variance, and counts.
+    """
+
+    data_positions, _ = prepare_data_position(
+        data_position_sky,
+        rcom_max,
+        overhead,
     )
 
-    data_positions = np.array([xobj, yobj, zobj]).T
-    randoms_positions = np.array([xobj_random, yobj_random, zobj_random]).T
+    count_weights = np.ones((data_positions.shape[0],))
 
-    return data_positions, randoms_positions
+    mesh_variance = create_mesh(
+        data_positions,
+        2 * (rcom_max + overhead),
+        grid_size,
+        assignement=kind,
+        weights=variance,
+    )
+
+    mesh_count = create_mesh(
+        data_positions,
+        2 * (rcom_max + overhead),
+        grid_size,
+        assignement=kind,
+        weights=count_weights,
+    )
+
+    N_in_cell = np.ravel(mesh_count.value)
+    variance_grid = np.ravel(mesh_variance.value) / (N_in_cell**2)
+
+    if velocity is not None:
+        weights_weighted_mean = velocity / variance
+
+        mesh_weighted_velocity = create_mesh(
+            data_positions,
+            2 * (rcom_max + overhead),
+            grid_size,
+            assignement=kind,
+            weights=weights_weighted_mean,
+        )
+
+        mesh_inverse_variance = create_mesh(
+            data_positions,
+            2 * (rcom_max + overhead),
+            grid_size,
+            assignement=kind,
+            weights=1 / variance,
+        )
+        velocity_grid = np.ravel(mesh_weighted_velocity.value) / np.ravel(
+            mesh_inverse_variance.value
+        )
+    else:
+        velocity_grid = None
+
+    xgrid, ygrid, zgrid, ragrid, decgrid, rcomgrid = define_grid_from_mesh(
+        mesh_variance,
+        grid_size,
+    )
+    grid = {
+        "x": xgrid,
+        "y": ygrid,
+        "z": zgrid,
+        "ra": ragrid,
+        "dec": decgrid,
+        "rcom_zobs": rcomgrid,
+        "velocity_error": np.sqrt(variance_grid),
+        "N_in_cell": N_in_cell,
+    }
+    if velocity is not None:
+        grid["velocity"] = velocity_grid
+
+    if grid_type == "rect":
+        cut_grid(
+            grid,
+            remove_nan_density=True,
+            remove_empty_cells=True,
+            xmax=rcom_max,
+            ymax=rcom_max,
+            zmax=rcom_max,
+            remove_origin=True,
+        )
+
+    if grid_type == "sphere":
+        cut_grid(
+            grid,
+            remove_nan_density=True,
+            remove_empty_cells=True,
+            rcom_max=rcom_max,
+            remove_origin=True,
+        )
+
+    return grid

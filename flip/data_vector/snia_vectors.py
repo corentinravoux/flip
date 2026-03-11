@@ -24,7 +24,7 @@ else:
 log = create_log()
 
 
-class VelFromSALTfit(DataVector):
+class VelTrippRelation(DataVector):
     _kind = "velocity"
     _needed_keys = ["zobs", "mb", "x1", "c", "rcom_zobs"]
     _free_par = ["alpha", "beta", "M_0", "sigma_M"]
@@ -116,12 +116,30 @@ class VelFromSALTfit(DataVector):
         Returns:
             ndarray: Distance modulus per object.
         """
+
+        if (
+            "alpha_low" in parameter_values_dict
+            and "alpha_high" in parameter_values_dict
+            and "x1_treshold" in parameter_values_dict
+        ):
+            alpha = jnp.where(
+                self._data["x1"] < parameter_values_dict["x1_treshold"],
+                parameter_values_dict["alpha_low"],
+                parameter_values_dict["alpha_high"],
+            )
+        else:
+            alpha = parameter_values_dict["alpha"]
+
         observed_distance_modulus = (
             self._data["mb"]
-            + parameter_values_dict["alpha"] * self._data["x1"]
+            + alpha * self._data["x1"]
             - parameter_values_dict["beta"] * self._data["c"]
             - parameter_values_dict["M_0"]
         )
+        if "p" in self._data and "gamma" in parameter_values_dict:
+            observed_distance_modulus += (
+                parameter_values_dict["gamma"] * self._data["p"]
+            )
 
         if "host_logmass" in self.data:
             mask = self._data["host_logmass"] > 10
@@ -262,3 +280,7 @@ class VelFromSALTfit(DataVector):
             )
 
         return velocities, velocity_variance
+
+
+# Placeholder for backward compatibility, to be removed in future versions
+VelFromSALTfit = VelTrippRelation

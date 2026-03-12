@@ -75,10 +75,10 @@ def log_likelihood_gaussian(simulated_velocity, observed_velocity, observed_vari
 class VelocityFieldLikelihood:
     """Gaussian likelihood comparing a JaxPM simulation to observed velocities.
 
-    Given cosmological parameters, this callable runs a forward 1LPT
-    simulation, interpolates the resulting velocity field at observed galaxy
-    positions, projects onto the line of sight, and returns the Gaussian
-    log-likelihood of the observations.
+    Given cosmological parameters, this callable runs a forward simulation
+    (N-body ODE by default, or 1LPT when ``method='lpt'``), interpolates the
+    resulting velocity field at observed galaxy positions, projects onto the
+    line of sight, and returns the Gaussian log-likelihood of the observations.
 
     The likelihood is fully JAX-differentiable with respect to the input
     cosmological parameters.

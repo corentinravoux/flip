@@ -229,7 +229,7 @@ def generate_density_and_velocity_lpt(
             e.g. ``[256., 256., 256.]``.
         seed (jax.random.PRNGKey): Random seed for the Gaussian initial
             conditions.
-        a (float): Scale factor at which to evaluate the fields.
+        a (float): Final scale factor at which to evaluate the fields.
             Default 1.0 (z=0).
 
     Returns:

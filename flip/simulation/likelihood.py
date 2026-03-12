@@ -100,6 +100,11 @@ class VelocityFieldLikelihood:
             :func:`~flip.simulation.generate.generate_density_and_velocity`.
             Either ``"nbody"`` (default, full N-body ODE integration) or
             ``"lpt"`` (faster Zel'dovich approximation, for testing).
+        fixed_cosmo_params (dict | None): Cosmological parameters that are
+            held fixed during optimization.  These are merged with the
+            ``cosmo_params`` dict at each likelihood call, with
+            ``cosmo_params`` taking precedence.  Useful for fixing ``omega_m``
+            while fitting only ``sigma8``, for example.  Default ``None``.
         parameter_values_dict (dict | None): Additional parameters consumed
             by the data vector (e.g. ``{"M_0": -19.3}`` for
             ``VelFromHDres``).  If ``None``, an empty dict is used.
@@ -127,6 +132,7 @@ class VelocityFieldLikelihood:
         seed,
         a=1.0,
         method="nbody",
+        fixed_cosmo_params=None,
         parameter_values_dict=None,
         **simulation_kwargs,
     ):
@@ -137,6 +143,7 @@ class VelocityFieldLikelihood:
         self.seed = seed
         self.a = a
         self.method = method
+        self.fixed_cosmo_params = fixed_cosmo_params or {}
         self.simulation_kwargs = simulation_kwargs
         self.parameter_values_dict = parameter_values_dict or {}
 
@@ -159,7 +166,8 @@ class VelocityFieldLikelihood:
 
         Runs the full JAX-differentiable forward model:
 
-        1. Build cosmology from ``cosmo_params``.
+        1. Build cosmology from ``cosmo_params`` merged with
+           ``fixed_cosmo_params``.
         2. Generate density and velocity fields via the configured simulation
            method (N-body ODE or LPT).
         3. Interpolate velocity field at observed galaxy positions.
@@ -167,16 +175,17 @@ class VelocityFieldLikelihood:
         5. Compute Gaussian log-likelihood and return its negation.
 
         Args:
-            cosmo_params (dict): Cosmological parameters accepted by
-                :func:`~flip.simulation.generate.get_cosmology`.  At minimum
-                ``omega_m`` and ``sigma8`` must be provided; remaining keys
-                are optional (see :func:`~flip.simulation.generate.get_cosmology`
-                for defaults).
+            cosmo_params (dict): Cosmological parameters to optimize, accepted
+                by :func:`~flip.simulation.generate.get_cosmology`.  These are
+                merged with ``fixed_cosmo_params`` (``cosmo_params`` takes
+                precedence), so only the free parameters need to be provided.
 
         Returns:
             float: Negative log-likelihood (suitable for minimization).
         """
-        cosmo = generate.get_cosmology(**cosmo_params)
+        # Merge fixed parameters with the free ones (free params take precedence)
+        full_params = {**self.fixed_cosmo_params, **cosmo_params}
+        cosmo = generate.get_cosmology(**full_params)
 
         _, velocity_field = generate.generate_density_and_velocity(
             cosmo,

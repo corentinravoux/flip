@@ -571,6 +571,28 @@ def compute_los_velocity(velocities, positions):
     return jnp.sum(velocities * los_unit, axis=-1)
 
 
+def compute_fsigma8(cosmo, a=1.0):
+    """Compute the linear growth parameter f*sigma_8 from a cosmology.
+
+    Evaluates :math:`f\\sigma_8 = f(a) \\cdot \\sigma_8`, where :math:`f` is
+    the logarithmic growth rate :math:`f = d\\ln D / d\\ln a` and
+    :math:`\\sigma_8` is the RMS matter fluctuation amplitude at
+    8 Mpc/h.
+
+    Args:
+        cosmo (jax_cosmo.Cosmology): Cosmological parameters.  Create with
+            :func:`get_cosmology`.
+        a (float): Scale factor at which to evaluate the growth rate.
+            Default 1.0 (z=0).
+
+    Returns:
+        float: :math:`f \\cdot \\sigma_8` dimensionless growth parameter.
+    """
+    a_arr = jnp.atleast_1d(a)
+    f = jc.background.growth_rate(cosmo, a_arr)[0]
+    return f * cosmo.sigma8
+
+
 def radec_to_cartesian(ra, dec, r_com):
     """Convert spherical sky coordinates to Cartesian positions.
 

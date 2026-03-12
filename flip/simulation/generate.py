@@ -45,18 +45,28 @@ Examples:
     ... )
 """
 
-import jax
-import jax.numpy as jnp
-import jax_cosmo as jc
-from jaxpm.distributed import fft3d, ifft3d, normal_field
-from jaxpm.growth import growth_factor, growth_rate
-from jaxpm.kernels import fftk
-from jaxpm.painting import cic_paint_dx
-from jaxpm.pm import make_diffrax_ode, pm_forces
-
 from flip.utils import create_log
 
 log = create_log()
+
+try:
+    import jax
+    import jax.numpy as jnp
+    import jax_cosmo as jc
+    from jaxpm.distributed import fft3d, ifft3d, normal_field
+    from jaxpm.growth import growth_factor, growth_rate
+    from jaxpm.kernels import fftk
+    from jaxpm.painting import cic_paint_dx
+    from jaxpm.pm import make_diffrax_ode, pm_forces
+
+    jaxpm_installed = True
+
+except ImportError:
+    jaxpm_installed = False
+    log.add(
+        "Install jaxpm, jax_cosmo and diffrax to use the simulation generate module",
+        level="warning",
+    )
 
 #: Conversion factor: 1 Mpc/h * H_0 = 100 km/s.
 #: The h factors cancel because H_0 = 100h km/s/Mpc and 1 Mpc/h = (1/h) Mpc.

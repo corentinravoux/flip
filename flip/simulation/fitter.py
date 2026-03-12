@@ -19,20 +19,33 @@ Examples:
     >>> print(best_params)
 """
 
-import jax.numpy as jnp
-import jaxopt
-
 from flip.utils import create_log
 
 log = create_log()
 
+try:
+    import jax.numpy as jnp
+    import jaxopt
+
+    jaxopt_installed = True
+
+except ImportError:
+    jaxopt_installed = False
+    log.add(
+        "Install jaxopt to use the SimulationFitter",
+        level="warning",
+    )
+
 #: Mapping from solver name string to the corresponding jaxopt class.
-_AVAILABLE_SOLVERS = {
-    "LBFGS": jaxopt.LBFGS,
-    "LBFGSB": jaxopt.LBFGSB,
-    "BFGS": jaxopt.BFGS,
-    "GradientDescent": jaxopt.GradientDescent,
-}
+if jaxopt_installed:
+    _AVAILABLE_SOLVERS = {
+        "LBFGS": jaxopt.LBFGS,
+        "LBFGSB": jaxopt.LBFGSB,
+        "BFGS": jaxopt.BFGS,
+        "GradientDescent": jaxopt.GradientDescent,
+    }
+else:
+    _AVAILABLE_SOLVERS = {}
 
 
 class SimulationFitter:

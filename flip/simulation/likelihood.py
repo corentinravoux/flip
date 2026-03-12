@@ -21,13 +21,23 @@ Examples:
     >>> neg_log_lik = lik({"omega_m": 0.3, "sigma8": 0.8})
 """
 
-import jax.numpy as jnp
-import jax.scipy as jsc
-
 from flip.simulation import generate
 from flip.utils import create_log
 
 log = create_log()
+
+try:
+    import jax.numpy as jnp
+    import jax.scipy as jsc
+
+    jax_installed = True
+
+except ImportError:
+    jax_installed = False
+    log.add(
+        "Install jax to use the simulation likelihood module",
+        level="warning",
+    )
 
 
 def log_likelihood_gaussian(simulated_velocity, observed_velocity, observed_variance):

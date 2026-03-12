@@ -38,6 +38,25 @@ def radec2cart(rcom, ra, dec):
     return x, y, z
 
 
+def radec2cart_jacobian(rcom, ra, dec):
+
+    return np.array(
+        [
+            [
+                np.cos(ra) * np.cos(dec),
+                -rcom * np.sin(ra) * np.cos(dec),
+                -rcom * np.cos(ra) * np.sin(dec),
+            ],
+            [
+                np.sin(ra) * np.cos(dec),
+                rcom * np.cos(ra) * np.cos(dec),
+                -rcom * np.sin(ra) * np.sin(dec),
+            ],
+            [np.sin(dec), 0, rcom * np.cos(dec)],
+        ]
+    )
+
+
 def cart2radec(x, y, z):
     """Convert Cartesian (x, y, z) to spherical (r, ra, dec).
 

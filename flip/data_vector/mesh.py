@@ -371,17 +371,28 @@ def prepare_data_position(
     Nrandom=None,
     coord_randoms=None,
     seed=None,
+    data_position_sky_bandwidth=None,
 ):
 
     raobj = data_position_sky[:, 0]
     decobj = data_position_sky[:, 1]
     rcomobj = data_position_sky[:, 2]
-
     xobj, yobj, zobj = utils.radec2cart(rcomobj, raobj, decobj)
     mask = np.abs(xobj) < rcom_max + overhead
     mask &= np.abs(yobj) < rcom_max + overhead
     mask &= np.abs(zobj) < rcom_max + overhead
     xobj, yobj, zobj = xobj[mask], yobj[mask], zobj[mask]
+
+    if data_position_sky_bandwidth is not None:
+
+        jacobian = utils.radec2cart_jacobian(rcomobj[mask], raobj[mask], decobj[mask])
+
+        data_position_sky_bandwidth = data_position_sky_bandwidth[mask, :, :]
+
+        data_position_bandwith = jacobian @ data_position_sky_bandwidth @ jacobian.T
+    else:
+        data_position_bandwith = None
+
     raobj, decobj, rcomobj = raobj[mask], decobj[mask], rcomobj[mask]
     if random_method is not None:
         (
@@ -407,7 +418,7 @@ def prepare_data_position(
 
     data_positions = np.array([xobj, yobj, zobj]).T
 
-    return data_positions, randoms_positions
+    return data_positions, data_position_bandwith, randoms_positions
 
 
 def define_grid_from_mesh(mesh_data, grid_size):
@@ -468,7 +479,7 @@ def grid_data_density(
         allowed = ", ".join(_grid_kind_avail)
         raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
 
-    data_positions, randoms_positions = prepare_data_position(
+    data_positions, _, randoms_positions = prepare_data_position(
         data_position_sky,
         rcom_max,
         overhead,
@@ -556,6 +567,7 @@ def grid_data_density(
 
 def grid_data_density_multivariate_kernel(
     data_position_sky,
+    data_position_sky_bandwidth,
     rcom_max,
     grid_size,
     grid_type,
@@ -566,10 +578,182 @@ def grid_data_density_multivariate_kernel(
     min_count_random=0,
     overhead=20,
     seed=None,
+    kernel="gaussian",
+    cutoff_type=None,
+    threshold=1e-5,
 ):
-    grid = None
+
+    kind = kind.lower()
+    if kind not in _grid_kind_avail:
+        allowed = ", ".join(_grid_kind_avail)
+        raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
+
+    data_positions, data_position_bandwith, randoms_positions = prepare_data_position(
+        data_position_sky,
+        rcom_max,
+        overhead,
+        random_method=random_method,
+        Nrandom=Nrandom,
+        coord_randoms=coord_randoms,
+        seed=seed,
+        data_position_sky_bandwidth=data_position_sky_bandwidth,
+    )
+
+    data_weights = np.ones((data_positions.shape[0],))
+    randoms_weights = np.ones((randoms_positions.shape[0],))
+
+    # First mesh for grid definition
+    mesh_data = create_mesh(
+        data_positions,
+        2 * (rcom_max + overhead),
+        grid_size,
+        assignement=kind,
+        weights=data_weights,
+    )
+
+    xgrid, ygrid, zgrid, ragrid, decgrid, rcomgrid = define_grid_from_mesh(
+        mesh_data,
+        grid_size,
+    )
+
+    grid_positions = np.array([xgrid, ygrid, zgrid]).T
+
+    data_kernel_positions = []
+    data_kernel_weights = []
+    for i in range(data_positions.shape[0]):
+        kernel_weights = multivariate_kernel_density_estimation(
+            data_positions[i],
+            data_position_bandwith[i],
+            grid_positions,
+            kernel=kernel,
+            cutoff_type=cutoff_type,
+            threshold=threshold,
+        )
+        mask = kernel_weights != 0.0
+        data_kernel_positions.append(grid_positions[mask])
+        data_kernel_weights.append(kernel_weights[mask])
+
+    data_kernel_positions = np.concatenate(data_kernel_positions, axis=0)
+    data_kernel_weights = np.concatenate(data_kernel_weights, axis=0)
+    data_kernel_weights = data_kernel_weights / np.sum(data_kernel_weights)
+
+    mesh_data_kernel = create_mesh(
+        data_kernel_positions,
+        2 * (rcom_max + overhead),
+        grid_size,
+        assignement=kind,
+        weights=data_kernel_weights,
+    )
+
+    mesh_randoms = create_mesh(
+        randoms_positions,
+        2 * (rcom_max + overhead),
+        grid_size,
+        assignement=kind,
+        weights=randoms_weights,
+        scaling=np.sum(data_weights) / np.sum(randoms_weights),
+    )
+    if kind == "ngp":
+        mesh_count_randoms = mesh_randoms.copy()
+    else:
+        mesh_count_randoms = create_mesh(
+            randoms_positions,
+            2 * (rcom_max + overhead),
+            grid_size,
+            assignement="ngp",
+            weights=randoms_weights,
+            scaling=np.sum(data_weights) / np.sum(randoms_weights),
+        )
+
+    density_contrast = np.ravel(mesh_data_kernel.value / mesh_randoms.value - 1)
+
+    count_randoms = np.ravel(mesh_count_randoms.value).astype(int)
+    density_contrast_err = np.full(count_randoms.shape, np.nan)
+    mask = count_randoms > min_count_random
+    density_contrast_err[mask] = np.sqrt(1 / (count_randoms[mask]))
+
+    grid = {
+        "x": xgrid,
+        "y": ygrid,
+        "z": zgrid,
+        "ra": ragrid,
+        "dec": decgrid,
+        "rcom_zobs": rcomgrid,
+        "density": density_contrast,
+        "density_error": density_contrast_err,
+        "count_random": count_randoms,
+    }
+
+    if grid_type == "rect":
+        cut_grid(
+            grid,
+            remove_nan_density=True,
+            xmax=rcom_max,
+            ymax=rcom_max,
+            zmax=rcom_max,
+            remove_origin=True,
+        )
+
+    if grid_type == "sphere":
+        cut_grid(
+            grid,
+            remove_nan_density=True,
+            rcom_max=rcom_max,
+            remove_origin=True,
+        )
 
     return grid
+
+
+def multivariate_kernel_density_estimation(
+    data_position,
+    bandwidth,
+    grid_positions,
+    grid_size,
+    kernel="gaussian",
+    cutoff_type=None,
+    threshold=1e-5,
+):
+
+    if kernel == "gaussian":
+
+        distances_to_voxel = np.maximum(
+            np.abs(data_position - grid_positions) - grid_size / 2, 0
+        )
+
+        if bandwidth[0, 0] == 0 and bandwidth[1, 1] == 0 and bandwidth[2, 2] == 0:
+            # null error case, assign all weight to the closest voxel
+            normalized_kernel = np.zeros((grid_positions.shape[0],))
+            mask = np.sqrt(np.sum(distances_to_voxel**2, axis=1)) == 0
+            normalized_kernel[mask] = 1.0
+        else:
+
+            kernel = np.exp(
+                -0.5
+                * np.sum(
+                    (distances_to_voxel @ np.linalg.inv(bandwidth))
+                    * distances_to_voxel,
+                    axis=1,
+                )
+            )
+            norm = 1 / ((2 * np.pi) ** (1.5) * np.sqrt(np.linalg.det(bandwidth)))
+            normalized_kernel = kernel * norm
+
+    else:
+        raise ValueError(f"Unsupported kernel: {kernel}")
+
+    if cutoff_type is not None:
+        if cutoff_type == "kernel_unnormalized":
+            normalized_kernel[kernel < threshold] = 0.0
+        elif cutoff_type == "kernel":
+            normalized_kernel[normalized_kernel < threshold] = 0.0
+        if cutoff_type == "distance":
+            distances = np.sqrt(np.sum(distances_to_voxel**2, axis=1))
+            normalized_kernel[distances > threshold] = 0.0
+        else:
+            raise ValueError(f"Unsupported cutoff type: {cutoff_type}")
+
+    return normalized_kernel
 
 
 def grid_data_velocity(
@@ -602,7 +786,7 @@ def grid_data_velocity(
         dict: Grid with positions, velocity (optional), variance, and counts.
     """
 
-    data_positions, _ = prepare_data_position(
+    data_positions, _, _ = prepare_data_position(
         data_position_sky,
         rcom_max,
         overhead,

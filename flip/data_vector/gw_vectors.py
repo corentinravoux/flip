@@ -27,12 +27,20 @@ class GWDensMesh(Dens):
     def init_from_catalog(
         cls,
         data_position_sky,
+        data_position_sky_bandwidth,
         rcom_max,
         grid_size,
         grid_type,
         kind,
         **kwargs,
     ):
-        grid = mesh.grid_data_density_multivariate_kernel()
-
+        grid = mesh.grid_data_density_multivariate_kernel(
+            data_position_sky,
+            data_position_sky_bandwidth,
+            rcom_max,
+            grid_size,
+            grid_type,
+            kind,
+            **kwargs,
+        )
         return cls(grid)

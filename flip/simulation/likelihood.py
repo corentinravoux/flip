@@ -96,9 +96,16 @@ class VelocityFieldLikelihood:
         box_size (array-like): Simulation box dimensions in Mpc/h.
         seed (jax.random.PRNGKey): Random seed for the initial conditions.
         a (float): Scale factor at which to evaluate the fields. Default 1.0.
+        method (str): Simulation method forwarded to
+            :func:`~flip.simulation.generate.generate_density_and_velocity`.
+            Either ``"nbody"`` (default, full N-body ODE integration) or
+            ``"lpt"`` (faster Zel'dovich approximation, for testing).
         parameter_values_dict (dict | None): Additional parameters consumed
             by the data vector (e.g. ``{"M_0": -19.3}`` for
             ``VelFromHDres``).  If ``None``, an empty dict is used.
+        **simulation_kwargs: Extra keyword arguments forwarded to the
+            simulation function (e.g. ``ode_rtol``, ``ode_atol`` for
+            ``method='nbody'``).
 
     Examples:
         >>> lik = VelocityFieldLikelihood(
@@ -119,7 +126,9 @@ class VelocityFieldLikelihood:
         box_size,
         seed,
         a=1.0,
+        method="nbody",
         parameter_values_dict=None,
+        **simulation_kwargs,
     ):
         self.data_vector = data_vector
         self.positions_cartesian = jnp.array(positions_cartesian)
@@ -127,6 +136,8 @@ class VelocityFieldLikelihood:
         self.box_size = jnp.array(box_size)
         self.seed = seed
         self.a = a
+        self.method = method
+        self.simulation_kwargs = simulation_kwargs
         self.parameter_values_dict = parameter_values_dict or {}
 
         # Pre-compute observed velocities and their measurement (co)variances
@@ -140,7 +151,7 @@ class VelocityFieldLikelihood:
         log.add(
             f"VelocityFieldLikelihood: {len(self.observed_velocity)} "
             f"velocity observations, mesh {mesh_shape}, "
-            f"box {list(box_size)} Mpc/h."
+            f"box {list(box_size)} Mpc/h, method='{method}'."
         )
 
     def __call__(self, cosmo_params):
@@ -149,7 +160,8 @@ class VelocityFieldLikelihood:
         Runs the full JAX-differentiable forward model:
 
         1. Build cosmology from ``cosmo_params``.
-        2. Generate linear initial conditions and run 1LPT simulation.
+        2. Generate density and velocity fields via the configured simulation
+           method (N-body ODE or LPT).
         3. Interpolate velocity field at observed galaxy positions.
         4. Project onto line of sight.
         5. Compute Gaussian log-likelihood and return its negation.
@@ -172,6 +184,8 @@ class VelocityFieldLikelihood:
             self.box_size,
             self.seed,
             a=self.a,
+            method=self.method,
+            **self.simulation_kwargs,
         )
 
         velocities_3d = generate.interpolate_velocity_to_positions(

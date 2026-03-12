@@ -46,6 +46,7 @@ simulation = [
     "jaxpm",
     "jaxopt",
     "jax_cosmo",
+    "diffrax",
 ]
 
 [tool.setuptools.dynamic]

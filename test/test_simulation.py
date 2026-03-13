@@ -101,12 +101,12 @@ class TestGenerateLpt:
         assert jnp.all(jnp.isfinite(density))
         assert jnp.all(jnp.isfinite(velocity))
 
-    def test_density_mean_near_one(self):
+    def test_density_mean_near_zero(self):
         cosmo = generate.get_cosmology(omega_m=_TRUE_OMEGA_M, sigma8=_TRUE_SIGMA8)
         density, _ = generate.generate_density_and_velocity_lpt(
             cosmo, _MESH_SHAPE, _BOX_SIZE, _SEED
         )
-        assert float(density.mean()) == pytest.approx(1.0, abs=0.1)
+        assert float(density.mean()) == pytest.approx(0.0, abs=0.1)
 
     def test_gradient_through_lpt_wrt_sigma8(self):
         def obj(sigma8):

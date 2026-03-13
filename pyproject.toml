@@ -40,6 +40,15 @@ docs = [
     "sphinx-autoapi",
 ]
 
+simulation = [
+    "jax",
+    "jaxlib",
+    "jaxpm",
+    "jaxopt",
+    "jax_cosmo",
+    "diffrax",
+]
+
 [tool.setuptools.dynamic]
 version = {attr = "flip.__version__"}
 

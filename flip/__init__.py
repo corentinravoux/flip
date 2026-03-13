@@ -5,7 +5,7 @@ import os
 from flip.utils import create_log
 
 log = create_log()
-from . import covariance, data, data_vector, power_spectra, simulation, utils
+from . import covariance, data, data_vector, power_spectra, utils
 from .utils import __secret_logo__
 
 try:

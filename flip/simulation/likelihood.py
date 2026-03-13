@@ -66,7 +66,15 @@ def log_likelihood_gaussian(simulated_velocity, observed_velocity, observed_vari
 
     Returns:
         float: Log-likelihood value.
+
+    Raises:
+        ImportError: If JAX is not installed.
     """
+    if not jax_installed:
+        raise ImportError(
+            "'log_likelihood_gaussian' requires jax. "
+            "Install it with: pip install jax"
+        )
     residual = observed_velocity - simulated_velocity
     if observed_variance.ndim == 2:
         # Full covariance: use Cholesky factorisation for numerical stability
@@ -147,6 +155,11 @@ class VelocityFieldLikelihood:
         **simulation_kwargs,
     ):
         self.data_vector = data_vector
+        if not jax_installed:
+            raise ImportError(
+                "'VelocityFieldLikelihood' requires jax. "
+                "Install it with: pip install jax"
+            )
         self.positions_cartesian = jnp.array(positions_cartesian)
         self.mesh_shape = mesh_shape
         self.box_size = jnp.array(box_size)

@@ -102,6 +102,11 @@ class SimulationFitter:
         maxiter=100,
         solver_kwargs=None,
     ):
+        if not jaxopt_installed:
+            raise ImportError(
+                "'SimulationFitter' requires jaxopt. "
+                "Install it with: pip install jaxopt"
+            )
         if solver not in _AVAILABLE_SOLVERS:
             raise ValueError(
                 f"Solver '{solver}' is not supported. "

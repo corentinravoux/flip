@@ -79,6 +79,15 @@ _A_INITIAL = 0.1
 _N_K_INTERP = 128
 
 
+def _require_jaxpm(fn_name):
+    """Raise ImportError with a helpful message when jaxpm/jax_cosmo are absent."""
+    if not jaxpm_installed:
+        raise ImportError(
+            f"'{fn_name}' requires jaxpm, jax_cosmo and diffrax. "
+            "Install them with: pip install jaxpm jax_cosmo diffrax"
+        )
+
+
 def get_cosmology(
     omega_m,
     sigma8,
@@ -107,6 +116,7 @@ def get_cosmology(
     Returns:
         jax_cosmo.Cosmology: Cosmology instance compatible with JaxPM.
     """
+    _require_jaxpm("get_cosmology")
     return jc.Cosmology(
         h=h,
         Omega_b=omega_b,
@@ -244,13 +254,14 @@ def generate_density_and_velocity_lpt(
 
     Returns:
         tuple:
-            - density_field (jnp.ndarray): Density contrast delta(x) on the
-              mesh, shape ``mesh_shape``.  The mean value is approximately
-              zero.
+            - density_field (jnp.ndarray): Density contrast
+              :math:`\\delta(x) = \\rho/\\bar{\\rho} - 1` on the mesh, shape
+              ``mesh_shape``.  The mean value is approximately zero.
             - velocity_field (jnp.ndarray): Peculiar velocity field in km/s
               on the mesh, shape ``(*mesh_shape, 3)`` with components
               ``(vx, vy, vz)`` in Cartesian coordinates.
     """
+    _require_jaxpm("generate_density_and_velocity_lpt")
     box_size = jnp.array(box_size)
 
     def linear_pk_fn(k):
@@ -262,8 +273,8 @@ def generate_density_and_velocity_lpt(
     # Run 1LPT to get particle displacements and momenta
     dx, p = _run_lpt(cosmo, initial_conditions, a)
 
-    # Paint displaced particles to obtain density contrast field delta(x)
-    density_field = cic_paint_dx(dx)
+    # Paint displaced particles to obtain density contrast field delta(x) = rho/rho_bar - 1
+    density_field = cic_paint_dx(dx) - 1
 
     # Convert momentum to velocity field in km/s
     # p = a^2 * f * E * dx  =>  v_dimensionless = p / (a^2 * E) = f * dx [cells]
@@ -330,16 +341,17 @@ def generate_density_and_velocity_nbody(
 
     Returns:
         tuple:
-            - density_field (jnp.ndarray): Density contrast delta(x) on the
-              mesh, shape ``mesh_shape``.  The mean value is approximately
-              zero.
+            - density_field (jnp.ndarray): Density contrast
+              :math:`\\delta(x) = \\rho/\\bar{\\rho} - 1` on the mesh, shape
+              ``mesh_shape``.  The mean value is approximately zero.
             - velocity_field (jnp.ndarray): Peculiar velocity field in km/s
               on the mesh, shape ``(*mesh_shape, 3)`` with components
               ``(vx, vy, vz)`` in Cartesian coordinates.
 
     Raises:
-        ImportError: If ``diffrax`` is not installed.
+        ImportError: If ``jaxpm``, ``jax_cosmo`` or ``diffrax`` are not installed.
     """
+    _require_jaxpm("generate_density_and_velocity_nbody")
     try:
         from diffrax import ODETerm, PIDController, SaveAt, Tsit5, diffeqsolve
     except ImportError as exc:
@@ -388,8 +400,8 @@ def generate_density_and_velocity_nbody(
     dx_final = res.ys[0, 0]
     p_final = res.ys[0, 1]
 
-    # 4. Paint particles to get density contrast
-    density_field = cic_paint_dx(dx_final)
+    # 4. Paint particles to get density contrast delta(x) = rho/rho_bar - 1
+    density_field = cic_paint_dx(dx_final) - 1
 
     # 5. Convert momentum to velocity field in km/s
     # p = a^2 * E(a) * f(a) * dx  =>  v = p / (a^2 * E(a))  [cells]
@@ -438,8 +450,9 @@ def generate_density_and_velocity(
 
     Returns:
         tuple:
-            - density_field (jnp.ndarray): Density contrast delta(x) on the
-              mesh, shape ``mesh_shape``.
+            - density_field (jnp.ndarray): Density contrast
+              :math:`\\delta(x) = \\rho/\\bar{\\rho} - 1` on the mesh, shape
+              ``mesh_shape``.  The mean value is approximately zero.
             - velocity_field (jnp.ndarray): Peculiar velocity field in km/s,
               shape ``(*mesh_shape, 3)``.
 
@@ -480,6 +493,7 @@ def interpolate_velocity_to_positions(velocity_field, positions, box_size, mesh_
         jnp.ndarray: Velocity vector in km/s at each position, shape
         ``(N, 3)``.
     """
+    _require_jaxpm("interpolate_velocity_to_positions")
     box_size = jnp.array(box_size)
     mesh_shape_arr = jnp.array(mesh_shape, dtype=jnp.float64)
 
@@ -577,6 +591,7 @@ def compute_los_velocity(velocities, positions):
     Returns:
         jnp.ndarray: Line-of-sight peculiar velocity in km/s, shape ``(N,)``.
     """
+    _require_jaxpm("compute_los_velocity")
     los_unit = _safe_normalize(positions)
     return jnp.sum(velocities * los_unit, axis=-1)
 
@@ -598,6 +613,7 @@ def compute_fsigma8(cosmo, a=1.0):
     Returns:
         float: :math:`f \\cdot \\sigma_8` dimensionless growth parameter.
     """
+    _require_jaxpm("compute_fsigma8")
     a_arr = jnp.atleast_1d(a)
     f = jc.background.growth_rate(cosmo, a_arr)[0]
     return f * cosmo.sigma8
@@ -614,6 +630,7 @@ def radec_to_cartesian(ra, dec, r_com):
     Returns:
         jnp.ndarray: Cartesian positions in Mpc/h, shape ``(N, 3)``.
     """
+    _require_jaxpm("radec_to_cartesian")
     ra_rad = jnp.deg2rad(jnp.asarray(ra))
     dec_rad = jnp.deg2rad(jnp.asarray(dec))
     r = jnp.asarray(r_com)

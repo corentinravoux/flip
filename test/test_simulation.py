@@ -8,10 +8,13 @@ The N-body (diffrax) pipeline is exercised in a smoke-test that checks shapes
 and finiteness without running a full optimisation.
 """
 
-import jax
-import jax.numpy as jnp
 import numpy as np
 import pytest
+
+jax = pytest.importorskip("jax", reason="jax is required for simulation tests")
+jnp = pytest.importorskip("jax.numpy", reason="jax is required for simulation tests")
+pytest.importorskip("jaxpm", reason="jaxpm is required for simulation tests")
+pytest.importorskip("jax_cosmo", reason="jax_cosmo is required for simulation tests")
 
 from flip import data_vector
 from flip.simulation import generate, likelihood

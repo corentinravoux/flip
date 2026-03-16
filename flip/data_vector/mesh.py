@@ -251,7 +251,13 @@ def create_mesh(
     scaling=None,
 ):
 
-    conversions = {"ngp": "nnb", "cic": "cic", "tsc": "tsc", "pcs": "pcs"}
+    conversions = {
+        "ngp": "nnb",
+        "ngp_errw": "nnb",
+        "cic": "cic",
+        "tsc": "tsc",
+        "pcs": "pcs",
+    }
     resampler = conversions[assignement]
 
     nmesh, boxsize, boxcenter = _get_mesh_attrs(

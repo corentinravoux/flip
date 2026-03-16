@@ -753,7 +753,7 @@ def multivariate_kernel_density_estimation(
             normalized_kernel[kernel < threshold] = 0.0
         elif cutoff_type == "kernel":
             normalized_kernel[normalized_kernel < threshold] = 0.0
-        if cutoff_type == "distance":
+        elif cutoff_type == "distance":
             distances = np.sqrt(np.sum(distances_to_voxel**2, axis=1))
             normalized_kernel[distances > threshold] = 0.0
         else:

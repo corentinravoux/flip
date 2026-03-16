@@ -1,5 +1,5 @@
-from flip.data_vector import mesh
-from flip.data_vector.basic import Dens
+from . import mesh
+from .basic import Dens
 
 
 class GWDensMesh(Dens):

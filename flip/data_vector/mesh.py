@@ -76,26 +76,54 @@ def compute_grid_window(grid_size, kh, kind="ngp", n=1000):
 
 
 def ngp_weight(ds):
-    """Nearest Grid Point."""
+    """Return nearest-grid-point assignment weights.
+
+    Args:
+        ds (array-like): Distance to the cell center in cell-size units.
+
+    Returns:
+        numpy.ndarray: NGP weights evaluated at `ds`.
+    """
     abs_ds = np.abs(ds)
     w = 1.0 * (abs_ds < 1 / 2)
     return w
 
 
 def ngp_errw_weight(ds):
-    """Nearest Grid Point with Weighted error."""
+    """Return NGP weights for the error-weighted assignment scheme.
+
+    Args:
+        ds (array-like): Distance to the cell center in cell-size units.
+
+    Returns:
+        numpy.ndarray: Assignment weights evaluated at `ds`.
+    """
     return ngp_weight(ds)
 
 
 def cic_weight(ds):
-    """Cloud In Cell."""
+    """Return cloud-in-cell assignment weights.
+
+    Args:
+        ds (array-like): Distance to the cell center in cell-size units.
+
+    Returns:
+        numpy.ndarray: CIC weights evaluated at `ds`.
+    """
     abs_ds = np.abs(ds)
     w = (1.0 - abs_ds) * (abs_ds < 1)
     return w
 
 
 def tsc_weight(ds):
-    """Triangular Shaped Cloud."""
+    """Return triangular-shaped-cloud assignment weights.
+
+    Args:
+        ds (array-like): Distance to the cell center in cell-size units.
+
+    Returns:
+        numpy.ndarray: TSC weights evaluated at `ds`.
+    """
     abs_ds = np.abs(ds)
     w = (3 / 4 - ds**2) * (abs_ds < 1 / 2)
     w += 1 / 2 * (3 / 2 - abs_ds) ** 2 * ((1 / 2 <= abs_ds) & (abs_ds < 3 / 2))
@@ -103,7 +131,14 @@ def tsc_weight(ds):
 
 
 def pcs_weight(ds):
-    """Triangular Shaped Cloud."""
+    """Return piecewise-cubic-spline assignment weights.
+
+    Args:
+        ds (array-like): Distance to the cell center in cell-size units.
+
+    Returns:
+        numpy.ndarray: PCS weights evaluated at `ds`.
+    """
     abs_ds = np.abs(ds)
     w = 1 / 6 * (4 - 6 * ds**2 + 3 * abs_ds**3) * (abs_ds < 1)
     w += 1 / 6 * (2 - abs_ds) ** 3 * ((1 <= abs_ds) & (abs_ds < 2))
@@ -114,6 +149,16 @@ def _get_mesh_attrs(
     boxsize,
     cellsize,
 ):
+    """Derive mesh dimensions and box metadata from target scales.
+
+    Args:
+        boxsize (float): Target box size along each Cartesian axis.
+        cellsize (float): Desired cell size along each Cartesian axis.
+
+    Returns:
+        tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]: Mesh shape,
+        adjusted box size, and box center.
+    """
     boxcenter = 0.0
     boxsize = np.full((3,), boxsize, dtype="f8")
 
@@ -141,9 +186,10 @@ def define_randoms(
     max_coordinates=None,
     seed=None,
 ):
-    """Generate random positions for density estimation.
+    """Generate random Cartesian positions for density gridding.
 
-    Supports cartesian uniform, choice-based on observed distributions, or from file.
+    Supports uniform Cartesian sampling, random catalogs drawn from the
+    observed angular and radial distributions, or externally supplied randoms.
 
     Args:
         random_method (str): `cartesian`, `choice`, `choice_redshift`, or `file`.
@@ -156,6 +202,7 @@ def define_randoms(
         Nrandom (int): Number of randoms per object.
         coord_randoms (tuple, optional): `(ra, dec, rcom)` for `file` method.
         max_coordinates (float, optional): Coordinate cutoff for `file` method.
+        seed (int, optional): Random seed used for reproducible draws.
 
     Returns:
         tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]: Random x, y, z positions.
@@ -250,6 +297,23 @@ def create_mesh(
     weights=None,
     scaling=None,
 ):
+    """Paint weighted positions onto a `pmesh` mesh.
+
+    Args:
+        positions (array-like): Cartesian positions with shape `(N, 3)`.
+        boxsize (float): Box size used to create the mesh.
+        cellsize (float): Target cell size.
+        assignement (str): Assignment scheme among `ngp`, `ngp_errw`, `cic`,
+            `tsc`, and `pcs`.
+        weights (array-like, optional): Per-object weights to paint on the mesh.
+        scaling (float, optional): Extra multiplicative factor applied to weights.
+
+    Returns:
+        pmesh.pm.RealField: Painted real-space mesh.
+
+    Raises:
+        ValueError: If positions or weights contain non-finite values.
+    """
 
     conversions = {
         "ngp": "nnb",
@@ -379,6 +443,25 @@ def prepare_data_position(
     seed=None,
     data_position_sky_bandwidth=None,
 ):
+    """Convert sky coordinates to Cartesian positions and prepare randoms.
+
+    Args:
+        data_position_sky (array-like): Sky coordinates with columns `(ra, dec, rcom)`.
+        rcom_max (float): Maximum comoving radius of the retained region.
+        overhead (float): Padding added to the mesh extent.
+        random_method (str, optional): Random generation method passed to
+            `define_randoms`.
+        Nrandom (int, optional): Number of random points per object.
+        coord_randoms (tuple, optional): Input random sky coordinates for the
+            `file` random method.
+        seed (int, optional): Random seed used when generating randoms.
+        data_position_sky_bandwidth (array-like, optional): Per-object bandwidth
+            matrices expressed in sky coordinates.
+
+    Returns:
+        tuple: Cartesian data positions, transformed bandwidth matrices or `None`,
+        and random positions or `None`.
+    """
 
     raobj = data_position_sky[:, 0]
     decobj = data_position_sky[:, 1]
@@ -428,6 +511,15 @@ def prepare_data_position(
 
 
 def define_grid_from_mesh(mesh_data, grid_size):
+    """Extract voxel-center coordinates and sky coordinates from a mesh.
+
+    Args:
+        mesh_data: `pmesh` field used to define the grid geometry.
+        grid_size (float): Cell size used to shift coordinates to voxel centers.
+
+    Returns:
+        tuple[numpy.ndarray, ...]: Cartesian and sky coordinates of all grid cells.
+    """
     coord_mesh = np.array(
         np.meshgrid(
             np.sort(mesh_data.x[0][:, 0, 0]),
@@ -588,6 +680,31 @@ def grid_data_density_multivariate_kernel(
     cutoff_type=None,
     threshold=1e-5,
 ):
+    """Grid density data after smoothing each object with a local kernel.
+
+    Args:
+        data_position_sky (array-like): Sky coordinates with columns `(ra, dec, rcom)`.
+        data_position_sky_bandwidth (array-like): Per-object bandwidth matrices in
+            sky coordinates.
+        rcom_max (float): Outer cutoff for the final grid.
+        grid_size (float): Cell size of the mesh.
+        grid_type (str): Either `rect` or `sphere` for the final cut.
+        kind (str): Assignment kernel among the supported mesh schemes.
+        Nrandom (int): Number of random points per object.
+        random_method (str): Strategy used to generate random catalogs.
+        coord_randoms (tuple, optional): Input random sky coordinates for the
+            `file` random method.
+        min_count_random (int): Minimum random count required to define errors.
+        overhead (float): Padding added to the mesh extent.
+        seed (int, optional): Random seed used when generating randoms.
+        kernel (str): Name of the multivariate kernel.
+        cutoff_type (str, optional): Optional truncation criterion applied to the
+            kernel weights.
+        threshold (float): Threshold associated with `cutoff_type`.
+
+    Returns:
+        dict: Gridded density field, density errors, and grid coordinates.
+    """
 
     kind = kind.lower()
     if kind not in _grid_kind_avail:
@@ -720,6 +837,24 @@ def multivariate_kernel_density_estimation(
     cutoff_type=None,
     threshold=1e-5,
 ):
+    """Evaluate multivariate kernel weights on a Cartesian grid.
+
+    Args:
+        data_position (array-like): Cartesian position of the object center.
+        bandwidth (array-like): $3 \times 3$ covariance matrix of the kernel.
+        grid_positions (array-like): Cartesian positions of voxel centers.
+        grid_size (float): Cell size used to clip distances to voxel boundaries.
+        kernel (str): Kernel family to evaluate.
+        cutoff_type (str, optional): Optional truncation mode among
+            `kernel_unnormalized`, `kernel`, or `distance`.
+        threshold (float): Threshold used by `cutoff_type`.
+
+    Returns:
+        numpy.ndarray: Kernel weights evaluated at each grid position.
+
+    Raises:
+        ValueError: If the kernel or cutoff type is unsupported.
+    """
 
     if kernel == "gaussian":
 
@@ -772,20 +907,17 @@ def grid_data_velocity(
     velocity=None,
     overhead=20,
 ):
-    """Grid velocity catalog with pypower and compute weighted means and variance.
+    """Grid velocity data and compute per-cell means and errors.
 
     Args:
-        raobj (array-like): Right ascensions.
-        decobj (array-like): Declinations.
-        rcomobj (array-like): Comoving distances.
+        data_position_sky (array-like): Sky coordinates with columns `(ra, dec, rcom)`.
         rcom_max (float): Outer cutoff.
-        variance (array-like): Per-object variances.
-        velocity (array-like|None): Per-object velocities (optional for variance-only).
         grid_size (float): Cell size.
         grid_type (str): `rect` or `sphere` cut behavior.
-        kind (str): Resampler passed to CatalogMesh.
-        interlacing (int): Interlacing factor.
-        compensate (bool): Apply resampler compensation.
+        kind (str): Assignment kernel among the supported mesh schemes.
+        variance (array-like): Per-object variances.
+        velocity (array-like|None): Per-object velocities when computing the
+            weighted mean velocity.
         overhead (float): Extra margin around cutoff.
 
     Returns:

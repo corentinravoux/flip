@@ -1,0 +1,755 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+
+
+\title{flip new models}
+\author{corentin ravoux}
+
+\begin{document}
+
+\maketitle
+
+\section{Fei SPT}
+
+
+\subsection{From algo}
+
+
+Note: $\Sigma_{4,sq}$ was modified to factorize the $D(z)**4$ term. 
+
+\begin{equation}
+\begin{aligned}
+P_{\mathrm{auto},00}=&(2b_{1})*D(z)^{4}*(b_{2}*K_{00}+b_{s}*Ks_{00}) \\
+&+b_{1}^{2}*D(z)^{2}*(P_l+2*D(z)^{2}*(I_{00}+3*k^{2}*P_l*J_{00})) \\
+&+\frac{1}{2}*D(z)^{4}*(b_{2}^{2}*K_{01}+b_{s}^{2}*Ks_{01}+2*b_{2}*b_{s}*Ks_{02}+4*b_{3,nl}*\Sigma_{3,sq}*P_l)
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\begin{aligned}          
+P_{\mathrm{auto},01}=&f*b_{1}*D(z)^{2}*(P_l+2*D(z)^{2}*(I_{01}+b_{1}*I_{10}+3*k^{2}*P_l*(J_{01}+b_{1}*J_{10}))-b_{2}*D(z)^{2}*K_{11}-b_{s}*D(z)^{2}*Ks_{11}) \\
+&-f*D(z)^{4}*(b_{2}*K_{10}+b_{s}*Ks_{10}+b_{3,nl}*\Sigma_{3,sq}*P_l)
+\end{aligned}
+\end{equation}
+
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},02}=&f^{2}*b_{1}*D(z)^{4}*(I_{02}+\mu^{2}*I_{20}+2*k^{2}*P_l*(J_{02}+\mu^{2}*J_{20})) \\
+&-f^{2}*k^{2}*\sigma_{v,1,sq}*P_{\mathrm{auto},00}+f^{2}*D(z)^{4}*(b_{2}*(K_{20}+\mu^{2}*K_{30})+b_{s}*(Ks_{20}+\mu^{2}*Ks_{30}))
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},03}=-f^{2}*k^{2}*\sigma_{v,2,sq}*P_{\mathrm{auto},01}
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},04}=&-\frac{1}{2}*f^{4}*b_{1}*k^{2}*\sigma_{v,3,sq}*D(z)^{4}*(I_{02}+\mu^{2}*I_{20}+2*k^{2}*P_l*(J_{02}+\mu^{2}*J_{20})) \\
+&+\frac{1}{4}*f^{4}*b_{1}^{2}*k^{4}*P_{\mathrm{auto},00}*(\sigma_{v,3,sq}^{2}+D(z)^{4}*\Sigma_{4,sq}) 
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},11}=f^{2}*D(z)^{2}*(\mu^{2}*(P_l+D(z)^{2}*(2*I_{11}+(2b_{1}+2b_{1})*I_{22}+b_{1}^{2}*I_{13}+6*k^{2}*P_l*(J_{11}+(2b_{1})*J_{10})))  +b_{1}^{2}*D(z)^{2}*I_{31})
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},12}=&f^{3}*D(z)^{4}*(I_{12}+\mu^{2}*I_{21}-b_{1}*(I_{03}+\mu^{2}*I_{30})+2*k^{2}*P_l*(J_{02}+\mu^{2}*J_{20})) \\
+&-f^{2}*k^{2}*\sigma_{v,1,sq}* P_{\mathrm{auto},01}+2*f^{3}*k^{2}*D(z)^{4}*(I_{01}+I_{10}+3*k^{2}*P_l*(J_{01}+J_{10}))*\sigma_{v,1,sq} 
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},13}=-f^{2}*k^{2}*f^{2}*D(z)^{2}*(\sigma_{v,2,sq}*\mu^{2}*(P_l+D(z)^{2}*(2*I_{11}+(2b_{1}+2b_{1})*I_{22} +6*k^{2}*P_l*(J_{11}+(2b_{1})*J_{10}))) +\sigma_{v,1,sq}*b_{1}^{2}*D(z)^{2}*(\mu^{2}*I_{13}+I_{31}))
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},22}=&\frac{1}{4}*f^{4}*D(z)^{4}*(I_{23}+2*\mu^{2}*I_{32}+\mu^{4}*I_{33}) \\
+&+f^{4}*k^{4}*\sigma_{v,1,sq}^{2} *P_{\mathrm{auto},00} \\
+&-f^{2}*k^{2}*\sigma_{v,1,sq}*(2*P_{\mathrm{auto},02}-f^{2}*D(z)^{4}*(b_{2}*(K_{20}+\mu^{2}*K_{30})+b_{s}*(Ks_{20}+\mu^{2}*Ks_{30})))  
+\end{aligned}
+\end{equation}
+
+
+
+
+
+
+\begin{equation}
+\begin{aligned} 
+P_{\mathrm{cross},00}=b_{1}*b_{1v}*P_l*D(z)^{2}+b_{1}*D(z)^{4}*(b_{2v}*K_{00}+b_{sv}*Ks_{00}+2*b_{1v}*(I_{00}+3*J_{00}*k^{2}*P_l)) +\frac{1}{2}*D(z)^{4}*(b_{2}*b_{2v}*K_{01}+2*b_{1v}*(b_{2}*K_{00}+b_{s}*Ks_{00})+b_{s}*b_{sv}*Ks_{01}+b_{2v}*b_{s}*Ks_{02}+b_{2}*b
+_{sv}*Ks_{02}+4*b_{3,nl}*P_l*\Sigma_{3,sq})
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\begin{aligned} 
+P_{\mathrm{cross},01}=f*D(z)^{2}*(b_{1}*(P_l+2*(I_{01}+b_{1v}*I_{10}+3*(J_{01}+b_{1v}*J_{10})*k^{2}*P_l)*D(z)^{2}) -D(z)^{2}*(b_{2}*(K_{10}+b_{1v}*K_{11})+b_{s}*Ks_{10}+b_{1v}*b_{s}*Ks_{11}+b_{3,nl}*P_l*\Sigma_{3,sq}))
+\end{aligned}
+\end{equation}
+
+
+\begin{equation}
+\begin{aligned} 
+P_{\mathrm{cross},11}=f^{2}*D(z)^{2}*(P_l*\mu^{2}+D(z)^{2}*(b_{1}*b_{1v}*I_{31}+(2*I_{11}+b_{1}*b_{1v}*I_{13}+2*b_{1}*I_{22}+2*b_{1v}*I_{22}+6*((b_{1}+b_{1v})*J_{10}+J_{11})*k^{2}*P_l)*\mu^{2}))
+\end{aligned}
+\end{equation}
+
+
+\begin{equation}
+\begin{aligned} 
+P_{\mathrm{cross},02}=f^{2}*b_{1}*D(z)^{4}*(I_{02}+\mu^{2}*I_{20}+2*k^{2}*P_l*(J_{02}+\mu^{2}*J_{20}))-f^{2}*k^{2}*\sigma_{v,1,sq}*P_{\mathrm{cross},00}+f^{2}*D(z)^{4}*(b_{2}*(K_{20}+\mu^{2}*K_{30})+b_{s}*(Ks_{20}+\mu^{2}*Ks_{30}))
+\end{aligned}
+\end{equation}
+
+
+
+\begin{equation}
+\begin{aligned} 
+P_{\mathrm{cross},03}=-f^{2}*k^{2}*\sigma_{v,2,sq}*P_{\mathrm{cross},01}
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\begin{aligned} 
+P_{\mathrm{cross},04}=-\frac{1}{2}*f^{4}*b_{1}*k^{2}*\sigma_{v,3,sq}*D(z)^{4}*(I_{02}+\mu^{2}*I_{20}+2*k^{2}*P_l*(J_{02}+\mu^{2}*J_{20})) +\frac{1}{4}*f^{4}*b_{1}*b_{1v}*k^{4}*P_{\mathrm{cross},00}*(\sigma_{v,3,sq}^{2}+D(z)^{4}*\Sigma_{4,sq}) 
+\end{aligned}
+\end{equation}
+
+
+\begin{equation}
+\begin{aligned} 
+P_{\mathrm{cross},12}=f^{3}*D(z)^{4}*(I_{12}+\mu^{2}*I_{21}-b_{1}*(I_{03}+\mu^{2}*I_{30})+2*k^{2}*P_l*(J_{02}+\mu^{2}*J_{20}))   -f^{2}*k^{2}*\sigma_{v,1,sq}* P_{\mathrm{cross},01}+2*f^{3}*k^{2}*D(z)^{4}*(I_{01}+I_{10}+3*k^{2}*P_l*(J_{01}+J_{10}))*\sigma_{v,1,sq} 
+\end{aligned}
+\end{equation}
+
+
+\begin{equation}
+\begin{aligned} 
+P_{\mathrm{cross},13}=-f^{2}*k^{2}*f^{2}*D(z)^{2}*(\sigma_{v,2,sq}*\mu^{2}*(P_l+D(z)^{2}*(2*I_{11}+(2*b_{1}+2*b_{1v})*I_{22} +6*k^{2}*P_l*(J_{11}+(b_{1}+b_{1v})*J_{10}))) +\sigma_{v,1,sq}*b_{1}*b_{1v}*D(z)^{2}*(\mu^{2}*I_{13}
++I_{31}))
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\begin{aligned} 
+P_{\mathrm{cross},22}=\frac{1}{4}*f^{4}*D(z)^{4}*(I_{23}+2*\mu^{2}*I_{32}+\mu^{4}*I_{33})+f^{4}*k^{4}*\sigma_{v,1,sq}^{2} *P_{\mathrm{cross},00}-f^{2}*k^{2}*\sigma_{v,1,sq}*(2*P_{\mathrm{cross},02}-f^{2}*D(z)^{4}*(b_{2}*(K_{20}+\mu^{2}*K_{30})+b_{s}*(Ks_{20}+\mu^{2}*Ks_{30})))
+\end{aligned}
+\end{equation}
+
+
+
+
+\subsection{flip factorization}
+
+Potential additional factorizations (might be too complicated):
+
+$P_{\mathrm{auto}, 04} + P_{\mathrm{auto}, 22}$ \\
+$P_{\mathrm{auto},12} + P_{\mathrm{auto}, 03}$
+
+
+\subsubsection{Autocorr}
+
+\begin{equation}
+\begin{aligned}
+P_{\mathrm{auto},00}=&2*b_{1}*b_{2}*D(z)^{4}*K_{00} \\
+&+2*b_{1}*b_{s}*D(z)^{4}*Ks_{00} \\
+&+b_{1}^{2}*(D(z)^{2}*P_l + 2*D(z)^{4}*I_{00}) \\
+&+6*b_{1}^{2}*k^{2}*D(z)^{4}*P_l*J_{00} \\
+&+\frac{1}{2}*b_{2}^{2}*D(z)^{4}*K_{01}\\
+&+\frac{1}{2}*b_{s}^{2}*D(z)^{4}*Ks_{01}\\
+&+b_{2}*b_{s}*D(z)^{4}*Ks_{02}\\
+&+2*b_{3,nl}*D(z)^{4}*\Sigma_{3,sq}*P_l\\
+\end{aligned}
+\end{equation}
+
+
+\begin{equation}
+\begin{aligned}          
+P_{\mathrm{auto},01}=&f*b_{1}*(D(z)^{2}*P_l + 2*D(z)^{4}*I_{01}) \\
+&+2*f*b_{1}^{2}*D(z)^{4}*I_{10} \\
+&+6*f*b_{1}*k^{2}*D(z)^{4}*P_l*J_{01} \\
+&+6*f*b_{1}^{2}*k^{2}*D(z)^{4}*P_l*J_{10} \\
+&-f*b_{1}*b_{2}*D(z)^{4}*K_{11} \\
+&-f*b_{1}*b_{s}*D(z)^{4}*Ks_{11} \\
+&-f*b_{2}*D(z)^{4}*K_{10} \\
+&-f*b_{s}*D(z)^{4}*Ks_{10} \\
+&-f*b_{3,nl}*D(z)^{4}*\Sigma_{3,sq}*P_l \\
+\end{aligned}
+\end{equation}
+
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},02}=
+&f^{2}*b_{1}*D(z)^{4}*I_{02} \\
+&f^{2}*b_{1}*\mu^{2}*D(z)^{4}*I_{20} \\
+&2*f^{2}*b_{1}*k^{2}*D(z)^{4}*P_l*J_{02} \\
+&2*f^{2}*b_{1}*k^{2}*\mu^{2}*D(z)^{4}*P_l*J_{20} \\
+&-2*f^{2}*b_{1}*b_{2}*\sigma_{v,1,sq}*k^{2}*D(z)^{4}*K_{00} \\
+&-2*f^{2}*b_{1}*b_{s}*\sigma_{v,1,sq}*k^{2}*D(z)^{4}*Ks_{00} \\
+&-f^{2}*b_{1}^{2}*\sigma_{v,1,sq}*k^{2}*(D(z)^{2}*P_l + 2*D(z)^{4}*I_{00})\\
+&-6*f^{2}*b_{1}^{2}*\sigma_{v,1,sq}*k^{4}*D(z)^{4}*P_l*J_{00} \\
+&-\frac{1}{2}*f^{2}*b_{2}^{2}*\sigma_{v,1,sq}*k^{2}*D(z)^{4}*K_{01}\\
+&-\frac{1}{2}*f^{2}*b_{s}^{2}*\sigma_{v,1,sq}*k^{2}*D(z)^{4}*Ks_{01}\\
+&-f^{2}*b_{2}*b_{s}*\sigma_{v,1,sq}*k^{2}*D(z)^{4}*Ks_{02}\\
+&-2*f^{2}*b_{3,nl}*\sigma_{v,1,sq}*k^{2}*D(z)^{4}*\Sigma_{3,sq}*P_l \\
+&+f^{2}*b_{s}*D(z)^{4}*Ks_{20} \\
+&+f^{2}*b_{s}*\mu^{2}*D(z)^{4}*Ks_{30} \\
+&+f^{2}*b_{2}*D(z)^{4}*K_{20} \\
+&+f^{2}*b_{2}*\mu^{2}*D(z)^{4}*K_{30} \\
+\end{aligned}
+\end{equation}
+
+
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},03}=&-f^{3}*b_{1}*\sigma_{v,2,sq}*k^{2}*(D(z)^{2}*P_l + 2*D(z)^{4}*I_{01}) \\
+&-2*f^{3}*b_{1}^{2}*\sigma_{v,2,sq}*k^{2}*D(z)^{4}*I_{10} \\
+&-6*f^{3}*b_{1}*\sigma_{v,2,sq}*k^{4}*D(z)^{4}*P_l*J_{01} \\
+&-6*f^{3}*b_{1}^{2}*\sigma_{v,2,sq}*k^{4}*D(z)^{4}*P_l*J_{10} \\
+&+f^{3}*b_{1}*b_{2}*\sigma_{v,2,sq}*k^{2}*D(z)^{4}*K_{11} \\
+&+f^{3}*b_{1}*b_{s}*\sigma_{v,2,sq}*k^{2}*D(z)^{4}*Ks_{11} \\
+&+f^{3}*b_{2}*\sigma_{v,2,sq}*k^{2}*D(z)^{4}*K_{10} \\
+&+f^{3}*b_{s}*\sigma_{v,2,sq}*k^{2}*D(z)^{4}*Ks_{10} \\
+&+f^{3}*b_{3,nl}*\sigma_{v,2,sq}*k^{2}*D(z)^{4}*\Sigma_{3,sq}*P_l \\
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},04}=&-\frac{1}{2}*f^{4}*b_{1}*\sigma_{v,3,sq}*k^{2}*D(z)^{4}*I_{02} \\
+&-\frac{1}{2}*f^{4}*b_{1}*\sigma_{v,3,sq}*k^{2}*\mu^{2}*D(z)^{4}*I_{20} \\
+&-f^{4}*b_{1}*\sigma_{v,3,sq}*k^{4}*D(z)^{4}*P_l*J_{02} \\
+&-f^{4}*b_{1}*\sigma_{v,3,sq}*k^{4}*\mu^{2}*D(z)^{4}*P_l*J_{20} \\
+&+\frac{1}{2}*f^{4}*b_{1}^{3}*b_{2}*k^{4}*D(z)^{8}*K_{00}*\Sigma_{4,sq} \\
+&+\frac{1}{2}*f^{4}*b_{1}^{3}*b_{s}*k^{4}*D(z)^{8}*Ks_{00}*\Sigma_{4,sq} \\
+&+\frac{1}{4}*f^{4}*b_{1}^{4}*k^{4}*(D(z)^{2}*P_l + 2*D(z)^{4}*I_{00})*D(z)^{4}*\Sigma_{4,sq} \\
+&+\frac{3}{2}*f^{4}*b_{1}^{4}*k^{6}*D(z)^{8}*P_l*J_{00}*\Sigma_{4,sq} \\
+&+\frac{1}{8}*f^{4}*b_{1}^{2}*b_{2}^{2}*k^{4}*D(z)^{8}*K_{01}*\Sigma_{4,sq} \\
+&+\frac{1}{8}*f^{4}*b_{1}^{2}*b_{s}^{2}*k^{4}*D(z)^{8}*Ks_{01}*\Sigma_{4,sq} \\
+&+\frac{1}{4}*f^{4}*b_{1}^{2}*b_{2}*b_{s}*k^{4}*D(z)^{8}*Ks_{02}*\Sigma_{4,sq}\\
+&+\frac{1}{2}*f^{4}*b_{1}^{2}*b_{3,nl}*k^{4}*D(z)^{8}*\Sigma_{3,sq}*P_l*\Sigma_{4,sq} \\
+&+\frac{1}{2}*f^{4}*b_{1}^{3}*b_{2}*\sigma_{v,3,sq}^{2}*k^{4}*D(z)^{4}*K_{00} \\
+&+\frac{1}{2}*f^{4}*b_{1}^{3}*b_{s}*\sigma_{v,3,sq}^{2}*k^{4}*D(z)^{4}*Ks_{00} \\
+&+\frac{1}{4}*f^{4}*b_{1}^{4}*\sigma_{v,3,sq}^{2}*k^{4}*(D(z)^{2}*P_l + 2*D(z)^{4}*I_{00}) \\
+&+\frac{3}{2}*f^{4}*b_{1}^{4}*\sigma_{v,3,sq}^{2}*k^{6}*D(z)^{4}*P_l*J_{00} \\
+&+\frac{1}{8}*f^{4}*b_{1}^{2}*b_{2}^{2}*\sigma_{v,3,sq}^{2}*k^{4}*D(z)^{4}*K_{01}\\
+&+\frac{1}{8}*f^{4}*b_{1}^{2}*b_{s}^{2}*\sigma_{v,3,sq}^{2}*k^{4}*D(z)^{4}*Ks_{01}\\
+&+\frac{1}{4}*f^{4}*b_{1}^{2}*b_{2}*b_{s}*\sigma_{v,3,sq}^{2}*k^{4}*D(z)^{4}*Ks_{02}\\
+&+\frac{1}{2}*f^{4}*b_{1}^{2}*b_{3,nl}*\sigma_{v,3,sq}^{2}*k^{4}*D(z)^{4}*\Sigma_{3,sq}*P_l
+\end{aligned}
+\end{equation}
+
+
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},11}=&f^{2}*\mu^{2}*(D(z)^{2}*P_l + 2*D(z)^{4}*I_{11}) \\
+&4*f^{2}*b_{1}*\mu^{2}*D(z)^{4}*I_{22}  \\
+&f^{2}*b_{1}^{2}*\mu^{2}*D(z)^{4}*I_{13}  \\
+&6*f^{2}*\mu^{2}*k^{2}*D(z)^{4}*P_l*J_{11}  \\
+&12*f^{2}*b_{1}*\mu^{2}*k^{2}*D(z)^{4}*P_l*J_{10}  \\
+&f^{2}*b_{1}^{2}*D(z)^{4}*I_{31} \\
+\end{aligned}
+\end{equation}
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},12}=&f^{3}*D(z)^{4}*I_{12} \\
+&+f^{3}*D(z)^{4}*\mu^{2}*I_{21} \\
+&-f^{3}*b_{1}*D(z)^{4}*I_{03} \\
+&-f^{3}*b_{1}*D(z)^{4}*\mu^{2}*I_{30} \\
+&+f^{3}*D(z)^{4}*2*k^{2}*P_l*J_{02} \\
+&+f^{3}*D(z)^{4}*2*k^{2}*P_l*\mu^{2}*J_{20} \\
+&-f^{3}*b_{1}*\sigma_{v,1,sq}*k^{2}*(D(z)^{2}*P_l + 2*D(z)^{4}*I_{01}) \\
+&-2*f^{3}*b_{1}^{2}*\sigma_{v,1,sq}*k^{2}*D(z)^{4}*I_{10} \\
+&-6*f^{3}*b_{1}*\sigma_{v,1,sq}*k^{4}*D(z)^{4}*P_l*J_{01} \\
+&-6*f^{3}*b_{1}^{2}*\sigma_{v,1,sq}*k^{4}*D(z)^{4}*P_l*J_{10} \\
+&+f^{3}*b_{1}*b_{2}*\sigma_{v,1,sq}*k^{2}*D(z)^{4}*K_{11} \\
+&+f^{3}*b_{1}*b_{s}*\sigma_{v,1,sq}*k^{2}*D(z)^{4}*Ks_{11} \\
+&+f^{3}*b_{2}*\sigma_{v,1,sq}*k^{2}*D(z)^{4}*K_{10} \\
+&+f^{3}*b_{s}*\sigma_{v,1,sq}*k^{2}*D(z)^{4}*Ks_{10} \\
+&+f^{3}*b_{3,nl}*\sigma_{v,1,sq}*k^{2}*D(z)^{4}*\Sigma_{3,sq}*P_l \\
+&+2*f^{3}*\sigma_{v,1,sq}*k^{2}*D(z)^{4}*(I_{01}+I_{10})\\
+&+6*f^{3}*\sigma_{v,1,sq}*k^{4}*D(z)^{4}*P_l*(J_{01}+J_{10})\\
+\end{aligned}
+\end{equation}
+
+
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},13}=
+&-f^{4}*\sigma_{v,2,sq}*k^{2}*\mu^{2}*(D(z)^{2}*P_l + 2*D(z)^{4}*I_{11}) \\
+&-4*f^{4}*b_{1}*\sigma_{v,2,sq}*k^{2}*\mu^{2}*D(z)^{4}*I_{22} \\
+&-6*f^{4}*\sigma_{v,2,sq}*k^{4}*\mu^{2}*D(z)^{4}*P_l*J_{11} \\
+&-12*f^{4}*b_{1}*\sigma_{v,2,sq}*k^{4}*\mu^{2}*D(z)^{4}*P_l*J_{10} \\
+&-f^{4}*\sigma_{v,1,sq}*b_{1}^{2}*k^{2}*\mu^{2}*D(z)^{4}*I_{13} \\
+&-f^{4}*\sigma_{v,1,sq}*b_{1}^{2}*k^{2}*D(z)^{4}*I_{31} \\
+\end{aligned}
+\end{equation}
+
+
+
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},22}=&\frac{1}{4}*f^{4}*D(z)^{4}*I_{23} \\
+&\frac{1}{2}*f^{4}*D(z)^{4}*\mu^{2}*I_{32} \\
+&\frac{1}{4}*f^{4}*D(z)^{4}*\mu^{4}*I_{33} \\
+&6*f^{4}*b_{1}*b_{2}*\sigma_{v,1,sq}^{2}*k^{4}*D(z)^{4}*K_{00} \\
+&+6*f^{4}*b_{1}*b_{s}*\sigma_{v,1,sq}^{2}*k^{4}*D(z)^{4}*Ks_{00} \\
+&+3*f^{4}*b_{1}^{2}*\sigma_{v,1,sq}^{2}*k^{4}*(D(z)^{2}*P_l + 2*D(z)^{4}*I_{00}) \\
+&+18*f^{4}*b_{1}^{2}*\sigma_{v,1,sq}^{2}*k^{6}*D(z)^{4}*P_l*J_{00} \\
+&+\frac{3}{2}*f^{4}*b_{2}^{2}*\sigma_{v,1,sq}^{2}*k^{4}*D(z)^{4}*K_{01}\\
+&+\frac{3}{2}*f^{4}*b_{s}^{2}*\sigma_{v,1,sq}^{2}*k^{4}*D(z)^{4}*Ks_{01}\\
+&+3*f^{4}*b_{2}*b_{s}*\sigma_{v,1,sq}^{2}*k^{4}*D(z)^{4}*Ks_{02}\\
+&+6*f^{4}*b_{3,nl}*\sigma_{v,1,sq}^{2}*k^{4}*D(z)^{4}*\Sigma_{3,sq}*P_l\\
+&-2*f^{4}*b_{1}*\sigma_{v,1,sq}*k^{2}*D(z)^{4}*I_{02} \\
+&-2*f^{4}*b_{1}*\sigma_{v,1,sq}*k^{2}*\mu^{2}*D(z)^{4}*I_{20} \\
+&-4*f^{4}*b_{1}*\sigma_{v,1,sq}*k^{4}*D(z)^{4}*P_l*J_{02} \\
+&-4*f^{4}*b_{1}*\sigma_{v,1,sq}*k^{4}*\mu^{2}*D(z)^{4}*P_l*J_{20} \\
+&-2*f^{4}*b_{s}*\sigma_{v,1,sq}*k^{2}*D(z)^{4}*Ks_{20} \\
+&-2*f^{4}*b_{s}*\sigma_{v,1,sq}*k^{2}*\mu^{2}*D(z)^{4}*Ks_{30} \\
+&-2*f^{4}*b_{2}*\sigma_{v,1,sq}*k^{2}*D(z)^{4}*K_{20} \\
+&-2*f^{4}*b_{2}*\sigma_{v,1,sq}*k^{2}*\mu^{2}*D(z)^{4}*K_{30} \\
+&+f^{4}*b_{2}*k^{2}*\sigma_{v,1,sq}*D(z)^{4}*K_{20} \\
+&+f^{4}*b_{2}*k^{2}*\mu^{2}*\sigma_{v,1,sq}*D(z)^{4}*K_{30} \\
+&+f^{4}*b_{s}*k^{2}*\sigma_{v,1,sq}*D(z)^{4}*Ks_{20} \\
+&+f^{4}*b_{s}*k^{2}*\mu^{2}*\sigma_{v,1,sq}*D(z)^{4}*Ks_{30} \\
+\end{aligned}
+\end{equation}
+
+
+
+\paragraph{flip-like factorization}
+
+
+
+\begin{equation}
+\begin{aligned}
+P_{\mathrm{auto},00}=
+&+\left[b_{1}^{2}\right]*\left(D(z)^{2}\right)*\left\{1\right\}*\left|P_l\right| \\
+&+\left[b_{1}*b_{2}\right]*\left(D(z)^{4}\right)*\left\{2\right\}*\left|K_{00}\right| \\
+&+\left[b_{1}*b_{s}\right]*\left(D(z)^{4}\right)*\left\{2\right\}*\left|Ks_{00}\right| \\
+&+\left[b_{1}^{2}\right]*\left(D(z)^{4}\right)*\left\{2\right\}*\left|I_{00}\right| \\
+&+\left[b_{1}^{2}\right]*\left(D(z)^{4}\right)*\left\{6*k^{2}\right\}*\left|J_{00}*P_l\right| \\
+&+\left[b_{2}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{2}\right\}*\left|K_{01}\right| \\
+&+\left[b_{s}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{2}\right\}*\left|Ks_{01}\right| \\
+&+\left[b_{2}*b_{s}\right]*\left(D(z)^{4}\right)*\left\{1\right\}*\left|Ks_{02}\right| \\
+&+\left[b_{3,nl}\right]*\left(D(z)^{4}\right)*\left\{2\right\}*\left|\Sigma_{3,sq}*P_l\right| \\
+\end{aligned}
+\end{equation}
+
+
+\begin{equation}
+\begin{aligned}          
+P_{\mathrm{auto},01}=
+&+\left[f*b_{1}\right]*\left(D(z)^{2}\right)*\left\{1\right\}*\left|P_l\right| \\
+&+\left[f*b_{1}\right]*\left(D(z)^{4}\right)*\left\{2\right\}*\left|I_{01}\right| \\
+&+\left[f*b_{1}^{2}\right]*\left(D(z)^{4}\right)*\left\{2\right\}*\left|I_{10}\right| \\
+&+\left[f*b_{1}\right]*\left(D(z)^{4}\right)*\left\{6*k^{2}\right\}*\left|J_{01}*P_l\right| \\
+&+\left[f*b_{1}^{2}\right]*\left(D(z)^{4}\right)*\left\{6*k^{2}\right\}*\left|J_{10}*P_l\right| \\
+&+\left[f*b_{2}\right]*\left(D(z)^{4}\right)*\left\{-1\right\}*\left|K_{10}\right| \\
+&+\left[f*b_{s}\right]*\left(D(z)^{4}\right)*\left\{-1\right\}*\left|Ks_{10}\right| \\
+&+\left[f*b_{1}*b_{2}\right]*\left(D(z)^{4}\right)*\left\{-1\right\}*\left|K_{11}\right| \\
+&+\left[f*b_{1}*b_{s}\right]*\left(D(z)^{4}\right)*\left\{-1\right\}*\left|Ks_{11}\right| \\
+&+\left[f*b_{3,nl}\right]*\left(D(z)^{4}\right)*\left\{-1\right\}*\left|\Sigma_{3,sq}*P_l\right| \\
+\end{aligned}
+\end{equation}
+
+
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},02}=
+&+\left[f^{2}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{1\right\}*\left|I_{02}\right| \\
+&+\left[f^{2}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{\mu^{2}\right\}*\left|I_{20}\right| \\
+&+\left[f^{2}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{2*k^{2}\right\}*\left|J_{02}*P_l\right| \\
+&+\left[f^{2}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{2*k^{2}*\mu^{2}\right\}*\left|J_{20}*P_l\right| \\
+&+\left[f^{2}*b_{1}^{2}*\sigma_{v,1,sq}\right]*\left(D(z)^{2}\right)*\left\{-k^{2}\right\}*\left|P_l\right| \\
+&+\left[f^{2}*b_{1}*b_{2}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|K_{00}\right| \\
+&+\left[f^{2}*b_{1}*b_{s}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|Ks_{00}\right| \\
+&+\left[f^{2}*b_{1}^{2}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|I_{00}\right| \\
+&+\left[f^{2}*b_{1}^{2}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-6*k^{4}\right\}*\left|J_{00}*P_l\right| \\
+&+\left[f^{2}*b_{2}^{2}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-\frac{1}{2}*k^{2}\right\}*\left|K_{01}\right| \\
+&+\left[f^{2}*b_{s}^{2}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-\frac{1}{2}*k^{2}\right\}*\left|Ks_{01}\right| \\
+&+\left[f^{2}*b_{2}*b_{s}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-k^{2}\right\}*\left|Ks_{02}\right| \\
+&+\left[f^{2}*b_{3,nl}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|\Sigma_{3,sq}*P_l\right| \\
+&+\left[f^{2}*b_{2}\right]*\left(D(z)^{4}\right)*\left\{1\right\}*\left|K_{20}\right| \\
+&+\left[f^{2}*b_{s}\right]*\left(D(z)^{4}\right)*\left\{1\right\}*\left|Ks_{20}\right| \\
+&+\left[f^{2}*b_{2}\right]*\left(D(z)^{4}\right)*\left\{\mu^{2}\right\}*\left|K_{30}\right| \\
+&+\left[f^{2}*b_{s}\right]*\left(D(z)^{4}\right)*\left\{\mu^{2}\right\}*\left|Ks_{30}\right| \\
+\end{aligned}
+\end{equation}
+
+
+
+\begin{equation}
+\begin{aligned}          
+P_{\mathrm{auto},03}=
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{1}\right]*\left(D(z)^{2}\right)*\left\{-k^{2}\right\}*\left|P_l\right| \\
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|I_{01}\right| \\
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{1}^{2}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|I_{10}\right| \\
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{-6*k^{4}\right\}*\left|J_{01}*P_l\right| \\
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{1}^{2}\right]*\left(D(z)^{4}\right)*\left\{-6*k^{4}\right\}*\left|J_{10}*P_l\right| \\
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{2}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|K_{10}\right| \\
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{s}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|Ks_{10}\right| \\
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{1}*b_{2}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|K_{11}\right| \\
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{1}*b_{s}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|Ks_{11}\right| \\
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{3,nl}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|\Sigma_{3,sq}*P_l\right| \\
+\end{aligned}
+\end{equation}
+
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},04}=
+&+\left[f^{4}*b_{1}*\sigma_{v,3,sq}\right]*\left(D(z)^{4}\right)*\left\{-\frac{1}{2}*k^{2}\right\}*\left|I_{02}\right| \\
+&+\left[f^{4}*b_{1}*\sigma_{v,3,sq}\right]*\left(D(z)^{4}\right)*\left\{-\frac{1}{2}*k^{2}*\mu^{2}\right\}*\left|I_{20}\right| \\
+&+\left[f^{4}*b_{1}*\sigma_{v,3,sq}\right]*\left(D(z)^{4}\right)*\left\{-k^{4}\right\}*\left|J_{02}*P_l\right| \\
+&+\left[f^{4}*b_{1}*\sigma_{v,3,sq}\right]*\left(D(z)^{4}\right)*\left\{-k^{4}*\mu^{2}\right\}*\left|J_{20}*P_l\right| \\
+&+\left[f^{4}*b_{1}^{4}\right]*\left(D(z)^{6}\right)*\left\{\frac{1}{4}*k^{4}\right\}*\left|\Sigma_{4,sq}*P_l\right| \\
+&+\left[f^{4}*b_{1}^{3}*b_{2}\right]*\left(D(z)^{8}\right)*\left\{\frac{1}{2}*k^{4}\right\}*\left|K_{00}*\Sigma_{4,sq}\right| \\
+&+\left[f^{4}*b_{1}^{3}*b_{s}\right]*\left(D(z)^{8}\right)*\left\{\frac{1}{2}*k^{4}\right\}*\left|Ks_{00}*\Sigma_{4,sq}\right| \\
+&+\left[f^{4}*b_{1}^{4}\right]*\left(D(z)^{8}\right)*\left\{\frac{1}{2}*k^{4}\right\}*\left|I_{00}*\Sigma_{4,sq}\right| \\
+&+\left[f^{4}*b_{1}^{4}\right]*\left(D(z)^{8}\right)*\left\{\frac{3}{2}*k^{6}\right\}*\left|J_{00}*\Sigma_{4,sq}*P_l\right| \\
+&+\left[f^{4}*b_{1}^{2}*b_{2}^{2}\right]*\left(D(z)^{8}\right)*\left\{\frac{1}{8}*k^{4}\right\}*\left|K_{01}*\Sigma_{4,sq}\right| \\
+&+\left[f^{4}*b_{1}^{2}*b_{s}^{2}\right]*\left(D(z)^{8}\right)*\left\{\frac{1}{8}*k^{4}\right\}*\left|Ks_{01}*\Sigma_{4,sq}\right| \\
+&+\left[f^{4}*b_{1}^{2}*b_{2}*b_{s}\right]*\left(D(z)^{8}\right)*\left\{\frac{1}{4}*k^{4}\right\}*\left|Ks_{02}*\Sigma_{4,sq}\right| \\
+&+\left[f^{4}*b_{1}^{2}*b_{3,nl}\right]*\left(D(z)^{8}\right)*\left\{\frac{1}{2}*k^{4}\right\}*\left|\Sigma_{3,sq}*\Sigma_{4,sq}*P_l\right| \\
+&+\left[f^{4}*b_{1}^{4}*\sigma_{v,3,sq}^{2}\right]*\left(D(z)^{2}\right)*\left\{\frac{1}{4}*k^{4}\right\}*\left|P_l\right| \\
+&+\left[f^{4}*b_{1}^{3}*b_{2}*\sigma_{v,3,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{2}*k^{4}\right\}*\left|K_{00}\right| \\
+&+\left[f^{4}*b_{1}^{3}*b_{s}*\sigma_{v,3,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{2}*k^{4}\right\}*\left|Ks_{00}\right| \\
+&+\left[f^{4}*b_{1}^{4}*\sigma_{v,3,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{2}*k^{4}\right\}*\left|I_{00}\right| \\
+&+\left[f^{4}*b_{1}^{4}*\sigma_{v,3,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{3}{2}*k^{6}\right\}*\left|J_{00}*P_l\right| \\
+&+\left[f^{4}*b_{1}^{2}*b_{2}^{2}*\sigma_{v,3,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{8}*k^{4}\right\}*\left|K_{01}\right| \\
+&+\left[f^{4}*b_{1}^{2}*b_{s}^{2}*\sigma_{v,3,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{8}*k^{4}\right\}*\left|Ks_{01}\right| \\
+&+\left[f^{4}*b_{1}^{2}*b_{2}*b_{s}*\sigma_{v,3,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{4}*k^{4}\right\}*\left|Ks_{02}\right| \\
+&+\left[f^{4}*b_{1}^{2}*b_{3,nl}*\sigma_{v,3,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{2}*k^{4}\right\}*\left|\Sigma_{3,sq}*P_l\right| \\
+\end{aligned}
+\end{equation}
+
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},11}=
+&+\left[f^{2}\right]*\left(D(z)^{2}\right)*\left\{\mu^{2}\right\}*\left|P_l\right| \\
+&+\left[f^{2}\right]*\left(D(z)^{4}\right)*\left\{2*\mu^{2}\right\}*\left|I_{11}\right| \\
+&+\left[f^{2}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{4*\mu^{2}\right\}*\left|I_{22}\right| \\
+&+\left[f^{2}*b_{1}^{2}\right]*\left(D(z)^{4}\right)*\left\{1\right\}*\left|I_{31}\right| \\
+&+\left[f^{2}*b_{1}^{2}\right]*\left(D(z)^{4}\right)*\left\{\mu^{2}\right\}*\left|I_{13}\right| \\
+&+\left[f^{2}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{12*k^{2}*\mu^{2}\right\}*\left|J_{10}*P_l\right| \\
+&+\left[f^{2}\right]*\left(D(z)^{4}\right)*\left\{6*k^{2}*\mu^{2}\right\}*\left|J_{11}*P_l\right| \\
+\end{aligned}
+\end{equation}
+
+
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},12}=
+&+\left[f^{3}\right]*\left(D(z)^{4}\right)*\left\{1\right\}*\left|I_{12}\right| \\
+&+\left[f^{3}\right]*\left(D(z)^{4}\right)*\left\{\mu^{2}\right\}*\left|I_{21}\right| \\
+&+\left[f^{3}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{-1\right\}*\left|I_{03}\right| \\
+&+\left[f^{3}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{-\mu^{2}\right\}*\left|I_{30}\right| \\
+&+\left[f^{3}\right]*\left(D(z)^{4}\right)*\left\{2*k^{2}\right\}*\left|J_{02}*P_l\right| \\
+&+\left[f^{3}\right]*\left(D(z)^{4}\right)*\left\{2*k^{2}*\mu^{2}\right\}*\left|J_{20}*P_l\right| \\
+&+\left[f^{3}*b_{1}*\sigma_{v,1,sq}\right]*\left(D(z)^{2}\right)*\left\{-k^{2}\right\}*\left|P_l\right| \\
+&+\left[f^{3}*b_{1}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|I_{01}\right| \\
+&+\left[f^{3}*b_{1}^{2}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|I_{10}\right| \\
+&+\left[f^{3}*b_{1}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-6*k^{4}\right\}*\left|J_{01}*P_l\right| \\
+&+\left[f^{3}*b_{1}^{2}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-6*k^{4}\right\}*\left|J_{10}*P_l\right| \\
+&+\left[f^{3}*b_{2}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|K_{10}\right| \\
+&+\left[f^{3}*b_{s}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|Ks_{10}\right| \\
+&+\left[f^{3}*b_{1}*b_{2}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|K_{11}\right| \\
+&+\left[f^{3}*b_{1}*b_{s}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|Ks_{11}\right| \\
+&+\left[f^{3}*b_{3,nl}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|\Sigma_{3,sq}*P_l\right| \\
+&+\left[f^{3}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{2*k^{2}\right\}*\left|(I_{01}+I_{10})\right| \\
+&+\left[f^{3}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{6*k^{4}\right\}*\left|(J_{01}+J_{10})*P_l\right| \\
+\end{aligned}
+\end{equation}
+
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},13}=
+&+\left[f^{4}*\sigma_{v,2,sq}\right]*\left(D(z)^{2}\right)*\left\{-k^{2}*\mu^{2}\right\}*\left|P_l\right| \\
+&+\left[f^{4}*\sigma_{v,2,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}*\mu^{2}\right\}*\left|I_{11}\right| \\
+&+\left[f^{4}*b_{1}*\sigma_{v,2,sq}\right]*\left(D(z)^{4}\right)*\left\{-4*k^{2}*\mu^{2}\right\}*\left|I_{22}\right| \\
+&+\left[f^{4}*\sigma_{v,2,sq}\right]*\left(D(z)^{4}\right)*\left\{-6*k^{4}*\mu^{2}\right\}*\left|J_{11}*P_l\right| \\
+&+\left[f^{4}*b_{1}*\sigma_{v,2,sq}\right]*\left(D(z)^{4}\right)*\left\{-12*k^{4}*\mu^{2}\right\}*\left|J_{10}*P_l\right| \\
+&+\left[f^{4}*\sigma_{v,1,sq}*b_{1}^{2}\right]*\left(D(z)^{4}\right)*\left\{-k^{2}*\mu^{2}\right\}*\left|I_{13}\right| \\
+&+\left[f^{4}*\sigma_{v,1,sq}*b_{1}^{2}\right]*\left(D(z)^{4}\right)*\left\{-k^{2}\right\}*\left|I_{31}\right| \\
+\end{aligned}
+\end{equation}
+
+
+
+\begin{equation}
+\begin{aligned}  
+P_{\mathrm{auto},22}=
+&+\left[f^{4}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{4}\right\}*\left|I_{23}\right| \\
+&+\left[f^{4}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{2}*\mu^{2}\right\}*\left|I_{32}\right| \\
+&+\left[f^{4}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{4}*\mu^{4}\right\}*\left|I_{33}\right| \\
+&+\left[f^{4}*b_{1}^{2}*\sigma_{v,1,sq}^{2}\right]*\left(D(z)^{2}\right)*\left\{3*k^{4}\right\}*\left|P_l\right| \\
+&+\left[f^{4}*b_{1}*b_{2}*\sigma_{v,1,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{6*k^{4}\right\}*\left|K_{00}\right| \\
+&+\left[f^{4}*b_{1}*b_{s}*\sigma_{v,1,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{6*k^{4}\right\}*\left|Ks_{00}\right| \\
+&+\left[f^{4}*b_{1}^{2}*\sigma_{v,1,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{6*k^{4}\right\}*\left|I_{00}\right| \\
+&+\left[f^{4}*b_{1}^{2}*\sigma_{v,1,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{18*k^{6}\right\}*\left|J_{00}*P_l\right| \\
+&+\left[f^{4}*b_{2}^{2}*\sigma_{v,1,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{3}{2}*k^{4}\right\}*\left|K_{01}\right| \\
+&+\left[f^{4}*b_{s}^{2}*\sigma_{v,1,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{3}{2}*k^{4}\right\}*\left|Ks_{01}\right| \\
+&+\left[f^{4}*b_{2}*b_{s}*\sigma_{v,1,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{3*k^{4}\right\}*\left|Ks_{02}\right| \\
+&+\left[f^{4}*b_{3,nl}*\sigma_{v,1,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{6*k^{4}\right\}*\left|\Sigma_{3,sq}*P_l\right| \\
+&+\left[f^{4}*b_{1}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|I_{02}\right| \\
+&+\left[f^{4}*b_{1}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}*\mu^{2}\right\}*\left|I_{20}\right| \\
+&+\left[f^{4}*b_{1}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-4*k^{4}\right\}*\left|J_{02}*P_l\right| \\
+&+\left[f^{4}*b_{1}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-4*k^{4}*\mu^{2}\right\}*\left|J_{20}*P_l\right| \\
+&+\left[f^{4}*b_{2}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|K_{20}\right| \\
+&+\left[f^{4}*b_{s}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|Ks_{20}\right| \\
+&+\left[f^{4}*b_{2}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}*\mu^{2}\right\}*\left|K_{30}\right| \\
+&+\left[f^{4}*b_{s}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}*\mu^{2}\right\}*\left|Ks_{30}\right| \\
+&+\left[f^{4}*b_{2}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|K_{20}\right| \\
+&+\left[f^{4}*b_{s}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|Ks_{20}\right| \\
+&+\left[f^{4}*b_{2}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{k^{2}*\mu^{2}\right\}*\left|K_{30}\right| \\
+&+\left[f^{4}*b_{s}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{k^{2}*\mu^{2}\right\}*\left|Ks_{30}\right| \\
+\end{aligned}
+\end{equation}
+
+
+
+
+
+\subsubsection{crosscorr}
+
+
+\begin{equation}
+\begin{aligned} 
+P_{\mathrm{cross},00}=
+&+\left[b_{1}*b_{1v}\right]*\left(D(z)^{2}\right)*\left\{1\right\}*\left|P_l\right| \\
+&+\left[(b_{1}*b_{2v} + b_{1v}*b_{2})\right]*\left(D(z)^{4}\right)*\left\{1\right\}*\left|K_{00}\right| \\
+&+\left[(b_{1}*b_{sv} + b_{1v}*b_{s})\right]*\left(D(z)^{4}\right)*\left\{1\right\}*\left|Ks_{00}\right| \\
+&+\left[b_{1}*b_{1v}\right]*\left(D(z)^{4}\right)*\left\{2\right\}*\left|I_{00}\right| \\
+&+\left[b_{1}*b_{1v}\right]*\left(D(z)^{4}\right)*\left\{6*k^{2}\right\}*\left|J_{00}*P_l\right| \\
+&+\left[b_{2}*b_{2v}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{2}\right\}*\left|K_{01}\right| \\
+&+\left[b_{s}*b_{sv}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{2}\right\}*\left|Ks_{01}\right| \\
+&+\left[(b_{2v}*b_{s} + b_{2}*b_{sv})\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{2}\right\}*\left|Ks_{02}\right| \\
+&+\left[b_{3,nl}\right]*\left(D(z)^{4}\right)*\left\{2\right\}*\left|\Sigma_{3,sq}*P_l\right| \\
+\end{aligned}
+\end{equation}
+
+
+\begin{equation}
+\begin{aligned} 
+P_{\mathrm{cross},01}=
+&+\left[f*b_{1}\right]*\left(D(z)^{2}\right)*\left\{1\right\}*\left|P_l\right| \\
+&+\left[f*b_{1}\right]*\left(D(z)^{4}\right)*\left\{2\right\}*\left|I_{01}\right| \\
+&+\left[f*b_{1}*b_{1v}\right]*\left(D(z)^{4}\right)*\left\{2\right\}*\left|I_{10}\right| \\
+&+\left[f*b_{1}\right]*\left(D(z)^{4}\right)*\left\{6*k^{2}\right\}*\left|J_{01}*P_l\right| \\
+&+\left[f*b_{1v}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{6*k^{2}\right\}*\left|J_{10}*P_l\right| \\
+&+\left[f*b_{2}\right]*\left(D(z)^{4}\right)*\left\{-1\right\}*\left|K_{10}\right| \\
+&+\left[f*b_{s}\right]*\left(D(z)^{4}\right)*\left\{-1\right\}*\left|Ks_{10}\right| \\
+&+\left[f*b_{2}*b_{1v}\right]*\left(D(z)^{4}\right)*\left\{-1\right\}*\left|K_{11}\right| \\
+&+\left[f*b_{1v}*b_{s}\right]*\left(D(z)^{4}\right)*\left\{-1\right\}*\left|Ks_{11}\right| \\
+&+\left[f*b_{3,nl}\right]*\left(D(z)^{4}\right)*\left\{-1\right\}*\left|\Sigma_{3,sq}*P_l\right| \\
+\end{aligned}
+\end{equation}
+
+
+
+\begin{equation}
+\begin{aligned} 
+P_{\mathrm{cross},02}=
+&+\left[f^{2}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{1\right\}*\left|I_{02}\right| \\
+&+\left[f^{2}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{\mu^{2}\right\}*\left|I_{20}\right| \\
+&+\left[f^{2}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{2*k^{2}\right\}*\left|J_{02}*P_l\right| \\
+&+\left[f^{2}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{2*k^{2}*\mu^{2}\right\}*\left|J_{20}*P_l\right| \\
+&+\left[f^{2}*\sigma_{v,1,sq}*b_{1}*b_{1v}\right]*\left(D(z)^{2}\right)*\left\{-k^{2}\right\}*\left|P_l\right| \\
+&+\left[f^{2}*\sigma_{v,1,sq}*(b_{1}*b_{2v} + b_{1v}*b_{2})\right]*\left(D(z)^{4}\right)*\left\{-k^{2}\right\}*\left|K_{00}\right| \\
+&+\left[f^{2}*\sigma_{v,1,sq}*(b_{1}*b_{sv} + b_{1v}*b_{s})\right]*\left(D(z)^{4}\right)*\left\{-k^{2}\right\}*\left|Ks_{00}\right| \\
+&+\left[f^{2}*\sigma_{v,1,sq}*b_{1}*b_{1v}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|I_{00}\right| \\
+&+\left[f^{2}*\sigma_{v,1,sq}*b_{1}*b_{1v}\right]*\left(D(z)^{4}\right)*\left\{-6*k^{4}\right\}*\left|J_{00}*P_l\right| \\
+&+\left[f^{2}*\sigma_{v,1,sq}*b_{2}*b_{2v}\right]*\left(D(z)^{4}\right)*\left\{-\frac{1}{2}*k^{2}\right\}*\left|K_{01}\right| \\
+&+\left[f^{2}*\sigma_{v,1,sq}*b_{s}*b_{sv}\right]*\left(D(z)^{4}\right)*\left\{-\frac{1}{2}*k^{2}\right\}*\left|Ks_{01}\right| \\
+&+\left[f^{2}*\sigma_{v,1,sq}*(b_{2v}*b_{s} + b_{2}*b_{sv})\right]*\left(D(z)^{4}\right)*\left\{-\frac{1}{2}*k^{2}\right\}*\left|Ks_{02}\right| \\
+&+\left[f^{2}*\sigma_{v,1,sq}*b_{3,nl}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|\Sigma_{3,sq}*P_l\right| \\
+&+\left[f^{2}*b_{2}\right]*\left(D(z)^{4}\right)*\left\{1\right\}*\left|K_{20}\right| \\
+&+\left[f^{2}*b_{s}\right]*\left(D(z)^{4}\right)*\left\{1\right\}*\left|Ks_{20}\right| \\
+&+\left[f^{2}*b_{2}\right]*\left(D(z)^{4}\right)*\left\{\mu^{2}\right\}*\left|K_{30}\right| \\
+&+\left[f^{2}*b_{s}\right]*\left(D(z)^{4}\right)*\left\{\mu^{2}\right\}*\left|Ks_{30}\right| \\
+\end{aligned}
+\end{equation}
+
+
+
+\begin{equation}
+\begin{aligned} 
+P_{\mathrm{cross},03}=
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{1}\right]*\left(D(z)^{2}\right)*\left\{-k^{2}\right\}*\left|P_l\right| \\
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|I_{01}\right| \\
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{1}*b_{1v}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|I_{10}\right| \\
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{-6*k^{4}\right\}*\left|J_{01}*P_l\right| \\
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{1v}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{-6*k^{4}\right\}*\left|J_{10}*P_l\right| \\
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{2}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|K_{10}\right| \\
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{s}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|Ks_{10}\right| \\
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{2}*b_{1v}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|K_{11}\right| \\
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{1v}*b_{s}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|Ks_{11}\right| \\
+&+\left[f^{3}*\sigma_{v,2,sq}*b_{3,nl}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|\Sigma_{3,sq}*P_l\right| \\
+\end{aligned}
+\end{equation}
+
+
+\begin{equation}
+\begin{aligned} 
+P_{\mathrm{cross},04}=
+&+\left[f^{4}*b_{1}*\sigma_{v,3,sq}\right]*\left(D(z)^{4}\right)*\left\{-\frac{1}{2}*k^{2}\right\}*\left|I_{02}\right| \\
+&+\left[f^{4}*b_{1}*\sigma_{v,3,sq}\right]*\left(D(z)^{4}\right)*\left\{-\frac{1}{2}*k^{2}*\mu^{2}\right\}*\left|I_{20}\right| \\
+&+\left[f^{4}*b_{1}*\sigma_{v,3,sq}\right]*\left(D(z)^{4}\right)*\left\{-k^{4}\right\}*\left|J_{02}*P_l\right| \\
+&+\left[f^{4}*b_{1}*\sigma_{v,3,sq}\right]*\left(D(z)^{4}\right)*\left\{-k^{4}*\mu^{2}\right\}*\left|J_{20}*P_l\right| \\
+&+\left[f^{4}*b_{1}^{2}*b_{1v}^{2}\right]*\left(D(z)^{6}\right)*\left\{\frac{1}{4}*k^{4}\right\}*\left|\Sigma_{4,sq}*P_l\right| \\
+&+\left[f^{4}*b_{1}*b_{1v}*(b_{1}*b_{2v} + b_{1v}*b_{2})\right]*\left(D(z)^{8}\right)*\left\{\frac{1}{4}*k^{4}\right\}*\left|K_{00}*\Sigma_{4,sq}\right| \\
+&+\left[f^{4}*b_{1}*b_{1v}*(b_{1}*b_{sv} + b_{1v}*b_{s})\right]*\left(D(z)^{8}\right)*\left\{\frac{1}{4}*k^{4}\right\}*\left|Ks_{00}*\Sigma_{4,sq}\right| \\
+&+\left[f^{4}*b_{1}^{2}*b_{1v}^{2}\right]*\left(D(z)^{8}\right)*\left\{\frac{1}{2}*k^{4}\right\}*\left|I_{00}*\Sigma_{4,sq}\right| \\
+&+\left[f^{4}*b_{1}^{2}*b_{1v}^{2}\right]*\left(D(z)^{8}\right)*\left\{\frac{3}{2}*k^{6}\right\}*\left|J_{00}*\Sigma_{4,sq}*P_l\right| \\
+&+\left[f^{4}*b_{1}*b_{1v}*b_{2}*b_{2v}\right]*\left(D(z)^{8}\right)*\left\{\frac{1}{8}*k^{4}\right\}*\left|K_{01}*\Sigma_{4,sq}\right| \\
+&+\left[f^{4}*b_{1}*b_{1v}*b_{s}*b_{sv}\right]*\left(D(z)^{8}\right)*\left\{\frac{1}{8}*k^{4}\right\}*\left|Ks_{01}*\Sigma_{4,sq}\right| \\
+&+\left[f^{4}*b_{1}*b_{1v}*(b_{2v}*b_{s} + b_{2}*b_{sv})\right]*\left(D(z)^{8}\right)*\left\{\frac{1}{8}*k^{4}\right\}*\left|Ks_{02}*\Sigma_{4,sq}\right| \\
+&+\left[f^{4}*b_{1}*b_{1v}*b_{3,nl}\right]*\left(D(z)^{8}\right)*\left\{\frac{1}{2}*k^{4}\right\}*\left|\Sigma_{3,sq}*\Sigma_{4,sq}*P_l\right| \\
+&+\left[f^{4}*b_{1}^{2}*b_{1v}^{2}*\sigma_{v,3,sq}^{2}\right]*\left(D(z)^{2}\right)*\left\{\frac{1}{4}*k^{4}\right\}*\left|P_l\right| \\
+&+\left[f^{4}*b_{1}*b_{1v}*(b_{1}*b_{2v} + b_{1v}*b_{2})*\sigma_{v,3,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{4}*k^{4}\right\}*\left|K_{00}\right| \\
+&+\left[f^{4}*b_{1}*b_{1v}*(b_{1}*b_{sv} + b_{1v}*b_{s})*\sigma_{v,3,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{4}*k^{4}\right\}*\left|Ks_{00}\right| \\
+&+\left[f^{4}*b_{1}^{2}*b_{1v}^{2}*\sigma_{v,3,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{2}*k^{4}\right\}*\left|I_{00}\right| \\
+&+\left[f^{4}*b_{1}^{2}*b_{1v}^{2}*\sigma_{v,3,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{3}{2}*k^{6}\right\}*\left|J_{00}*P_l\right| \\
+&+\left[f^{4}*b_{1}*b_{1v}*b_{2}*b_{2v}*\sigma_{v,3,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{8}*k^{4}\right\}*\left|K_{01}\right| \\
+&+\left[f^{4}*b_{1}*b_{1v}*b_{s}*b_{sv}*\sigma_{v,3,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{8}*k^{4}\right\}*\left|Ks_{01}\right| \\
+&+\left[f^{4}*b_{1}*b_{1v}*(b_{2v}*b_{s} + b_{2}*b_{sv})*\sigma_{v,3,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{8}*k^{4}\right\}*\left|Ks_{02}\right| \\
+&+\left[f^{4}*b_{1}*b_{1v}*b_{3,nl}*\sigma_{v,3,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{2}*k^{4}\right\}*\left|\Sigma_{3,sq}*P_l\right| \\
+\end{aligned}
+\end{equation}
+
+
+
+\begin{equation}
+\begin{aligned} 
+P_{\mathrm{cross},11}=
+&+\left[f^{2}\right]*\left(D(z)^{2}\right)*\left\{\mu^{2}\right\}*\left|P_l\right| \\
+&+\left[f^{2}\right]*\left(D(z)^{4}\right)*\left\{2*\mu^{2}\right\}*\left|I_{11}\right| \\
+&+\left[f^{2}*(b_{1}+b_{1v})\right]*\left(D(z)^{4}\right)*\left\{2*\mu^{2}\right\}*\left|I_{22}\right| \\
+&+\left[f^{2}*b_{1}*b_{1v}\right]*\left(D(z)^{4}\right)*\left\{1\right\}*\left|I_{31}\right| \\
+&+\left[f^{2}*b_{1}*b_{1v}\right]*\left(D(z)^{4}\right)*\left\{\mu^{2}\right\}*\left|I_{13}\right| \\
+&+\left[f^{2}*(b_{1}+b_{1v})\right]*\left(D(z)^{4}\right)*\left\{6*k^{2}*\mu^{2}\right\}*\left|J_{10}*P_l\right| \\
+&+\left[f^{2}\right]*\left(D(z)^{4}\right)*\left\{6*k^{2}*\mu^{2}\right\}*\left|J_{11}*P_l\right| \\
+\end{aligned}
+\end{equation}
+
+
+\begin{equation}
+\begin{aligned} 
+P_{\mathrm{cross},12}=
+&+\left[f^{3}\right]*\left(D(z)^{4}\right)*\left\{1\right\}*\left|I_{12}\right| \\
+&+\left[f^{3}\right]*\left(D(z)^{4}\right)*\left\{\mu^{2}\right\}*\left|I_{21}\right| \\
+&+\left[f^{3}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{-1\right\}*\left|I_{03}\right| \\
+&+\left[f^{3}*b_{1}\right]*\left(D(z)^{4}\right)*\left\{-\mu^{2}\right\}*\left|I_{30}\right| \\
+&+\left[f^{3}\right]*\left(D(z)^{4}\right)*\left\{2*k^{2}\right\}*\left|J_{02}*P_l\right| \\
+&+\left[f^{3}\right]*\left(D(z)^{4}\right)*\left\{2*k^{2}*\mu^{2}\right\}*\left|J_{20}*P_l\right| \\
+&+\left[f^{3}*b_{1}*\sigma_{v,1,sq}\right]*\left(D(z)^{2}\right)*\left\{-k^{2}\right\}*\left|P_l\right| \\
+&+\left[f^{3}*b_{1}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|I_{01}\right| \\
+&+\left[f^{3}*b_{1}*b_{1v}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|I_{10}\right| \\
+&+\left[f^{3}*b_{1}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-6*k^{4}\right\}*\left|J_{01}*P_l\right| \\
+&+\left[f^{3}*b_{1v}*b_{1}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-6*k^{4}\right\}*\left|J_{10}*P_l\right| \\
+&+\left[f^{3}*b_{2}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|K_{10}\right| \\
+&+\left[f^{3}*b_{s}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|Ks_{10}\right| \\
+&+\left[f^{3}*b_{2}*b_{1v}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|K_{11}\right| \\
+&+\left[f^{3}*b_{1v}*b_{s}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|Ks_{11}\right| \\
+&+\left[f^{3}*b_{3,nl}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|\Sigma_{3,sq}*P_l\right| \\
+&+\left[f^{3}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{2*k^{2}\right\}*\left|(I_{01}+I_{10})\right| \\
+&+\left[f^{3}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{6*k^{4}\right\}*\left|(J_{01}+J_{10})*P_l\right| \\
+\end{aligned}
+\end{equation}
+
+
+
+\begin{equation}
+\begin{aligned} 
+P_{\mathrm{cross},13}=
+&+\left[f^{4}*\sigma_{v,2,sq}\right]*\left(D(z)^{2}\right)*\left\{-k^{2}*\mu^{2}\right\}*\left|P_l\right| \\
+&+\left[f^{4}*\sigma_{v,2,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}*\mu^{2}\right\}*\left|I_{11}\right| \\
+&+\left[f^{4}*(b_{1}+b_{1v})*\sigma_{v,2,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}*\mu^{2}\right\}*\left|I_{22}\right| \\
+&+\left[f^{4}*\sigma_{v,2,sq}\right]*\left(D(z)^{4}\right)*\left\{-6*k^{4}*\mu^{2}\right\}*\left|J_{11}*P_l\right| \\
+&+\left[f^{4}*(b_{1}+b_{1v})*\sigma_{v,2,sq}\right]*\left(D(z)^{4}\right)*\left\{-6*k^{4}*\mu^{2}\right\}*\left|J_{10}*P_l\right| \\
+&+\left[f^{4}*\sigma_{v,1,sq}*b_{1}*b_{1v}\right]*\left(D(z)^{4}\right)*\left\{-k^{2}*\mu^{2}\right\}*\left|I_{13}\right| \\
+&+\left[f^{4}*\sigma_{v,1,sq}*b_{1}*b_{1v}\right]*\left(D(z)^{4}\right)*\left\{-k^{2}\right\}*\left|I_{31}\right| \\
+\end{aligned}
+\end{equation}
+
+
+\begin{equation}
+\begin{aligned} 
+P_{\mathrm{cross},22}=
+&+\left[f^{4}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{4}\right\}*\left|I_{23}\right| \\
+&+\left[f^{4}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{2}*\mu^{2}\right\}*\left|I_{32}\right| \\
+&+\left[f^{4}\right]*\left(D(z)^{4}\right)*\left\{\frac{1}{4}*\mu^{4}\right\}*\left|I_{33}\right| \\
+&+\left[f^{4}*b_{1}*b_{1v}*\sigma_{v,1,sq}^{2}\right]*\left(D(z)^{2}\right)*\left\{3*k^{4}\right\}*\left|P_l\right| \\
+&+\left[f^{4}*(b_{1}*b_{2v} + b_{1v}*b_{2})*\sigma_{v,1,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{3*k^{4}\right\}*\left|K_{00}\right| \\
+&+\left[f^{4}*(b_{1}*b_{sv} + b_{1v}*b_{s})*\sigma_{v,1,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{3*k^{4}\right\}*\left|Ks_{00}\right| \\
+&+\left[f^{4}*b_{1}*b_{1v}*\sigma_{v,1,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{6*k^{4}\right\}*\left|I_{00}\right| \\
+&+\left[f^{4}*b_{1}*b_{1v}*\sigma_{v,1,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{18*k^{6}\right\}*\left|J_{00}*P_l\right| \\
+&+\left[f^{4}*b_{2}*b_{2v}*\sigma_{v,1,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{3}{2}*k^{4}\right\}*\left|K_{01}\right| \\
+&+\left[f^{4}*b_{s}*b_{sv}*\sigma_{v,1,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{3}{2}*k^{4}\right\}*\left|Ks_{01}\right| \\
+&+\left[f^{4}*(b_{2v}*b_{s} + b_{2}*b_{sv})*\sigma_{v,1,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{\frac{3}{2}*k^{4}\right\}*\left|Ks_{02}\right| \\
+&+\left[f^{4}*b_{3,nl}*\sigma_{v,1,sq}^{2}\right]*\left(D(z)^{4}\right)*\left\{6*k^{4}\right\}*\left|\Sigma_{3,sq}*P_l\right| \\
+&+\left[f^{4}*b_{1}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|I_{02}\right| \\
+&+\left[f^{4}*b_{1}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}*\mu^{2}\right\}*\left|I_{20}\right| \\
+&+\left[f^{4}*b_{1}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-4*k^{4}\right\}*\left|J_{02}*P_l\right| \\
+&+\left[f^{4}*b_{1}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-4*k^{4}*\mu^{2}\right\}*\left|J_{20}*P_l\right| \\
+&+\left[f^{4}*b_{2}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|K_{20}\right| \\
+&+\left[f^{4}*b_{s}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}\right\}*\left|Ks_{20}\right| \\
+&+\left[f^{4}*b_{2}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}*\mu^{2}\right\}*\left|K_{30}\right| \\
+&+\left[f^{4}*b_{s}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{-2*k^{2}*\mu^{2}\right\}*\left|Ks_{30}\right| \\
+&+\left[f^{4}*b_{2}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|K_{20}\right| \\
+&+\left[f^{4}*b_{s}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{k^{2}\right\}*\left|Ks_{20}\right| \\
+&+\left[f^{4}*b_{2}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{k^{2}*\mu^{2}\right\}*\left|K_{30}\right| \\
+&+\left[f^{4}*b_{s}*\sigma_{v,1,sq}\right]*\left(D(z)^{4}\right)*\left\{k^{2}*\mu^{2}\right\}*\left|Ks_{30}\right| \\
+\end{aligned}
+\end{equation}
+
+
+
+
+\subsubsection{Density and momentum models}
+
+\begin{equation}
+P_{\mathrm{density}} = P_{\mathrm{auto},00} + \mu^{2}*(2*P_{\mathrm{auto},01} + P_{\mathrm{auto},02} + P_{\mathrm{auto},11}) + \mu^{4}*(P_{\mathrm{auto},03} + P_{\mathrm{auto},04} + P_{\mathrm{auto},12} + P_{\mathrm{auto},13} + \frac{1}{4}*P_{\mathrm{auto},22})
+\end{equation}
+
+
+\begin{equation}
+P_{\mathrm{momentum}} = \frac{(a(z) H(z))^{2}}{k^{2}}*(P_{\mathrm{auto},11} + \mu^{2}*(2*P_{\mathrm{auto},12} + 3*P_{\mathrm{auto},13} + P_{\mathrm{auto},22}))
+\end{equation}
+
+
+\begin{equation}
+P_{\mathrm{cross}}  = \frac{a(z) H(z)}{k}*(\mu*(P_{\mathrm{cross},01} + P_{\mathrm{cross},02} + P_{\mathrm{cross},11}) + \mu^{3}*(\frac{3}{2}*P_{\mathrm{cross},03} + 2*P_{\mathrm{cross},04} + \frac{3}{2}*P_{\mathrm{cross},12} + 2*P_{\mathrm{cross},13}  + \frac{1}{2}*P_{\mathrm{cross},22}))
+\end{equation}
+
+
+
+
+
+
+
+
+\end{document}

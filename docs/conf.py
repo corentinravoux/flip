@@ -48,7 +48,7 @@ extensions = ['myst_parser', 'sphinx.ext.napoleon', 'sphinx_markdown_tables', 's
 extensions.append('autoapi.extension')
 
 # Auto-API config
-autoapi_dirs = ['../flip', '../flip/covariance']
+autoapi_dirs = ['../flip', '../flip/covariance', '../flip/data_vector', '../flip/power_spectra', '../flip/data', '../flip/simulation']
 
 def skip_util_classes(app, what, name, obj, skip, options):
     if name == "__init__":

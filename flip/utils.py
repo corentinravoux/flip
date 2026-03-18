@@ -5,7 +5,29 @@ import astropy.constants as acst
 import matplotlib.pyplot as plt
 import numpy as np
 
+from ._config import __use_jax__
+
+if __use_jax__:
+    try:
+        import jax.numpy as jnp
+        import jax.scipy as jsc
+
+        jax_installed = True
+
+    except ImportError:
+        import numpy as jnp
+        import scipy as jsc
+
+        jax_installed = False
+else:
+    import numpy as jnp
+
+    jax_installed = False
+
+
 _C_LIGHT_KMS_ = acst.c.to("km/s").value
+
+_available_priors = ["gaussian", "positive", "uniform"]
 
 
 def Du(k, sigmau):
@@ -216,3 +238,148 @@ class Logger(object):
     def close():
         """Shut down the logging module cleanly."""
         logging.shutdown()
+
+
+def return_prior(
+    parameter_name,
+    prior_properties,
+):
+    if prior_properties["type"].lower() not in _available_priors:
+        raise ValueError(
+            f"""The prior type {prior_properties["type"]} is not available"""
+            f"""Please choose between {_available_priors}"""
+        )
+    elif prior_properties["type"].lower() == "gaussian":
+        prior = GaussianPrior(
+            parameter_name=parameter_name,
+            prior_mean=prior_properties["mean"],
+            prior_standard_deviation=prior_properties["standard_deviation"],
+        )
+    elif prior_properties["type"].lower() == "positive":
+        prior = PositivePrior(
+            parameter_name=parameter_name,
+        )
+    elif prior_properties["type"].lower() == "uniform":
+        prior = UniformPrior(
+            parameter_name=parameter_name,
+            range=prior_properties["range"],
+        )
+
+    return prior
+
+
+class Prior:
+    """Base prior class encapsulating parameter-specific priors.
+
+    Attributes:
+        parameter_name (str): Name of the parameter this prior applies to.
+    """
+
+    def __init__(
+        self,
+        parameter_name=None,
+    ):
+        self.parameter_name = parameter_name
+
+
+class GaussianPrior(Prior):
+    """Univariate Gaussian prior on a parameter.
+
+    Models $p(\theta) \propto \exp\{-\tfrac{1}{2}[(\theta-\mu)^2/\sigma^2]\}$.
+    """
+
+    def __init__(
+        self,
+        parameter_name=None,
+        prior_mean=None,
+        prior_standard_deviation=None,
+    ):
+        super().__init__(parameter_name=parameter_name)
+        self.prior_mean = prior_mean
+        self.prior_standard_deviation = prior_standard_deviation
+
+    def __call__(
+        self,
+        parameter_values_dict,
+    ):
+        """Return Gaussian log-prior for the parameter value.
+
+        Args:
+            parameter_values_dict (dict): Map of parameter names to values.
+
+        Returns:
+            float: Log-prior value.
+        """
+        return -0.5 * (
+            np.log(2 * jnp.pi * self.prior_standard_deviation**2)
+            + (parameter_values_dict[self.parameter_name] - self.prior_mean) ** 2
+            / self.prior_standard_deviation**2
+        )
+
+
+class PositivePrior(Prior):
+    """Log-prior enforcing parameter positivity via Heaviside function.
+
+    Returns `log(Heaviside(value))`, which is `0` for positive values and `-inf` otherwise.
+    """
+
+    def __init__(
+        self,
+        parameter_name=None,
+    ):
+        super().__init__(parameter_name=parameter_name)
+
+    def __call__(
+        self,
+        parameter_values_dict,
+    ):
+        """Return log-prior that is zero for positive values, -inf otherwise.
+
+        Args:
+            parameter_values_dict (dict): Map of parameter names to values.
+
+        Returns:
+            float: Log-prior (0 or -inf).
+        """
+        return jnp.log(jnp.heaviside(parameter_values_dict[self.parameter_name], 0))
+
+
+class UniformPrior(Prior):
+    """Uniform prior over a finite interval for a parameter.
+
+    Uses `scipy.stats.uniform.logpdf` for the specified range.
+    """
+
+    def __init__(self, parameter_name=None, range=None):
+        super().__init__(parameter_name=parameter_name)
+        self.range = range
+
+    def __call__(
+        self,
+        parameter_values_dict,
+    ):
+        """Return uniform log-prior over `[range[0], range[1]]`.
+
+        Args:
+            parameter_values_dict (dict): Map of parameter names to values.
+
+        Returns:
+            float: Log-prior value (constant inside range, -inf outside).
+        """
+        value = parameter_values_dict[self.parameter_name]
+        return jsc.stats.uniform.logpdf(
+            value, loc=self.range[0], scale=self.range[1] - self.range[0]
+        )
+
+
+def prior_sum(priors, x):
+    """Sum multiple prior contributions.
+
+    Args:
+        priors (list[Callable]): List of prior callables accepting a parameter dict.
+        x (dict): Parameter values dictionary.
+
+    Returns:
+        float: Sum of all prior log-probabilities.
+    """
+    return sum(prior(x) for prior in priors)

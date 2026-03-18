@@ -11,10 +11,12 @@ on:
 jobs:
   bump_version:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v4
       with:
-        token: ${{ secrets.CR_PAT_PUSH }}
+        token: ${{ secrets.CR_PAT_PUSH || github.token }}
         
     - name: setup git
       run: |
@@ -48,5 +50,5 @@ jobs:
     - name: Push changes
       uses: ad-m/github-push-action@master
       with:
-        github_token: ${{ secrets.CR_PAT_PUSH }}
+        github_token: ${{ secrets.CR_PAT_PUSH || github.token }}
         tags: true

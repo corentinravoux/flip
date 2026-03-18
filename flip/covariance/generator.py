@@ -22,7 +22,11 @@ _avail_models = [
     "ravouxcarreres",
     "ravouxnoanchor25",
     "rcrk24",
+    "genericzdep",
+    "ravouxqin26",
 ]
+
+
 _avail_regularization_option = [
     None,
     "mpmath",

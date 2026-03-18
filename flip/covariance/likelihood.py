@@ -417,13 +417,11 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
 
         def likelihood_evaluation(
             parameter_values,
-            covariance_prefactor_dict=None,
         ):
             """Evaluate likelihood for given parameters.
 
             Args:
                 parameter_values (array-like): Parameter vector aligned to names.
-                covariance_prefactor_dict (dict, optional): Prefactors per block (gg/gv/vv).
 
             Returns:
                 float: Likelihood value (sign depends on `negative_log_likelihood`).
@@ -433,7 +431,6 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
             covariance_sum = compute_covariance_sum(
                 parameter_values_dict,
                 vector_variance,
-                covariance_prefactor_dict=covariance_prefactor_dict,
             )
             likelihood_value = likelihood_function(vector, covariance_sum) + prior(
                 parameter_values_dict
@@ -528,7 +525,6 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
 
         def likelihood_evaluation(
             parameter_values,
-            covariance_prefactor_dict=None,
         ):
             """Evaluate likelihood with interpolated covariance.
 
@@ -537,7 +533,6 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
 
             Args:
                 parameter_values (array-like): Parameter vector.
-                covariance_prefactor_dict (dict, optional): Prefactors per block.
 
             Returns:
                 float: Likelihood value including prior on interpolation range.
@@ -566,7 +561,6 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
                     compute_covariance_sum(
                         parameter_values_dict,
                         vector_variance,
-                        covariance_prefactor_dict=covariance_prefactor_dict,
                     )
                     for compute_covariance_sum in compute_covariance_sum_list
                 ]
@@ -666,13 +660,11 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
     def __call__(
         self,
         parameter_values,
-        covariance_prefactor_dict=None,
     ):
         """Evaluate 2D interpolated likelihood.
 
         Args:
             parameter_values (array-like): Parameter vector aligned to names.
-            covariance_prefactor_dict (dict, optional): Prefactors per covariance block.
 
         Returns:
             float: Log-likelihood value (sign depends on `negative_log_likelihood`).
@@ -704,7 +696,6 @@ class MultivariateGaussianLikelihoodInterpolate2D(BaseLikelihood):
                     self.covariance[i][j].compute_covariance_sum(
                         parameter_values_dict,
                         vector_variance,
-                        covariance_prefactor_dict=covariance_prefactor_dict,
                     )
                 )
             covariance_sum_matrix.append(covariance_sum_matrix_i)

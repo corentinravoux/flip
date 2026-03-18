@@ -169,7 +169,6 @@ def plot_2d_contraction(
 def plot_correlation_from_likelihood(
     likelihood,
     parameter_dict,
-    covariance_prefactor_dict=None,
     **kwargs,
 ):
     """Plot correlation matrix computed from a likelihood’s covariance.
@@ -177,7 +176,6 @@ def plot_correlation_from_likelihood(
     Args:
         likelihood (BaseLikelihood): Likelihood instance providing data/covariance.
         parameter_dict (dict): Parameter specs; values read to form vector and variance.
-        covariance_prefactor_dict (dict, optional): Prefactors per covariance block.
         **kwargs: Plot options, e.g., `vmin`, `vmax`.
     """
     vmin = utils.return_key(kwargs, "vmin", -0.1)
@@ -195,7 +193,6 @@ def plot_correlation_from_likelihood(
     covariance_sum = likelihood.covariance.compute_covariance_sum(
         parameter_values_dict,
         vector_variance,
-        covariance_prefactor_dict=covariance_prefactor_dict,
     )
 
     correlation_sum = cov_utils.return_correlation_matrix(covariance_sum)

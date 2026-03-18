@@ -1,3 +1,6 @@
+### This code is adapted from cosmoprimo (https://github.com/cosmodesi/cosmoprimo)
+### Special thanks to the GOAT Arnaud de Mattia.
+
 import numpy as np
 from scipy.special import loggamma
 

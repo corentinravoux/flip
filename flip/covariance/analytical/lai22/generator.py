@@ -59,7 +59,6 @@ def compute_correlation_coefficient_hankel(
     """
     integrand = k ** (2 * (p + q)) * pk
     Hankel = cosmoprimo.fftlog.PowerToCorrelation(k, ell=ell, q=0, complex=False)
-    Hankel.set_fft_engine("numpy")
     r_hankel, xi_hankel = Hankel(integrand)
     mask = r < np.min(r_hankel) * hankel_overhead_coefficient
     output = np.empty_like(r)

@@ -1,113 +1,10 @@
 ### This code is adapted from cosmoprimo (https://github.com/cosmodesi/cosmoprimo)
 ### Special thanks to the GOAT Arnaud de Mattia.
 
+import os
+
 import numpy as np
 from scipy.special import loggamma
-
-
-class BaseKernel(object):
-    """Base kernel."""
-
-    def __call__(self, z):
-        return self.eval(z)
-
-    def __eq__(self, other):
-        return other.__class__ == self.__class__
-
-
-class BaseBesselKernel(BaseKernel):
-    """Base Bessel kernel."""
-
-    def __init__(self, nu):
-        self.nu = nu
-
-    def __eq__(self, other):
-        return other.__class__ == self.__class__ and other.nu == self.nu
-
-
-class SphericalBesselJKernel(BaseBesselKernel):
-    """(Mellin transform of) spherical Bessel kernel."""
-
-    def eval(self, z):
-        return np.exp(
-            np.log(2) * (z - 1.5)
-            + loggamma(0.5 * (self.nu + z))
-            - loggamma(0.5 * (3 + self.nu - z))
-        )
-
-
-def pad(array, pad_width, axis=-1, extrap=0):
-    """
-    Pad array along ``axis``.
-
-    Parameters
-    ----------
-    array : array_like
-        Input array to be padded.
-
-    pad_width : int, tuple of ints
-        Number of points to be added on both sides of the array.
-        Pass a tuple to differentiate between left and right sides.
-
-    axis : int, default=-1
-        Axis along which padding is to be applied.
-
-    extrap : string, float, default=0
-        If 'log', performs a log-log extrapolation.
-        If 'edge', pad ``array`` with its edge values.
-        Else, pad ``array`` with the provided value.
-        Pass a tuple to differentiate between left and right sides.
-
-    Returns
-    -------
-    array : array
-        Padded array.
-    """
-    array = np.asarray(array)
-
-    try:
-        pad_width_left, pad_width_right = pad_width
-    except (TypeError, ValueError):
-        pad_width_left = pad_width_right = pad_width
-
-    try:
-        extrap_left, extrap_right = extrap
-    except (TypeError, ValueError):
-        extrap_left = extrap_right = extrap
-
-    axis = axis % array.ndim
-    to_axis = [1] * array.ndim
-    to_axis[axis] = -1
-
-    if extrap_left == "edge":
-        end = np.take(array, [0], axis=axis)
-        pad_left = np.repeat(end, pad_width_left, axis=axis)
-    elif extrap_left == "log":
-        end = np.take(array, [0], axis=axis)
-        ratio = np.take(array, [1], axis=axis) / end
-        exp = np.arange(-pad_width_left, 0).reshape(to_axis)
-        pad_left = end * ratio**exp
-    else:
-        pad_left = np.full(
-            array.shape[:axis] + (pad_width_left,) + array.shape[axis + 1 :],
-            extrap_left,
-        )
-
-    if extrap_right == "edge":
-        end = np.take(array, [-1], axis=axis)
-        pad_right = np.repeat(end, pad_width_right, axis=axis)
-    elif extrap_right == "log":
-        end = np.take(array, [-1], axis=axis)
-        ratio = np.take(array, [-2], axis=axis) / end
-        exp = np.arange(1, pad_width_right + 1).reshape(to_axis)
-        pad_right = end / ratio**exp
-    else:
-        pad_right = np.full(
-            array.shape[:axis] + (pad_width_right,) + array.shape[axis + 1 :],
-            extrap_right,
-        )
-
-    return np.concatenate([pad_left, array, pad_right], axis=axis)
 
 
 class FFTlog(object):
@@ -138,6 +35,8 @@ class FFTlog(object):
         lowring=True,
         xy=1,
         check_level=0,
+        engine="numpy",
+        **engine_kwargs,
     ):
         r"""
         Initialize :class:`FFTlog`, which can perform several transforms at once.
@@ -167,6 +66,12 @@ class FFTlog(object):
 
         check_level : int, default=0
             If non-zero run sanity checks on input.
+
+        engine : string, default='numpy'
+            FFT engine. See :meth:`set_fft_engine`.
+
+        engine_kwargs : dict
+            Arguments for FFT engine.
 
         Note
         ----
@@ -202,6 +107,24 @@ class FFTlog(object):
         self.minfolds = minfolds
         self.lowring = lowring
         self.setup()
+        self.set_fft_engine(engine, **engine_kwargs)
+
+    def set_fft_engine(self, engine="numpy", **engine_kwargs):
+        """
+        Set up FFT engine.
+        See :func:`get_fft_engine`
+
+        Parameters
+        ----------
+        engine : BaseEngine, string, default='numpy'
+            FFT engine, or one of ['numpy', 'fftw'].
+
+        engine_kwargs : dict
+            Arguments for FFT engine.
+        """
+        self._engine = get_fft_engine(
+            engine, size=self.padded_size, nparallel=self.nparallel, **engine_kwargs
+        )
 
     @property
     def nparallel(self):
@@ -315,13 +238,8 @@ class FFTlog(object):
             extrap=extrap,
         )
         fftloged = (
-            np.fft.irfft(
-                (
-                    np.fft.rfft(padded_fun * self.padded_prefactor, axis=-1)
-                    * self.padded_u
-                ).conj(),
-                n=self.size,
-                axis=-1,
+            self._engine.backward(
+                self._engine.forward(padded_fun * self.padded_prefactor) * self.padded_u
             )
             * self.padded_postfactor
         )
@@ -340,6 +258,16 @@ class FFTlog(object):
                 fun.shape if not keep_padding else fun.shape[:-1] + (self.padded_size,),
             )
         return y, fftloged
+
+    def inv(self):
+        """Inverse the transform."""
+        self.x, self.y = self.y, self.x
+        self.padded_x, self.padded_y = self.y, self.x
+        self.padded_prefactor, self.padded_postfactor = (
+            1 / self.padded_postfactor,
+            1 / self.padded_prefactor,
+        )
+        self.padded_u = 1 / self.padded_u.conj()
 
 
 class PowerToCorrelation(FFTlog):
@@ -437,3 +365,168 @@ class CorrelationToPower(FFTlog):
             # We return imaginary part of odd poles
             phase = (-1) ** (ell // 2)
         self.padded_postfactor = self.padded_postfactor * phase[:, None]
+
+
+def pad(array, pad_width, axis=-1, extrap=0):
+    """
+    Pad array along ``axis``.
+
+    Parameters
+    ----------
+    array : array_like
+        Input array to be padded.
+
+    pad_width : int, tuple of ints
+        Number of points to be added on both sides of the array.
+        Pass a tuple to differentiate between left and right sides.
+
+    axis : int, default=-1
+        Axis along which padding is to be applied.
+
+    extrap : string, float, default=0
+        If 'log', performs a log-log extrapolation.
+        If 'edge', pad ``array`` with its edge values.
+        Else, pad ``array`` with the provided value.
+        Pass a tuple to differentiate between left and right sides.
+
+    Returns
+    -------
+    array : array
+        Padded array.
+    """
+    array = np.asarray(array)
+
+    try:
+        pad_width_left, pad_width_right = pad_width
+    except (TypeError, ValueError):
+        pad_width_left = pad_width_right = pad_width
+
+    try:
+        extrap_left, extrap_right = extrap
+    except (TypeError, ValueError):
+        extrap_left = extrap_right = extrap
+
+    axis = axis % array.ndim
+    to_axis = [1] * array.ndim
+    to_axis[axis] = -1
+
+    if extrap_left == "edge":
+        end = np.take(array, [0], axis=axis)
+        pad_left = np.repeat(end, pad_width_left, axis=axis)
+    elif extrap_left == "log":
+        end = np.take(array, [0], axis=axis)
+        ratio = np.take(array, [1], axis=axis) / end
+        exp = np.arange(-pad_width_left, 0).reshape(to_axis)
+        pad_left = end * ratio**exp
+    else:
+        pad_left = np.full(
+            array.shape[:axis] + (pad_width_left,) + array.shape[axis + 1 :],
+            extrap_left,
+        )
+
+    if extrap_right == "edge":
+        end = np.take(array, [-1], axis=axis)
+        pad_right = np.repeat(end, pad_width_right, axis=axis)
+    elif extrap_right == "log":
+        end = np.take(array, [-1], axis=axis)
+        ratio = np.take(array, [-2], axis=axis) / end
+        exp = np.arange(1, pad_width_right + 1).reshape(to_axis)
+        pad_right = end / ratio**exp
+    else:
+        pad_right = np.full(
+            array.shape[:axis] + (pad_width_right,) + array.shape[axis + 1 :],
+            extrap_right,
+        )
+
+    return np.concatenate([pad_left, array, pad_right], axis=axis)
+
+
+class BaseFFTEngine(object):
+    """Base FFT engine."""
+
+    def __init__(self, size, nparallel=1, nthreads=None):
+        """
+        Initialize FFT engine.
+
+        Parameters
+        ----------
+        size : int
+            Array size.
+
+        nparallel : int, default=1
+            Number of FFTs to be performed in parallel.
+
+        nthreads : int, default=None
+            Number of threads.
+        """
+        self.size = size
+        self.nparallel = nparallel
+        if nthreads is not None:
+            os.environ["OMP_NUM_THREADS"] = str(nthreads)
+        self.nthreads = int(os.environ.get("OMP_NUM_THREADS", 1))
+
+
+class NumpyFFTEngine(BaseFFTEngine):
+    """FFT engine based on :mod:`numpy.fft`."""
+
+    def forward(self, fun):
+        """Forward transform of ``fun``."""
+        return np.fft.rfft(fun, axis=-1)
+
+    def backward(self, fun):
+        """Backward transform of ``fun``."""
+        return np.fft.irfft(fun.conj(), n=self.size, axis=-1)
+
+
+def get_fft_engine(engine, *args, **kwargs):
+    """
+    Return FFT engine.
+
+    Parameters
+    ----------
+    engine : BaseFFTEngine, string
+        FFT engine, or one of ['numpy', 'fftw'].
+
+    args, kwargs : tuple, dict
+        Arguments for FFT engine.
+
+    Returns
+    -------
+    engine : BaseFFTEngine
+    """
+    if isinstance(engine, str):
+        if engine.lower() == "numpy":
+            return NumpyFFTEngine(*args, **kwargs)
+        raise ValueError("FFT engine {} is unknown".format(engine))
+    return engine
+
+
+class BaseKernel(object):
+    """Base kernel."""
+
+    def __call__(self, z):
+        return self.eval(z)
+
+    def __eq__(self, other):
+        return other.__class__ == self.__class__
+
+
+class BaseBesselKernel(BaseKernel):
+    """Base Bessel kernel."""
+
+    def __init__(self, nu):
+        self.nu = nu
+
+    def __eq__(self, other):
+        return other.__class__ == self.__class__ and other.nu == self.nu
+
+
+class SphericalBesselJKernel(BaseBesselKernel):
+    """(Mellin transform of) spherical Bessel kernel."""
+
+    def eval(self, z):
+        return np.exp(
+            np.log(2) * (z - 1.5)
+            + loggamma(0.5 * (self.nu + z))
+            - loggamma(0.5 * (3 + self.nu - z))
+        )

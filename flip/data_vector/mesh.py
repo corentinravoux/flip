@@ -618,7 +618,14 @@ def grid_data_density(
             scaling=np.sum(data_weights) / np.sum(randoms_weights),
         )
 
-    density_contrast = np.ravel(mesh_data.value / mesh_randoms.value - 1)
+    density_contrast = np.zeros_like(mesh_data.value)
+    mask_randoms_nonzero = mesh_randoms.value != 0.0
+    density_contrast[mask_randoms_nonzero] = np.ravel(
+        mesh_data.value[mask_randoms_nonzero] / mesh_randoms.value[mask_randoms_nonzero]
+        - 1
+    )
+    density_contrast[~mask_randoms_nonzero] = np.nan
+    density_contrast = np.ravel(density_contrast)
 
     count_randoms = np.ravel(mesh_count_randoms.value).astype(int)
     density_contrast_err = np.full(count_randoms.shape, np.nan)
@@ -788,7 +795,15 @@ def grid_data_density_multivariate_kernel(
             scaling=np.sum(data_weights) / np.sum(randoms_weights),
         )
 
-    density_contrast = np.ravel(mesh_data_kernel.value / mesh_randoms.value - 1)
+    density_contrast = np.zeros_like(mesh_data_kernel.value)
+    mask_randoms_nonzero = mesh_randoms.value != 0.0
+    density_contrast[mask_randoms_nonzero] = np.ravel(
+        mesh_data_kernel.value[mask_randoms_nonzero]
+        / mesh_randoms.value[mask_randoms_nonzero]
+        - 1
+    )
+    density_contrast[~mask_randoms_nonzero] = np.nan
+    density_contrast = np.ravel(density_contrast)
 
     count_randoms = np.ravel(mesh_count_randoms.value).astype(int)
     density_contrast_err = np.full(count_randoms.shape, np.nan)

@@ -94,7 +94,6 @@ class Contraction:
             coordinate_type=coordinate_type,
             additional_parameters_values=additional_parameters_values,
             basis_definition=basis_definition,
-            covariance_prefactor_dict=covariance_prefactor_dict,
             **kwargs,
         )
 

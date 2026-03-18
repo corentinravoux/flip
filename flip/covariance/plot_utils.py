@@ -4,6 +4,7 @@ import pickle
 
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.stats import median_abs_deviation
 
 from flip import utils
 from flip.covariance import cov_utils
@@ -297,6 +298,7 @@ def plot_all_mean_fits(
     remove_higher=None,
     plot=True,
     use_minos=False,
+    use_mad=False,
     **kwargs,
 ):
     """Plot mean parameter values and errors across grouped fits.
@@ -451,7 +453,10 @@ def plot_all_mean_fits(
             else:
                 error_mean_param = np.mean(errors) / np.sqrt(len(mask[mask]))
                 mean_error_param = np.mean(errors)
-            std_param = np.std(params)
+            if use_mad:
+                std_param = median_abs_deviation(params)
+            else:
+                std_param = np.std(params)
             count = len(params)
 
             mean_param_dict[param_name].append(np.array(mean_param))

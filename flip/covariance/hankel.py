@@ -317,7 +317,8 @@ class FFTlog(object):
         fftloged = (
             np.fft.irfft(
                 (
-                    np.fft.rfft(padded_fun * self.padded_prefactor) * self.padded_u
+                    np.fft.rfft(padded_fun * self.padded_prefactor, axis=-1)
+                    * self.padded_u
                 ).conj(),
                 n=self.size,
                 axis=-1,

@@ -2,13 +2,13 @@ import itertools
 import multiprocessing as mp
 from functools import partial
 
-import cosmoprimo
 import numpy as np
 from scipy import integrate
 from scipy.interpolate import interp1d
 from scipy.special import factorial, spherical_jn
 
 from flip.covariance import cov_utils
+from flip.covariance.hankel import PowerToCorrelation
 
 
 def compute_correlation_coefficient_simple_integration(p, q, ell, r, k, pk):
@@ -41,7 +41,6 @@ def compute_correlation_coefficient_hankel(
 ):
     """Compute correlation coefficient using FFTLog Hankel transform.
 
-    Uses cosmoprimo's ``PowerToCorrelation`` to accelerate the computation.
     Falls back to direct integration for small ``r`` values where the Hankel
     result may be unreliable, controlled by ``hankel_overhead_coefficient``.
 
@@ -58,7 +57,7 @@ def compute_correlation_coefficient_hankel(
         Array of correlation coefficient values at separations ``r``.
     """
     integrand = k ** (2 * (p + q)) * pk
-    Hankel = cosmoprimo.fftlog.PowerToCorrelation(k, ell=ell, q=0, complex=False)
+    Hankel = PowerToCorrelation(k, ell=ell, q=0, complex=False)
     r_hankel, xi_hankel = Hankel(integrand)
     mask = r < np.min(r_hankel) * hankel_overhead_coefficient
     output = np.empty_like(r)

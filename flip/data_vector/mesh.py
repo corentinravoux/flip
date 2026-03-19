@@ -478,7 +478,11 @@ def prepare_data_position(
 
         data_position_sky_bandwidth = data_position_sky_bandwidth[mask, :, :]
 
-        data_position_bandwith = jacobian @ data_position_sky_bandwidth @ jacobian.T
+        data_position_bandwith = (
+            jacobian.T
+            @ data_position_sky_bandwidth
+            @ np.transpose(jacobian.T, (0, 2, 1))
+        )
     else:
         data_position_bandwith = None
 
@@ -755,6 +759,7 @@ def grid_data_density_multivariate_kernel(
             data_positions[i],
             data_position_bandwith[i],
             grid_positions,
+            grid_size,
             kernel=kernel,
             cutoff_type=cutoff_type,
             threshold=threshold,

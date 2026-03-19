@@ -62,6 +62,11 @@ def radec2cart(rcom, ra, dec):
 
 def radec2cart_jacobian(rcom, ra, dec):
 
+    if isinstance(rcom, np.ndarray):
+        null_component = np.zeros_like(rcom)
+    else:
+        null_component = 0
+
     return np.array(
         [
             [
@@ -74,7 +79,7 @@ def radec2cart_jacobian(rcom, ra, dec):
                 rcom * np.cos(ra) * np.cos(dec),
                 -rcom * np.sin(ra) * np.sin(dec),
             ],
-            [np.sin(dec), 0, rcom * np.cos(dec)],
+            [np.sin(dec), null_component, rcom * np.cos(dec)],
         ]
     )
 

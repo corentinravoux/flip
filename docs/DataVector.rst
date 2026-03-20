@@ -1,6 +1,9 @@
 DataVector class
 ================
 
+The :py:mod:`flip.data_vector` module provides data vector classes for handling velocity, density, and joint data.
+This is a common module shared across all methods in the package.
+
 FLIP includes a :py:class:`~flip.data_vector.basic.DataVector` abstract class that is used to build different classes 
 to easily handle the data you want to use and to pass them to one of the different likelihood 
 implemented in the :py:mod:`flip.covariance.likelihood` module.

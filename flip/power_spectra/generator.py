@@ -4,7 +4,7 @@ import os
 import numpy as np
 
 _available_engines = ["class_engine", "cosmoprimo_engine", "pyccl_engine"]
-_available_power_spectrum_model = ["linearbel", "nonlinearbel", "linear"]
+_available_power_spectrum_model = ["linearbel", "nonlinearbel", "linear", "nonlinear"]
 _available_power_spectrum_normalizaton = [
     "no_normalization",
     "growth_rate",

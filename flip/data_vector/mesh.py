@@ -433,6 +433,30 @@ def cut_grid(
         grid[field] = grid[field][mask]
 
 
+def cut_grid_type(
+    grid,
+    grid_type,
+    rcom_max,
+):
+    if grid_type == "rect":
+        cut_grid(
+            grid,
+            remove_nan_density=True,
+            xmax=rcom_max,
+            ymax=rcom_max,
+            zmax=rcom_max,
+            remove_origin=True,
+        )
+
+    if grid_type == "sphere":
+        cut_grid(
+            grid,
+            remove_nan_density=True,
+            rcom_max=rcom_max,
+            remove_origin=True,
+        )
+
+
 def prepare_data_position(
     data_position_sky,
     rcom_max,
@@ -653,23 +677,11 @@ def grid_data_density(
         "count_random": count_randoms,
     }
 
-    if grid_type == "rect":
-        cut_grid(
-            grid,
-            remove_nan_density=True,
-            xmax=rcom_max,
-            ymax=rcom_max,
-            zmax=rcom_max,
-            remove_origin=True,
-        )
-
-    if grid_type == "sphere":
-        cut_grid(
-            grid,
-            remove_nan_density=True,
-            rcom_max=rcom_max,
-            remove_origin=True,
-        )
+    cut_grid_type(
+        grid,
+        grid_type,
+        rcom_max,
+    )
 
     return grid
 
@@ -766,11 +778,14 @@ def grid_data_density_multivariate_kernel(
         )
         mask = kernel_weights != 0.0
         data_kernel_positions.append(grid_positions[mask])
-        data_kernel_weights.append(kernel_weights[mask])
+        data_kernel_weights.append(kernel_weights[mask] / np.sum(kernel_weights[mask]))
 
     data_kernel_positions = np.concatenate(data_kernel_positions, axis=0)
     data_kernel_weights = np.concatenate(data_kernel_weights, axis=0)
-    data_kernel_weights = data_kernel_weights / np.sum(data_kernel_weights)
+
+    data_kernel_weights = (
+        data_positions.shape[0] * data_kernel_weights / np.sum(data_kernel_weights)
+    )
 
     mesh_data_kernel = create_mesh(
         data_kernel_positions,
@@ -827,23 +842,11 @@ def grid_data_density_multivariate_kernel(
         "count_random": count_randoms,
     }
 
-    if grid_type == "rect":
-        cut_grid(
-            grid,
-            remove_nan_density=True,
-            xmax=rcom_max,
-            ymax=rcom_max,
-            zmax=rcom_max,
-            remove_origin=True,
-        )
-
-    if grid_type == "sphere":
-        cut_grid(
-            grid,
-            remove_nan_density=True,
-            rcom_max=rcom_max,
-            remove_origin=True,
-        )
+    cut_grid_type(
+        grid,
+        grid_type,
+        rcom_max,
+    )
 
     return grid
 
@@ -915,6 +918,128 @@ def multivariate_kernel_density_estimation(
             raise ValueError(f"Unsupported cutoff type: {cutoff_type}")
 
     return normalized_kernel
+
+
+def grid_data_density_kernel_sampling(
+    data_position_sky,
+    data_kernel_list,
+    rcom_max,
+    grid_size,
+    grid_type,
+    kind,
+    Nrandom=10,
+    random_method="cartesian",
+    coord_randoms=None,
+    min_count_random=0,
+    overhead=20,
+    seed=None,
+):
+    """Grid data with pypower and compute density contrast on a mesh.
+
+    Args:
+        raobj (array-like): Right ascensions.
+        decobj (array-like): Declinations.
+        rcomobj (array-like): Comoving distances.
+        rcom_max (float): Outer cutoff for grid.
+        grid_size (float): Cell size.
+        grid_type (str): `rect` or `sphere` cut behavior.
+        kind (str): Resampler passed to CatalogMesh.
+        Nrandom (int): Randoms per data object.
+        random_method (str): Random generation method.
+        interlacing (int): Interlacing factor.
+        compensate (bool): Apply resampler compensation.
+        coord_randoms (tuple, optional): Randoms coordinates for `file` method.
+        min_count_random (int): Minimum random count for valid error.
+        overhead (float): Extra margin around cutoff.
+
+    Returns:
+        dict: Grid with positions, density contrast, errors, and counts.
+    """
+
+    kind = kind.lower()
+    if kind not in _grid_kind_avail:
+        allowed = ", ".join(_grid_kind_avail)
+        raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
+
+    data_positions, _, randoms_positions = prepare_data_position(
+        data_position_sky,
+        rcom_max,
+        overhead,
+        random_method=random_method,
+        Nrandom=Nrandom,
+        coord_randoms=coord_randoms,
+        seed=seed,
+    )
+
+    data_weights = np.ones((data_positions.shape[0],))
+    randoms_weights = np.ones((randoms_positions.shape[0],))
+
+    mesh_data = create_mesh(
+        data_positions,
+        2 * (rcom_max + overhead),
+        grid_size,
+        assignement=kind,
+        weights=data_weights,
+    )
+
+    mesh_randoms = create_mesh(
+        randoms_positions,
+        2 * (rcom_max + overhead),
+        grid_size,
+        assignement=kind,
+        weights=randoms_weights,
+        scaling=np.sum(data_weights) / np.sum(randoms_weights),
+    )
+    if kind == "ngp":
+        mesh_count_randoms = mesh_randoms.copy()
+    else:
+        mesh_count_randoms = create_mesh(
+            randoms_positions,
+            2 * (rcom_max + overhead),
+            grid_size,
+            assignement="ngp",
+            weights=randoms_weights,
+            scaling=np.sum(data_weights) / np.sum(randoms_weights),
+        )
+
+    density_contrast = np.zeros_like(mesh_data.value)
+    mask_randoms_nonzero = mesh_randoms.value != 0.0
+    density_contrast[mask_randoms_nonzero] = np.ravel(
+        mesh_data.value[mask_randoms_nonzero] / mesh_randoms.value[mask_randoms_nonzero]
+        - 1
+    )
+    density_contrast[~mask_randoms_nonzero] = np.nan
+    density_contrast = np.ravel(density_contrast)
+
+    count_randoms = np.ravel(mesh_count_randoms.value).astype(int)
+    density_contrast_err = np.full(count_randoms.shape, np.nan)
+    mask = count_randoms > min_count_random
+    density_contrast_err[mask] = np.sqrt(1 / (count_randoms[mask]))
+
+    xgrid, ygrid, zgrid, ragrid, decgrid, rcomgrid = define_grid_from_mesh(
+        mesh_data,
+        grid_size,
+    )
+
+    grid = {
+        "x": xgrid,
+        "y": ygrid,
+        "z": zgrid,
+        "ra": ragrid,
+        "dec": decgrid,
+        "rcom_zobs": rcomgrid,
+        "density": density_contrast,
+        "density_error": density_contrast_err,
+        "count_random": count_randoms,
+    }
+
+    cut_grid_type(
+        grid,
+        grid_type,
+        rcom_max,
+    )
+
+    return grid
 
 
 def grid_data_velocity(

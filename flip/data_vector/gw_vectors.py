@@ -24,7 +24,7 @@ class GWDensMesh(Dens):
         super().__init__(data, covariance_observation=covariance_observation)
 
     @classmethod
-    def init_from_catalog(
+    def init_from_multivariate_kernel(
         cls,
         data_position_sky,
         data_position_sky_bandwidth,
@@ -43,4 +43,42 @@ class GWDensMesh(Dens):
             kind,
             **kwargs,
         )
+        return cls(grid)
+
+    @classmethod
+    def init_from_catalog(
+        cls,
+        method,
+        data_position_sky,
+        data_position_sky_kernel_properties,
+        rcom_max,
+        grid_size,
+        grid_type,
+        kind,
+        **kwargs,
+    ):
+
+        if method == "multivariate_kernel":
+
+            grid = mesh.grid_data_density_multivariate_kernel(
+                data_position_sky,
+                data_position_sky_kernel_properties,
+                rcom_max,
+                grid_size,
+                grid_type,
+                kind,
+                **kwargs,
+            )
+
+        elif method == "kernel_sampling":
+
+            grid = mesh.grid_data_density_kernel_sampling(
+                data_position_sky,
+                data_position_sky_kernel_properties,
+                rcom_max,
+                grid_size,
+                grid_type,
+                kind,
+                **kwargs,
+            )
         return cls(grid)

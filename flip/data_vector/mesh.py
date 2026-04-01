@@ -466,6 +466,7 @@ def prepare_data_position(
     coord_randoms=None,
     seed=None,
     data_position_sky_bandwidth=None,
+    data_position_sky_kernel=None,
 ):
     """Convert sky coordinates to Cartesian positions and prepare randoms.
 
@@ -510,6 +511,21 @@ def prepare_data_position(
     else:
         data_position_bandwith = None
 
+    if data_position_sky_kernel is not None:
+
+        data_position_kernel = []
+        for i in range(len(data_position_sky_kernel)):
+            kernel = data_position_sky_kernel[i]
+            x_kernel, y_kernel, z_kernel = utils.radec2cart(
+                kernel[:, 0],
+                kernel[:, 1],
+                kernel[:, 2],
+            )
+            kernel_cart = np.array([x_kernel, y_kernel, z_kernel, kernel[:, 3]]).T
+            data_position_kernel.append(kernel_cart)
+    else:
+        data_position_kernel = None
+
     raobj, decobj, rcomobj = raobj[mask], decobj[mask], rcomobj[mask]
     if random_method is not None:
         (
@@ -535,7 +551,12 @@ def prepare_data_position(
 
     data_positions = np.array([xobj, yobj, zobj]).T
 
-    return data_positions, data_position_bandwith, randoms_positions
+    return (
+        data_positions,
+        randoms_positions,
+        data_position_bandwith,
+        data_position_kernel,
+    )
 
 
 def define_grid_from_mesh(mesh_data, grid_size):
@@ -605,7 +626,7 @@ def grid_data_density(
         allowed = ", ".join(_grid_kind_avail)
         raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
 
-    data_positions, _, randoms_positions = prepare_data_position(
+    data_positions, randoms_positions, _, _ = prepare_data_position(
         data_position_sky,
         rcom_max,
         overhead,
@@ -734,15 +755,17 @@ def grid_data_density_multivariate_kernel(
         allowed = ", ".join(_grid_kind_avail)
         raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
 
-    data_positions, data_position_bandwith, randoms_positions = prepare_data_position(
-        data_position_sky,
-        rcom_max,
-        overhead,
-        random_method=random_method,
-        Nrandom=Nrandom,
-        coord_randoms=coord_randoms,
-        seed=seed,
-        data_position_sky_bandwidth=data_position_sky_bandwidth,
+    data_positions, randoms_positions, data_position_bandwith, _ = (
+        prepare_data_position(
+            data_position_sky,
+            rcom_max,
+            overhead,
+            random_method=random_method,
+            Nrandom=Nrandom,
+            coord_randoms=coord_randoms,
+            seed=seed,
+            data_position_sky_bandwidth=data_position_sky_bandwidth,
+        )
     )
 
     data_weights = np.ones((data_positions.shape[0],))
@@ -961,7 +984,7 @@ def grid_data_density_kernel_sampling(
         allowed = ", ".join(_grid_kind_avail)
         raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
 
-    data_positions, _, randoms_positions = prepare_data_position(
+    data_positions, randoms_positions, _, _ = prepare_data_position(
         data_position_sky,
         rcom_max,
         overhead,
@@ -1069,7 +1092,7 @@ def grid_data_velocity(
         dict: Grid with positions, velocity (optional), variance, and counts.
     """
 
-    data_positions, _, _ = prepare_data_position(
+    data_positions, _, _, _ = prepare_data_position(
         data_position_sky,
         rcom_max,
         overhead,

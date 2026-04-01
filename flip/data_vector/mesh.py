@@ -2,6 +2,8 @@ try:
     from pmesh.pm import ParticleMesh
 except ImportError:
     ParticleMesh = None
+import multiprocessing as mp
+
 import numpy as np
 
 from flip import utils
@@ -175,12 +177,12 @@ def _get_mesh_attrs(
 
 def define_randoms(
     random_method,
-    xobj,
-    yobj,
-    zobj,
-    raobj,
-    decobj,
-    rcomobj,
+    xobj=None,
+    yobj=None,
+    zobj=None,
+    raobj=None,
+    decobj=None,
+    rcomobj=None,
     Nrandom=None,
     coord_randoms=None,
     max_coordinates=None,
@@ -207,12 +209,21 @@ def define_randoms(
     Returns:
         tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]: Random x, y, z positions.
     """
-    N = xobj.size
+
+    def _needed_params(needed_parameter):
+        for p in needed_parameter:
+            if p is None:
+                raise ValueError(
+                    f"random_method={random_method} requires {p} to be provided"
+                )
+
     if seed is not None:
         np.random.seed(seed)
 
     # Uniform in X,Y,Z
     if random_method == "cartesian":
+        _needed_params([xobj, yobj, zobj])
+        N = xobj.size
         xobj_random = (np.max(xobj) - np.min(xobj)) * np.random.random(
             size=Nrandom * N
         ) + np.min(xobj)
@@ -223,8 +234,21 @@ def define_randoms(
             size=Nrandom * N
         ) + np.min(zobj)
 
+    elif random_method == "cartesian_max_coordinates":
+        xobj_random = (2 * max_coordinates) * np.random.random(
+            size=Nrandom
+        ) - max_coordinates
+        yobj_random = (2 * max_coordinates) * np.random.random(
+            size=Nrandom
+        ) - max_coordinates
+        zobj_random = (2 * max_coordinates) * np.random.random(
+            size=Nrandom
+        ) - max_coordinates
+
     # Choice in the ra, dec, and redshift data coordinates to create the random.
     elif random_method == "choice":
+        _needed_params([raobj, decobj, rcomobj])
+        N = raobj.size
         counts_ra, bins_ra = np.histogram(raobj, bins=1000)
         ra_random = np.random.choice(
             (bins_ra[1:] + bins_ra[:-1]) / 2,
@@ -250,6 +274,8 @@ def define_randoms(
 
     # Uniform in ra and dec. Choice in the redshift data coordinates.
     elif random_method == "choice_redshift":
+        _needed_params([raobj, decobj, rcomobj])
+        N = raobj.size
         ra_random = (np.max(raobj) - np.min(raobj)) * np.random.random(
             size=Nrandom * N
         ) + np.min(raobj)
@@ -269,6 +295,7 @@ def define_randoms(
 
     # From random file
     elif random_method == "file":
+        _needed_params([coord_randoms])
         ra_random, dec_random, rcom_random = (
             coord_randoms[0],
             coord_randoms[1],
@@ -457,6 +484,46 @@ def cut_grid_type(
         )
 
 
+def prepare_data_position_kernel(
+    data_position_sky_kernel,
+    rcom_max,
+    overhead,
+    random_method=None,
+    Nrandom=None,
+    coord_randoms=None,
+    seed=None,
+):
+
+    data_position_kernel = []
+    for i in range(len(data_position_sky_kernel)):
+        kernel = data_position_sky_kernel[i]
+        x_kernel, y_kernel, z_kernel = utils.radec2cart(
+            kernel[:, 0],
+            kernel[:, 1],
+            kernel[:, 2],
+        )
+        kernel_cartesian = np.array([x_kernel, y_kernel, z_kernel, kernel[:, 3]]).T
+        data_position_kernel.append(kernel_cartesian)
+
+    if random_method is not None:
+        (
+            xobj_random,
+            yobj_random,
+            zobj_random,
+        ) = define_randoms(
+            random_method,
+            Nrandom=Nrandom,
+            coord_randoms=coord_randoms,
+            max_coordinates=rcom_max + overhead,
+            seed=seed,
+        )
+        randoms_positions = np.array([xobj_random, yobj_random, zobj_random]).T
+    else:
+        randoms_positions = None
+
+    return data_position_kernel, randoms_positions
+
+
 def prepare_data_position(
     data_position_sky,
     rcom_max,
@@ -466,7 +533,6 @@ def prepare_data_position(
     coord_randoms=None,
     seed=None,
     data_position_sky_bandwidth=None,
-    data_position_sky_kernel=None,
 ):
     """Convert sky coordinates to Cartesian positions and prepare randoms.
 
@@ -511,21 +577,6 @@ def prepare_data_position(
     else:
         data_position_bandwith = None
 
-    if data_position_sky_kernel is not None:
-
-        data_position_kernel = []
-        for i in range(len(data_position_sky_kernel)):
-            kernel = data_position_sky_kernel[i]
-            x_kernel, y_kernel, z_kernel = utils.radec2cart(
-                kernel[:, 0],
-                kernel[:, 1],
-                kernel[:, 2],
-            )
-            kernel_cart = np.array([x_kernel, y_kernel, z_kernel, kernel[:, 3]]).T
-            data_position_kernel.append(kernel_cart)
-    else:
-        data_position_kernel = None
-
     raobj, decobj, rcomobj = raobj[mask], decobj[mask], rcomobj[mask]
     if random_method is not None:
         (
@@ -553,9 +604,8 @@ def prepare_data_position(
 
     return (
         data_positions,
-        randoms_positions,
         data_position_bandwith,
-        data_position_kernel,
+        randoms_positions,
     )
 
 
@@ -626,7 +676,7 @@ def grid_data_density(
         allowed = ", ".join(_grid_kind_avail)
         raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
 
-    data_positions, randoms_positions, _, _ = prepare_data_position(
+    data_positions, _, randoms_positions = prepare_data_position(
         data_position_sky,
         rcom_max,
         overhead,
@@ -755,17 +805,15 @@ def grid_data_density_multivariate_kernel(
         allowed = ", ".join(_grid_kind_avail)
         raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
 
-    data_positions, randoms_positions, data_position_bandwith, _ = (
-        prepare_data_position(
-            data_position_sky,
-            rcom_max,
-            overhead,
-            random_method=random_method,
-            Nrandom=Nrandom,
-            coord_randoms=coord_randoms,
-            seed=seed,
-            data_position_sky_bandwidth=data_position_sky_bandwidth,
-        )
+    data_positions, data_position_bandwith, randoms_positions = prepare_data_position(
+        data_position_sky,
+        rcom_max,
+        overhead,
+        random_method=random_method,
+        Nrandom=Nrandom,
+        coord_randoms=coord_randoms,
+        seed=seed,
+        data_position_sky_bandwidth=data_position_sky_bandwidth,
     )
 
     data_weights = np.ones((data_positions.shape[0],))
@@ -944,16 +992,16 @@ def multivariate_kernel_density_estimation(
 
 
 def grid_data_density_kernel_sampling(
-    data_position_sky,
-    data_kernel_list,
+    data_position_sky_kernel,
     rcom_max,
     grid_size,
     grid_type,
     kind,
+    Nsampling=100,
+    n_subprocess_sampling=16,
     Nrandom=10,
     random_method="cartesian",
     coord_randoms=None,
-    min_count_random=0,
     overhead=20,
     seed=None,
 ):
@@ -984,8 +1032,8 @@ def grid_data_density_kernel_sampling(
         allowed = ", ".join(_grid_kind_avail)
         raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
 
-    data_positions, randoms_positions, _, _ = prepare_data_position(
-        data_position_sky,
+    (data_position_kernel, randoms_positions) = prepare_data_position_kernel(
+        data_position_sky_kernel,
         rcom_max,
         overhead,
         random_method=random_method,
@@ -993,18 +1041,36 @@ def grid_data_density_kernel_sampling(
         coord_randoms=coord_randoms,
         seed=seed,
     )
+    data_weights = np.ones(len(data_position_kernel))
 
-    data_weights = np.ones((data_positions.shape[0],))
+    def create_sub_grid():
+        np.random.seed()  # ensure different random states across subprocesses
+        data_positions_random = data_position_kernel[
+            np.random.choice(
+                data_position_kernel.shape[0],
+                replace=False,
+            )
+        ]
+
+        mesh_data_random = create_mesh(
+            data_positions_random,
+            2 * (rcom_max + overhead),
+            grid_size,
+            assignement=kind,
+            weights=data_weights,
+        )
+        return mesh_data_random.value
+
+    if n_subprocess_sampling > 1:
+        with mp.Pool(n_subprocess_sampling) as pool:
+            mesh_data_random_samples = pool.map(create_sub_grid, range(Nsampling))
+    else:
+        mesh_data_random_samples = [create_sub_grid() for _ in range(Nsampling)]
+
+    average_mesh_data = np.nanmean(mesh_data_random_samples, axis=0)
+    std_mesh_data = np.nanstd(mesh_data_random_samples, axis=0)
+
     randoms_weights = np.ones((randoms_positions.shape[0],))
-
-    mesh_data = create_mesh(
-        data_positions,
-        2 * (rcom_max + overhead),
-        grid_size,
-        assignement=kind,
-        weights=data_weights,
-    )
-
     mesh_randoms = create_mesh(
         randoms_positions,
         2 * (rcom_max + overhead),
@@ -1024,23 +1090,28 @@ def grid_data_density_kernel_sampling(
             weights=randoms_weights,
             scaling=np.sum(data_weights) / np.sum(randoms_weights),
         )
+    count_randoms = np.ravel(mesh_count_randoms.value).astype(int)
 
-    density_contrast = np.zeros_like(mesh_data.value)
+    density_contrast = np.zeros_like(average_mesh_data.value)
+    density_contrast_err = np.zeros_like(average_mesh_data.value)
+
     mask_randoms_nonzero = mesh_randoms.value != 0.0
     density_contrast[mask_randoms_nonzero] = np.ravel(
-        mesh_data.value[mask_randoms_nonzero] / mesh_randoms.value[mask_randoms_nonzero]
+        average_mesh_data[mask_randoms_nonzero]
+        / mesh_randoms.value[mask_randoms_nonzero]
         - 1
     )
     density_contrast[~mask_randoms_nonzero] = np.nan
-    density_contrast = np.ravel(density_contrast)
+    density_contrast_err[mask_randoms_nonzero] = np.ravel(
+        std_mesh_data[mask_randoms_nonzero] / mesh_randoms.value[mask_randoms_nonzero]
+    )
+    density_contrast_err[~mask_randoms_nonzero] = np.nan
 
-    count_randoms = np.ravel(mesh_count_randoms.value).astype(int)
-    density_contrast_err = np.full(count_randoms.shape, np.nan)
-    mask = count_randoms > min_count_random
-    density_contrast_err[mask] = np.sqrt(1 / (count_randoms[mask]))
+    density_contrast = np.ravel(density_contrast)
+    density_contrast_err = np.ravel(density_contrast_err)
 
     xgrid, ygrid, zgrid, ragrid, decgrid, rcomgrid = define_grid_from_mesh(
-        mesh_data,
+        mesh_randoms,
         grid_size,
     )
 
@@ -1092,7 +1163,7 @@ def grid_data_velocity(
         dict: Grid with positions, velocity (optional), variance, and counts.
     """
 
-    data_positions, _, _, _ = prepare_data_position(
+    data_positions, _, _ = prepare_data_position(
         data_position_sky,
         rcom_max,
         overhead,

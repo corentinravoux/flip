@@ -26,28 +26,6 @@ class GWDensMesh(Dens):
     @classmethod
     def init_from_multivariate_kernel(
         cls,
-        data_position_sky,
-        data_position_sky_bandwidth,
-        rcom_max,
-        grid_size,
-        grid_type,
-        kind,
-        **kwargs,
-    ):
-        grid = mesh.grid_data_density_multivariate_kernel(
-            data_position_sky,
-            data_position_sky_bandwidth,
-            rcom_max,
-            grid_size,
-            grid_type,
-            kind,
-            **kwargs,
-        )
-        return cls(grid)
-
-    @classmethod
-    def init_from_catalog(
-        cls,
         method,
         data_position_sky,
         data_position_sky_kernel_properties,
@@ -58,27 +36,34 @@ class GWDensMesh(Dens):
         **kwargs,
     ):
 
-        if method == "multivariate_kernel":
+        grid = mesh.grid_data_density_multivariate_kernel(
+            data_position_sky,
+            data_position_sky_kernel_properties,
+            rcom_max,
+            grid_size,
+            grid_type,
+            kind,
+            **kwargs,
+        )
+        return cls(grid)
 
-            grid = mesh.grid_data_density_multivariate_kernel(
-                data_position_sky,
-                data_position_sky_kernel_properties,
-                rcom_max,
-                grid_size,
-                grid_type,
-                kind,
-                **kwargs,
-            )
+    @classmethod
+    def init_from__kernel_sampling(
+        cls,
+        data_position_sky_kernel,
+        rcom_max,
+        grid_size,
+        grid_type,
+        kind,
+        **kwargs,
+    ):
 
-        elif method == "kernel_sampling":
-
-            grid = mesh.grid_data_density_kernel_sampling(
-                data_position_sky,
-                data_position_sky_kernel_properties,
-                rcom_max,
-                grid_size,
-                grid_type,
-                kind,
-                **kwargs,
-            )
+        grid = mesh.grid_data_density_kernel_sampling(
+            data_position_sky_kernel,
+            rcom_max,
+            grid_size,
+            grid_type,
+            kind,
+            **kwargs,
+        )
         return cls(grid)

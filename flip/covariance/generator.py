@@ -2,7 +2,6 @@ import importlib
 import multiprocessing as mp
 from functools import partial
 
-import cosmoprimo
 import mpmath
 import numpy as np
 from scipy import integrate
@@ -10,6 +9,7 @@ from scipy.signal import savgol_filter
 from scipy.special import spherical_jn
 
 from flip.covariance import cov_utils
+from flip.covariance.hankel import PowerToCorrelation
 from flip.utils import create_log
 
 log = create_log()
@@ -65,11 +65,10 @@ def correlation_integration(ell, r, k, integrand):
 
 def correlation_hankel(ell, r, k, integrand, hankel_overhead_coefficient=2, kmin=None):
     """
-    The correlation_hankel function is a wrapper for the cosmoprimo.fftlog.PowerToCorrelation function,
+    The correlation_hankel function is a wrapper for the PowerToCorrelation function,
     which computes the correlation function from power spectrum using FFTLog (Hamilton 2000).
     The PowerToCorrelation class takes in an array of k values and an array of P(k) values, and returns
-    an array of r values and an array of xi(r) values. The PowerToCorrelation class has two methods: set_fft_engine()
-    and __call__(). The set_fft_engine() method sets which fft engine to use; it can be either &quot;n
+    an array of r values and an array of xi(r) values.
 
     Args:
         l: Determine the parity of the integrand, and therefore whether to add a 1j term
@@ -84,8 +83,7 @@ def correlation_hankel(ell, r, k, integrand, hankel_overhead_coefficient=2, kmin
     Note:
         If l is odd, count a 1j term in the integrand, without the need for adding it
     """
-    Hankel = cosmoprimo.fftlog.PowerToCorrelation(k, ell=ell, q=0, complex=False)
-    Hankel.set_fft_engine("numpy")
+    Hankel = PowerToCorrelation(k, ell=ell, q=0, complex=False)
     r_hankel, xi_hankel = Hankel(integrand)
     mask = r < np.min(r_hankel) * hankel_overhead_coefficient
     if np.any(r > np.max(r_hankel)):

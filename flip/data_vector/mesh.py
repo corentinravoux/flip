@@ -3,6 +3,7 @@ try:
 except ImportError:
     ParticleMesh = None
 import multiprocessing as mp
+from functools import partial
 
 import numpy as np
 
@@ -269,7 +270,9 @@ def define_randoms(
         )
 
         xobj_random, yobj_random, zobj_random = utils.radec2cart(
-            rcom_random, ra_random, dec_random
+            ra_random,
+            dec_random,
+            rcom_random,
         )
 
     # Uniform in ra and dec. Choice in the redshift data coordinates.
@@ -290,7 +293,7 @@ def define_randoms(
         )
 
         xobj_random, yobj_random, zobj_random = utils.radec2cart(
-            rcom_random, ra_random, dec_random
+            ra_random, dec_random, rcom_random
         )
 
     # From random file
@@ -303,7 +306,7 @@ def define_randoms(
         )
 
         xobj_random, yobj_random, zobj_random = utils.radec2cart(
-            rcom_random, ra_random, dec_random
+            ra_random, dec_random, rcom_random
         )
         if max_coordinates is not None:
             mask_random = np.abs(xobj_random) < max_coordinates
@@ -498,11 +501,11 @@ def prepare_data_position_kernel(
     for i in range(len(data_position_sky_kernel)):
         kernel = data_position_sky_kernel[i]
         x_kernel, y_kernel, z_kernel = utils.radec2cart(
-            kernel[:, 0],
-            kernel[:, 1],
-            kernel[:, 2],
+            kernel[0, :],
+            kernel[1, :],
+            kernel[2, :],
         )
-        kernel_cartesian = np.array([x_kernel, y_kernel, z_kernel, kernel[:, 3]]).T
+        kernel_cartesian = np.array([x_kernel, y_kernel, z_kernel]).T
         data_position_kernel.append(kernel_cartesian)
 
     if random_method is not None:
@@ -557,7 +560,7 @@ def prepare_data_position(
     raobj = data_position_sky[:, 0]
     decobj = data_position_sky[:, 1]
     rcomobj = data_position_sky[:, 2]
-    xobj, yobj, zobj = utils.radec2cart(rcomobj, raobj, decobj)
+    xobj, yobj, zobj = utils.radec2cart(raobj, decobj, rcomobj)
     mask = np.abs(xobj) < rcom_max + overhead
     mask &= np.abs(yobj) < rcom_max + overhead
     mask &= np.abs(zobj) < rcom_max + overhead
@@ -565,7 +568,7 @@ def prepare_data_position(
 
     if data_position_sky_bandwidth is not None:
 
-        jacobian = utils.radec2cart_jacobian(rcomobj[mask], raobj[mask], decobj[mask])
+        jacobian = utils.radec2cart_jacobian(raobj[mask], decobj[mask], rcomobj[mask])
 
         data_position_sky_bandwidth = data_position_sky_bandwidth[mask, :, :]
 
@@ -991,6 +994,51 @@ def multivariate_kernel_density_estimation(
     return normalized_kernel
 
 
+def create_sampled_grid(
+    data_position_kernel,
+    rcom_max,
+    overhead,
+    grid_size,
+    kind,
+):
+    """Draw one random position per object and paint them onto a mesh.
+
+    For each object its kernel is a block of rows (one row per count), so
+    the fastest unweighted draw is a single ``np.random.randint`` per object.
+    The resulting ``(N_objects, 3)`` array of Cartesian positions is then
+    painted with unit weights.
+
+    Args:
+        data_position_kernel (list[numpy.ndarray]): One array per object.
+            Each array has shape ``(number_of_counts, 3)`` with columns
+            ``(x, y, z)`` already in Cartesian coordinates.
+        rcom_max (float): Maximum comoving radius of the retained region.
+        overhead (float): Padding added to the mesh extent.
+        grid_size (float): Cell size of the mesh.
+        kind (str): Assignment scheme passed to ``create_mesh``.
+
+    Returns:
+        numpy.ndarray: Painted mesh values with shape equal to the mesh grid.
+    """
+    np.random.seed()  # ensure independent random state in each subprocess
+
+    number_of_objects = len(data_position_kernel)
+    sampled_positions = np.empty((number_of_objects, 3))
+    for i, kernel_rows in enumerate(data_position_kernel):
+
+        sampled_positions[i] = kernel_rows[np.random.randint(len(kernel_rows)), :3]
+    data_weights = np.ones(number_of_objects)
+
+    mesh_data_random = create_mesh(
+        sampled_positions,
+        2 * (rcom_max + overhead),
+        grid_size,
+        assignement=kind,
+        weights=data_weights,
+    )
+    return mesh_data_random.value
+
+
 def grid_data_density_kernel_sampling(
     data_position_sky_kernel,
     rcom_max,
@@ -1041,29 +1089,23 @@ def grid_data_density_kernel_sampling(
         coord_randoms=coord_randoms,
         seed=seed,
     )
-    data_weights = np.ones(len(data_position_kernel))
 
-    def create_sub_grid():
-        np.random.seed()  # ensure different random states across subprocesses
-        data_positions_random = data_position_kernel[
-            np.random.choice(
-                data_position_kernel.shape[0],
-                replace=False,
-            )
-        ]
+    data_weights = np.ones(len(data_position_kernel))  # used for randoms scaling
 
-        mesh_data_random = create_mesh(
-            data_positions_random,
-            2 * (rcom_max + overhead),
-            grid_size,
-            assignement=kind,
-            weights=data_weights,
-        )
-        return mesh_data_random.value
+    create_sub_grid = partial(
+        create_sampled_grid,
+        data_position_kernel,
+        rcom_max,
+        overhead,
+        grid_size,
+        kind,
+    )
 
     if n_subprocess_sampling > 1:
         with mp.Pool(n_subprocess_sampling) as pool:
-            mesh_data_random_samples = pool.map(create_sub_grid, range(Nsampling))
+            mesh_data_random_samples = pool.starmap(
+                create_sub_grid, [() for _ in range(Nsampling)]
+            )
     else:
         mesh_data_random_samples = [create_sub_grid() for _ in range(Nsampling)]
 
@@ -1092,8 +1134,8 @@ def grid_data_density_kernel_sampling(
         )
     count_randoms = np.ravel(mesh_count_randoms.value).astype(int)
 
-    density_contrast = np.zeros_like(average_mesh_data.value)
-    density_contrast_err = np.zeros_like(average_mesh_data.value)
+    density_contrast = np.zeros_like(average_mesh_data)
+    density_contrast_err = np.zeros_like(average_mesh_data)
 
     mask_randoms_nonzero = mesh_randoms.value != 0.0
     density_contrast[mask_randoms_nonzero] = np.ravel(

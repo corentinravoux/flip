@@ -48,7 +48,7 @@ class GWDensMesh(Dens):
         return cls(grid)
 
     @classmethod
-    def init_from__kernel_sampling(
+    def init_from_kernel_sampling(
         cls,
         data_position_sky_kernel,
         rcom_max,

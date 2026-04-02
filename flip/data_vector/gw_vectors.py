@@ -26,7 +26,6 @@ class GWDensMesh(Dens):
     @classmethod
     def init_from_multivariate_kernel(
         cls,
-        method,
         data_position_sky,
         data_position_sky_kernel_properties,
         rcom_max,

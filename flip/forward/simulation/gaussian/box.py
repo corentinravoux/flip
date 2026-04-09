@@ -1,19 +1,15 @@
 import jax
 import jax.numpy as jnp
+from flip.forward.simlation.simulator import BaseSimulator
 
 
-def get_unity_3dcoords(ra, dec):
-    """"""
-    return spherical_to_cartesian(jnp.ones_like(ra), ra, dec)
-
-
-def compute_wavenumber_grid(nbins, lsize):
+def compute_wavenumber_grid(number_bins, box_size):
     wavenumber_grid = jnp.moveaxis(
         jnp.stack(
             jnp.meshgrid(
-                jnp.fft.fftfreq(nbins, lsize / nbins),
-                jnp.fft.fftfreq(nbins, lsize / nbins),
-                jnp.fft.rfftfreq(nbins, lsize / nbins),
+                jnp.fft.fftfreq(number_bins, box_size / number_bins),
+                jnp.fft.fftfreq(number_bins, box_size / number_bins),
+                jnp.fft.rfftfreq(number_bins, box_size / number_bins),
                 indexing="ij",
             )
         )
@@ -29,6 +25,9 @@ def compute_wavenumber_grid(nbins, lsize):
         wavenumber_grid / wavenumber_norm_squared,
         wavenumber_norm_squared[..., 0],
     )
+
+
+# CR - To move to flip.utils, including jax recognition of the function
 
 
 def cartesian_to_spherical(x, y, z):
@@ -75,31 +74,31 @@ def spherical_to_cartesian(r, ra, dec):
     return jnp.stack([x, y, z]).T
 
 
-class FourierBox(object):
+class FourierBox(BaseSimulator):
 
-    def __init__(self, nbins, lsize):
+    def __init__(self, number_bins, box_size):
         """initialize the cube (box) that handle Fourier transformations.
 
-        This automatically load the kgrid using `compute_kgrid`
+        This automatically load the kgrid using `compute_wavenumber_gridgrid`
 
         Parameters
         ---------
-        nbins: int
+        number_bins: int
             size of the box
 
-        lsize: float
+        box_size: float
             physical size of the box
 
         Returns
         -------
         instance
         """
-        self._nbins = nbins
-        self._lsize = lsize
-        self._load_kgrid_()
+        self._number_bins = number_bins
+        self._box_size = box_size
+        self._load_wavenumber_grid()
 
         self._xcube, self._ycube, self._zcube = jnp.meshgrid(
-            jnp.arange(nbins), jnp.arange(nbins), jnp.arange(nbins)
+            jnp.arange(number_bins), jnp.arange(number_bins), jnp.arange(number_bins)
         )
         xyz = (
             jnp.vstack(
@@ -114,9 +113,11 @@ class FourierBox(object):
         self._ra = self._ra.reshape(self.shape)
         self._dec = self._dec.reshape(self.shape)
 
-    def _load_kgrid_(self):
-        """load the kgrid (k, d2v, k2)"""
-        self._k, self._d2v, self._k2 = compute_wavenumber_grid(self.nbins, self.lsize)
+    def _load_wavenumber_grid(self):
+        """load the kgrid (k, wavenumber_ratio, wavenumber_norm_squared)"""
+        self._wavenumber_grid, self._wavenumber_ratio, self._wavenumber_norm_squared = (
+            compute_wavenumber_grid(self.number_bins, self.box_size)
+        )
 
     def get_centroid(self, physical_unit=False):
         """ """
@@ -157,9 +158,9 @@ class FourierBox(object):
         """
         # convert into coordinates
         X, Y, Z = jnp.meshgrid(
-            jnp.linspace(0, self.nbins - 1, self.nbins),
-            jnp.linspace(0, self.nbins - 1, self.nbins),
-            jnp.linspace(0, self.nbins - 1, self.nbins),
+            jnp.linspace(0, self.number_bins - 1, self.number_bins),
+            jnp.linspace(0, self.number_bins - 1, self.number_bins),
+            jnp.linspace(0, self.number_bins - 1, self.number_bins),
         )
 
         x_flat, y_flat, z_flat = (
@@ -243,12 +244,14 @@ class FourierBox(object):
         ra = jnp.atleast_1d(ra)
         dec = jnp.atleast_1d(dec)
 
-        ntrial = self.nbins * 10
+        ntrial = self.number_bins * 10
         xyz = spherical_to_cartesian(
             jnp.linspace(*dist_range, ntrial), ra[:, None], dec[:, None]
         )
         if physical_unit:
-            xyz /= self.lsize / self.nbins  # xyz now in ijk centered on (0,0,0)
+            xyz /= (
+                self.box_size / self.number_bins
+            )  # xyz now in ijk centered on (0,0,0)
 
         xyz += self.get_centroid(physical_unit=False)  # ijk centered on centroid
         volexin = jnp.asarray(xyz, dtype="int32")  # (ntrial, ntargets, 3)
@@ -304,110 +307,75 @@ class FourierBox(object):
         )
         return sampled_voxels
 
-    def draw_coordinates(
-        self, size, seed, density=None, as_spherical=False, physical_unit=False
-    ):
-        """randomly draw (x,y,z) box coordinates.
+    def get_unity_3dcoords(self, ra, dec):
+        return spherical_to_cartesian(jnp.ones_like(ra), ra, dec)
 
-        This uses jax.random.choice through draw_voxelid()
-
-        Parameters
-        ----------
-        size: int
-            number of coordinates to draw.
-
-        seed: PRNGKey
-            a PRNG key used as the random key.
-            if unsure, do: seed = jax.random.PRNGKey(0)
-
-        density: 3d-array
-           3d-pdf of the box elements. If None, all assumed to be equal.
-           must be the same shape as self.shape
-
-        Returns
-        -------
-        array (n,3)
-            (x,y,z) size times
-
-        See also
-        --------
-        draw_voxelid: randomly draw voxel-ids
-        """
-        # Logic:
-        # work on flatten cube (faster and needed for jax or np random.choice.
-        # so, build voxel indexes (index), draw from it, and convert that into coord.
-
-        sampled_voxels = self.draw_voxelid(size, seed, density=density)
-        return self.get_voxel_coordinates(
-            sampled_voxels, as_spherical=as_spherical, physical_unit=physical_unit
-        )
-
-    # =============== #
-    #   Properties    #
-    # =============== #
     @property
-    def nbins(self):
+    def number_bins(self):
         """size of the box"""
-        return self._nbins
+        return self._number_bins
 
     @property
-    def lsize(self):
+    def box_size(self):
         """physical size of the box"""
-        return self._lsize
+        return self._box_size
 
     @property
-    def kshape(self):
+    def wavenumber_grid_shape(self):
         """shape of the k-modes"""
-        return self.k.shape
+        return self.wavenumber_grid.shape
 
     @property
-    def k(self):
+    def wavenumber_grid(self):
         """indice of the wavenumber"""
-        if not hasattr(self, "_k") or self._k is None:
-            self._load_kgrid_()
+        if not hasattr(self, "_wavenumber_grid") or self._wavenumber_grid is None:
+            self._load_wavenumber_grid()
 
-        return self._k
+        return self._wavenumber_grid
 
     @property
-    def d2v(self):
+    def wavenumber_ratio(self):
         """delta to velocity"""
-        if not hasattr(self, "_d2v") or self._d2v is None:
-            self._load_kgrid_()
+        if not hasattr(self, "_wavenumber_ratio") or self._wavenumber_ratio is None:
+            self._load_wavenumber_grid()
 
-        return self._d2v
+        return self._wavenumber_ratio
 
     @property
-    def k2(self):
+    def wavenumber_norm_squared(self):
         """norm of k"""
-        if not hasattr(self, "_k2") or self._k2 is None:
-            self._load_kgrid_()
+        if (
+            not hasattr(self, "_wavenumber_norm_squared")
+            or self._wavenumber_norm_squared is None
+        ):
+            self._load_wavenumber_grid()
 
-        return self._k2
+        return self._wavenumber_norm_squared
 
     @property
     def r_1d(self):
         """1d radius in phystical units"""
-        return jnp.linspace(0, self.lsize, self.nbins) - self.lsize / 2
+        return jnp.linspace(0, self.box_size, self.number_bins) - self.box_size / 2
 
     @property
     def shape(self):
-        """shape of the box (nbins, nbins, nbins)"""
-        return (self.nbins, self.nbins, self.nbins)
+        """shape of the box (number_bins, number_bins, number_bins)"""
+        return (self.number_bins, self.number_bins, self.number_bins)
 
     @property
     def shape_flat(self):
-        """shape of the box (nbins, nbins, nbins)"""
+        """shape of the box (number_bins, number_bins, number_bins)"""
         return jnp.prod(jnp.asarray(self.shape))
 
     @property
     def centroid(self):
         """ """
-        return (self.nbins / 2, self.nbins / 2, self.nbins / 2)
+        return (self.number_bins / 2, self.number_bins / 2, self.number_bins / 2)
 
     @property
     def bins_to_physical(self):
-        """physical size of a bins (lsize/nbins)"""
-        return self.lsize / self.nbins
+        """physical size of a bins (box_size/number_bins)"""
+        return self.box_size / self.number_bins
 
     @property
     def voxel_id(self):

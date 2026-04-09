@@ -3,8 +3,9 @@ import jax.numpy as jnp
 import numpy as np
 import tensorflow_probability.substrates.jax as tfp
 import tensorflow_probability.substrates.jax.mcmc as mcmc
-from flip.forward.flox import probabilities
-from flip.forward.flox.fourrier_box import get_unity_3dcoords
+
+from . import probabilities
+from .fourrier_box import get_unity_3dcoords
 
 
 class BaseSampler(object):
@@ -55,7 +56,7 @@ class NutsSampler(BaseSampler):
             self.data["ra"].values, self.data["dec"].values
         )
 
-        self.targets_voxel_dir = self.simulator.get_voxels_in_direction(
+        self.v = self.simulator.get_voxels_in_direction(
             self.data["ra"].values,
             self.data["dec"].values,
             dist_range=[0, 200],

@@ -1,1 +1,2 @@
-from . import flox, models, simulator
+from . import flox, models
+from .simulation import simulator

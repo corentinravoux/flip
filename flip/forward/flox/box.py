@@ -8,7 +8,8 @@ except ImportError:
 import jax
 import jax.numpy as jnp
 import tensorflow_probability.substrates.jax as tfp
-from flip.forward.flox.fourrier_box import FourierBox
+
+from .fourrier_box import FourierBox
 
 
 def v_from_grid(v, dist_mpch, r1d):
@@ -77,7 +78,7 @@ def redshift_from_dist_mpch(distance, cosmo=jcosmo.Planck15(), zbins="0:0.5:0.00
     return jnp.interp(distance, cosmo_dist, redshifts)
 
 
-class GaussianRandomFieldBox(FourierBox):
+class CosmoBox(FourierBox):
 
     def __init__(
         self, nbins, lsize, cosmo, wavenumber, power_spectrum, kmax=0.1, **kwargs

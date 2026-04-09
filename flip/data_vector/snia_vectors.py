@@ -7,6 +7,7 @@ from .basic import DataVector
 if __use_jax__:
     try:
         import jax.numpy as jnp
+        from jax import jit
         from jax.experimental.sparse import BCOO
 
         jax_installed = True
@@ -22,6 +23,56 @@ else:
     jax_installed = False
 
 log = create_log()
+
+
+def _variance_from_errors(
+    e_mb,
+    e_x1,
+    e_c,
+    cov_mb_x1,
+    cov_mb_c,
+    cov_x1_c,
+    alpha,
+    beta,
+    sigma_M,
+):
+    variance = e_mb**2 + alpha**2 * e_x1**2 + beta**2 * e_c**2
+    variance += (
+        2 * alpha * cov_mb_x1 - 2 * beta * cov_mb_c - 2 * alpha * beta * cov_x1_c
+    )
+    return variance + sigma_M**2
+
+
+def _variance_from_covariance(
+    covariance_observation,
+    number_datapoints,
+    alpha,
+    beta,
+    sigma_M,
+):
+
+    weights_observation_covariance = jnp.array(
+        [
+            1.0,
+            alpha,
+            -beta,
+        ]
+    )
+    jacobian = jnp.kron(
+        weights_observation_covariance,
+        jnp.eye(number_datapoints),
+    )
+    variance_distance_modulus = (
+        jacobian @ covariance_observation @ jacobian.T
+        + jnp.eye(number_datapoints) * sigma_M**2
+    )
+
+    return variance_distance_modulus
+
+
+if jax_installed:
+    _variance_from_errors = jit(_variance_from_errors)
+    _variance_from_covariance = jit(_variance_from_covariance)
 
 
 class VelTrippRelation(DataVector):
@@ -183,20 +234,18 @@ class VelTrippRelation(DataVector):
             float|ndarray: Variance or covariance depending on inputs.
         """
         if self._covariance_observation is None:
-            variance_distance_modulus = (
-                self._data["e_mb"] ** 2
-                + parameter_values_dict["alpha"] ** 2 * self._data["e_x1"] ** 2
-                + parameter_values_dict["beta"] ** 2 * self._data["e_c"] ** 2
+
+            variance_distance_modulus = _variance_from_errors(
+                self._data["e_mb"],
+                self._data["e_x1"],
+                self._data["e_c"],
+                self._data["cov_mb_x1"],
+                self._data["cov_mb_c"],
+                self._data["cov_x1_c"],
+                parameter_values_dict["alpha"],
+                parameter_values_dict["beta"],
+                parameter_values_dict["sigma_M"],
             )
-            variance_distance_modulus += (
-                2 * parameter_values_dict["alpha"] * self._data["cov_mb_x1"]
-                - 2 * parameter_values_dict["beta"] * self._data["cov_mb_c"]
-                - 2
-                * parameter_values_dict["alpha"]
-                * parameter_values_dict["beta"]
-                * self._data["cov_x1_c"]
-            )
-            variance_distance_modulus += parameter_values_dict["sigma_M"] ** 2
 
             if self.optional_covariance_observed_distance_modulus is not None:
                 variance_distance_modulus = (
@@ -204,22 +253,12 @@ class VelTrippRelation(DataVector):
                     + self.optional_covariance_observed_distance_modulus
                 )
         else:
-            weights_observation_covariance = jnp.array(
-                [
-                    1.0,
-                    parameter_values_dict["alpha"],
-                    -parameter_values_dict["beta"],
-                ]
-            )
-            jacobian = jnp.kron(
-                weights_observation_covariance,
-                jnp.eye(self._number_datapoints),
-            )
-            variance_distance_modulus = (
-                jacobian @ self._covariance_observation @ jacobian.T
-            )
-            variance_distance_modulus += (
-                jnp.eye(self._number_datapoints) * parameter_values_dict["sigma_M"] ** 2
+            variance_distance_modulus = _variance_from_covariance(
+                self._covariance_observation,
+                self._number_datapoints,
+                parameter_values_dict["alpha"],
+                parameter_values_dict["beta"],
+                parameter_values_dict["sigma_M"],
             )
             if self.optional_covariance_observed_distance_modulus is not None:
                 variance_distance_modulus += (

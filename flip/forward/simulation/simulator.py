@@ -1,5 +1,7 @@
 import abc
 
+# CR - improve the base simulator and the loading of the several ones.
+
 
 class BaseSimulator(abc.ABC):
     def __init__(self):
@@ -21,13 +23,6 @@ class BaseSimulator(abc.ABC):
 
 
 def return_simulator(model_name, **kwargs):
-    """Factory function to return a simulator instance based on the specified model.
-
-    Args:
-        model (str): Name of the model to use for the simulator. Supported values are:
-            - 'flox': Uses the FourierBox-based simulator from flip.forward.flox.box.
-            - 'gaussian': Uses a Gaussian random field simulator from flip.forward.flox.gaussian_box.
-        **kwargs: Additional keyword arguments to pass to the simulator constructor."""
 
     # CR - the flox simulator will be removed.
     if model_name == "flox":

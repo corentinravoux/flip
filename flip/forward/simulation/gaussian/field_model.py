@@ -1,3 +1,5 @@
+import functools
+
 import jax
 import jax.numpy as jnp
 import tensorflow_probability.substrates.jax as tfp
@@ -15,7 +17,7 @@ def get_seed_from_parameter_values_dict(parameter_values_dict):
     return seed
 
 
-@jax.jit
+@functools.partial(jax.jit, static_argnums=(1, 2))
 def delta_fourier_from_power_spectrum(
     power_spectrum_grid,
     number_bins,
@@ -70,10 +72,10 @@ class GaussianRandomFieldBox(FourierBox):
 
     def __init__(
         self,
-        number_bins,
-        box_size,
-        wavenumber,
-        power_spectrum,
+        number_bins=None,
+        box_size=None,
+        wavenumber=None,
+        power_spectrum=None,
         kmax=0.1,
         **kwargs,
     ):
@@ -131,18 +133,16 @@ class GaussianRandomFieldBox(FourierBox):
         return velocity_from_delta_fourier(
             self.wavenumber_ratio,
             self.delta_fourier,
-            parameter_values_dict["f8"],
+            parameter_values_dict["f"],
             parameter_values_dict["sigma8"],
         )
 
     def sample_density_velocity_fields(self, parameter_values_dict):
         self.sample_delta_fourier(parameter_values_dict)
         density_field = self.get_density_from_delta_fourier(
-            self.delta_fourier,
             parameter_values_dict,
         )
         velocity_field = self.get_velocity_from_delta_fourier(
-            self.delta_fourier,
             parameter_values_dict,
         )
         return density_field, velocity_field
@@ -153,11 +153,9 @@ class GaussianRandomFieldBox(FourierBox):
     ):
         self.paint_modes_on_delta_fourier(parameter_values_dict)
         density_field = self.get_density_from_delta_fourier(
-            self.delta_fourier,
             parameter_values_dict,
         )
         velocity_field = self.get_velocity_from_delta_fourier(
-            self.delta_fourier,
             parameter_values_dict,
         )
         return density_field, velocity_field

@@ -117,8 +117,10 @@ class BaseLikelihood(object):
     def __init__(
         self,
         parameter_names=None,
+        likelihood_properties=None,
     ):
         self.parameter_names = parameter_names
+        self.likelihood_properties = likelihood_properties
         self.likelihood_evaluation, self.likelihood_grad = self._init_likelihood()
 
     @abc.abstractmethod
@@ -126,7 +128,7 @@ class BaseLikelihood(object):
         pass
 
 
-class VelocityGaussianGridComparisonLikelihood(BaseLikelihood):
+class CandleGridGaussianLikelihood(BaseLikelihood):
 
     def __init__(
         self,
@@ -134,19 +136,22 @@ class VelocityGaussianGridComparisonLikelihood(BaseLikelihood):
         velocity_data_vector=None,
         coordinates_velocity=None,
         parameter_names=None,
+        likelihood_properties=None,
     ):
 
         self.simulator = simulator
         self.velocity_data_vector = velocity_data_vector
         self.coordinates_velocity = coordinates_velocity
-        super(VelocityGaussianGridComparisonLikelihood, self).__init__(
+
+        super(CandleGridGaussianLikelihood, self).__init__(
             parameter_names=parameter_names,
+            likelihood_properties=likelihood_properties,
         )
 
     def _init_likelihood(self):
 
-        ra = self.coordinates_velocity[0].values
-        dec = self.coordinates_velocity[1].values
+        ra = self.coordinates_velocity[0]
+        dec = self.coordinates_velocity[1]
 
         simulation_positions_at_target_positions = (
             self.simulator.get_voxels_in_direction(

@@ -321,5 +321,182 @@ class VelTrippRelation(DataVector):
         return velocities, velocity_variance
 
 
+class VelCandleStandardized(DataVector):
+    _kind = "velocity"
+    _needed_keys = ["zobs", "mb"]
+    _free_par = ["M_0", "sigma_M"]
+    _number_dimension_observation_covariance = 1
+    _parameters_observation_covariance = ["mb"]
+
+    @property
+    def conditional_needed_keys(self):
+        """Conditionally required SALT2 error and covariance fields.
+
+        Returns:
+            list[str]: Includes errors and covariances when covariance is absent.
+        """
+        cond_keys = []
+        if self._covariance_observation is None:
+            cond_keys += ["e_mb"]
+        return cond_keys
+
+    def __init__(
+        self,
+        data,
+        h,
+        covariance_observation=None,
+        optional_covariance_observed_distance_modulus=None,
+        velocity_estimator="full",
+    ):
+        """Initialize SN Ia velocity vector from SALT2 fits.
+
+        Args:
+            data (dict): Includes SALT2 parameters and cosmology fields.
+            h (float): Little-h scaling for distances.
+            covariance_observation (ndarray|None): Optional observation covariance.
+            velocity_estimator (str): Estimator name.
+            mass_step (float): Threshold for host mass step correction.
+
+        Raises:
+            ValueError: If covariance shape is not adapted
+        """
+        super().__init__(data, covariance_observation=covariance_observation)
+        self.optional_covariance_observed_distance_modulus = (
+            optional_covariance_observed_distance_modulus
+        )
+        if self.optional_covariance_observed_distance_modulus is not None:
+            optional_covariance = jnp.array(
+                optional_covariance_observed_distance_modulus
+            )
+            if optional_covariance.shape != (
+                self._number_datapoints,
+                self._number_datapoints,
+            ):
+                raise ValueError(
+                    f"Optional covariance must be of shape {(self._number_datapoints, self._number_datapoints)}, "
+                    f"but got {optional_covariance.shape}."
+                )
+        self.velocity_estimator = velocity_estimator
+        self.h = h
+
+    def compute_observed_distance_modulus(self, parameter_values_dict):
+        """Compute observed distance modulus from SALT2 fit parameters.
+
+        Args:
+            parameter_values_dict (dict): Includes `alpha`, `beta`, `M_0`, optionally `gamma`.
+
+        Returns:
+            ndarray: Distance modulus per object.
+        """
+
+        observed_distance_modulus = self._data["mb"] - parameter_values_dict["M_0"]
+        return observed_distance_modulus
+
+    def compute_distance_modulus_difference(self, parameter_values_dict):
+        """Compute residual distance modulus relative to cosmological expectation.
+
+        Args:
+            parameter_values_dict (dict): SALT2 relation parameters.
+
+        Returns:
+            ndarray: Residual distance modulus.
+        """
+        distance_modulus_difference = self.compute_observed_distance_modulus(
+            parameter_values_dict
+        )
+        zobs = self.data["zobs"]
+        rcom_zobs = self.data["rcom_zobs"]
+
+        distance_modulus_difference -= (
+            5 * jnp.log10((1 + zobs) * rcom_zobs / self.h) + 25
+        )
+        return distance_modulus_difference
+
+    def compute_observed_distance_modulus_variance(self, parameter_values_dict):
+        """Compute variance/covariance of observed SALT2 distance modulus.
+
+        Args:
+            parameter_values_dict (dict): Includes `alpha`, `beta`, and `sigma_M`.
+
+        Returns:
+            float|ndarray: Variance or covariance depending on inputs.
+        """
+        if self._covariance_observation is None:
+
+            variance_distance_modulus = (
+                self._data["mb"] ** 2 + parameter_values_dict["sigma_M"] ** 2
+            )
+            if self.optional_covariance_observed_distance_modulus is not None:
+                variance_distance_modulus = (
+                    jnp.diag(variance_distance_modulus)
+                    + self.optional_covariance_observed_distance_modulus
+                )
+        else:
+            variance_distance_modulus = (
+                self._covariance_observation
+                + jnp.eye(self._number_datapoints)
+                * parameter_values_dict["sigma_M"] ** 2
+            )
+            if self.optional_covariance_observed_distance_modulus is not None:
+                variance_distance_modulus += (
+                    self.optional_covariance_observed_distance_modulus
+                )
+
+        return variance_distance_modulus
+
+    def give_data_and_variance(self, parameter_values_dict):
+        """Compute velocities and their variance from SALT2 relation.
+
+        Args:
+            parameter_values_dict (dict): Relation parameters and `sigma_M`.
+
+        Returns:
+            tuple: `(velocities, velocity_variance_or_cov)`.
+        """
+        observed_distance_modulus_variance = (
+            self.compute_observed_distance_modulus_variance(parameter_values_dict)
+        )
+        distance_modulus_difference_to_velocity = (
+            vector_utils.redshift_dependence_velocity(
+                self._data, self.velocity_estimator, **parameter_values_dict
+            )
+        )
+        if self._covariance_observation is None:
+            if self.optional_covariance_observed_distance_modulus is not None:
+                conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
+
+                velocity_variance = (
+                    conversion_matrix
+                    @ observed_distance_modulus_variance
+                    @ conversion_matrix.T
+                )
+            else:
+                velocity_variance = (
+                    observed_distance_modulus_variance
+                    * distance_modulus_difference_to_velocity**2
+                )
+
+        else:
+            conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
+
+            velocity_variance = (
+                conversion_matrix
+                @ observed_distance_modulus_variance
+                @ conversion_matrix.T
+            )
+
+        velocities = (
+            distance_modulus_difference_to_velocity
+            * self.compute_distance_modulus_difference(parameter_values_dict)
+        )
+
+        if self._host_matrix is not None:
+            velocities, velocity_variance = vector_utils.get_grouped_data_variance(
+                self._host_matrix, velocities, velocity_variance
+            )
+
+        return velocities, velocity_variance
+
+
 # Placeholder for backward compatibility, to be removed in future versions
 VelFromSALTfit = VelTrippRelation

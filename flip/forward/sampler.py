@@ -3,77 +3,63 @@ import tensorflow_probability.substrates.jax as tfp
 import tensorflow_probability.substrates.jax.mcmc as mcmc
 from tensorflow_probability.substrates.jax.mcmc import NoUTurnSampler as NUTS
 
-from .likelihood import VelocityGaussianGridComparisonLikelihood
-
-# CR - Implement nuts
+from . import likelihood as forward_model_likelihood
 
 
 class BaseSampler(object):
     def __init__(self, likelihood):
         self.likelihood = likelihood
 
+    @staticmethod
+    def select_likelihood(likelihood_type):
+        if likelihood_type == "candle_grid_gaussian":
+            likelihood_class = forward_model_likelihood.CandleGridGaussianLikelihood
+        return likelihood_class
+
 
 class NutsSampler(BaseSampler):
     def __init__(
         self,
         likelihood,
-        sampling_parameters,
+        parameter_dict,
     ):
 
         super().__init__(likelihood=likelihood)
-        self.likelihood = likelihood
-        self.sampling_parameters = sampling_parameters
+        self.parameter_dict = parameter_dict
+        self.init_parameters()
 
     @classmethod
     def init_from_simulator(
         cls,
+        likelihood_type,
         simulator,
         velocity_data_vector,
         coordinates_velocity,
-        parameter_names,
-        sampling_parameters,
+        parameter_dict,
     ):
-        likelihood = VelocityGaussianGridComparisonLikelihood(
+
+        likelihood_class = BaseSampler.select_likelihood(likelihood_type)
+        likelihood = likelihood_class(
             simulator=simulator,
             velocity_data_vector=velocity_data_vector,
             coordinates_velocity=coordinates_velocity,
-            parameter_names=parameter_names,
+            parameter_dict=parameter_dict,
         )
-        return cls(likelihood=likelihood, sampling_parameters=sampling_parameters)
+        return cls(likelihood=likelihood, parameter_dict=parameter_dict)
 
-    def set_parameters(self, parameters):
-        # CR - fix the parameter to vary and the one to keep fixed
-        self._parameters = parameters
+    def init_parameters(self):
 
-    def target_logprob_fn(self, *paramv):
-        """ """
-        param = dict(zip(self.sampling_parameters, paramv))
-
-        # data to compare to
-        data_candles = {
-            "mag": self._data_mag,
-            "redshift": self._data_redshift,
-            "mag_err": self._data_mag_err,
-            "redshift_err": self._data_redshift_err,
+        parameters_fixed = {
+            key: value for key, value in self.parameter_dict.items() if value["fixed"]
+        }
+        parameters_to_sample = {
+            key: value
+            for key, value in self.parameter_dict.items()
+            if not value["fixed"]
         }
 
-        # box structure for computation
-        box_struct = {
-            "pk0": self.pk,
-            "d2v": self.d2v,
-            "dist_mpch_vec": self.dist_mpch_vec,
-            "r1d": self.r1d,
-            "nbins": self.nbins,
-            "kmaxindex": self.kmaxindex,
-            "deltak_sampling": self.deltak_sampling,
-            # density sampling
-            "dist_mpch_los": self.dist_mpch_los,
-            "targets_voxel_dir": self.targets_voxel_dir,
-        }
-
-        # compute log-probability
-        loglikelihood = self.likelihood
-        return loglikelihood
+        self._parameters = parameters_fixed
+        self._sampling_parameters = list(parameters_to_sample.keys())
 
     def run_nuts(
         self,
@@ -90,7 +76,7 @@ class NutsSampler(BaseSampler):
         print(f"mc_steps = {mc_steps}")
 
         # NUTS
-        kernel = NUTS(self.target_logprob_fn, step_size=step_size)
+        kernel = NUTS(self.likelihood, step_size=step_size)
 
         num_adaptation_steps = num_burnin_steps * 0.8
         kernel = tfp.mcmc.DualAveragingStepSizeAdaptation(

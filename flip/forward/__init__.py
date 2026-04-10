@@ -1,2 +1,1 @@
-from . import flox, models
-from .simulation import simulator
+from . import likelihood, sampler, simulation

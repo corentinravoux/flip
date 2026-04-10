@@ -1,6 +1,6 @@
 import jax
 import jax.numpy as jnp
-from flip.forward.simlation.simulator import BaseSimulator
+from flip.forward.simulation.simulator import BaseSimulator
 
 
 def compute_wavenumber_grid(number_bins, box_size):

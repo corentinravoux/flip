@@ -6,25 +6,17 @@ class BaseSimulator(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def give_density_velocity_fields(self, **kwargs):
-        """Return density and velocity fields.
-
-        Returns:
-            tuple: (density_field, velocity_field).
-        """
+    def sample_density_velocity_fields(
+        self,
+        **kwargs,
+    ):
         pass
 
     @abc.abstractmethod
-    def give_density_velocity_fields_from_delta_fourier(
+    def sample_density_velocity_fields_from_modes(
         self,
-        delta_fourier,
-        parameter_values_dict,
+        **kwargs,
     ):
-        """Return density and velocity fields from delta fourier.
-
-        Returns:
-            tuple: (density_field, velocity_field).
-        """
         pass
 
 
@@ -37,7 +29,7 @@ def return_simulator(model_name, **kwargs):
             - 'gaussian': Uses a Gaussian random field simulator from flip.forward.flox.gaussian_box.
         **kwargs: Additional keyword arguments to pass to the simulator constructor."""
 
-    # CR - the flox simulator might be removed.
+    # CR - the flox simulator will be removed.
     if model_name == "flox":
         from flip.forward.flox.box import CosmoBox
 

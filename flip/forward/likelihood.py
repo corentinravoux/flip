@@ -31,6 +31,7 @@ def radial_velocity_from_velocity(velocity, dist_mpch_vec):
     return radial_velocity
 
 
+# CR - replace this function
 @jax.jit
 def redshift_from_dist_mpch(distance, cosmo=jcosmo.Planck15(), zbins="0:0.5:0.001"):
     redshifts = eval(f"jnp.r_[{zbins}]")
@@ -121,10 +122,8 @@ class BaseLikelihood(object):
         self.likelihood_evaluation, self.likelihood_grad = self._init_likelihood()
 
     @abc.abstractmethod
-    def _init_likelihood(self, *args):
-        likelihood_evaluation = None
-        likelihood_grad = None
-        return likelihood_evaluation, likelihood_grad
+    def _init_likelihood(self):
+        pass
 
 
 class VelocityGaussianGridComparisonLikelihood(BaseLikelihood):
@@ -144,7 +143,7 @@ class VelocityGaussianGridComparisonLikelihood(BaseLikelihood):
             parameter_names=parameter_names,
         )
 
-    def _init_likelihood(self, **kwargs):
+    def _init_likelihood(self):
 
         ra = self.coordinates_velocity[0].values
         dec = self.coordinates_velocity[1].values
@@ -251,7 +250,7 @@ class VelocityGaussianGridComparisonLikelihood(BaseLikelihood):
         Returns:
             float: Likelihood value, sign controlled by `negative_log_likelihood`.
         """
-        return self.likelihood_call(parameter_values)
+        return self.likelihood_evaluation(parameter_values)
 
 
 # Use this for distance interpolation:

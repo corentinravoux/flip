@@ -123,7 +123,7 @@ class GaussianRandomFieldBox(FourierBox):
         return density_from_delta_fourier(
             self.delta_fourier,
             parameter_values_dict["b"],
-            parameter_values_dict["sigma8"],
+            parameter_values_dict["s8"],
         )
 
     def get_velocity_from_delta_fourier(
@@ -134,7 +134,7 @@ class GaussianRandomFieldBox(FourierBox):
             self.wavenumber_ratio,
             self.delta_fourier,
             parameter_values_dict["f"],
-            parameter_values_dict["sigma8"],
+            parameter_values_dict["s8"],
         )
 
     def sample_density_velocity_fields(self, parameter_values_dict):

@@ -1,4 +1,5 @@
 import abc
+from functools import partial
 
 import jax
 import jax.numpy as jnp
@@ -17,7 +18,7 @@ def log_likelihood_delta_fourier(
     return jnp.sum(-0.5 * jnp.abs(delta_fourier) ** 2 / (variance))
 
 
-@jax.jit
+@partial(jax.jit, static_argnames=("box_size", "number_bins"))
 def velocity_from_grid(v, dist_mpch, box_size, number_bins):
     r1d = jnp.linspace(0, box_size, number_bins) - box_size / 2
     v_interp = jax.scipy.interpolate.RegularGridInterpolator((r1d, r1d, r1d), v)
@@ -40,7 +41,7 @@ def redshift_from_dist_mpch(distance, cosmo=jcosmo.Planck15(), zbins="0:0.5:0.00
     return jnp.interp(distance, cosmo_dist, redshifts)
 
 
-@jax.jit
+@partial(jax.jit, static_argnames=("box_size", "number_bins"))
 def log_likelihood_targets(
     observed_distance_modulus,
     observed_distance_modulus_err,
@@ -223,9 +224,9 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
                 parameter_values_dict
             )
         )
-        redshift = self.velocity_data_vector._data["redshift"].values
-        if "redshift_error" in self.velocity_data_vector._data.keys():
-            redshift_error = self.velocity_data_vector._data["redshift_error"].values
+        redshift = self.velocity_data_vector._data["zobs"]
+        if "zobs_error" in self.velocity_data_vector._data.keys():
+            redshift_error = self.velocity_data_vector._data["zobs_error"]
         else:
             redshift_error = jnp.zeros_like(redshift)
 

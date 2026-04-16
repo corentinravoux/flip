@@ -121,3 +121,27 @@ def get_linear_model(
     """
 
     return power_spectrum_linear, power_spectrum_linear, power_spectrum_linear
+
+
+def get_nonlinear_model(
+    wavenumber,
+    power_spectrum_linear,
+    **kwargs,
+):
+    """Return purely linear spectra for MM, MT, and TT.
+
+    Args:
+        wavenumber (ndarray): $k$ values (unused).
+        power_spectrum_linear (ndarray): Linear $P_{mm}^{lin}(k)$.
+
+    Returns:
+        tuple: `(P_mm, P_mt, P_tt)` all equal to `P_lin`.
+    """
+
+    power_spectrum_non_linear = kwargs["power_spectrum_non_linear"]
+
+    return (
+        power_spectrum_non_linear,
+        power_spectrum_non_linear,
+        power_spectrum_non_linear,
+    )

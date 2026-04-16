@@ -38,35 +38,46 @@ class NutsSampler(BaseSampler):
         parameter_dict,
     ):
 
+        parameter_names = list(parameter_dict.keys())
+
         likelihood_class = BaseSampler.select_likelihood(likelihood_type)
         likelihood = likelihood_class(
             simulator=simulator,
             velocity_data_vector=velocity_data_vector,
             coordinates_velocity=coordinates_velocity,
-            parameter_dict=parameter_dict,
+            parameter_names=parameter_names,
         )
         return cls(likelihood=likelihood, parameter_dict=parameter_dict)
 
     def init_parameters(self):
 
-        parameters_fixed = {
-            key: value for key, value in self.parameter_dict.items() if value["fixed"]
-        }
-        parameters_to_sample = {
-            key: value
-            for key, value in self.parameter_dict.items()
-            if not value["fixed"]
-        }
+        parameters_fixed = [
+            key for key, value in self.parameter_dict.items() if value["fixed"]
+        ]
+        parameters_sample = [
+            key for key, value in self.parameter_dict.items() if not value["fixed"]
+        ]
 
-        self._parameters = parameters_fixed
-        self._sampling_parameters = list(parameters_to_sample.keys())
+        self._parameters_fixed = parameters_fixed
+        self._parameters_sample = parameters_sample
+
+    def likelihood_call(self, *param):
+        parameters_sample = dict(zip(self._parameters_sample, param))
+
+        parameters = [
+            (
+                self.parameter_dict[key]["value"]
+                if key in self._parameters_fixed
+                else parameters_sample[key]
+            )
+            for key in self.likelihood.parameter_names
+        ]
+        return self.likelihood(parameters)
 
     def run_nuts(
         self,
-        initial_guess,
         sample_key=jax.random.split(jax.random.PRNGKey(0))[1],
         num_burnin_steps=1000,
-        step_size=0.1,
         mc_steps=2000,
         **kwargs,
     ):
@@ -75,9 +86,15 @@ class NutsSampler(BaseSampler):
         print(f"num_burnin_steps = {num_burnin_steps}")
         print(f"mc_steps = {mc_steps}")
 
-        # NUTS
-        kernel = NUTS(self.likelihood, step_size=step_size)
+        initial_guess = [
+            self.parameter_dict[key]["value"] for key in self.sampling_parameters
+        ]
+        step_size = [
+            self.parameter_dict[key]["step_size"] for key in self.sampling_parameters
+        ]
 
+        # NUTS
+        kernel = NUTS(self.likelihood_call, step_size=step_size)
         num_adaptation_steps = num_burnin_steps * 0.8
         kernel = tfp.mcmc.DualAveragingStepSizeAdaptation(
             inner_kernel=kernel,

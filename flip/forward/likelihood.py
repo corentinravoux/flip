@@ -179,31 +179,37 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
             parameter_values,
         ):
             parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
-            density, velocity = self.get_fields_from_delta_modes(parameter_values_dict)
-            log_likelihood_delta_fourier = self.get_log_likelihood_delta_fourier(
+            delta_fourier, density, velocity = self.get_fields_from_delta_modes(
                 parameter_values_dict
             )
-            log_likelihood_targets = self.get_log_likelihood_targets(
+            log_likelihood_delta_fourier_val = self.get_log_likelihood_delta_fourier(
+                delta_fourier, parameter_values_dict
+            )
+            log_likelihood_targets_val = self.get_log_likelihood_targets(
                 parameter_values_dict, density, velocity
             )
 
-            log_likelihood_total = log_likelihood_delta_fourier + log_likelihood_targets
+            log_likelihood_total = (
+                log_likelihood_delta_fourier_val + log_likelihood_targets_val
+            )
             return log_likelihood_total
 
         likelihood_grad = jax.jit(jax.grad(likelihood_evaluation))
         return likelihood_evaluation, likelihood_grad
 
     def get_fields_from_delta_modes(self, parameter_values_dict):
-        density, velocity = self.simulator.sample_density_velocity_fields_from_modes(
-            parameter_values_dict,
+        delta_fourier, density, velocity = (
+            self.simulator.sample_density_velocity_fields_from_modes(
+                parameter_values_dict,
+            )
         )
-        return density, velocity
+        return delta_fourier, density, velocity
 
-    def get_log_likelihood_delta_fourier(self, parameter_values_dict):
+    def get_log_likelihood_delta_fourier(self, delta_fourier, parameter_values_dict):
         sigma8 = parameter_values_dict["s8"]
 
         return log_likelihood_delta_fourier(
-            self.simulator.delta_fourier,
+            delta_fourier,
             self.simulator.power_spectrum_grid,
             self.simulator.number_bins,
             sigma8,

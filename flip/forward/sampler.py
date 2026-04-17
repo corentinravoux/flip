@@ -3,12 +3,18 @@ import tensorflow_probability.substrates.jax as tfp
 import tensorflow_probability.substrates.jax.mcmc as mcmc
 from tensorflow_probability.substrates.jax.mcmc import NoUTurnSampler as NUTS
 
-from . import likelihood as forward_model_likelihood
+from flip.forward import likelihood as forward_model_likelihood
 
 
 class BaseSampler(object):
-    def __init__(self, likelihood):
+    def __init__(
+        self,
+        likelihood=None,
+        parameter_dict=None,
+    ):
         self.likelihood = likelihood
+        self.parameter_dict = parameter_dict
+        self.init_parameters()
 
     @staticmethod
     def select_likelihood(likelihood_type):
@@ -16,17 +22,37 @@ class BaseSampler(object):
             likelihood_class = forward_model_likelihood.CandleGridGaussianLikelihood
         return likelihood_class
 
+    def init_parameters(self):
+
+        parameters_fixed = [
+            key for key, value in self.parameter_dict.items() if value["fixed"]
+        ]
+        parameters_sample = [
+            key for key, value in self.parameter_dict.items() if not value["fixed"]
+        ]
+
+        self._parameters_fixed = parameters_fixed
+        self._parameters_sample = parameters_sample
+
+    @property
+    def parameters_sample(self):
+        """parameters to sample"""
+        return self._parameters_sample
+
+    @property
+    def parameters_fixed(self):
+        """parameters fixed"""
+        return self._parameters_fixed
+
 
 class NutsSampler(BaseSampler):
     def __init__(
         self,
-        likelihood,
-        parameter_dict,
+        likelihood=None,
+        parameter_dict=None,
     ):
 
-        super().__init__(likelihood=likelihood)
-        self.parameter_dict = parameter_dict
-        self.init_parameters()
+        super().__init__(likelihood=likelihood, parameter_dict=parameter_dict)
 
     @classmethod
     def init_from_simulator(
@@ -49,18 +75,6 @@ class NutsSampler(BaseSampler):
         )
         return cls(likelihood=likelihood, parameter_dict=parameter_dict)
 
-    def init_parameters(self):
-
-        parameters_fixed = [
-            key for key, value in self.parameter_dict.items() if value["fixed"]
-        ]
-        parameters_sample = [
-            key for key, value in self.parameter_dict.items() if not value["fixed"]
-        ]
-
-        self._parameters_fixed = parameters_fixed
-        self._parameters_sample = parameters_sample
-
     def likelihood_call(self, *param):
         parameters_sample = dict(zip(self._parameters_sample, param))
 
@@ -74,23 +88,22 @@ class NutsSampler(BaseSampler):
         ]
         return self.likelihood(parameters)
 
-    def run_nuts(
+    def run(
         self,
         sample_key=jax.random.split(jax.random.PRNGKey(0))[1],
         num_burnin_steps=1000,
         mc_steps=2000,
         **kwargs,
     ):
-        """"""
 
         print(f"num_burnin_steps = {num_burnin_steps}")
         print(f"mc_steps = {mc_steps}")
 
         initial_guess = [
-            self.parameter_dict[key]["value"] for key in self.sampling_parameters
+            self.parameter_dict[key]["value"] for key in self._parameters_sample
         ]
         step_size = [
-            self.parameter_dict[key]["step_size"] for key in self.sampling_parameters
+            self.parameter_dict[key]["step_size"] for key in self._parameters_sample
         ]
 
         # NUTS
@@ -106,26 +119,12 @@ class NutsSampler(BaseSampler):
             log_accept_prob_getter_fn=lambda pkr: pkr.log_accept_ratio,
         )
 
-        out = mcmc.sample_chain(
+        sampler_states = mcmc.sample_chain(
             mc_steps,
             current_state=initial_guess,
             kernel=kernel,
             num_burnin_steps=num_burnin_steps,
             seed=sample_key,
         )
-        return out
 
-    @property
-    def data(self):
-        """data"""
-        return self._data
-
-    @property
-    def sampling_parameters(self):
-        """parameters to sample"""
-        return self._sampling_parameters
-
-    @property
-    def parameters(self):
-        """parameters used in the sampling"""
-        return self._parameters
+        return sampler_states

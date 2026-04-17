@@ -46,7 +46,7 @@ def velocity_from_delta_fourier(
 
     # Model parameter, GR not assumed
     vmodes = (
-        -1j
+        1j
         * wavenumber_ratio
         * (1 + redshift) ** (-1)
         * f
@@ -81,13 +81,13 @@ class GaussianRandomFieldBox(FourierBox):
     ):
         super().__init__(number_bins, box_size)
         self.wavenumber = wavenumber
-        self.power_spectrum = power_spectrum
         self.init_delta_fourier()
+        self.power_spectrum = power_spectrum
         self.compute_power_spectrum_grid(kmax=kmax, **kwargs)
         self.kmaxindex = jnp.where(self.wavenumber_norm_squared <= kmax**2)
 
     def init_delta_fourier(self):
-        self.delta_fourier = jnp.zeros(
+        self.delta_fourier_base = jnp.zeros(
             shape=(self.number_bins, self.number_bins, self.number_bins // 2 + 1),
             dtype="complex64",
         )
@@ -102,63 +102,71 @@ class GaussianRandomFieldBox(FourierBox):
 
     def sample_delta_fourier(self, parameter_values_dict):
         seed = get_seed_from_parameter_values_dict(parameter_values_dict)
-        self.delta_fourier = delta_fourier_from_power_spectrum(
+        delta_fourier = delta_fourier_from_power_spectrum(
             self.power_spectrum_grid,
             self.number_bins,
             self.box_size,
             seed,
         )
+        return delta_fourier
 
     def paint_modes_on_delta_fourier(self, parameter_values_dict):
         delta_mode_real = parameter_values_dict["delta_modes_real"]
         delta_mode_imag = parameter_values_dict["delta_modes_imag"]
-        self.delta_fourier = self.delta_fourier.at[self.kmaxindex].set(
+        delta_fourier = self.delta_fourier_base.at[self.kmaxindex].set(
             delta_mode_real + delta_mode_imag * 1j
         )
+        return delta_fourier
 
     def get_density_from_delta_fourier(
         self,
+        delta_fourier,
         parameter_values_dict,
     ):
         return density_from_delta_fourier(
-            self.delta_fourier,
+            delta_fourier,
             parameter_values_dict["b"],
             parameter_values_dict["s8"],
         )
 
     def get_velocity_from_delta_fourier(
         self,
+        delta_fourier,
         parameter_values_dict,
     ):
         return velocity_from_delta_fourier(
             self.wavenumber_ratio,
-            self.delta_fourier,
+            delta_fourier,
             parameter_values_dict["f"],
             parameter_values_dict["s8"],
         )
 
     def sample_density_velocity_fields(self, parameter_values_dict):
-        self.sample_delta_fourier(parameter_values_dict)
+        delta_fourier = self.sample_delta_fourier(parameter_values_dict)
         density_field = self.get_density_from_delta_fourier(
+            delta_fourier,
             parameter_values_dict,
         )
         velocity_field = self.get_velocity_from_delta_fourier(
+            delta_fourier,
             parameter_values_dict,
         )
-        return density_field, velocity_field
+        return delta_fourier, density_field, velocity_field
 
     def sample_density_velocity_fields_from_modes(
         self,
         parameter_values_dict,
     ):
-        self.paint_modes_on_delta_fourier(parameter_values_dict)
+        delta_fourier = self.paint_modes_on_delta_fourier(parameter_values_dict)
         density_field = self.get_density_from_delta_fourier(
+            delta_fourier,
             parameter_values_dict,
         )
         velocity_field = self.get_velocity_from_delta_fourier(
+            delta_fourier,
             parameter_values_dict,
         )
-        return density_field, velocity_field
+        return delta_fourier, density_field, velocity_field
 
     def draw_targets(
         self,
@@ -166,7 +174,9 @@ class GaussianRandomFieldBox(FourierBox):
         parameter_values_dict,
         observator=None,
     ):
-        density, velocity = self.sample_density_velocity_fields(parameter_values_dict)
+        _, density, velocity = self.sample_density_velocity_fields(
+            parameter_values_dict
+        )
 
         if observator is None:
             centroid = self.get_centroid(physical_unit=False)

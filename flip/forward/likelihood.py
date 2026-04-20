@@ -7,19 +7,24 @@ import jax_cosmo as jcosmo
 import tensorflow_probability.substrates.jax as tfp
 
 
-@jax.jit
+@partial(jax.jit, static_argnames=("box_size", "number_bins"))
 def log_likelihood_delta_fourier(
     delta_fourier,
     power_spectrum_grid,
+    box_size,
     number_bins,
-    sigma8,
 ):
-    variance = power_spectrum_grid * number_bins ** (3 / 2) * sigma8**2
+    variance = power_spectrum_grid * (number_bins / box_size) ** 3 * number_bins**3
     return jnp.sum(-0.5 * jnp.abs(delta_fourier) ** 2 / (variance))
 
 
 @partial(jax.jit, static_argnames=("box_size", "number_bins"))
-def velocity_from_grid(v, dist_mpch, box_size, number_bins):
+def velocity_from_grid(
+    v,
+    dist_mpch,
+    box_size,
+    number_bins,
+):
     r1d = jnp.linspace(0, box_size, number_bins) - box_size / 2
     v_interp = jax.scipy.interpolate.RegularGridInterpolator((r1d, r1d, r1d), v)
     v_model = v_interp(dist_mpch)
@@ -113,7 +118,7 @@ def log_likelihood_targets(
 # This will require a lot of refactoring, but will make the code more modular and easier to maintain.
 
 
-class BaseLikelihood(object):
+class BaseLikelihood(abc.ABC):
 
     def __init__(
         self,
@@ -206,13 +211,11 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
         return delta_fourier, density, velocity
 
     def get_log_likelihood_delta_fourier(self, delta_fourier, parameter_values_dict):
-        sigma8 = parameter_values_dict["s8"]
 
         return log_likelihood_delta_fourier(
             delta_fourier,
             self.simulator.power_spectrum_grid,
             self.simulator.number_bins,
-            sigma8,
         )
 
     def get_log_likelihood_targets(self, parameter_values_dict, density, velocity):

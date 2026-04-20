@@ -40,6 +40,7 @@ def radial_velocity_from_velocity(velocity, dist_mpch_vec):
 # CR - replace this function
 # Precompute the redshift-distance lookup table once at module level
 # to avoid eval() and array creation inside JIT-traced code.
+# Valid for z in [0, 0.5) with 0.001 step size, using Planck15 cosmology.
 _REDSHIFT_LOOKUP = jnp.arange(0, 0.5, 0.001)
 _REDSHIFT_LOOKUP_A = jcosmo.utils.z2a(_REDSHIFT_LOOKUP)
 _REDSHIFT_LOOKUP_DIST = jcosmo.background.radial_comoving_distance(

@@ -83,10 +83,18 @@ def delta_real_from_delta_fourier(delta_fourier):
 def velocity_base_from_delta_fourier(wavenumber_ratio, delta_fourier):
     """Precompute base velocity field (without f*sigma8 scaling).
 
-    velocity = f * sigma8 * velocity_base
+    Includes all non-parameter-dependent factors: wavenumber_ratio, H0,
+    and (1+z)^{-1}. The full velocity is then: velocity = f * sigma8 * velocity_base.
     """
     H0 = 100.0
-    vmodes_base = 1j * wavenumber_ratio * H0 * jnp.expand_dims(delta_fourier, -1)
+    redshift = 0.0
+    vmodes_base = (
+        1j
+        * wavenumber_ratio
+        * (1 + redshift) ** (-1)
+        * H0
+        * jnp.expand_dims(delta_fourier, -1)
+    )
     return jnp.fft.irfftn(vmodes_base, axes=(0, 1, 2))
 
 

@@ -5,6 +5,11 @@ from tensorflow_probability.substrates.jax.mcmc import NoUTurnSampler as NUTS
 
 from flip.forward import likelihood as forward_model_likelihood
 
+# CR - forward modeling is not like covariance.
+# The likelihood is too specific to be stored at the sampler level
+# Try to make the simulator general enough. If not, put the likelihood in the simulator
+# And rename it models.
+
 
 class BaseSampler(object):
     def __init__(

@@ -37,13 +37,17 @@ def radial_velocity_from_velocity(velocity, dist_mpch_vec):
     return radial_velocity
 
 
+_REDSHIFT_LOOKUP = jnp.arange(0, 0.5, 0.001)
+_REDSHIFT_LOOKUP_A = jcosmo.utils.z2a(_REDSHIFT_LOOKUP)
+_REDSHIFT_LOOKUP_DIST = jcosmo.background.radial_comoving_distance(
+    cosmo=jcosmo.Planck15(), a=_REDSHIFT_LOOKUP_A
+)
+
+
 # CR - replace this function
 @jax.jit
-def redshift_from_dist_mpch(distance, cosmo=jcosmo.Planck15(), zbins="0:0.5:0.001"):
-    redshifts = eval(f"jnp.r_[{zbins}]")
-    a = jcosmo.utils.z2a(redshifts)
-    cosmo_dist = jcosmo.background.radial_comoving_distance(cosmo=cosmo, a=a)
-    return jnp.interp(distance, cosmo_dist, redshifts)
+def redshift_from_dist_mpch(distance):
+    return jnp.interp(distance, _REDSHIFT_LOOKUP_DIST, _REDSHIFT_LOOKUP)
 
 
 @partial(jax.jit, static_argnames=("box_size", "number_bins"))
@@ -91,7 +95,7 @@ def log_likelihood_targets(
     )
 
     # density log-likelihood
-    target_density_los = density[
+    density_at_targets = density[
         simulation_positions_at_target_positions[:, 0],
         simulation_positions_at_target_positions[:, 1],
         simulation_positions_at_target_positions[:, 2],
@@ -102,9 +106,11 @@ def log_likelihood_targets(
         ** 2,
         axis=-1,
     )
-    log_likelihood_density = target_density_los.at[
-        jnp.arange(len(target_density_los)), index_
-    ].get()
+
+    density_values = density_at_targets[jnp.arange(len(density_at_targets)), index_]
+
+    # Clipping to avoid np.nan in log-likelihood, which can cause issues with MCMC samplers.
+    log_likelihood_density = jnp.log(jnp.clip(density_values, a_min=1e-10))
 
     log_likelihood_targets = (
         log_likelihood_distance_modulus
@@ -215,6 +221,7 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
         return log_likelihood_delta_fourier(
             delta_fourier,
             self.simulator.power_spectrum_grid,
+            self.simulator.box_size,
             self.simulator.number_bins,
         )
 

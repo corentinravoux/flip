@@ -68,6 +68,11 @@ def density_from_delta_fourier(
     return density
 
 
+# CR -  log normal model
+# delta_real = irfftn(delta_fourier)
+# density = exp(b * sigma8 * delta_real - 0.5 * (b * sigma8)**2 * sigma_delta**2)
+
+
 class GaussianRandomFieldBox(FourierBox):
 
     def __init__(

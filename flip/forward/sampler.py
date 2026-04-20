@@ -73,7 +73,31 @@ class NutsSampler(BaseSampler):
             coordinates_velocity=coordinates_velocity,
             parameter_names=parameter_names,
         )
-        return cls(likelihood=likelihood, parameter_dict=parameter_dict)
+        sampler = cls(likelihood=likelihood, parameter_dict=parameter_dict)
+
+        # If field modes are fixed, precompute base fields to avoid
+        # expensive FFTs at every sampling step.
+        sampler._precompute_if_modes_fixed()
+
+        return sampler
+
+    def _precompute_if_modes_fixed(self):
+        """Precompute FFT-based base fields when modes are not sampled.
+
+        When only scalar parameters (f, s8, b, sigma_v, h, etc.) are
+        being sampled, the delta_fourier modes don't change between
+        steps. Precomputing the real-space fields eliminates 4 FFTs
+        (1 density + 3 velocity components) per likelihood evaluation.
+        """
+        modes_fixed = (
+            "delta_modes_real" not in self._parameters_sample
+            and "delta_modes_imag" not in self._parameters_sample
+        )
+        if modes_fixed and hasattr(self.likelihood, "simulator"):
+            fixed_params = {
+                key: value["value"] for key, value in self.parameter_dict.items()
+            }
+            self.likelihood.simulator.precompute_base_fields(fixed_params)
 
     def likelihood_call(self, *param):
         parameters_sample = dict(zip(self._parameters_sample, param))
@@ -99,11 +123,17 @@ class NutsSampler(BaseSampler):
         print(f"num_burnin_steps = {num_burnin_steps}")
         print(f"mc_steps = {mc_steps}")
 
+        import jax.numpy as jnp
+
+        # Ensure initial values are JAX arrays with consistent dtype
+        # to prevent JIT recompilation from type mismatches.
         initial_guess = [
-            self.parameter_dict[key]["value"] for key in self._parameters_sample
+            jnp.asarray(self.parameter_dict[key]["value"], dtype=jnp.float32)
+            for key in self._parameters_sample
         ]
         step_size = [
-            self.parameter_dict[key]["step_size"] for key in self._parameters_sample
+            jnp.asarray(self.parameter_dict[key]["step_size"], dtype=jnp.float32)
+            for key in self._parameters_sample
         ]
 
         # NUTS
@@ -119,6 +149,7 @@ class NutsSampler(BaseSampler):
             log_accept_prob_getter_fn=lambda pkr: pkr.log_accept_ratio,
         )
 
+        # Only trace accept ratio to minimize per-step overhead.
         sampler_states = mcmc.sample_chain(
             mc_steps,
             current_state=initial_guess,

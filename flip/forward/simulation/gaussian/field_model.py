@@ -68,6 +68,40 @@ def density_from_delta_fourier(
     return density
 
 
+# --- Precomputation helpers for parameter-only sampling ---
+# When modes are fixed, the expensive FFTs can be computed once.
+# Then each step only requires cheap scalar multiplication.
+
+
+@jax.jit
+def delta_real_from_delta_fourier(delta_fourier):
+    """Precompute real-space density contrast from Fourier modes."""
+    return jnp.fft.irfftn(delta_fourier)
+
+
+@jax.jit
+def velocity_base_from_delta_fourier(wavenumber_ratio, delta_fourier):
+    """Precompute base velocity field (without f*sigma8 scaling).
+
+    velocity = f * sigma8 * velocity_base
+    """
+    H0 = 100.0
+    vmodes_base = 1j * wavenumber_ratio * H0 * jnp.expand_dims(delta_fourier, -1)
+    return jnp.fft.irfftn(vmodes_base, axes=(0, 1, 2))
+
+
+@jax.jit
+def density_from_delta_real(delta_real, b, sigma8):
+    """Compute density field from precomputed real-space delta (no FFT)."""
+    return 1 + b * sigma8 * delta_real
+
+
+@jax.jit
+def velocity_from_velocity_base(velocity_base, f, sigma8):
+    """Compute velocity field from precomputed base velocity (no FFT)."""
+    return f * sigma8 * velocity_base
+
+
 class GaussianRandomFieldBox(FourierBox):
 
     def __init__(
@@ -85,6 +119,7 @@ class GaussianRandomFieldBox(FourierBox):
         self.power_spectrum = power_spectrum
         self.compute_power_spectrum_grid(kmax=kmax, **kwargs)
         self.kmaxindex = jnp.where(self.wavenumber_norm_squared <= kmax**2)
+        self._precomputed = False
 
     def init_delta_fourier(self):
         self.delta_fourier_base = jnp.zeros(
@@ -157,6 +192,8 @@ class GaussianRandomFieldBox(FourierBox):
         self,
         parameter_values_dict,
     ):
+        if self._precomputed:
+            return self.compute_fields_from_precomputed(parameter_values_dict)
         delta_fourier = self.paint_modes_on_delta_fourier(parameter_values_dict)
         density_field = self.get_density_from_delta_fourier(
             delta_fourier,
@@ -167,6 +204,38 @@ class GaussianRandomFieldBox(FourierBox):
             parameter_values_dict,
         )
         return delta_fourier, density_field, velocity_field
+
+    def precompute_base_fields(self, parameter_values_dict):
+        """Precompute FFT-based base fields from fixed modes.
+
+        Call this once when delta_modes_real/imag are fixed to avoid
+        recomputing expensive FFTs at every sampling step.
+        """
+        delta_fourier = self.paint_modes_on_delta_fourier(parameter_values_dict)
+        self._delta_fourier_precomputed = delta_fourier
+        self._delta_real_precomputed = delta_real_from_delta_fourier(delta_fourier)
+        self._velocity_base_precomputed = velocity_base_from_delta_fourier(
+            self.wavenumber_ratio, delta_fourier
+        )
+        self._precomputed = True
+
+    def compute_fields_from_precomputed(self, parameter_values_dict):
+        """Compute density and velocity from precomputed base fields.
+
+        Only scalar multiplication — no FFTs. Orders of magnitude faster
+        than the full computation path.
+        """
+        density = density_from_delta_real(
+            self._delta_real_precomputed,
+            parameter_values_dict["b"],
+            parameter_values_dict["s8"],
+        )
+        velocity = velocity_from_velocity_base(
+            self._velocity_base_precomputed,
+            parameter_values_dict["f"],
+            parameter_values_dict["s8"],
+        )
+        return self._delta_fourier_precomputed, density, velocity
 
     def draw_targets(
         self,

@@ -38,12 +38,18 @@ def radial_velocity_from_velocity(velocity, dist_mpch_vec):
 
 
 # CR - replace this function
+# Precompute the redshift-distance lookup table once at module level
+# to avoid eval() and array creation inside JIT-traced code.
+_REDSHIFT_LOOKUP = jnp.arange(0, 0.5, 0.001)
+_REDSHIFT_LOOKUP_A = jcosmo.utils.z2a(_REDSHIFT_LOOKUP)
+_REDSHIFT_LOOKUP_DIST = jcosmo.background.radial_comoving_distance(
+    cosmo=jcosmo.Planck15(), a=_REDSHIFT_LOOKUP_A
+)
+
+
 @jax.jit
-def redshift_from_dist_mpch(distance, cosmo=jcosmo.Planck15(), zbins="0:0.5:0.001"):
-    redshifts = eval(f"jnp.r_[{zbins}]")
-    a = jcosmo.utils.z2a(redshifts)
-    cosmo_dist = jcosmo.background.radial_comoving_distance(cosmo=cosmo, a=a)
-    return jnp.interp(distance, cosmo_dist, redshifts)
+def redshift_from_dist_mpch(distance):
+    return jnp.interp(distance, _REDSHIFT_LOOKUP_DIST, _REDSHIFT_LOOKUP)
 
 
 @partial(jax.jit, static_argnames=("box_size", "number_bins"))
@@ -180,6 +186,18 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
             simulation_positions_at_target_positions
         )
 
+        # Precompute and cache observation data as JAX arrays once,
+        # rather than fetching from Python dicts on each evaluation.
+        self._redshift_data = jnp.asarray(
+            self.velocity_data_vector._data["zobs"]
+        )
+        if "zobs_error" in self.velocity_data_vector._data.keys():
+            self._redshift_error_data = jnp.asarray(
+                self.velocity_data_vector._data["zobs_error"]
+            )
+        else:
+            self._redshift_error_data = jnp.zeros_like(self._redshift_data)
+
         def likelihood_evaluation(
             parameter_values,
         ):
@@ -215,6 +233,7 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
         return log_likelihood_delta_fourier(
             delta_fourier,
             self.simulator.power_spectrum_grid,
+            self.simulator.box_size,
             self.simulator.number_bins,
         )
 
@@ -233,17 +252,12 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
                 parameter_values_dict
             )
         )
-        redshift = self.velocity_data_vector._data["zobs"]
-        if "zobs_error" in self.velocity_data_vector._data.keys():
-            redshift_error = self.velocity_data_vector._data["zobs_error"]
-        else:
-            redshift_error = jnp.zeros_like(redshift)
 
         return log_likelihood_targets(
             observed_distance_modulus,
             observed_distance_modulus_err,
-            redshift,
-            redshift_error,
+            self._redshift_data,
+            self._redshift_error_data,
             density,
             velocity,
             self.comoving_distance_vectors,

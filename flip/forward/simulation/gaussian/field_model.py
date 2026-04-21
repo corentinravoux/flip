@@ -2,7 +2,6 @@ import functools
 
 import jax
 import jax.numpy as jnp
-import tensorflow_probability.substrates.jax as tfp
 
 from .box import FourierBox
 
@@ -24,9 +23,7 @@ def delta_fourier_from_power_spectrum(
     box_size,
     seed,
 ):
-    mean = jnp.zeros((number_bins, number_bins, number_bins))
-    std = jnp.ones((number_bins, number_bins, number_bins))
-    w = tfp.distributions.Normal(loc=mean, scale=std).sample(seed=seed)
+    w = jax.random.normal(seed, shape=(number_bins, number_bins, number_bins))
     modes = jnp.fft.rfftn(w)
     modes *= jnp.sqrt(power_spectrum_grid * (number_bins / box_size) ** 3)
     return modes
@@ -41,10 +38,13 @@ def velocity_from_delta_fourier(
 ):
 
     # Main model assumptions
+    # CR - this part will be improved to implement the full model
     H0 = 100.0  # Mph/h coordinates
     redshift = 0.0  # Expressed at redshift 0.0
+    D_growth = 1.0  # Expressed at redshift 0.0
 
     # Model parameter, GR not assumed
+    # D_growth added to account for delta_fourier redshift dependence.
     vmodes = (
         1j
         * wavenumber_ratio
@@ -52,6 +52,7 @@ def velocity_from_delta_fourier(
         * f
         * sigma8
         * H0
+        * D_growth
         * jnp.expand_dims(delta_fourier, -1)
     )
     velocity = jnp.fft.irfftn(vmodes, axes=(0, 1, 2))
@@ -62,9 +63,8 @@ def velocity_from_delta_fourier(
 def density_from_delta_fourier(
     delta_fourier,
     b,
-    sigma8,
 ):
-    density = 1 + b * sigma8 * jnp.fft.irfftn(delta_fourier)
+    density = 1 + b * jnp.fft.irfftn(delta_fourier)
     return density
 
 
@@ -131,7 +131,7 @@ class GaussianRandomFieldBox(FourierBox):
         return density_from_delta_fourier(
             delta_fourier,
             parameter_values_dict["b"],
-            parameter_values_dict["s8"],
+            # parameter_values_dict["s8"],
         )
 
     def get_velocity_from_delta_fourier(

@@ -4,7 +4,6 @@ from functools import partial
 import jax
 import jax.numpy as jnp
 import jax_cosmo as jcosmo
-import tensorflow_probability.substrates.jax as tfp
 
 
 @partial(jax.jit, static_argnames=("box_size", "number_bins"))
@@ -14,7 +13,9 @@ def log_likelihood_delta_fourier(
     box_size,
     number_bins,
 ):
-    variance = power_spectrum_grid * (number_bins / box_size) ** 3 * number_bins**3
+    variance = (
+        power_spectrum_grid * (number_bins / box_size) ** 3 * number_bins ** (3 / 2)
+    )
     return jnp.sum(-0.5 * jnp.abs(delta_fourier) ** 2 / (variance))
 
 
@@ -37,6 +38,7 @@ def radial_velocity_from_velocity(velocity, dist_mpch_vec):
     return radial_velocity
 
 
+# CR - replace this function
 _REDSHIFT_LOOKUP = jnp.arange(0, 0.5, 0.001)
 _REDSHIFT_LOOKUP_A = jcosmo.utils.z2a(_REDSHIFT_LOOKUP)
 _REDSHIFT_LOOKUP_DIST = jcosmo.background.radial_comoving_distance(
@@ -44,7 +46,6 @@ _REDSHIFT_LOOKUP_DIST = jcosmo.background.radial_comoving_distance(
 )
 
 
-# CR - replace this function
 @jax.jit
 def redshift_from_dist_mpch(distance):
     return jnp.interp(distance, _REDSHIFT_LOOKUP_DIST, _REDSHIFT_LOOKUP)
@@ -66,6 +67,7 @@ def log_likelihood_targets(
     comoving_distance_targets,
     sigma_v,
     h,
+    cutoff=200.0,
 ):
 
     # distance modulus log-likelihood
@@ -74,24 +76,39 @@ def log_likelihood_targets(
         5 * jnp.log10((1 + redshift_cosmo) * comoving_distance_targets / h) + 25
     )
 
-    log_likelihood_distance_modulus = tfp.distributions.Normal(
-        loc=theoretical_distance_modulus, scale=observed_distance_modulus_err
-    ).log_prob(observed_distance_modulus)
+    log_likelihood_distance_modulus = (
+        -0.5 * jnp.log(2 * jnp.pi * observed_distance_modulus_err**2)
+        - 0.5
+        * (
+            (observed_distance_modulus - theoretical_distance_modulus)
+            / observed_distance_modulus_err
+        )
+        ** 2
+    )
 
-    # redshift log-likelihood
+    # velocity log-likelihood - The estimator of peculiar velocity
+    # is not expressed explicitely to avoid biases.
     vi = velocity_from_grid(
         velocity,
         comoving_distance_targets[:, None] * comoving_distance_vectors,
         box_size,
         number_bins,
     )
-    vr = radial_velocity_from_velocity(vi, comoving_distance_vectors)
-    std = jnp.sqrt(
+    theoretical_radial_velocity = radial_velocity_from_velocity(
+        vi, comoving_distance_vectors
+    )
+    radial_velocity_error = jnp.sqrt(
         (jcosmo.constants.c * redshift_error / (1 + redshift_cosmo)) ** 2
         + (sigma_v) ** 2
     )
-    log_likelihood_redshift = tfp.distributions.Normal(loc=vr, scale=std).log_prob(
+
+    radial_velocity = (
         jcosmo.constants.c * (redshift - redshift_cosmo) / (1 + redshift_cosmo)
+    )
+    log_likelihood_velocity = (
+        -0.5 * jnp.log(2 * jnp.pi * radial_velocity_error**2)
+        - 0.5
+        * ((radial_velocity - theoretical_radial_velocity) / radial_velocity_error) ** 2
     )
 
     # density log-likelihood
@@ -109,12 +126,23 @@ def log_likelihood_targets(
 
     density_values = density_at_targets[jnp.arange(len(density_at_targets)), index_]
 
+    density_values = jnp.where(
+        (comoving_distance_targets > cutoff) + (comoving_distance_targets < 0),
+        jnp.exp(-((comoving_distance_targets - cutoff) ** 2)),
+        density_values,
+    )
     # Clipping to avoid np.nan in log-likelihood, which can cause issues with MCMC samplers.
-    log_likelihood_density = jnp.log(jnp.clip(density_values, a_min=1e-10))
+
+    # Old flox format:
+    log_likelihood_density = density_values
+
+    # Go to at least log density
+    # log_likelihood_density = jnp.log(jnp.clip(density_values, a_min=1e-10))
+    # Or better: define the density field as log normal model
 
     log_likelihood_targets = (
         log_likelihood_distance_modulus
-        + log_likelihood_redshift
+        + log_likelihood_velocity
         + log_likelihood_density
     )
     return jnp.sum(log_likelihood_targets, axis=0)

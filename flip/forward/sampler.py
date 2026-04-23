@@ -1,4 +1,5 @@
 import jax
+import jax.numpy as jnp
 import tensorflow_probability.substrates.jax as tfp
 import tensorflow_probability.substrates.jax.mcmc as mcmc
 from tensorflow_probability.substrates.jax.mcmc import NoUTurnSampler as NUTS
@@ -133,3 +134,60 @@ class NutsSampler(BaseSampler):
         )
 
         return sampler_states
+
+    def return_sampled_chains_from_states(
+        self,
+        sampler_states,
+        burnin_steps=0,
+    ):
+
+        chains_parameters_sample = {
+            self._parameters_sample[i]: sampler_states[0][i][burnin_steps:]
+            for i in range(len(self._parameters_sample))
+        }
+
+        return chains_parameters_sample
+
+    def return_all_chains_from_states(
+        self,
+        sampler_states,
+        burnin_steps=0,
+    ):
+
+        chains_parameters_sample = self.return_sampled_chains_from_states(
+            sampler_states,
+            burnin_steps=burnin_steps,
+        )
+
+        size_chain = len(sampler_states[0][0][burnin_steps:])
+
+        chains_parameters_fixed = {
+            self._parameters_fixed[i]: jnp.array(
+                [
+                    self.parameter_dict[self._parameters_fixed[i]]["value"]
+                    for _ in range(size_chain)
+                ]
+            )
+            for i in range(len(self._parameters_fixed))
+        }
+
+        chains_parameters = chains_parameters_sample | chains_parameters_fixed
+
+        return chains_parameters
+
+    def return_average_chains_from_states(
+        self,
+        sampler_states,
+        burnin_steps=0,
+    ):
+
+        chains_parameters = self.return_all_chains_from_states(
+            sampler_states,
+            burnin_steps=burnin_steps,
+        )
+
+        average_chains_parameters = {
+            key: jnp.mean(value, axis=0) for key, value in chains_parameters.items()
+        }
+
+        return average_chains_parameters

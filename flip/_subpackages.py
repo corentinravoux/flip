@@ -55,8 +55,37 @@ SUBPACKAGES = {
 }
 
 
+_PIP_NAMES = {
+    "jax_cosmo": "jax-cosmo",
+    "tensorflow_probability": "tensorflow-probability",
+    "sklearn": "scikit-learn",
+}
+
+
 def _has(pkg):
     return importlib.util.find_spec(pkg) is not None
+
+
+def _pip_name(pkg):
+    return _PIP_NAMES.get(pkg, pkg)
+
+
+def require(name):
+    """Raise ImportError listing missing required deps for subpackage ``name``.
+
+    Called by each subpackage ``__init__.py`` so that an attempt to load
+    a subpackage with unmet dependencies produces a single clear message
+    with an install hint, instead of a deep ``ModuleNotFoundError``.
+    """
+    spec = SUBPACKAGES[name]
+    missing = [p for p in spec["required"] if not _has(p)]
+    if not missing:
+        return
+    pip_cmd = "pip install " + " ".join(_pip_name(p) for p in missing)
+    raise ImportError(
+        f"flip.{name} requires missing packages: {', '.join(missing)}. "
+        f"Install with: {pip_cmd}"
+    )
 
 
 def probe(name):

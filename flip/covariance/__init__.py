@@ -1,5 +1,9 @@
 """Init file of the flip.covariance package."""
 
+from flip._subpackages import require
+
+require("covariance")
+
 from . import (
     analytical,
     contraction,

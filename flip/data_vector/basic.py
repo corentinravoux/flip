@@ -4,7 +4,13 @@ import importlib
 
 import numpy as np
 
-from flip.covariance import CovMatrix
+try:
+    from flip.covariance import CovMatrix
+except ImportError:
+    CovMatrix = None
+    pass
+
+
 from flip.data_vector import mesh
 from flip.utils import create_log
 
@@ -192,6 +198,12 @@ class DataVector(abc.ABC):
             CovMatrix: Initialized covariance matrix object.
         """
 
+        if CovMatrix is None:
+            raise ImportError(
+                "flip.covariance module is not loaded."
+                " Cannot compute covariance without it."
+                " Try 'import flip' to see the module needed for covariance."
+            )
         coordinate_keys = importlib.import_module(
             f"flip.covariance.analytical.{model}"
         )._coordinate_keys
@@ -490,6 +502,13 @@ class DensVel(DataVector):
             self.give_data_and_variance_jit = jit(self.give_data_and_variance)
 
     def compute_covariance(self, model, power_spectrum_dict, **kwargs):
+
+        if CovMatrix is None:
+            raise ImportError(
+                "flip.covariance module is not loaded."
+                " Cannot compute covariance without it."
+                " Try 'import flip' to see the module needed for covariance."
+            )
 
         coords_dens = np.vstack(
             (

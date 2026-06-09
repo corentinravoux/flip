@@ -56,7 +56,7 @@ class NutsSampler(BaseSampler):
             self.data["ra"].values, self.data["dec"].values
         )
 
-        self.v = self.simulator.get_voxels_in_direction(
+        self.targets_voxel_dir = self.simulator.get_voxels_in_direction(
             self.data["ra"].values,
             self.data["dec"].values,
             dist_range=[0, 200],

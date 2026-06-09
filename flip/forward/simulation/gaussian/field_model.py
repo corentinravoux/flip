@@ -173,6 +173,42 @@ class GaussianRandomFieldBox(FourierBox):
         )
         return delta_fourier, density_field, velocity_field
 
+    def sample_density_velocity_fields_from_modes_lists(
+        self,
+        parameter_values_dict,
+    ):
+        key = list(parameter_values_dict.keys())[0]
+        average_delta_fourier, average_density_field, average_velocity_field = (
+            [],
+            [],
+            [],
+        )
+        for i in range(len(parameter_values_dict[key])):
+            single_parameter_values_dict = {
+                key: parameter_values_dict[key][i] for key in parameter_values_dict
+            }
+
+            delta_fourier = self.paint_modes_on_delta_fourier(
+                single_parameter_values_dict
+            )
+            density_field = self.get_density_from_delta_fourier(
+                delta_fourier,
+                single_parameter_values_dict,
+            )
+            velocity_field = self.get_velocity_from_delta_fourier(
+                delta_fourier,
+                single_parameter_values_dict,
+            )
+            average_density_field.append(density_field)
+            average_velocity_field.append(velocity_field)
+            average_delta_fourier.append(delta_fourier)
+
+        average_density_field = jnp.mean(jnp.stack(average_density_field), axis=0)
+        average_velocity_field = jnp.mean(jnp.stack(average_velocity_field), axis=0)
+        average_delta_fourier = jnp.mean(jnp.stack(average_delta_fourier), axis=0)
+
+        return average_delta_fourier, average_density_field, average_velocity_field
+
     def draw_targets(
         self,
         size_sample,

@@ -1,6 +1,7 @@
 import jax
 import jax.numpy as jnp
 from flip.forward.simulation.simulator import BaseSimulator
+from flip.utils import cartesian_to_spherical, spherical_to_cartesian
 
 
 def compute_wavenumber_grid(number_bins, box_size):
@@ -27,72 +28,9 @@ def compute_wavenumber_grid(number_bins, box_size):
     )
 
 
-# CR - To move to flip.utils, including jax recognition of the function
-
-
-def cartesian_to_spherical(x, y, z):
-    """Converts cartesian [x,y,z] to spherical [r, theta, phi] coordinates
-    (in degrees).
-
-    Parameters
-    ----------
-    vec: array
-        x, y, z
-
-    Returns
-    -------
-    array
-        [r, theta, phi]
-    """
-    r = jnp.sqrt(x**2 + y**2 + z**2)
-    return jnp.stack(
-        [r, jnp.arctan2(y, x) * 180 / jnp.pi, jnp.arcsin(z / r) * 180 / jnp.pi]
-    )
-
-
-def spherical_to_cartesian(r, ra, dec):
-    """Converts dist-radec [r,ra,dec] to cartersian [x, y, z] coordinates
-    (in degrees).
-
-    Parameters
-    ----------
-    vec: array
-        r, ra, dec
-
-    Returns
-    -------
-    array
-        [x, y, z]
-    """
-    theta = jnp.pi / 2 - dec * jnp.pi / 180
-    phi = ra * jnp.pi / 180
-
-    x = r * jnp.sin(theta) * jnp.cos(phi)
-    y = r * jnp.sin(theta) * jnp.sin(phi)
-    z = r * jnp.cos(theta)
-
-    return jnp.stack([x, y, z]).T
-
-
 class FourierBox(BaseSimulator):
 
     def __init__(self, number_bins, box_size):
-        """initialize the cube (box) that handle Fourier transformations.
-
-        This automatically load the kgrid using `compute_wavenumber_gridgrid`
-
-        Parameters
-        ---------
-        number_bins: int
-            size of the box
-
-        box_size: float
-            physical size of the box
-
-        Returns
-        -------
-        instance
-        """
         self._number_bins = number_bins
         self._box_size = box_size
         self._load_wavenumber_grid()
@@ -106,7 +44,7 @@ class FourierBox(BaseSimulator):
             )
             - self.get_centroid()[:, None]
         )
-        self._dist_mpch, self._ra, self._dec = cartesian_to_spherical(*xyz)
+        self._ra, self._dec, self._dist_mpch = cartesian_to_spherical(*xyz)
         self._dist_mpch *= self.bins_to_physical  # in distance
 
         self._dist_mpch = self._dist_mpch.reshape(self.shape)
@@ -114,13 +52,11 @@ class FourierBox(BaseSimulator):
         self._dec = self._dec.reshape(self.shape)
 
     def _load_wavenumber_grid(self):
-        """load the kgrid (k, wavenumber_ratio, wavenumber_norm_squared)"""
         self._wavenumber_grid, self._wavenumber_ratio, self._wavenumber_norm_squared = (
             compute_wavenumber_grid(self.number_bins, self.box_size)
         )
 
     def get_centroid(self, physical_unit=False):
-        """ """
         centroid = jnp.asarray(self.centroid)
         if physical_unit:
             centroid = centroid * self.bins_to_physical
@@ -130,32 +66,6 @@ class FourierBox(BaseSimulator):
     def get_voxel_coordinates(
         self, ids=None, centroid=None, physical_unit=False, as_spherical=False
     ):
-        """
-
-        Parameters
-        ----------
-        ids: 1d-array
-            voxel ids
-
-        centroid: 3-array
-            = ignored if as_spherical is False =
-            center of for the spherical coordinated (x0, y0, z0).
-            Careful, centroid must be in physical units if physical_unit=True
-
-        physical_unit: bool
-            should the coordinate be given in box bin unit (False)
-            or in physical units (True) ; see self.bins_to_physical
-
-        as_spherical: bool
-            do you want the coordinate in cartesian (x,yz) unit (False)
-            or in spherical (dist, ra, dec) units (True).
-
-        Returns
-        -------
-        (N,3)-array
-            with n the number of input ids
-
-        """
         # convert into coordinates
         X, Y, Z = jnp.meshgrid(
             jnp.linspace(0, self.number_bins - 1, self.number_bins),
@@ -178,33 +88,13 @@ class FourierBox(BaseSimulator):
             xyz *= self.bins_to_physical
 
         if as_spherical:
-            xyz = self.xyz_to_distradec(
+            xyz = self.xyz_to_radecdist(
                 xyz, centroid=centroid, physical_unit=physical_unit
             )
 
         return xyz
 
-    def xyz_to_distradec(self, xyz, centroid=None, physical_unit=False):
-        """converts the x, y, z coordinate system (voxel id)
-        into spherical distance, ra, dec
-
-        Parameters
-        ----------
-        xyz: (N,3)-array
-            cube coordinate system (x,y,z)
-
-        centroid: 3-array
-            coordinate of the centroid within the box
-
-        physical_unit: bool
-            = ignored if centroid is given =
-            are the input coordinates in physical or box units ?
-
-        Returns
-        -------
-        (N,3) array
-            dist, ra, dec
-        """
+    def xyz_to_radecdist(self, xyz, centroid=None, physical_unit=False):
         if centroid is None:
             centroid = self.get_centroid(physical_unit=physical_unit)
 
@@ -215,38 +105,14 @@ class FourierBox(BaseSimulator):
     def get_voxels_in_direction(
         self, ra, dec, dist_range=None, physical_unit=False, unique=False
     ):
-        """get all voxels in given direction
-
-        Parameters
-        ----------
-        ra: float, array
-            right ascension (deg)
-
-        dec: float, array
-            reclination (deg)
-
-        dist_range: None, (float, float)
-            maximum direction to be considered along the direction
-            (see phyiscal unit for unit)
-
-        physical_unit: bool
-            are the distance given in physical units
-
-        Returns
-        -------
-        list, array
-            Coordinates (i,j,k) of the pixels for the given ra, dec
-            format:
-            - uniques=False: (ntargets, 3, nspaxels)
-            - uniques=True: list of (3, nspaxels_i) each targets has its own nspaxels_i.
-
-        """
         ra = jnp.atleast_1d(ra)
         dec = jnp.atleast_1d(dec)
 
         ntrial = self.number_bins * 10
         xyz = spherical_to_cartesian(
-            jnp.linspace(*dist_range, ntrial), ra[:, None], dec[:, None]
+            ra[:, None],
+            dec[:, None],
+            jnp.linspace(*dist_range, ntrial),
         )
         if physical_unit:
             xyz /= (
@@ -261,37 +127,6 @@ class FourierBox(BaseSimulator):
         return volexin
 
     def draw_voxelid(self, size, seed, density=None):
-        """randomly draw voxel-ids
-
-        This uses jax.random.choice.
-
-        Parameters
-        ----------
-        size: int
-            number of coordinates to draw.
-
-        seed: PRNGKey
-            a PRNG key used as the random key.
-            if unsure, do: seed = jax.random.PRNGKey(0)
-
-        density: 3d-array
-           3d-pdf of the box elements. If None, all assumed to be equal.
-           must be the same shape as self.shape
-
-        Returns
-        -------
-        N-array
-            voxel id per target (N=size)
-
-        See also
-        --------
-        draw_coordinates: randomly draw (x,y,z) box coordinates.
-        """
-        # Logic:
-        # work on flatten cube (faster and needed for jax or np random.choice.
-        # so, build voxel indexes (index), draw from it, and convert that into coord.
-
-        # this will forces density to be of the good size
         if density is not None:
             density_flat = density.reshape(self.shape_flat)
             density_flat_normed = density_flat / density_flat.sum()
@@ -307,8 +142,12 @@ class FourierBox(BaseSimulator):
         )
         return sampled_voxels
 
-    def get_unity_3dcoords(self, ra, dec):
-        return spherical_to_cartesian(jnp.ones_like(ra), ra, dec)
+    def get_line_of_sight(self, ra, dec):
+        return spherical_to_cartesian(
+            ra,
+            dec,
+            jnp.ones_like(ra),
+        )
 
     @property
     def number_bins(self):

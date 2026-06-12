@@ -269,7 +269,7 @@ def define_randoms(
             size=Nrandom * N,
         )
 
-        xobj_random, yobj_random, zobj_random = utils.radec2cart(
+        xobj_random, yobj_random, zobj_random = utils.spherical_to_cartesian(
             ra_random,
             dec_random,
             rcom_random,
@@ -292,7 +292,7 @@ def define_randoms(
             size=Nrandom * N,
         )
 
-        xobj_random, yobj_random, zobj_random = utils.radec2cart(
+        xobj_random, yobj_random, zobj_random = utils.spherical_to_cartesian(
             ra_random, dec_random, rcom_random
         )
 
@@ -305,7 +305,7 @@ def define_randoms(
             coord_randoms[2],
         )
 
-        xobj_random, yobj_random, zobj_random = utils.radec2cart(
+        xobj_random, yobj_random, zobj_random = utils.spherical_to_cartesian(
             ra_random, dec_random, rcom_random
         )
         if max_coordinates is not None:
@@ -500,7 +500,7 @@ def prepare_data_position_kernel(
     data_position_kernel = []
     for i in range(len(data_position_sky_kernel)):
         kernel = data_position_sky_kernel[i]
-        x_kernel, y_kernel, z_kernel = utils.radec2cart(
+        x_kernel, y_kernel, z_kernel = utils.spherical_to_cartesian(
             kernel[0, :],
             kernel[1, :],
             kernel[2, :],
@@ -560,7 +560,7 @@ def prepare_data_position(
     raobj = data_position_sky[:, 0]
     decobj = data_position_sky[:, 1]
     rcomobj = data_position_sky[:, 2]
-    xobj, yobj, zobj = utils.radec2cart(raobj, decobj, rcomobj)
+    xobj, yobj, zobj = utils.spherical_to_cartesian(raobj, decobj, rcomobj)
     mask = np.abs(xobj) < rcom_max + overhead
     mask &= np.abs(yobj) < rcom_max + overhead
     mask &= np.abs(zobj) < rcom_max + overhead
@@ -568,7 +568,9 @@ def prepare_data_position(
 
     if data_position_sky_bandwidth is not None:
 
-        jacobian = utils.radec2cart_jacobian(raobj[mask], decobj[mask], rcomobj[mask])
+        jacobian = utils.spherical_to_cartesian_jacobian(
+            raobj[mask], decobj[mask], rcomobj[mask]
+        )
 
         data_position_sky_bandwidth = data_position_sky_bandwidth[mask, :, :]
 
@@ -634,7 +636,7 @@ def define_grid_from_mesh(mesh_data, grid_size):
     ygrid = np.ravel(coord_mesh[1, :, :, :]) + grid_size / 2
     zgrid = np.ravel(coord_mesh[2, :, :, :]) + grid_size / 2
 
-    rcomgrid, ragrid, decgrid = utils.cart2radec(xgrid, ygrid, zgrid)
+    ragrid, decgrid, rcomgrid = utils.cartesian_to_spherical(xgrid, ygrid, zgrid)
 
     return xgrid, ygrid, zgrid, ragrid, decgrid, rcomgrid
 
@@ -1080,7 +1082,7 @@ def grid_data_density_kernel_sampling(
         allowed = ", ".join(_grid_kind_avail)
         raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
 
-    (data_position_kernel, randoms_positions) = prepare_data_position_kernel(
+    data_position_kernel, randoms_positions = prepare_data_position_kernel(
         data_position_sky_kernel,
         rcom_max,
         overhead,

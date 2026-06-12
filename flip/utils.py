@@ -43,7 +43,7 @@ def Du(k, sigmau):
     return np.sin(k * sigmau) / (k * sigmau)
 
 
-def radec2cart(ra, dec, rcom):
+def spherical_to_cartesian(ra, dec, rcom):
     """Convert spherical (r, ra, dec) to Cartesian (x, y, z).
 
     Args:
@@ -60,7 +60,7 @@ def radec2cart(ra, dec, rcom):
     return x, y, z
 
 
-def radec2cart_jacobian(ra, dec, rcom):
+def spherical_to_cartesian_jacobian(ra, dec, rcom):
 
     if isinstance(rcom, np.ndarray):
         null_component = np.zeros_like(rcom)
@@ -84,7 +84,7 @@ def radec2cart_jacobian(ra, dec, rcom):
     )
 
 
-def cart2radec(x, y, z):
+def cartesian_to_spherical(x, y, z):
     """Convert Cartesian (x, y, z) to spherical (r, ra, dec).
 
     Args:
@@ -100,7 +100,7 @@ def cart2radec(x, y, z):
     mask = rcom != 0
     dec = np.zeros(x.shape)
     dec[mask] = np.arcsin(z[mask] / rcom[mask])
-    return rcom, ra, dec
+    return ra, dec, rcom
 
 
 def return_key(dictionary, string, default_value):

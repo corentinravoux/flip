@@ -113,7 +113,11 @@ class NutsSampler(BaseSampler):
         ]
 
         # NUTS
-        kernel = NUTS(self.likelihood_call, step_size=step_size)
+        kernel = NUTS(
+            self.likelihood_call,
+            step_size=step_size,
+            # max_tree_depth=6,
+        )
         num_adaptation_steps = num_burnin_steps * 0.8
         kernel = tfp.mcmc.DualAveragingStepSizeAdaptation(
             inner_kernel=kernel,
@@ -123,6 +127,7 @@ class NutsSampler(BaseSampler):
             ),
             step_size_getter_fn=lambda pkr: pkr.step_size,
             log_accept_prob_getter_fn=lambda pkr: pkr.log_accept_ratio,
+            # target_accept_prob=0.65,
         )
 
         sampler_states = mcmc.sample_chain(

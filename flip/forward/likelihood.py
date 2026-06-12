@@ -5,40 +5,11 @@ import jax
 import jax.numpy as jnp
 import jax_cosmo as jcosmo
 
-
-@partial(jax.jit, static_argnames=("box_size", "number_bins"))
-def log_likelihood_delta_fourier(
-    delta_fourier,
-    power_spectrum_grid,
-    box_size,
-    number_bins,
-):
-    variance = (
-        power_spectrum_grid * (number_bins / box_size) ** 3 * number_bins ** (3 / 2)
-    )
-    return jnp.sum(-0.5 * jnp.abs(delta_fourier) ** 2 / (variance))
-
-
-@partial(jax.jit, static_argnames=("box_size", "number_bins"))
-def velocity_from_grid(
-    v,
-    dist_mpch,
-    box_size,
-    number_bins,
-):
-    r1d = jnp.linspace(0, box_size, number_bins) - box_size / 2
-    v_interp = jax.scipy.interpolate.RegularGridInterpolator((r1d, r1d, r1d), v)
-    v_model = v_interp(dist_mpch)
-    return v_model
-
-
-@jax.jit
-def radial_velocity_from_velocity(velocity, dist_mpch_vec):
-    radial_velocity = jnp.sum(velocity * dist_mpch_vec, axis=-1)
-    return radial_velocity
-
+from flip.forward.field_utils import density_from_grid, radial_velocity_from_grid
 
 # CR - replace this function
+# We need something more general for the redshift to distance conversion.
+
 _REDSHIFT_LOOKUP = jnp.arange(0, 0.5, 0.001)
 _REDSHIFT_LOOKUP_A = jcosmo.utils.z2a(_REDSHIFT_LOOKUP)
 _REDSHIFT_LOOKUP_DIST = jcosmo.background.radial_comoving_distance(
@@ -52,31 +23,56 @@ def redshift_from_dist_mpch(distance):
 
 
 @partial(jax.jit, static_argnames=("box_size", "number_bins"))
-def log_likelihood_targets(
-    observed_distance_modulus,
-    observed_distance_modulus_err,
+def log_likelihood_velocity_density_link(
     redshift,
     redshift_error,
-    density,
     velocity,
-    comoving_distance_vectors,
-    simulation_distances_at_target_positions,
-    simulation_positions_at_target_positions,
+    line_of_sight,
     box_size,
     number_bins,
     comoving_distance_targets,
     sigma_v,
-    h,
-    cutoff=200.0,
 ):
 
-    # distance modulus log-likelihood
+    redshift_cosmo = redshift_from_dist_mpch(comoving_distance_targets)
+
+    radial_velocity_estimator = (
+        jcosmo.constants.c * (redshift - redshift_cosmo) / (1 + redshift_cosmo)
+    )
+
+    radial_velocity_simulator = radial_velocity_from_grid(
+        velocity,
+        comoving_distance_targets,
+        line_of_sight,
+        box_size,
+        number_bins,
+    )
+    error = jnp.sqrt(
+        (jcosmo.constants.c * redshift_error / (1 + redshift_cosmo)) ** 2 + sigma_v**2
+    )
+
+    log_likelihood_velocity_density = (
+        -0.5 * jnp.log(2 * jnp.pi * error**2)
+        - 0.5
+        * ((radial_velocity_estimator - radial_velocity_simulator) / error**2) ** 2
+    )
+    return jnp.sum(log_likelihood_velocity_density)
+
+
+@jax.jit
+def log_likelihood_magnitude_distance_link(
+    observed_distance_modulus,
+    observed_distance_modulus_err,
+    comoving_distance_targets,
+    h,
+):
+
     redshift_cosmo = redshift_from_dist_mpch(comoving_distance_targets)
     theoretical_distance_modulus = (
         5 * jnp.log10((1 + redshift_cosmo) * comoving_distance_targets / h) + 25
     )
 
-    log_likelihood_distance_modulus = (
+    log_likelihood_magnitude_distance = (
         -0.5 * jnp.log(2 * jnp.pi * observed_distance_modulus_err**2)
         - 0.5
         * (
@@ -85,67 +81,55 @@ def log_likelihood_targets(
         )
         ** 2
     )
+    return jnp.sum(log_likelihood_magnitude_distance)
 
-    # velocity log-likelihood - The estimator of peculiar velocity
-    # is not expressed explicitely to avoid biases.
-    vi = velocity_from_grid(
-        velocity,
-        comoving_distance_targets[:, None] * comoving_distance_vectors,
+
+@partial(jax.jit, static_argnames=("box_size", "number_bins"))
+def log_prior_density_function(
+    delta_fourier,
+    power_spectrum_grid,
+    box_size,
+    number_bins,
+    sigma8,
+):
+    variance = (
+        sigma8**2 * power_spectrum_grid * (number_bins / box_size) ** 3 * number_bins**3
+    )
+    # No 0.5 factor in front of the sum, as we are not considering the complex conjugate modes.
+    variance = (
+        sigma8**2 * power_spectrum_grid * (number_bins / box_size) ** 3 * number_bins**3
+    )
+    prior_density = -jnp.abs(delta_fourier) ** 2 / variance - jnp.log(jnp.pi * variance)
+    return jnp.sum(prior_density)
+
+
+@partial(jax.jit, static_argnames=("box_size", "number_bins"))
+def log_prior_position_function(
+    density,
+    line_of_sight,
+    box_size,
+    number_bins,
+    comoving_distance_targets,
+    cutoff=200.0,
+):
+
+    density_values = density_from_grid(
+        density,
+        comoving_distance_targets,
+        line_of_sight,
         box_size,
         number_bins,
     )
-    theoretical_radial_velocity = radial_velocity_from_velocity(
-        vi, comoving_distance_vectors
-    )
-    radial_velocity_error = jnp.sqrt(
-        (jcosmo.constants.c * redshift_error / (1 + redshift_cosmo)) ** 2
-        + (sigma_v) ** 2
-    )
 
-    radial_velocity = (
-        jcosmo.constants.c * (redshift - redshift_cosmo) / (1 + redshift_cosmo)
-    )
-    log_likelihood_velocity = (
-        -0.5 * jnp.log(2 * jnp.pi * radial_velocity_error**2)
-        - 0.5
-        * ((radial_velocity - theoretical_radial_velocity) / radial_velocity_error) ** 2
-    )
+    # CR - rethink this whole part
 
-    # density log-likelihood
-    density_at_targets = density[
-        simulation_positions_at_target_positions[:, 0],
-        simulation_positions_at_target_positions[:, 1],
-        simulation_positions_at_target_positions[:, 2],
-    ]
-
-    index_ = jnp.argmin(
-        (simulation_distances_at_target_positions - comoving_distance_targets[:, None])
-        ** 2,
-        axis=-1,
-    )
-
-    density_values = density_at_targets[jnp.arange(len(density_at_targets)), index_]
-
-    density_values = jnp.where(
+    log_density_values = jnp.where(
         (comoving_distance_targets > cutoff) + (comoving_distance_targets < 0),
-        jnp.exp(-((comoving_distance_targets - cutoff) ** 2)),
-        density_values,
+        -((comoving_distance_targets - cutoff) ** 2),
+        jnp.log(density_values),
     )
-    # Clipping to avoid np.nan in log-likelihood, which can cause issues with MCMC samplers.
 
-    # Old flox format:
-    log_likelihood_density = density_values
-
-    # Go to at least log density
-    # log_likelihood_density = jnp.log(jnp.clip(density_values, a_min=1e-10))
-    # Or better: define the density field as log normal model
-
-    log_likelihood_targets = (
-        log_likelihood_distance_modulus
-        + log_likelihood_velocity
-        + log_likelihood_density
-    )
-    return jnp.sum(log_likelihood_targets, axis=0)
+    return jnp.sum(log_density_values)
 
 
 # CR - all self.simulator. functions should be general to all simulators,
@@ -202,7 +186,7 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
                 unique=False,
             )
         )
-        self.comoving_distance_vectors = self.simulator.get_unity_3dcoords(ra, dec)
+        self.line_of_sight = self.simulator.get_line_of_sight(ra, dec)
 
         self.simulation_distances_at_target_positions = self.simulator._dist_mpch[
             simulation_positions_at_target_positions[:, 0],
@@ -221,7 +205,7 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
             delta_fourier, density, velocity = self.get_fields_from_delta_modes(
                 parameter_values_dict
             )
-            log_likelihood_delta_fourier_val = self.get_log_likelihood_delta_fourier(
+            log_likelihood_delta_fourier_val = self.get_log_prior_fields(
                 delta_fourier, parameter_values_dict
             )
             log_likelihood_targets_val = self.get_log_likelihood_targets(
@@ -244,13 +228,15 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
         )
         return delta_fourier, density, velocity
 
-    def get_log_likelihood_delta_fourier(self, delta_fourier, parameter_values_dict):
+    def get_log_prior_fields(self, delta_fourier, parameter_values_dict):
+        sigma8 = parameter_values_dict["s8"]
 
-        return log_likelihood_delta_fourier(
+        return log_prior_density_function(
             delta_fourier,
             self.simulator.power_spectrum_grid,
             self.simulator.box_size,
             self.simulator.number_bins,
+            sigma8,
         )
 
     def get_log_likelihood_targets(self, parameter_values_dict, density, velocity):
@@ -274,21 +260,37 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
         else:
             redshift_error = jnp.zeros_like(redshift)
 
-        return log_likelihood_targets(
-            observed_distance_modulus,
-            observed_distance_modulus_err,
+        log_likelihood_velocity_density = log_likelihood_velocity_density_link(
             redshift,
             redshift_error,
-            density,
             velocity,
-            self.comoving_distance_vectors,
-            self.simulation_distances_at_target_positions,
-            self.simulation_positions_at_target_positions,
+            self.line_of_sight,
             self.simulator.box_size,
             self.simulator.number_bins,
             comoving_distance_targets,
             sigma_v,
+        )
+
+        log_likelihood_magnitude_distance = log_likelihood_magnitude_distance_link(
+            observed_distance_modulus,
+            observed_distance_modulus_err,
+            comoving_distance_targets,
             h,
+        )
+
+        log_prior_position = log_prior_position_function(
+            density,
+            self.line_of_sight,
+            self.simulator.box_size,
+            self.simulator.number_bins,
+            comoving_distance_targets,
+            cutoff=200.0,
+        )
+
+        return (
+            log_likelihood_velocity_density
+            + log_likelihood_magnitude_distance
+            + log_prior_position
         )
 
     def __call__(self, parameter_values):
@@ -301,49 +303,3 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
             float: Likelihood value, sign controlled by `negative_log_likelihood`.
         """
         return self.likelihood_evaluation(parameter_values)
-
-
-# Use this for distance interpolation:
-
-# def cic_read(grid_mesh, positions):
-#     """CIC-interpolate a 3D scalar field at arbitrary positions.
-
-#     Custom JAX-differentiable trilinear interpolation compatible with
-#     arbitrary batch sizes (unlike some jaxpm versions whose ``cic_read``
-#     requires positions to match the grid shape).  Periodic BCs applied.
-
-#     Args:
-#         grid_mesh (jnp.ndarray): Scalar field of shape ``(Nx, Ny, Nz)``.
-#         positions (jnp.ndarray): Positions in mesh-cell units ``[0, Ni)``,
-#             shape ``(N, 3)``.
-
-#     Returns:
-#         jnp.ndarray: Interpolated values at each position, shape ``(N,)``.
-#     """
-#     pos = jnp.expand_dims(positions, -2)  # (N, 1, 3)
-
-#     offsets = jnp.array(
-#         [
-#             [0, 0, 0],
-#             [1, 0, 0],
-#             [0, 1, 0],
-#             [0, 0, 1],
-#             [1, 1, 0],
-#             [1, 0, 1],
-#             [0, 1, 1],
-#             [1, 1, 1],
-#         ],
-#         dtype=jnp.float32,
-#     )[
-#         jnp.newaxis
-#     ]  # (1, 8, 3)
-
-#     floor_pos = jnp.floor(pos)  # (N, 1, 3)
-#     neighbours = floor_pos + offsets  # (N, 8, 3)
-#     kernel = 1.0 - jnp.abs(pos - neighbours)  # (N, 8, 3)
-#     kernel = kernel[..., 0] * kernel[..., 1] * kernel[..., 2]  # (N, 8)
-
-#     grid_shape = jnp.array(grid_mesh.shape)
-#     idx = jnp.mod(neighbours.astype(jnp.int32), grid_shape)  # (N, 8, 3)
-#     values = grid_mesh[idx[..., 0], idx[..., 1], idx[..., 2]]  # (N, 8)
-#     return (values * kernel).sum(axis=-1)  # (N,)

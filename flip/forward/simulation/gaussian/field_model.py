@@ -5,8 +5,6 @@ import jax.numpy as jnp
 
 from .box import FourierBox
 
-# CR - make this file jit and jax dependent on instalation (like flip)
-
 
 def get_seed_from_parameter_values_dict(parameter_values_dict):
     if "seed" not in parameter_values_dict:
@@ -63,8 +61,9 @@ def velocity_from_delta_fourier(
 def density_from_delta_fourier(
     delta_fourier,
     b,
+    sigma8,
 ):
-    density = 1 + b * jnp.fft.irfftn(delta_fourier)
+    density = 1 + b * sigma8 * jnp.fft.irfftn(delta_fourier)
     return density
 
 
@@ -131,7 +130,7 @@ class GaussianRandomFieldBox(FourierBox):
         return density_from_delta_fourier(
             delta_fourier,
             parameter_values_dict["b"],
-            # parameter_values_dict["s8"],
+            parameter_values_dict["s8"],
         )
 
     def get_velocity_from_delta_fourier(
@@ -233,7 +232,7 @@ class GaussianRandomFieldBox(FourierBox):
         xyz = ijk * self.bins_to_physical
 
         centroid_physical_unit = centroid * self.bins_to_physical
-        distance, ra, dec = self.xyz_to_distradec(xyz, centroid=centroid_physical_unit)
+        ra, dec, distance = self.xyz_to_radecdist(xyz, centroid=centroid_physical_unit)
         target_velocities = velocity[i.astype(int), j.astype(int), k.astype(int)].T
         target_densities = density[i.astype(int), j.astype(int), k.astype(int)].T
         di, dj, dk = jnp.asarray(ijk) - jnp.asarray(centroid)[:, None]

@@ -44,7 +44,7 @@ class FourierBox(BaseSimulator):
             )
             - self.get_centroid()[:, None]
         )
-        self._ra, self._dec, self._dist_mpch = cartesian_to_spherical(*xyz)
+        self._ra, self._dec, self._dist_mpch = jnp.stack(cartesian_to_spherical(*xyz))
         self._dist_mpch *= self.bins_to_physical  # in distance
 
         self._dist_mpch = self._dist_mpch.reshape(self.shape)
@@ -99,21 +99,28 @@ class FourierBox(BaseSimulator):
             centroid = self.get_centroid(physical_unit=physical_unit)
 
         dx, dy, dz = (xyz.T - centroid).T
-        xyz = cartesian_to_spherical(dx, dy, dz)
+        xyz = jnp.stack(cartesian_to_spherical(dx, dy, dz))
         return xyz
 
     def get_voxels_in_direction(
-        self, ra, dec, dist_range=None, physical_unit=False, unique=False
+        self,
+        ra,
+        dec,
+        dist_range=None,
+        physical_unit=False,
+        unique=False,
     ):
         ra = jnp.atleast_1d(ra)
         dec = jnp.atleast_1d(dec)
 
         ntrial = self.number_bins * 10
-        xyz = spherical_to_cartesian(
-            ra[:, None],
-            dec[:, None],
-            jnp.linspace(*dist_range, ntrial),
-        )
+        xyz = jnp.stack(
+            spherical_to_cartesian(
+                ra[:, None],
+                dec[:, None],
+                jnp.linspace(*dist_range, ntrial),
+            )
+        ).T
         if physical_unit:
             xyz /= (
                 self.box_size / self.number_bins
@@ -143,11 +150,13 @@ class FourierBox(BaseSimulator):
         return sampled_voxels
 
     def get_line_of_sight(self, ra, dec):
-        return spherical_to_cartesian(
-            ra,
-            dec,
-            jnp.ones_like(ra),
-        )
+        return jnp.stack(
+            spherical_to_cartesian(
+                ra,
+                dec,
+                jnp.ones_like(ra),
+            )
+        ).T
 
     @property
     def number_bins(self):

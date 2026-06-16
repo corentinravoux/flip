@@ -53,8 +53,7 @@ def log_likelihood_velocity_density_link(
 
     log_likelihood_velocity_density = (
         -0.5 * jnp.log(2 * jnp.pi * error**2)
-        - 0.5
-        * ((radial_velocity_estimator - radial_velocity_simulator) / error**2) ** 2
+        - 0.5 * ((radial_velocity_estimator - radial_velocity_simulator) / error) ** 2
     )
     return jnp.sum(log_likelihood_velocity_density)
 
@@ -90,15 +89,10 @@ def log_prior_density_function(
     power_spectrum_grid,
     box_size,
     number_bins,
-    sigma8,
 ):
-    variance = (
-        sigma8**2 * power_spectrum_grid * (number_bins / box_size) ** 3 * number_bins**3
-    )
     # No 0.5 factor in front of the sum, as we are not considering the complex conjugate modes.
-    variance = (
-        sigma8**2 * power_spectrum_grid * (number_bins / box_size) ** 3 * number_bins**3
-    )
+    # No sigma8 because the modes are already scaled by sigma8 in the simulator.
+    variance = power_spectrum_grid * (number_bins / box_size) ** 3 * number_bins**3
     prior_density = -jnp.abs(delta_fourier) ** 2 / variance - jnp.log(jnp.pi * variance)
     return jnp.sum(prior_density)
 
@@ -205,9 +199,7 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
             delta_fourier, density, velocity = self.get_fields_from_delta_modes(
                 parameter_values_dict
             )
-            log_likelihood_delta_fourier_val = self.get_log_prior_fields(
-                delta_fourier, parameter_values_dict
-            )
+            log_likelihood_delta_fourier_val = self.get_log_prior_fields(delta_fourier)
             log_likelihood_targets_val = self.get_log_likelihood_targets(
                 parameter_values_dict, density, velocity
             )
@@ -228,15 +220,13 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
         )
         return delta_fourier, density, velocity
 
-    def get_log_prior_fields(self, delta_fourier, parameter_values_dict):
-        sigma8 = parameter_values_dict["s8"]
+    def get_log_prior_fields(self, delta_fourier):
 
         return log_prior_density_function(
             delta_fourier,
             self.simulator.power_spectrum_grid,
             self.simulator.box_size,
             self.simulator.number_bins,
-            sigma8,
         )
 
     def get_log_likelihood_targets(self, parameter_values_dict, density, velocity):

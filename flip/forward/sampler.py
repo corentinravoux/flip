@@ -96,11 +96,14 @@ class NutsSampler(BaseSampler):
 
     def run(
         self,
-        sample_key=jax.random.split(jax.random.PRNGKey(0))[1],
+        sample_key=None,
         num_burnin_steps=1000,
         mc_steps=2000,
         **kwargs,
     ):
+
+        if sample_key is None:
+            sample_key = jax.random.split(jax.random.PRNGKey(0))[1]
 
         print(f"num_burnin_steps = {num_burnin_steps}")
         print(f"mc_steps = {mc_steps}")

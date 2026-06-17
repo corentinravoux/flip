@@ -701,6 +701,7 @@ def grid_data_density(
         assignement=kind,
         weights=data_weights,
     )
+    scaling = np.sum(data_weights) / np.sum(randoms_weights)
 
     mesh_randoms = create_mesh(
         randoms_positions,
@@ -708,19 +709,16 @@ def grid_data_density(
         grid_size,
         assignement=kind,
         weights=randoms_weights,
-        scaling=np.sum(data_weights) / np.sum(randoms_weights),
+        scaling=scaling,
     )
-    if kind == "ngp":
-        mesh_count_randoms = mesh_randoms.copy()
-    else:
-        mesh_count_randoms = create_mesh(
-            randoms_positions,
-            2 * (rcom_max + overhead),
-            grid_size,
-            assignement="ngp",
-            weights=randoms_weights,
-            scaling=np.sum(data_weights) / np.sum(randoms_weights),
-        )
+
+    mesh_count_randoms = create_mesh(
+        randoms_positions,
+        2 * (rcom_max + overhead),
+        grid_size,
+        assignement="ngp",
+        weights=randoms_weights,
+    )
 
     density_contrast = np.zeros_like(mesh_data.value)
     mask_randoms_nonzero = mesh_randoms.value != 0.0
@@ -734,7 +732,7 @@ def grid_data_density(
     count_randoms = np.ravel(mesh_count_randoms.value).astype(int)
     density_contrast_err = np.full(count_randoms.shape, np.nan)
     mask = count_randoms > min_count_random
-    density_contrast_err[mask] = np.sqrt(1 / (count_randoms[mask]))
+    density_contrast_err[mask] = np.sqrt(1 / (count_randoms[mask] * scaling))
 
     xgrid, ygrid, zgrid, ragrid, decgrid, rcomgrid = define_grid_from_mesh(
         mesh_data,
@@ -751,6 +749,7 @@ def grid_data_density(
         "density": density_contrast,
         "density_error": density_contrast_err,
         "count_random": count_randoms,
+        "count_random_scaled": count_randoms * scaling,
     }
 
     cut_grid_type(
@@ -870,6 +869,7 @@ def grid_data_density_multivariate_kernel(
         assignement=kind,
         weights=data_kernel_weights,
     )
+    scaling = np.sum(data_weights) / np.sum(randoms_weights)
 
     mesh_randoms = create_mesh(
         randoms_positions,
@@ -877,19 +877,15 @@ def grid_data_density_multivariate_kernel(
         grid_size,
         assignement=kind,
         weights=randoms_weights,
-        scaling=np.sum(data_weights) / np.sum(randoms_weights),
+        scaling=scaling,
     )
-    if kind == "ngp":
-        mesh_count_randoms = mesh_randoms.copy()
-    else:
-        mesh_count_randoms = create_mesh(
-            randoms_positions,
-            2 * (rcom_max + overhead),
-            grid_size,
-            assignement="ngp",
-            weights=randoms_weights,
-            scaling=np.sum(data_weights) / np.sum(randoms_weights),
-        )
+    mesh_count_randoms = create_mesh(
+        randoms_positions,
+        2 * (rcom_max + overhead),
+        grid_size,
+        assignement="ngp",
+        weights=randoms_weights,
+    )
 
     density_contrast = np.zeros_like(mesh_data_kernel.value)
     mask_randoms_nonzero = mesh_randoms.value != 0.0
@@ -904,7 +900,7 @@ def grid_data_density_multivariate_kernel(
     count_randoms = np.ravel(mesh_count_randoms.value).astype(int)
     density_contrast_err = np.full(count_randoms.shape, np.nan)
     mask = count_randoms > min_count_random
-    density_contrast_err[mask] = np.sqrt(1 / (count_randoms[mask]))
+    density_contrast_err[mask] = np.sqrt(1 / (count_randoms[mask] * scaling))
 
     grid = {
         "x": xgrid,
@@ -916,6 +912,7 @@ def grid_data_density_multivariate_kernel(
         "density": density_contrast,
         "density_error": density_contrast_err,
         "count_random": count_randoms,
+        "count_random_scaled": count_randoms * scaling,
     }
 
     cut_grid_type(
@@ -1115,25 +1112,23 @@ def grid_data_density_kernel_sampling(
     std_mesh_data = np.nanstd(mesh_data_random_samples, axis=0)
 
     randoms_weights = np.ones((randoms_positions.shape[0],))
+    scaling = np.sum(data_weights) / np.sum(randoms_weights)
     mesh_randoms = create_mesh(
         randoms_positions,
         2 * (rcom_max + overhead),
         grid_size,
         assignement=kind,
         weights=randoms_weights,
-        scaling=np.sum(data_weights) / np.sum(randoms_weights),
+        scaling=scaling,
     )
-    if kind == "ngp":
-        mesh_count_randoms = mesh_randoms.copy()
-    else:
-        mesh_count_randoms = create_mesh(
-            randoms_positions,
-            2 * (rcom_max + overhead),
-            grid_size,
-            assignement="ngp",
-            weights=randoms_weights,
-            scaling=np.sum(data_weights) / np.sum(randoms_weights),
-        )
+
+    mesh_count_randoms = create_mesh(
+        randoms_positions,
+        2 * (rcom_max + overhead),
+        grid_size,
+        assignement="ngp",
+        weights=randoms_weights,
+    )
     count_randoms = np.ravel(mesh_count_randoms.value).astype(int)
 
     density_contrast = np.zeros_like(average_mesh_data)
@@ -1169,6 +1164,7 @@ def grid_data_density_kernel_sampling(
         "density": density_contrast,
         "density_error": density_contrast_err,
         "count_random": count_randoms,
+        "count_random_scaled": count_randoms * scaling,
     }
 
     cut_grid_type(

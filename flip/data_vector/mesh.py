@@ -748,6 +748,7 @@ def grid_data_density(
         "rcom_zobs": rcomgrid,
         "density": density_contrast,
         "density_error": density_contrast_err,
+        "value_data": np.ravel(mesh_data.value),
         "count_random": count_randoms,
         "count_random_scaled": count_randoms * scaling,
     }
@@ -911,6 +912,7 @@ def grid_data_density_multivariate_kernel(
         "rcom_zobs": rcomgrid,
         "density": density_contrast,
         "density_error": density_contrast_err,
+        "value_data": np.ravel(mesh_data.value),
         "count_random": count_randoms,
         "count_random_scaled": count_randoms * scaling,
     }

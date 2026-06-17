@@ -4,6 +4,7 @@ from functools import partial
 import jax
 import jax.numpy as jnp
 import jax_cosmo as jcosmo
+from jax.scipy.special import gammaln
 
 from flip.forward.field_utils import density_from_grid, radial_velocity_from_grid
 
@@ -97,14 +98,29 @@ def log_prior_density_function(
     return jnp.sum(prior_density)
 
 
+@jax.jit
+def log_prior_position_constant_gaussian_wall(
+    comoving_distance_targets,
+    maximal_distance,
+):
+
+    log_density_values = jnp.where(
+        (comoving_distance_targets > maximal_distance)
+        + (comoving_distance_targets < 0),
+        -((comoving_distance_targets - maximal_distance) ** 2),
+        1.0,
+    )
+    return jnp.sum(log_density_values)
+
+
 @partial(jax.jit, static_argnames=("box_size", "number_bins"))
-def log_prior_position_function(
+def log_prior_position_density_gaussian_wall(
     density,
     line_of_sight,
     box_size,
     number_bins,
     comoving_distance_targets,
-    cutoff=200.0,
+    maximal_distance,
 ):
 
     density_values = density_from_grid(
@@ -115,15 +131,112 @@ def log_prior_position_function(
         number_bins,
     )
 
-    # CR - rethink this whole part
-
     log_density_values = jnp.where(
-        (comoving_distance_targets > cutoff) + (comoving_distance_targets < 0),
-        -((comoving_distance_targets - cutoff) ** 2),
+        (comoving_distance_targets > maximal_distance)
+        + (comoving_distance_targets < 0),
+        -((comoving_distance_targets - maximal_distance) ** 2),
         jnp.log(density_values),
     )
 
     return jnp.sum(log_density_values)
+
+
+@jax.jit
+def log_prior_position_constant_sigmoid(
+    comoving_distance_targets,
+    maximal_distance,
+):
+    log_window = jax.nn.log_sigmoid(
+        (maximal_distance - comoving_distance_targets)
+    ) + jax.nn.log_sigmoid(comoving_distance_targets)
+    return jnp.sum(log_window)
+
+
+@jax.jit
+def log_prior_position_homogeneous_sigmoid(
+    comoving_distance_targets,
+    maximal_distance,
+):
+    log_num = 2.0 * jnp.log(comoving_distance_targets)
+    log_window = jax.nn.log_sigmoid(
+        (maximal_distance - comoving_distance_targets)
+    ) + jax.nn.log_sigmoid(comoving_distance_targets)
+    return jnp.sum(log_num + log_window)
+
+
+@partial(jax.jit, static_argnames=("box_size", "number_bins"))
+def log_prior_position_lognormal(
+    density,
+    line_of_sight,
+    box_size,
+    number_bins,
+    comoving_distance_targets,
+    maximal_distance,
+):
+    # --- numerator: log(chi^2 * n) at sampled chi_i ---
+    n_i = density_from_grid(
+        density, comoving_distance_targets, line_of_sight, box_size, number_bins
+    )
+    log_num = 2.0 * jnp.log(comoving_distance_targets) + jnp.log(jnp.clip(n_i, 1e-30))
+
+    # --- normalization Z_i via logsumexp(trapezoid) along each LOS ---
+    n_chi_grid = 300
+    chi_grid = jnp.linspace(0.0, maximal_distance, n_chi_grid)  # (G,)
+    n_g = density_from_grid(
+        density,
+        chi_grid[None, :],  # (1,G)
+        line_of_sight[:, None, :],  # (Nt,1,3)
+        box_size,
+        number_bins,
+    )  # -> (Nt,G)
+    dchi = chi_grid[1] - chi_grid[0]
+    w = jnp.full_like(chi_grid, dchi).at[0].set(0.5 * dchi).at[-1].set(0.5 * dchi)
+    log_w = jnp.log(jnp.clip(chi_grid**2, 1e-30)) + jnp.log(w)
+    log_Z = jax.scipy.special.logsumexp(
+        log_w[None, :] + jnp.log(jnp.clip(n_g, 1e-30)), axis=-1
+    )
+
+    return jnp.sum(log_num - log_Z)
+
+
+@jax.jit
+def log_prior_position_exponential_cutoff(
+    comoving_distance_targets,
+    a,
+    b,
+    c,
+):
+    log_num = (
+        a * jnp.log(comoving_distance_targets) - (comoving_distance_targets / b) ** c
+    )
+    # log N(a,b,c) = (a+1) log b - log c + lgamma((a+1)/c); constant if a,b,c fixed
+    log_norm = (a + 1.0) * jnp.log(b) - jnp.log(c) + gammaln((a + 1.0) / c)
+    return jnp.sum(log_num - log_norm)
+
+
+@jax.jit
+def log_prior_position_piecewise_gaussian(
+    comoving_distance_targets,
+    a,
+    b,
+    c,
+):
+    sigma = jnp.where(comoving_distance_targets <= a, b, c)
+    log_num = -0.5 * ((comoving_distance_targets - a) / sigma) ** 2
+    log_norm = jnp.log(jnp.sqrt(2.0 * jnp.pi) * (b + c))
+    return jnp.sum(log_num - log_norm)
+
+
+@jax.jit
+def log_prior_position_histogram(
+    comoving_distance_targets,
+    hist_bin_centers,
+    hist_log_density,
+):
+    log_density = jnp.interp(
+        comoving_distance_targets, hist_bin_centers, hist_log_density
+    )
+    return jnp.sum(log_density)
 
 
 # CR - all self.simulator. functions should be general to all simulators,
@@ -148,6 +261,10 @@ class BaseLikelihood(abc.ABC):
 
 class CandleGridGaussianLikelihood(BaseLikelihood):
 
+    _default_likelihood_properties = {
+        "distance_prior_name": "constant_sigmoid",
+    }
+
     def __init__(
         self,
         simulator=None,
@@ -160,6 +277,13 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
         self.simulator = simulator
         self.velocity_data_vector = velocity_data_vector
         self.coordinates_velocity = coordinates_velocity
+        if likelihood_properties is None:
+            likelihood_properties = {}
+
+        likelihood_properties = {
+            **self._default_likelihood_properties,
+            **likelihood_properties,
+        }
 
         super(CandleGridGaussianLikelihood, self).__init__(
             parameter_names=parameter_names,
@@ -170,27 +294,7 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
 
         ra = self.coordinates_velocity[0]
         dec = self.coordinates_velocity[1]
-
-        simulation_positions_at_target_positions = (
-            self.simulator.get_voxels_in_direction(
-                ra,
-                dec,
-                dist_range=[0, 200],
-                physical_unit=True,
-                unique=False,
-            )
-        )
         self.line_of_sight = self.simulator.get_line_of_sight(ra, dec)
-
-        self.simulation_distances_at_target_positions = self.simulator._dist_mpch[
-            simulation_positions_at_target_positions[:, 0],
-            simulation_positions_at_target_positions[:, 1],
-            simulation_positions_at_target_positions[:, 2],
-        ]
-
-        self.simulation_positions_at_target_positions = (
-            simulation_positions_at_target_positions
-        )
 
         def likelihood_evaluation(
             parameter_values,
@@ -199,15 +303,21 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
             delta_fourier, density, velocity = self.get_fields_from_delta_modes(
                 parameter_values_dict
             )
-            log_likelihood_delta_fourier_val = self.get_log_prior_fields(delta_fourier)
             log_likelihood_targets_val = self.get_log_likelihood_targets(
-                parameter_values_dict, density, velocity
+                parameter_values_dict, velocity
+            )
+            log_prior_fields_val = self.get_log_prior_fields(delta_fourier)
+
+            log_prior_distance_val = self.get_log_prior_targets(
+                parameter_values_dict, density
             )
 
-            log_likelihood_total = (
-                log_likelihood_delta_fourier_val + log_likelihood_targets_val
+            log_likelihood_val = (
+                log_likelihood_targets_val
+                + log_prior_fields_val
+                + log_prior_distance_val
             )
-            return log_likelihood_total
+            return log_likelihood_val
 
         likelihood_grad = jax.jit(jax.grad(likelihood_evaluation))
         return likelihood_evaluation, likelihood_grad
@@ -229,7 +339,106 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
             self.simulator.number_bins,
         )
 
-    def get_log_likelihood_targets(self, parameter_values_dict, density, velocity):
+    def get_log_prior_targets(
+        self,
+        parameter_values_dict,
+        density,
+    ):
+
+        prior_name = self.likelihood_properties["distance_prior_name"]
+
+        # CR - Maximal distance considered chose to avoid coding
+        # periodic boundary conditions in the box.
+
+        maximal_distance = self.likelihood_properties.get(
+            "maximal_distance",
+            self.simulator.box_size / 2.0,
+        )
+        comoving_distance_targets = parameter_values_dict["comoving_distance_targets"]
+
+        if prior_name == "no_prior":
+            log_prior_distance = 0.0
+
+        elif prior_name == "constant_gaussian_wall":
+            log_prior_distance = log_prior_position_constant_gaussian_wall(
+                comoving_distance_targets,
+                maximal_distance,
+            )
+
+        elif prior_name == "density_gaussian_wall":
+            log_prior_distance = log_prior_position_density_gaussian_wall(
+                density,
+                self.line_of_sight,
+                self.simulator.box_size,
+                self.simulator.number_bins,
+                comoving_distance_targets,
+                maximal_distance,
+            )
+        elif prior_name == "constant_sigmoid":
+            log_prior_distance = log_prior_position_constant_sigmoid(
+                comoving_distance_targets,
+                maximal_distance,
+            )
+        elif prior_name == "homogeneous_sigmoid":
+            log_prior_distance = log_prior_position_homogeneous_sigmoid(
+                comoving_distance_targets,
+                maximal_distance,
+            )
+        elif prior_name == "piecewise_gaussian":
+            a = parameter_values_dict["piecewise_gaussian_a"]
+            b = parameter_values_dict["piecewise_gaussian_b"]
+            c = parameter_values_dict["piecewise_gaussian_c"]
+            log_prior_distance = log_prior_position_piecewise_gaussian(
+                comoving_distance_targets,
+                a,
+                b,
+                c,
+            )
+
+        elif prior_name == "exponential_cutoff":
+            a = parameter_values_dict["exponential_cutoff_a"]
+            b = parameter_values_dict["exponential_cutoff_b"]
+            c = parameter_values_dict["exponential_cutoff_c"]
+            log_prior_distance = log_prior_position_exponential_cutoff(
+                comoving_distance_targets,
+                a,
+                b,
+                c,
+            )
+        elif prior_name == "histogram":
+            redshift_cosmo = self.velocity_data_vector._data["zobs"]
+
+            a_obs = jcosmo.utils.z2a(redshift_cosmo)
+            d_z = jnp.asarray(
+                jcosmo.background.radial_comoving_distance(jcosmo.Planck15(), a_obs)
+            )
+            density, edges = jnp.histogram(d_z, bins=50, density=True)
+            hist_bin_centers = 0.5 * (edges[:-1] + edges[1:])
+            hist_log_density = jnp.log(jnp.clip(density, 1e-30, None))
+
+            log_prior_distance = log_prior_position_histogram(
+                comoving_distance_targets,
+                hist_bin_centers,
+                hist_log_density,
+            )
+
+        elif prior_name == "lognormal":
+            log_prior_distance = log_prior_position_lognormal(
+                density,
+                self.line_of_sight,
+                self.simulator.box_size,
+                self.simulator.number_bins,
+                comoving_distance_targets,
+                maximal_distance,
+            )
+
+        return log_prior_distance
+
+    def get_log_likelihood_targets(
+        self,
+        parameter_values_dict,
+        velocity,
+    ):
         comoving_distance_targets = parameter_values_dict["comoving_distance_targets"]
         sigma_v = parameter_values_dict["sigma_v"]
         h = parameter_values_dict["h"]
@@ -268,20 +477,7 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
             h,
         )
 
-        log_prior_position = log_prior_position_function(
-            density,
-            self.line_of_sight,
-            self.simulator.box_size,
-            self.simulator.number_bins,
-            comoving_distance_targets,
-            cutoff=200.0,
-        )
-
-        return (
-            log_likelihood_velocity_density
-            + log_likelihood_magnitude_distance
-            + log_prior_position
-        )
+        return log_likelihood_velocity_density + log_likelihood_magnitude_distance
 
     def __call__(self, parameter_values):
         """Evaluate likelihood at parameter values.

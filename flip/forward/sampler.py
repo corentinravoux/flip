@@ -58,7 +58,10 @@ class NutsSampler(BaseSampler):
         parameter_dict=None,
     ):
 
-        super().__init__(likelihood=likelihood, parameter_dict=parameter_dict)
+        super().__init__(
+            likelihood=likelihood,
+            parameter_dict=parameter_dict,
+        )
 
     @classmethod
     def init_from_simulator(
@@ -68,6 +71,7 @@ class NutsSampler(BaseSampler):
         velocity_data_vector,
         coordinates_velocity,
         parameter_dict,
+        likelihood_properties=None,
     ):
 
         parameter_names = list(parameter_dict.keys())
@@ -78,8 +82,12 @@ class NutsSampler(BaseSampler):
             velocity_data_vector=velocity_data_vector,
             coordinates_velocity=coordinates_velocity,
             parameter_names=parameter_names,
+            likelihood_properties=likelihood_properties,
         )
-        return cls(likelihood=likelihood, parameter_dict=parameter_dict)
+        return cls(
+            likelihood=likelihood,
+            parameter_dict=parameter_dict,
+        )
 
     def likelihood_call(self, *param):
         parameters_sample = dict(zip(self._parameters_sample, param))

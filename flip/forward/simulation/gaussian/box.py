@@ -102,37 +102,6 @@ class FourierBox(BaseSimulator):
         xyz = jnp.stack(cartesian_to_spherical(dx, dy, dz))
         return xyz
 
-    def get_voxels_in_direction(
-        self,
-        ra,
-        dec,
-        dist_range=None,
-        physical_unit=False,
-        unique=False,
-    ):
-        ra = jnp.atleast_1d(ra)
-        dec = jnp.atleast_1d(dec)
-
-        ntrial = self.number_bins * 10
-        xyz = jnp.stack(
-            spherical_to_cartesian(
-                ra[:, None],
-                dec[:, None],
-                jnp.linspace(*dist_range, ntrial),
-            )
-        ).T
-        if physical_unit:
-            xyz /= (
-                self.box_size / self.number_bins
-            )  # xyz now in ijk centered on (0,0,0)
-
-        xyz += self.get_centroid(physical_unit=False)  # ijk centered on centroid
-        volexin = jnp.asarray(xyz, dtype="int32")  # (ntrial, ntargets, 3)
-        volexin = jnp.moveaxis(volexin, 0, -1)  # (ntargets, 3, ntrial)
-        if unique:
-            volexin = [jnp.unique(v, axis=-1) for v in volexin]  # loops over targets
-        return volexin
-
     def draw_voxelid(self, size, seed, density=None):
         if density is not None:
             density_flat = density.reshape(self.shape_flat)
@@ -169,11 +138,6 @@ class FourierBox(BaseSimulator):
         return self._box_size
 
     @property
-    def wavenumber_grid_shape(self):
-        """shape of the k-modes"""
-        return self.wavenumber_grid.shape
-
-    @property
     def wavenumber_grid(self):
         """indice of the wavenumber"""
         if not hasattr(self, "_wavenumber_grid") or self._wavenumber_grid is None:
@@ -201,11 +165,6 @@ class FourierBox(BaseSimulator):
         return self._wavenumber_norm_squared
 
     @property
-    def r_1d(self):
-        """1d radius in phystical units"""
-        return jnp.linspace(0, self.box_size, self.number_bins) - self.box_size / 2
-
-    @property
     def shape(self):
         """shape of the box (number_bins, number_bins, number_bins)"""
         return (self.number_bins, self.number_bins, self.number_bins)
@@ -230,22 +189,3 @@ class FourierBox(BaseSimulator):
         """linear 1d array of the voxel"""
 
         return jnp.arange(self.shape_flat)
-
-    @property
-    def voxel_vertices(self):
-        """get the verticies of a voxel (cube*bins_to_physical)"""
-        return (
-            jnp.array(
-                [
-                    [0, 0, 0],
-                    [1, 0, 0],
-                    [0, 1, 0],
-                    [0, 0, 1],
-                    [1, 1, 0],
-                    [1, 0, 1],
-                    [0, 1, 1],
-                    [1, 1, 1],
-                ],
-            )
-            * self.bins_to_physical
-        )

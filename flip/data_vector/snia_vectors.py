@@ -229,12 +229,10 @@ class VelFromSALTfit(DataVector):
         )
         if self._covariance_observation is None:
             if self.optional_covariance_observed_distance_modulus is not None:
-                conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
-
+                # diag(d) @ M @ diag(d).T computed by broadcasting: O(N^2), not O(N^3).
+                d = distance_modulus_difference_to_velocity
                 velocity_variance = (
-                    conversion_matrix
-                    @ observed_distance_modulus_variance
-                    @ conversion_matrix.T
+                    d[:, None] * observed_distance_modulus_variance * d[None, :]
                 )
             else:
                 velocity_variance = (

@@ -97,18 +97,28 @@ def compute_covariance_sum(
     elif kind == "density_velocity":
         keys = ["gg", "vv"]
     elif kind == "full":
-        keys = ["gg", "gv", "vv"]
+        keys = ["gg", "vv", "gv"]
 
+        
     covariance_sum_ = {}
-
+    number_tracers = []
     for k in keys:
         if parameter_values_dict is not None:
-            covariance_evaluated = np.array(
-                [cov(parameter_values_dict) for i, cov in enumerate(covariance_dict[k])]
-            )
+            if k == 'gv':
+                covariance_evaluated = np.array(
+                                        [cov(parameter_values_dict, number_tracers[0], number_tracers[1]) 
+                                        for i, cov in enumerate(covariance_dict[k])]
+                                        )
+            else:
+                covariance_evaluated = np.array(
+                                        [cov(parameter_values_dict) for i, cov in enumerate(covariance_dict[k])]
+                                        )
+                number_tracers.append(covariance_evaluated.shape[1])
+                
         else:
             covariance_evaluated = covariance_dict[k]
-
+        
+              
         coefficient_3d = jnp.atleast_3d(jnp.atleast_2d(coefficients_dict[k].T).T)
 
         covariance_sum_[k] = jnp.sum(
@@ -699,7 +709,7 @@ class CovMatrix:
             elif key == "gv":
                 new_shape = (
                     self.covariance_dict[key].shape[0],
-                    self.number_densities * self.number_velocities + 1,
+                    self.number_densities * self.number_velocities ,
                 )
             elif key == "vv":
                 new_shape = (
@@ -720,7 +730,7 @@ class CovMatrix:
                     new_cov[i] = cov_utils.return_flat_covariance(
                         self.covariance_dict[key][i]
                     )
-                    self.covariance_dict[key] = new_cov
+            self.covariance_dict[key] = jnp.array(new_cov)
 
             self.matrix_form = False
 

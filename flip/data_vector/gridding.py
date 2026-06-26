@@ -529,6 +529,8 @@ def grid_data_density_pypower(
     grid_size,
     grid_type,
     kind,
+    data_weights = None,
+    randoms_weights = None,
     Nrandom=10,
     random_method="cartesian",
     interlacing=2,
@@ -547,6 +549,8 @@ def grid_data_density_pypower(
         grid_size (float): Cell size.
         grid_type (str): `rect` or `sphere` cut behavior.
         kind (str): Resampler passed to CatalogMesh.
+        data_weights (array-like): Weights for the galaxy.
+        randoms_weights (array-like): Weights for the random.
         Nrandom (int): Randoms per data object.
         random_method (str): Random generation method.
         interlacing (int): Interlacing factor.
@@ -585,8 +589,10 @@ def grid_data_density_pypower(
     data_positions = np.array([xobj, yobj, zobj]).T
     randoms_positions = np.array([xobj_random, yobj_random, zobj_random]).T
 
-    data_weights = np.ones((data_positions.shape[0],))
-    randoms_weights = np.ones((randoms_positions.shape[0],))
+    if data_weights is None: 
+        data_weights = np.ones((data_positions.shape[0],))
+    if randoms_weights is None:
+        randoms_weights = np.ones((randoms_positions.shape[0],))
 
     catalog_mesh = CatalogMesh(
         data_positions=data_positions,
@@ -685,6 +691,7 @@ def grid_data_velocity_pypower(
     grid_size,
     grid_type,
     kind,
+    count_weights = None,
     interlacing=0,
     compensate=False,
     overhead=20,
@@ -701,6 +708,7 @@ def grid_data_velocity_pypower(
         grid_size (float): Cell size.
         grid_type (str): `rect` or `sphere` cut behavior.
         kind (str): Resampler passed to CatalogMesh.
+        count_weights (array-like): Weights in the count of the tracers.
         interlacing (int): Interlacing factor.
         compensate (bool): Apply resampler compensation.
         overhead (float): Extra margin around cutoff.
@@ -716,7 +724,8 @@ def grid_data_velocity_pypower(
     raobj, decobj, rcomobj = raobj[mask], decobj[mask], rcomobj[mask]
 
     data_positions = np.array([xobj, yobj, zobj]).T
-    count_weights = np.ones((data_positions.shape[0],))
+    if count_weights is None:
+        count_weights = np.ones((data_positions.shape[0],))
 
     catalog_mesh_var = CatalogMesh(
         data_positions=data_positions,

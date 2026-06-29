@@ -77,6 +77,8 @@ def compute_cov(
         emulator_module,
         emulator_parameter_names,
         covariance_type,
+        covariance_list[0].number_densities,
+        covariance_list[0].number_velocities,
         **kwargs,
     )
 
@@ -159,6 +161,8 @@ def return_evaluation_functions(
     emulator_module,
     emulator_parameter_names,
     covariance_type,
+    number_densities = None, 
+    number_velocities = None,
     **kwargs,
 ):
     """Wrap backend models into per-term evaluation functions.
@@ -171,6 +175,8 @@ def return_evaluation_functions(
         emulator_module: Module providing ``evaluate(model, x, dict)`` function.
         emulator_parameter_names: Names used to extract parameter order from dict.
         covariance_type: Block type ``("gg"|"vv"|"gv")``.
+        number_densities: (Float) number of density tracers used for the 'gv'
+        number_velocities: (Float) number of velocity tracers used for the 'gv'
         **kwargs: Extra keyword arguments (unused).
 
     Returns:
@@ -236,10 +242,16 @@ def return_evaluation_functions(
         else:
 
             def evaluation_function(
-                parameter_value,
+                parameter_values_dict,
+                number_densities, 
+                number_velocities,
                 return_emulator_variance=False,
             ):
-                evaluation_value = np.array(parameter_value)[np.newaxis, np.newaxis]
+
+                parameter_value = [
+                    parameter_values_dict[name] for name in emulator_parameter_names
+                ]
+                evaluation_value = np.array(parameter_value)[np.newaxis, :]
                 output_non_diagonal = emulator_module.evaluate(
                     model_non_diagonal,
                     evaluation_value,
@@ -247,6 +259,10 @@ def return_evaluation_functions(
                 )
                 output_covariance = output_non_diagonal[0][0]
                 variance_emulator = output_non_diagonal[1][0, 0]
+
+                output_covariance = cov_utils.return_matrix_covariance_cross(
+                    output_covariance, number_densities, number_velocities
+                )
 
                 if return_emulator_variance:
                     return output_covariance, variance_emulator
@@ -288,15 +304,20 @@ def test_training(
         covariance_list[i].compute_matrix_covariance(verbose=False)
         errors.append([])
         for j in range(len(evaluation_functions)):
-            evaluation = evaluation_functions[j](parameter_values_dict[i])
             covariance = covariance_list[i].covariance_dict[covariance_type][j]
 
             if square_covariance:
+                evaluation = evaluation_functions[j](
+                            parameter_values_dict[i]
+                            )
                 error_diagonal = np.abs(evaluation[0][0] - covariance[0][0])
                 relative_error_diagonal = np.abs(
                     evaluation[0][0] - covariance[0][0]
                 ) / np.abs(covariance[0][0])
             else:
+                evaluation = evaluation_functions[j](
+                            parameter_values_dict[i],covariance_list[0].number_densities, covariance_list[0].number_velocities
+                            )
                 error_diagonal = None
                 relative_error_diagonal = None
             error_all = np.max(np.abs(evaluation - covariance))

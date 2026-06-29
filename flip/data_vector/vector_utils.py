@@ -192,13 +192,3 @@ def get_grouped_data_variance(sparse_host_matrix, velocities, velocity_variance)
         weights = weights * inverse_weigths_sum[:, jnp.newaxis]
         velocity_variance = weights @ velocity_variance @ weights.T
     return velocities, velocity_variance
-
-
-def compute_velocity_variance_from_distance_modulus_covariance(
-    conversion_vector,
-    covariance,
-):
-
-    velocity_variance = (
-        conversion_vector[:, None] * covariance * conversion_vector[None, :]
-    )

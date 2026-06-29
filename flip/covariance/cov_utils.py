@@ -162,7 +162,7 @@ def compute_phi(ra_0, ra_1, dec_0, dec_1, r_0, r_1, los_definition):
     Args:
         ra_0: Compute the x_0, y_0 and z_0 coordinates of a galaxy
         ra_1: Compute the phi angle
-        dec_0: Compute the z_0 parameter in radec2cart function
+        dec_0: Compute the z_0 parameter in spherical_to_cartesian function
         dec_1: Compute the phi angle
         r_0: Compute the distance between two points
         r_1: Compute the distance between two points in the sky
@@ -171,8 +171,8 @@ def compute_phi(ra_0, ra_1, dec_0, dec_1, r_0, r_1, los_definition):
     Returns:
         ndarray: Angle `phi` in radians.
     """
-    x_0, y_0, z_0 = utils.radec2cart(r_0, ra_0, dec_0)
-    x_1, y_1, z_1 = utils.radec2cart(r_1, ra_1, dec_1)
+    x_0, y_0, z_0 = utils.spherical_to_cartesian(ra_0, dec_0, r_0)
+    x_1, y_1, z_1 = utils.spherical_to_cartesian(ra_1, dec_1, r_1)
 
     r_x = x_0 - x_1
     r_y = y_0 - y_1

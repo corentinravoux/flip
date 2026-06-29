@@ -4,7 +4,14 @@ import importlib
 
 import numpy as np
 
-from flip.covariance import CovMatrix
+try:
+    from flip.covariance import CovMatrix
+except ImportError:
+    CovMatrix = None
+    pass
+
+
+from flip.data_vector import mesh
 from flip.utils import create_log
 
 from .._config import __use_jax__
@@ -191,6 +198,12 @@ class DataVector(abc.ABC):
             CovMatrix: Initialized covariance matrix object.
         """
 
+        if CovMatrix is None:
+            raise ImportError(
+                "flip.covariance module is not loaded."
+                " Cannot compute covariance without it."
+                " Try 'import flip' to see the module needed for covariance."
+            )
         coordinate_keys = importlib.import_module(
             f"flip.covariance.analytical.{model}"
         )._coordinate_keys
@@ -285,6 +298,95 @@ class DirectVel(DataVector):
                 self._covariance_observation = velocity_variance
 
 
+class DensMesh(Dens):
+    _kind = "density"
+    _needed_keys = ["density", "density_error"]
+    _free_par = []
+    _number_dimension_observation_covariance = 1
+    _parameters_observation_covariance = ["density"]
+
+    def give_data_and_variance(self, *args):
+        """Return density data and diagonal variance from `density_error`.
+
+        Returns:
+            tuple: (density, density_error^2).
+        """
+
+        if self._covariance_observation is not None:
+            return self._data["density"], self._covariance_observation
+        return self._data["density"], self._data["density_error"] ** 2
+
+    def __init__(self, data, covariance_observation=None):
+        super().__init__(data, covariance_observation=covariance_observation)
+
+    @classmethod
+    def init_from_catalog(
+        cls,
+        data_position_sky,
+        rcom_max,
+        grid_size,
+        grid_type,
+        kind,
+        **kwargs,
+    ):
+        grid = mesh.grid_data_density(
+            data_position_sky,
+            rcom_max,
+            grid_size,
+            grid_type,
+            kind,
+            **kwargs,
+        )
+
+        return cls(grid)
+
+
+class DirectVelMesh(DirectVel):
+    _kind = "velocity"
+    _needed_keys = ["velocity", "velocity_error"]
+    _free_par = []
+    _number_dimension_observation_covariance = 1
+    _parameters_observation_covariance = ["velocity"]
+
+    def give_data_and_variance(self, *args):
+        """Return velocity data and diagonal variance from `velocity_error`.
+
+        Returns:
+            tuple: (velocity, velocity_error^2).
+        """
+
+        if self._covariance_observation is not None:
+            return self._data["velocity"], self._covariance_observation
+        return self._data["velocity"], self._data["velocity_error"] ** 2
+
+    def __init__(self, data, covariance_observation=None):
+        super().__init__(data, covariance_observation=covariance_observation)
+
+    @classmethod
+    def init_from_catalog(
+        cls,
+        data_position_sky,
+        data,
+        rcom_max,
+        grid_size,
+        grid_type,
+        kind,
+        **kwargs,
+    ):
+        grid_velocity = mesh.grid_data_velocity(
+            data_position_sky,
+            rcom_max,
+            grid_size,
+            grid_type,
+            kind,
+            data["velocity_error"] ** 2,
+            velocity=data["velocity"],
+            **kwargs,
+        )
+
+        return cls(grid_velocity)
+
+
 class VelFromHDres(DataVector):
     _kind = "velocity"
     _needed_keys = ["dmu", "zobs"]
@@ -315,10 +417,10 @@ class VelFromHDres(DataVector):
                 distance_modulus_difference_to_velocity * self._data["dmu_error"]
             ) ** 2
         else:
-            conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
-
             velocity_variance = (
-                conversion_matrix @ self._covariance_observation @ conversion_matrix.T
+                distance_modulus_difference_to_velocity[:, None]
+                * self._covariance_observation
+                * distance_modulus_difference_to_velocity[None, :]
             )
 
         return velocity, velocity_variance
@@ -400,6 +502,13 @@ class DensVel(DataVector):
             self.give_data_and_variance_jit = jit(self.give_data_and_variance)
 
     def compute_covariance(self, model, power_spectrum_dict, **kwargs):
+
+        if CovMatrix is None:
+            raise ImportError(
+                "flip.covariance module is not loaded."
+                " Cannot compute covariance without it."
+                " Try 'import flip' to see the module needed for covariance."
+            )
 
         coords_dens = np.vstack(
             (

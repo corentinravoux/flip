@@ -417,10 +417,10 @@ class VelFromHDres(DataVector):
                 distance_modulus_difference_to_velocity * self._data["dmu_error"]
             ) ** 2
         else:
-            conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
-
             velocity_variance = (
-                conversion_matrix @ self._covariance_observation @ conversion_matrix.T
+                distance_modulus_difference_to_velocity[:, None]
+                * self._covariance_observation
+                * distance_modulus_difference_to_velocity[None, :]
             )
 
         return velocity, velocity_variance

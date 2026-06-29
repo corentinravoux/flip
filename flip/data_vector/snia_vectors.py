@@ -286,12 +286,10 @@ class VelTrippRelation(DataVector):
         )
         if self._covariance_observation is None:
             if self.optional_covariance_observed_distance_modulus is not None:
-                conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
-
                 velocity_variance = (
-                    conversion_matrix
-                    @ observed_distance_modulus_variance
-                    @ conversion_matrix.T
+                    distance_modulus_difference_to_velocity[:, None]
+                    * observed_distance_modulus_variance
+                    * distance_modulus_difference_to_velocity[None, :]
                 )
             else:
                 velocity_variance = (
@@ -300,12 +298,10 @@ class VelTrippRelation(DataVector):
                 )
 
         else:
-            conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
-
             velocity_variance = (
-                conversion_matrix
-                @ observed_distance_modulus_variance
-                @ conversion_matrix.T
+                distance_modulus_difference_to_velocity[:, None]
+                * observed_distance_modulus_variance
+                * distance_modulus_difference_to_velocity[None, :]
             )
 
         velocities = (
@@ -463,12 +459,10 @@ class VelCandleStandardized(DataVector):
         )
         if self._covariance_observation is None:
             if self.optional_covariance_observed_distance_modulus is not None:
-                conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
-
                 velocity_variance = (
-                    conversion_matrix
-                    @ observed_distance_modulus_variance
-                    @ conversion_matrix.T
+                    distance_modulus_difference_to_velocity[:, None]
+                    * observed_distance_modulus_variance
+                    * distance_modulus_difference_to_velocity[None, :]
                 )
             else:
                 velocity_variance = (
@@ -477,12 +471,10 @@ class VelCandleStandardized(DataVector):
                 )
 
         else:
-            conversion_matrix = jnp.diag(distance_modulus_difference_to_velocity)
-
             velocity_variance = (
-                conversion_matrix
-                @ observed_distance_modulus_variance
-                @ conversion_matrix.T
+                distance_modulus_difference_to_velocity[:, None]
+                * observed_distance_modulus_variance
+                * distance_modulus_difference_to_velocity[None, :]
             )
 
         velocities = (

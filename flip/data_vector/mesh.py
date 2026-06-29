@@ -653,6 +653,8 @@ def grid_data_density(
     min_count_random=0,
     overhead=20,
     seed=None,
+    data_weights=None,
+    randoms_weights=None,
 ):
     """Grid data with pypower and compute density contrast on a mesh.
 
@@ -671,6 +673,8 @@ def grid_data_density(
         coord_randoms (tuple, optional): Randoms coordinates for `file` method.
         min_count_random (int): Minimum random count for valid error.
         overhead (float): Extra margin around cutoff.
+        data_weights (array-like): Weights for the galaxy.
+        randoms_weights (array-like): Weights for the random.
 
     Returns:
         dict: Grid with positions, density contrast, errors, and counts.
@@ -690,9 +694,10 @@ def grid_data_density(
         coord_randoms=coord_randoms,
         seed=seed,
     )
-
-    data_weights = np.ones((data_positions.shape[0],))
-    randoms_weights = np.ones((randoms_positions.shape[0],))
+    if data_weights is None:
+        data_weights = np.ones((data_positions.shape[0],))
+    if randoms_weights is None:
+        randoms_weights = np.ones((randoms_positions.shape[0],))
 
     mesh_data = create_mesh(
         data_positions,
@@ -1187,6 +1192,7 @@ def grid_data_velocity(
     variance,
     velocity=None,
     overhead=20,
+    count_weights=None,
 ):
     """Grid velocity data and compute per-cell means and errors.
 
@@ -1200,6 +1206,7 @@ def grid_data_velocity(
         velocity (array-like|None): Per-object velocities when computing the
             weighted mean velocity.
         overhead (float): Extra margin around cutoff.
+        count_weights (array-like): Weights in the count of the tracers.
 
     Returns:
         dict: Grid with positions, velocity (optional), variance, and counts.
@@ -1210,8 +1217,8 @@ def grid_data_velocity(
         rcom_max,
         overhead,
     )
-
-    count_weights = np.ones((data_positions.shape[0],))
+    if count_weights is None:
+        count_weights = np.ones((data_positions.shape[0],))
 
     mesh_variance = create_mesh(
         data_positions,

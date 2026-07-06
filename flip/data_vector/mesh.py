@@ -611,6 +611,7 @@ def prepare_data_position(
         data_positions,
         data_position_bandwith,
         randoms_positions,
+        mask,
     )
 
 
@@ -685,7 +686,7 @@ def grid_data_density(
         allowed = ", ".join(_grid_kind_avail)
         raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
 
-    data_positions, _, randoms_positions = prepare_data_position(
+    data_positions, _, randoms_positions, mask_data = prepare_data_position(
         data_position_sky,
         rcom_max,
         overhead,
@@ -696,8 +697,12 @@ def grid_data_density(
     )
     if data_weights is None:
         data_weights = np.ones((data_positions.shape[0],))
+    else:
+        data_weights = data_weights[mask_data]
     if randoms_weights is None:
         randoms_weights = np.ones((randoms_positions.shape[0],))
+    else:
+        randoms_weights = randoms_weights[mask_data]
 
     mesh_data = create_mesh(
         data_positions,
@@ -783,6 +788,8 @@ def grid_data_density_multivariate_kernel(
     kernel="gaussian",
     cutoff_type=None,
     threshold=1e-5,
+    data_weights=None,
+    randoms_weights=None,
 ):
     """Grid density data after smoothing each object with a local kernel.
 
@@ -815,19 +822,27 @@ def grid_data_density_multivariate_kernel(
         allowed = ", ".join(_grid_kind_avail)
         raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
 
-    data_positions, data_position_bandwith, randoms_positions = prepare_data_position(
-        data_position_sky,
-        rcom_max,
-        overhead,
-        random_method=random_method,
-        Nrandom=Nrandom,
-        coord_randoms=coord_randoms,
-        seed=seed,
-        data_position_sky_bandwidth=data_position_sky_bandwidth,
+    data_positions, data_position_bandwith, randoms_positions, mask_data = (
+        prepare_data_position(
+            data_position_sky,
+            rcom_max,
+            overhead,
+            random_method=random_method,
+            Nrandom=Nrandom,
+            coord_randoms=coord_randoms,
+            seed=seed,
+            data_position_sky_bandwidth=data_position_sky_bandwidth,
+        )
     )
 
-    data_weights = np.ones((data_positions.shape[0],))
-    randoms_weights = np.ones((randoms_positions.shape[0],))
+    if data_weights is None:
+        data_weights = np.ones((data_positions.shape[0],))
+    else:
+        data_weights = data_weights[mask_data]
+    if randoms_weights is None:
+        randoms_weights = np.ones((randoms_positions.shape[0],))
+    else:
+        randoms_weights = randoms_weights[mask_data]
 
     # First mesh for grid definition
     mesh_data = create_mesh(
@@ -1212,13 +1227,15 @@ def grid_data_velocity(
         dict: Grid with positions, velocity (optional), variance, and counts.
     """
 
-    data_positions, _, _ = prepare_data_position(
+    data_positions, _, _, mask_data = prepare_data_position(
         data_position_sky,
         rcom_max,
         overhead,
     )
     if count_weights is None:
         count_weights = np.ones((data_positions.shape[0],))
+    else:
+        count_weights = count_weights[mask_data]
 
     mesh_variance = create_mesh(
         data_positions,

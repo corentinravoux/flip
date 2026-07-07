@@ -608,6 +608,7 @@ def prepare_data_position(
         randoms_positions = np.array([xobj_random, yobj_random, zobj_random]).T
     else:
         randoms_positions = None
+        mask_random = None
 
     data_positions = np.array([xobj, yobj, zobj]).T
 

@@ -27,7 +27,7 @@ except ImportError:
     log.add("Jax is not available, loading numpy and scipy instead")
 
 __flip_dir_path__ = os.path.dirname(__file__)
-__version__ = "2.0.2"
+__version__ = "2.0.3"
 
 
 _LAZY_SUBPACKAGES = set(_subpackages.SUBPACKAGES)

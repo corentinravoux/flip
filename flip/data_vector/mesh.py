@@ -300,9 +300,9 @@ def define_randoms(
     elif random_method == "file":
         _needed_params([coord_randoms])
         ra_random, dec_random, rcom_random = (
-            coord_randoms[0],
-            coord_randoms[1],
-            coord_randoms[2],
+            coord_randoms[:,0],
+            coord_randoms[:,1],
+            coord_randoms[:,2],
         )
 
         xobj_random, yobj_random, zobj_random = utils.spherical_to_cartesian(
@@ -316,7 +316,9 @@ def define_randoms(
             yobj_random = yobj_random[mask_random]
             zobj_random = zobj_random[mask_random]
 
-    return xobj_random, yobj_random, zobj_random
+            return xobj_random, yobj_random, zobj_random , mask_random
+
+    return xobj_random, yobj_random, zobj_random 
 
 
 def create_mesh(
@@ -513,6 +515,7 @@ def prepare_data_position_kernel(
             xobj_random,
             yobj_random,
             zobj_random,
+            mask_random
         ) = define_randoms(
             random_method,
             Nrandom=Nrandom,
@@ -588,6 +591,7 @@ def prepare_data_position(
             xobj_random,
             yobj_random,
             zobj_random,
+            mask_random
         ) = define_randoms(
             random_method,
             xobj,
@@ -611,6 +615,8 @@ def prepare_data_position(
         data_positions,
         data_position_bandwith,
         randoms_positions,
+        mask,
+        mask_random
     )
 
 
@@ -685,7 +691,7 @@ def grid_data_density(
         allowed = ", ".join(_grid_kind_avail)
         raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
 
-    data_positions, _, randoms_positions = prepare_data_position(
+    data_positions, _, randoms_positions, mask_data, mask_random = prepare_data_position(
         data_position_sky,
         rcom_max,
         overhead,
@@ -696,8 +702,12 @@ def grid_data_density(
     )
     if data_weights is None:
         data_weights = np.ones((data_positions.shape[0],))
+    else:
+        data_weights = data_weights[mask_data]
     if randoms_weights is None:
         randoms_weights = np.ones((randoms_positions.shape[0],))
+    else:
+        randoms_weights = randoms_weights[mask_random]
 
     mesh_data = create_mesh(
         data_positions,
@@ -783,6 +793,8 @@ def grid_data_density_multivariate_kernel(
     kernel="gaussian",
     cutoff_type=None,
     threshold=1e-5,
+    data_weights=None,
+    randoms_weights=None,
 ):
     """Grid density data after smoothing each object with a local kernel.
 
@@ -815,19 +827,27 @@ def grid_data_density_multivariate_kernel(
         allowed = ", ".join(_grid_kind_avail)
         raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
 
-    data_positions, data_position_bandwith, randoms_positions = prepare_data_position(
-        data_position_sky,
-        rcom_max,
-        overhead,
-        random_method=random_method,
-        Nrandom=Nrandom,
-        coord_randoms=coord_randoms,
-        seed=seed,
-        data_position_sky_bandwidth=data_position_sky_bandwidth,
+    data_positions, data_position_bandwith, randoms_positions, mask_data, mask_random = (
+        prepare_data_position(
+            data_position_sky,
+            rcom_max,
+            overhead,
+            random_method=random_method,
+            Nrandom=Nrandom,
+            coord_randoms=coord_randoms,
+            seed=seed,
+            data_position_sky_bandwidth=data_position_sky_bandwidth,
+        )
     )
 
-    data_weights = np.ones((data_positions.shape[0],))
-    randoms_weights = np.ones((randoms_positions.shape[0],))
+    if data_weights is None:
+        data_weights = np.ones((data_positions.shape[0],))
+    else:
+        data_weights = data_weights[mask_data]
+    if randoms_weights is None:
+        randoms_weights = np.ones((randoms_positions.shape[0],))
+    else:
+        randoms_weights = randoms_weights[mask_random]
 
     # First mesh for grid definition
     mesh_data = create_mesh(
@@ -1212,13 +1232,15 @@ def grid_data_velocity(
         dict: Grid with positions, velocity (optional), variance, and counts.
     """
 
-    data_positions, _, _ = prepare_data_position(
+    data_positions, _, _, mask_data, _ = prepare_data_position(
         data_position_sky,
         rcom_max,
         overhead,
     )
     if count_weights is None:
         count_weights = np.ones((data_positions.shape[0],))
+    else:
+        count_weights = count_weights[mask_data]
 
     mesh_variance = create_mesh(
         data_positions,

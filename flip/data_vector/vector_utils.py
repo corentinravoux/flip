@@ -19,7 +19,6 @@ if __use_jax__:
 
         jax_installed = False
 else:
-
     import numpy as jnp
 
     jax_installed = False
@@ -45,9 +44,9 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
     redshift_obs = data["zobs"]
 
     if velocity_estimator == "watkins":
-        redshift_dependence = prefactor * redshift_obs / (1 + redshift_obs)
+        redshift_dependence = redshift_obs / (1 + redshift_obs)
     elif velocity_estimator == "lowz":
-        redshift_dependence = prefactor * redshift_obs
+        redshift_dependence = redshift_obs
     elif velocity_estimator == "hubblehighorder":
         if ("q0" not in kwargs) & ("j0" not in kwargs):
             raise ValueError(
@@ -61,7 +60,7 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
             + (1 / 2) * (1 - q_0) * redshift_obs
             - (1 / 6) * (1 - q_0 - 3 * q_0**2 + j_0) * redshift_obs**2
         )
-        redshift_dependence = prefactor * redshift_mod / (1 + redshift_obs)
+        redshift_dependence = redshift_mod / (1 + redshift_obs)
 
     elif velocity_estimator == "full":
         if ("hubble_norm" not in data) | ("rcom_zobs" not in data):
@@ -70,12 +69,10 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
                 f""" Please add it or choose a different velocity_estimator among {_avail_velocity_estimator}"""
             )
 
-        redshift_dependence = prefactor / (
-            (1 + redshift_obs)
-            * utils._C_LIGHT_KMS_
-            / (data["hubble_norm"] * data["rcom_zobs"])
+        redshift_dependence = (
+            (1 + redshift_obs) * utils._C_LIGHT_KMS_ / (data["hubble_norm"] * data["rcom_zobs"])
             - 1.0
-        )
+        ) ** (-1)
 
     elif velocity_estimator == "full_lcdm":
         if ("H0" not in kwargs) & ("Omega_m0" not in kwargs):
@@ -90,15 +87,17 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
         rcom_zobs = cosmo.comoving_distance(redshift_obs).value
         hubble_z = cosmo.H(redshift_obs).value
 
-        redshift_dependence = prefactor / (
+        redshift_dependence = (
             (1 + redshift_obs) * utils._C_LIGHT_KMS_ / (hubble_z * rcom_zobs) - 1.0
-        )
+        ) ** (-1)
 
+    elif velocity_estimator == "empty_universe":
+        redshift_dependence = redshift_obs * (1 + redshift_obs / 2) / (1 + redshift_obs)
     else:
         raise ValueError(
             f"""Please choose a velocity_estimator from salt fit among {_avail_velocity_estimator}"""
         )
-    return redshift_dependence
+    return prefactor * redshift_dependence
 
 
 def compute_host_matrix(host_group_id):

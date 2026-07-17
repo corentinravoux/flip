@@ -92,7 +92,7 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
         ) ** (-1)
 
     elif velocity_estimator == "empty_universe":
-        redshift_dependence = redshift_obs * (1 + redshift_obs / 2) / (1 + redshift_obs)
+        redshift_dependence = redshift_obs * (1 + redshift_obs / 2) / (1 + redshift_obs) ** 2
     else:
         raise ValueError(
             f"""Please choose a velocity_estimator from salt fit among {_avail_velocity_estimator}"""

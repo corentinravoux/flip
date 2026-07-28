@@ -2,7 +2,7 @@
 
 # flip: Field Level Inference Package
 
-[![DOI](https://zenodo.org/badge/676608822.svg)](https://doi.org/10.5281/zenodo.21642058)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21642058.svg)](https://doi.org/10.5281/zenodo.21642058)
 
 flip is a Python package that uses the maximum likelihood method to fit the growth rate based on the velocity and density fields. The first part of the software is the computation of a covariance matrix from a model power spectrum and the considered coordinates. This part is generalized to work for any linear power spectrum models, both for velocities, densities, and cross-terms, and it is optimized with Hankel transform for any model. In the second part, the covariance is used to create a likelihood by multiplying it by velocities or densities. Finally, this package includes some integrated fitters such as Minuit and MCMC (with emcee) to fit the growth rate of structures.
 

@@ -26,7 +26,7 @@ pip install -e ".[docs]"
 | `jax` | JAX-accelerated, JIT-compiled covariance and likelihood paths |
 | `classy` (CLASS) | the CLASS power-spectrum engine |
 | `pyccl` | the pyCCL power-spectrum engine |
-| [`cosmoprimo`](https://github.com/adematti/cosmoprimo) | the recommended power-spectrum engine and Hankel backend |
+| [`cosmoprimo`](https://github.com/adematti/cosmoprimo) | the recommended power-spectrum engine |
 | `GPy` / `scikit-learn` | Gaussian-process covariance emulators |
 | `torch` | the neural-network covariance emulator |
 | `pmesh` | painting catalogs onto a mesh for the `*Mesh` data vectors |

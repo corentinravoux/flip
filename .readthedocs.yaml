@@ -1,22 +1,18 @@
-# Read the Docs configuration file
-# https://docs.readthedocs.io/en/stable/config-file/v2.html
-#
-# Hosting is kept on Read the Docs (https://flip.readthedocs.io/), but the
-# documentation is *compiled with MkDocs* instead of Sphinx. The legacy Sphinx
-# sources are preserved in docs/ (conf.py, *.rst) for reference; the live site
-# is built from mkdocs.yml + the Markdown pages in docs/.
-version: 2
+# Set the OS, Python version and other tools you might need
 
 build:
   os: ubuntu-22.04
   tools:
-    python: "3.11"
+    python: "3.9"
 
-# Build the documentation with MkDocs (not Sphinx).
-mkdocs:
-  configuration: mkdocs.yml
+# Build documentation in the docs/ directory with Sphinx
+sphinx:
+   configuration: docs/conf.py
 
-# Dependencies required to build the MkDocs site.
+# Optionally set the version of Python and requirements required to build your docs
 python:
   install:
-    - requirements: requirements-docs.txt
+    - method: pip
+      path: .
+      extra_requirements:
+        - docs

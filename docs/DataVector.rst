@@ -1,163 +1,225 @@
-DataVector class
-================
+Data vectors
+============
 
-FLIP includes a :py:class:`~flip.data_vector.basic.DataVector` abstract class that is used to build different classes 
-to easily handle the data you want to use and to pass them to one of the different likelihood 
-implemented in the :py:mod:`flip.covariance.likelihood` module.
+The first step of any flip analysis is to wrap your measurements in a
+**DataVector**. A :py:class:`~flip.data_vector.basic.DataVector` knows how to
+turn raw observables into
 
+* a **data array** and its **variance / covariance**
+  (:py:meth:`~flip.data_vector.basic.DataVector.give_data_and_variance`), and
+* a model **covariance matrix** for a chosen model
+  (:py:meth:`~flip.data_vector.basic.DataVector.compute_covariance`, see
+  :doc:`covariance_models`).
 
-Using the :py:class:`~flip.data_vector.basic.DataVector` class you can obtain data and variance / covariance:
+All concrete data vectors derive from the
+:py:class:`~flip.data_vector.basic.DataVector` abstract base class, which handles
+key validation, optional JAX acceleration, host grouping and
+observation-covariance masking. Each subclass declares the fields it needs
+(``needed_keys``) and the model parameters it introduces (``free_par``).
 
-.. code-block:: python 
+.. code-block:: python
 
-    data, var_data = DataVector(parameter_dic)
+   data, var_data = DataVector(parameter_dic)   # data + variance
 
+   Cov = DataVector.compute_covariance(
+       model_name,
+       power_spectrum_dict,
+       size_batch=size_batch,        # parallelization
+       number_worker=number_worker,
+       additional_parameters_values=(),
+   )
 
-You also can compute covariance:
+Choosing a data vector
+----------------------
 
-.. code-block:: python 
+.. list-table::
+   :header-rows: 1
+   :widths: 12 30 40 30
 
-    Cov = DataVector.compute_covariance(
-        # model and pw used
-        model_name, 
-        power_spectrum_dict, 
-        # parallelization
-        size_batch=size_batch, 
-        number_worker=number_worker, 
-        # additional parameters
-        additional_parameters_values=()
-        )
-
-
+   * - Kind
+     - Class
+     - Input observable
+     - Module
+   * - density
+     - ``Dens``
+     - density contrast ``density`` (+ error)
+     - ``data_vector.basic``
+   * - density
+     - ``DensMesh``
+     - catalog gridded onto a mesh
+     - ``data_vector.basic``
+   * - density
+     - ``GWDensMesh``
+     - gravitational-wave localization kernels
+     - ``data_vector.gw_vectors``
+   * - velocity
+     - ``DirectVel``
+     - directly measured velocities ``velocity``
+     - ``data_vector.basic``
+   * - velocity
+     - ``DirectVelMesh``
+     - velocity catalog gridded onto a mesh
+     - ``data_vector.basic``
+   * - velocity
+     - ``VelFromHDres``
+     - Hubble-diagram residuals ``dmu``
+     - ``data_vector.basic``
+   * - velocity
+     - ``VelFromIntrinsicScatter``
+     - intrinsic magnitude scatter ``sigma_M``
+     - ``data_vector.basic``
+   * - velocity
+     - ``VelTrippRelation``
+     - SN Ia SALT2 params (``mb``, ``x1``, ``c``)
+     - ``data_vector.snia_vectors``
+   * - velocity
+     - ``VelCandleStandardized``
+     - standardized candle magnitude ``mb``
+     - ``data_vector.snia_vectors``
+   * - velocity
+     - ``VelFromLogDist``
+     - log-distance ratio ``eta``
+     - ``data_vector.galaxypv_vectors``
+   * - velocity
+     - ``VelFromTullyFisher``
+     - Tully-Fisher (``logW``, ``m_mean``)
+     - ``data_vector.galaxypv_vectors``
+   * - velocity
+     - ``VelFromFundamentalPlane``
+     - Fundamental Plane (``logRe``, ``logsig``, ``logI``)
+     - ``data_vector.galaxypv_vectors``
+   * - cross
+     - ``DensVel``
+     - a density **and** a velocity vector
+     - ``data_vector.basic``
 
 Density
 -------
 
+The :py:class:`~flip.data_vector.basic.Dens` class wraps a measured density
+field:
 
-Direct Density
-~~~~~~~~~~~~~~
+.. code-block:: python
 
-The :py:class:`~flip.data_vector.basic.Dens` class is used on example data as:
+   import pandas as pd
+   from flip import data_vector
 
-.. code-block:: python 
+   grid = pd.read_parquet("flip/data/data_density.parquet")
+   grid.rename(columns={"density_err": "density_error", "rcom": "rcom_zobs"},
+               inplace=True)
+   data_density = data_vector.Dens(grid.to_dict(orient="list"))
 
-    import pandas as pd
-    from flip import data_vector
-
-    grid = pd.read_parquet("flip/flip/data/data_density.parquet")
-    grid.rename(columns={'density_err': 'density_error', 
-                        'rcom': 'rcom_zobs'}, inplace=True)
-    DataDensity = data_vector.Dens(grid.to_dict(orient='list'))
-
+:py:class:`~flip.data_vector.basic.DensMesh` additionally builds the density
+field by gridding an object catalog onto a Cartesian mesh
+(:py:meth:`~flip.data_vector.basic.DensMesh.init_from_catalog`), and
+:py:class:`~flip.data_vector.gw_vectors.GWDensMesh` grids probabilistic
+gravitational-wave localizations.
 
 Velocity
 --------
 
+Direct velocities
+~~~~~~~~~~~~~~~~~~
 
-Direct Velocity
-~~~~~~~~~~~~~~~
+The :py:class:`~flip.data_vector.basic.DirectVel` class takes peculiar
+velocities (km/s) directly:
 
-The :py:class:`~flip.data_vector.basic.DirectVel` class is used on example data as:
+.. code-block:: python
 
-.. code-block:: python 
+   import numpy as np
+   import pandas as pd
+   from flip import data_vector
 
-    import pandas as pd
-    import numpy as np
-    from flip import data_vector
+   data_velocity = pd.read_parquet("flip/data/data_velocity.parquet")
+   data_velocity.rename(columns={"vpec": "velocity"}, inplace=True)
+   data_velocity["velocity_error"] = np.zeros(len(data_velocity))
 
-    data_velocity = pd.read_parquet("flip/flip/data/data_velocity.parquet"))
-    data_velocity.rename(columns={'vpec': 'velocity'}, inplace=True)
-    data_velocity["velocity_error"] = np.zeros(len(data_velocity["vpec"])
+   data_true_vel = data_vector.DirectVel(data_velocity.to_dict(orient="list"))
 
-    DataTrueVel = data_vector.DirectVel(data_velocity_true)
+If the data contain a ``host_group_id`` column, velocities sharing a host are
+averaged automatically (useful e.g. for several SNe Ia in the same galaxy).
 
+Velocities from Hubble-diagram residuals
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Velocity from Hubble diagram residuals
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+:py:class:`~flip.data_vector.basic.VelFromHDres` converts distance-modulus
+residuals ``dmu`` (:math:`\Delta\mu`) into velocities with a redshift-dependent
+estimator :math:`\hat{v} = J(z)\,(\Delta\mu - M_0)`. The estimators are described
+in :doc:`vel_estimators`.
 
-When using the :py:class:`~flip.data_vector.basic.VelFromHDres` class different estimator of velocities can be used from HD residuals. 
-They are described in `Velocity estimators <vel_estimators.html>`_.
+.. code-block:: python
 
+   from flip import data_vector
 
-The DataVector is initialised as:
+   data_vel = data_vector.VelFromHDres(
+       data, velocity_estimator=estimator_name, **kwargs,
+   )
 
-.. code-block:: python 
+Velocities from SN Ia SALT2 parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    from flip import data_vector
-
-    DataVel = data_vector.VelFromHDres(data, velocity_estimator=estimator_name, **kwargs)
-
-
-Velocity from SNe Ia SALT2 parameters
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The :py:class:`~flip.data_vector.snia_vectors.VelFromSALTfit` class use the same estimators as :py:class:`~flip.data_vector.basic.VelFromHDres`,
-but the input data are the SALT2 fit parameters :code:`mb`, :code:`x1` and :code:`c` alongs with their errors and covariance. 
-Also this class always require the :code:`rcom_zobs` field in the data.
-
-The HD residuals are computed using the Tripp relation:
+:py:class:`~flip.data_vector.snia_vectors.VelTrippRelation` standardizes the
+SALT2 fit parameters ``mb``, ``x1``, ``c`` (with their errors and covariances)
+through the Tripp relation and always requires the ``rcom_zobs`` field:
 
 .. math::
 
-    \Delta\mu = m_b  + \alpha x_1 - \beta c - M_0 - 5\log_{10}\left[(1+z)r(z)\right] - 25
+   \Delta\mu = m_b + \alpha x_1 - \beta c - M_0 - 5\log_{10}\left[(1+z)\,r(z)\right] - 25
 
-The DataVector is initialised as:
+.. code-block:: python
 
-.. code-block:: python 
+   import pandas as pd
+   from flip import data_vector
 
-    import pandas as pd
-    from flip import data_vector
+   data_velocity = pd.read_parquet("flip/data/data_velocity.parquet")
+   data_vel = data_vector.snia_vectors.VelTrippRelation(
+       data_velocity.to_dict(orient="list"),
+       h=0.7,
+       velocity_estimator="full",
+   )
 
-    data_velocity = pd.read_parquet("flip/flip/data/data_velocity.parquet"))
-    DataVel = data_vector.snia_vectors.VelFromSALTfit(
-        data_velocity.to_dict(orient='list'), 
-        velocity_estimator='full'
-        )
+   mu = data_vel.compute_observed_distance_modulus(test_parameters)
+   variance_mu = data_vel.compute_observed_distance_modulus_variance(test_parameters)
 
-    mu = DataVel.compute_observed_distance_modulus(test_parameters)
-    variance_mu = DataVel.compute_observed_distance_modulus_error(test_parameters)
+When the object is *called*, the SN Ia standardization parameters are passed as a
+dictionary:
 
-When using the :code:`__call__` method the SNe Ia HD parameters need to be passed:
+.. code-block:: python
 
-.. code-block:: python 
+   test_parameters = {
+       "alpha": 0.14,
+       "beta": 3.1,
+       "M_0": -19.133,
+       "sigma_M": 0.12,
+   }
+   velocity, velocity_error = data_vel(test_parameters)
 
-    test_parameters = {
-    "alpha":0.14,
-    "beta": 3.1,
-    "M_0": -19.133,
-    "sigma_M": 0.12
-    }
+.. note::
 
-    velocity, velocity_error = DataVel(test_parameters)
+   ``VelFromSALTfit`` is kept as a backward-compatible alias of
+   ``VelTrippRelation``.
 
+Other distance indicators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Density X Velocity
+* :py:class:`~flip.data_vector.galaxypv_vectors.VelFromLogDist` — from
+  log-distance ratios ``eta``.
+* :py:class:`~flip.data_vector.galaxypv_vectors.VelFromTullyFisher` — from the
+  Tully-Fisher relation.
+* :py:class:`~flip.data_vector.galaxypv_vectors.VelFromFundamentalPlane` — from
+  the Fundamental Plane.
+* :py:class:`~flip.data_vector.basic.VelFromIntrinsicScatter` — the velocity
+  noise induced by the intrinsic magnitude scatter ``sigma_M``.
+
+Density x velocity
 ------------------
 
-The :py:class:`~flip.data_vector.basic.DensVel` class allows to init a DataVector with density and velocity. 
-It is initialised as:
+:py:class:`~flip.data_vector.basic.DensVel` combines a density vector and a
+velocity vector so a single fit uses the density-density, velocity-velocity
+**and** density-velocity cross covariance blocks:
 
-.. code-block:: python 
+.. code-block:: python
 
-    import pandas as pd
-    from flip import data_vector
-    
-    grid = pd.read_parquet("flip/flip/data/data_density.parquet")
-    grid.rename(columns={'density_err': 'density_error', 
-                        'rcom': 'rcom_zobs'}, inplace=True)
+   from flip import data_vector
 
-    DataDensity = data_vector.Dens(grid.to_dict(orient='list'))
-
-    data_velocity = pd.read_parquet("flip/flip/data/data_velocity.parquet"))
-    DataVel = data_vector.snia_vectors.VelFromSALTfit(
-        data_velocity.to_dict(orient='list'), 
-        velocity_estimator='full'
-        )
-
-    DensCrossVel = data_vector.DensVel(DataDensity, DataTrueVel)
-
-
-
-
-
-
+   dens_cross_vel = data_vector.DensVel(data_density, data_true_vel)

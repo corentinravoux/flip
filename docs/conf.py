@@ -48,7 +48,11 @@ extensions = ['myst_parser', 'sphinx.ext.napoleon', 'sphinx_markdown_tables', 's
 extensions.append('autoapi.extension')
 
 # Auto-API config
-autoapi_dirs = ['../flip', '../flip/covariance']
+# Document the mature subpackages (data_vector, power_spectra, covariance, plus
+# the top-level utilities). The experimental "forward" and "comparison"
+# subpackages are excluded from the API reference.
+autoapi_dirs = ['../flip']
+autoapi_ignore = ['*/forward/*', '*/comparison/*']
 
 def skip_util_classes(app, what, name, obj, skip, options):
     if name == "__init__":

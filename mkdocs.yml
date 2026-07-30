@@ -1,8 +1,16 @@
 site_name: flip
 site_description: Field-level inference of the growth rate from velocity and density fields
-site_url: https://corentinravoux.github.io/flip/
+site_url: https://flip.readthedocs.io/
 repo_url: https://github.com/corentinravoux/flip
 repo_name: corentinravoux/flip
+
+# The legacy Sphinx sources are kept in docs/ for reference but are not part of
+# the MkDocs build. (gitignore-style patterns.)
+exclude_docs: |
+  *.rst
+  conf.py
+  _templates/
+  _static/
 
 theme:
   name: material

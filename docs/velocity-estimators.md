@@ -12,7 +12,7 @@ $$
 The coefficient is computed by
 [`redshift_dependence_velocity`](api/data_vector.md) and selected with the
 `velocity_estimator` argument. The available keys are `"watkins"`, `"lowz"`,
-`"hubblehighorder"`, `"full"` and `"full_lcdm"`.
+`"hubblehighorder"`, `"full"`, `"full_lcdm"` and `"empty_universe"`.
 
 ## Watkins
 
@@ -74,3 +74,13 @@ data_vel = data_vector.VelFromHDres(
     data, velocity_estimator="full_lcdm", H0=70.0, Omega_m0=0.3,
 )
 ```
+
+## Empty universe (`empty_universe`)
+
+An empty-universe (coasting) approximation — eq. 4 of
+[arXiv:1610.04677](https://arxiv.org/pdf/1610.04677) — which needs no extra
+parameters:
+
+$$
+J(z) = \frac{c\ln 10}{5}\,\frac{z\,(1 + z/2)}{(1+z)^2} .
+$$

@@ -1,4 +1,4 @@
-<img src="https://github.com/corentinravoux/flip/blob/main/docs/_static/flip_logo.webp?raw=true" width=350>
+<img src="https://github.com/corentinravoux/flip/blob/main/docs/assets/flip_logo.webp?raw=true" width=350>
 
 # flip: Field Level Inference Package
 
@@ -8,7 +8,7 @@
 flip is a Python package that uses the maximum likelihood method to fit the growth rate based on the velocity and density fields. The first part of the software is the computation of a covariance matrix from a model power spectrum and the considered coordinates. This part is generalized to work for any linear power spectrum models, both for velocities, densities, and cross-terms, and it is optimized with Hankel transform for any model. In the second part, the covariance is used to create a likelihood by multiplying it by velocities or densities. Finally, this package includes some integrated fitters such as Minuit and MCMC (with emcee) to fit the growth rate of structures.
 
 
-[![Documentation Status](https://readthedocs.org/projects/flip/badge/?version=latest)](https://flip.readthedocs.io/en/latest/?badge=latest)
+[![Documentation](https://img.shields.io/badge/docs-mkdocs-blue)](https://corentinravoux.github.io/flip/)
 
 ## Quick install
 ```bash
@@ -38,7 +38,7 @@ For a joint fit: <a target="_blank" href="https://colab.research.google.com/gith
 </a>
 
 ## Need help?
-Documentation available on [ReadTheDoc](https://flip.readthedocs.io/) 
+Documentation available at [corentinravoux.github.io/flip](https://corentinravoux.github.io/flip/)
 
 ## How to cite
 

@@ -1,7 +1,7 @@
 """Adams & Blake (2020) redshift-dependent covariance model.
 
-Recommended default analytical model: a redshift-space-distortion covariance for
-density and velocity that includes the RSD parameter :math:`\\beta`. Variants:
+Redshift-dependent redshift-space-distortion covariance for density and velocity
+that includes the RSD parameter :math:`\\beta`. Variants:
 ``None``/``"baseline"`` fit ``fs8``, ``bs8``, ``sigv`` (and ``beta_f`` for the
 baseline density term); ``"nobeta"`` drops the RSD parameter and fits ``fs8`` on
 the density side directly. Coordinates required per tracer: ``ra``, ``dec``,

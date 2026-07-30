@@ -1,10 +1,12 @@
-"""Ravoux & Carreres covariance model.
+"""Ravoux et al. (2025) covariance model.
 
-Combined density+velocity analytical covariance used in the flip development line,
-merging the Adams-Blake-style RSD treatment with the Carreres velocity model.
-Variants: ``None``/``"baseline"`` fit ``fs8``, ``bs8``, ``sigv`` (and ``beta_f``
-for the baseline density term); ``"nobeta"`` fits ``fs8`` on the density side
-directly. Coordinates required per tracer: ``ra``, ``dec``, ``rcom_zobs``.
+Density+velocity field-level analytical covariance of Ravoux et al. (2025,
+arXiv:2501.16852) -- the model behind flip's flagship growth-rate measurement,
+combining the redshift-space-distortion density treatment with the
+peculiar-velocity model. Variants: ``None``/``"baseline"`` fit ``fs8``, ``bs8``,
+``sigv`` (and ``beta_f`` for the baseline density term); ``"nobeta"`` fits
+``fs8`` on the density side directly. Coordinates required per tracer: ``ra``,
+``dec``, ``rcom_zobs``.
 """
 
 _variant = [None, "baseline", "nobeta"]

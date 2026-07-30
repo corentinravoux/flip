@@ -43,12 +43,12 @@ parameters, variants and the coordinate keys it needs.
 |---|---|---|
 | `adamsblake17` | density + velocity | Adams & Blake (2017), wide-angle |
 | `adamsblake17plane` | density + velocity | plane-parallel (flat-sky) variant |
-| `adamsblake20` | density + velocity | **recommended default**, redshift-dependent (RSD $\beta$) |
-| `carreres23` | velocity | Carreres et al. (2023), arXiv:2303.01198 |
+| `adamsblake20` | density + velocity | redshift-dependent (RSD $\beta$) |
+| `carreres23` | velocity | **recommended default**; Carreres et al. (2023), arXiv:2303.01198 |
 | `lai22` | density + velocity | Lai et al. (2022) |
 | `rcrk24` | velocity | growth-index / growth-rate parameterization |
-| `ravouxcarreres` | density + velocity | combined Ravoux/Carreres model |
-| `ravouxnoanchor25` | velocity | Ravoux et al. (2025), arXiv:2501.16852 — fits `H0` (no anchor) |
+| `ravouxcarreres` | density + velocity | **Ravoux et al. (2025), arXiv:2501.16852** — flip flagship model |
+| `ravouxnoanchor25` | velocity | no-anchor variant — fits `H0` instead of an anchor |
 | `ravouxqin26` | density + velocity | latest; non-linear damping + full bias expansion |
 | `genericzdep` | template | starting point for a new redshift-dependent model |
 

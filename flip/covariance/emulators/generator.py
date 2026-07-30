@@ -1,3 +1,14 @@
+"""Covariance emulator training and evaluation front-end.
+
+Trains fast surrogates of the covariance matrix as a function of the model
+parameters and returns closures that reconstruct the full (or cross) covariance
+from the emulator outputs. Dispatches to the available emulator backends --
+Gaussian process (:mod:`~flip.covariance.emulators.gpmatrix`,
+:mod:`~flip.covariance.emulators.skgpmatrix`) and neural network
+(:mod:`~flip.covariance.emulators.nnmatrix`) -- to avoid recomputing the
+covariance from scratch at every likelihood call.
+"""
+
 import importlib
 
 import numpy as np
@@ -208,7 +219,14 @@ def return_evaluation_functions(
                 parameter_values_dict,
                 return_emulator_variance=False,
             ):
+                """Emulate the full square covariance at the given parameters.
 
+                Evaluates the trained diagonal and off-diagonal emulators at
+                ``parameter_values_dict`` and reassembles the symmetric covariance
+                matrix. If ``return_emulator_variance`` is True, also returns the
+                emulator's own prediction variance for the diagonal and
+                off-diagonal parts.
+                """
                 parameter_value = [
                     parameter_values_dict[name] for name in emulator_parameter_names
                 ]
@@ -243,11 +261,18 @@ def return_evaluation_functions(
 
             def evaluation_function(
                 parameter_values_dict,
-                number_densities, 
+                number_densities,
                 number_velocities,
                 return_emulator_variance=False,
             ):
+                """Emulate the cross (density x velocity) covariance block.
 
+                Evaluates the trained off-diagonal emulator at
+                ``parameter_values_dict`` and rebuilds the rectangular
+                density-velocity covariance from ``number_densities`` and
+                ``number_velocities``. Optionally returns the emulator's own
+                prediction variance.
+                """
                 parameter_value = [
                     parameter_values_dict[name] for name in emulator_parameter_names
                 ]

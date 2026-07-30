@@ -1,3 +1,13 @@
+"""Power-spectrum generation front-end.
+
+Dispatches to a cosmology engine (CLASS, cosmoprimo or pyCCL) to obtain the
+linear (and optionally non-linear) matter power spectrum, then applies a
+:mod:`flip.power_spectra.models` prescription to build the matter-matter (mm),
+matter-velocity-divergence (mt) and velocity-velocity (tt) spectra that feed the
+covariance models. Also handles amplitude/growth normalization and optional
+saving to disk. The public entry point is :func:`compute_power_spectra`.
+"""
+
 import importlib
 import os
 

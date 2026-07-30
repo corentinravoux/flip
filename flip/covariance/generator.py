@@ -1,3 +1,14 @@
+"""Covariance block generation from power spectra.
+
+Turns a model's k-space multipole kernels and the input power spectra into the
+real-space covariance blocks stored in :class:`flip.covariance.covariance.CovMatrix`.
+Provides the two integration back-ends -- direct quadrature
+(:func:`correlation_integration`) and the fast FFTLog / Hankel transform
+(:func:`correlation_hankel`, via :mod:`flip.covariance.hankel`) -- together with
+the coordinate pre-computation and coefficient assembly that build the full
+density/velocity/cross covariance for a given model and geometry.
+"""
+
 import importlib
 import multiprocessing as mp
 from functools import partial

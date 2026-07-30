@@ -1,3 +1,12 @@
+"""Neural-network covariance emulator (PyTorch backend).
+
+Trains a fully connected neural network (:class:`RegressionNet`, PyTorch) to
+regress the covariance-matrix entries against the model parameters, as one of the
+interchangeable emulator backends used by
+:mod:`flip.covariance.emulators.generator`. Requires ``torch``; the module loads
+gracefully with the emulator disabled when it is absent.
+"""
+
 import numpy as np
 
 from flip.utils import create_log
@@ -28,6 +37,13 @@ _emulator_type = "matrix"
 
 
 class RegressionNet(default_regression_object):
+    """Fully connected neural network emulating covariance matrix entries.
+
+    A configurable multilayer perceptron (``torch.nn.Module``) used by the neural
+    emulator to regress covariance-matrix entries as a function of the model
+    parameters. Available only when PyTorch is installed.
+    """
+
     def __init__(
         self,
         input_dimension,

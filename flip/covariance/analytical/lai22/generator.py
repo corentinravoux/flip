@@ -1,3 +1,12 @@
+"""Direct covariance generator for the Lai et al. (2022) model.
+
+Builds the density/velocity/cross covariance blocks by evaluating the Lai et al.
+(2022) correlation-coefficient formalism, either through direct integration or via
+the :class:`flip.covariance.hankel.PowerToCorrelation` transform, then summing the
+angular multipole terms per object pair. Serves as the reference generator for the
+``lai22`` model.
+"""
+
 import itertools
 import multiprocessing as mp
 from functools import partial

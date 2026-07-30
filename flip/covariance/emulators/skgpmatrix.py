@@ -1,3 +1,12 @@
+"""Gaussian-process covariance emulator (scikit-learn backend).
+
+Trains a Gaussian-process regression of the covariance-matrix entries against the
+model parameters using ``scikit-learn`` (a lighter-weight alternative to the GPy
+backend), returning the predicted value and its variance. Used by
+:mod:`flip.covariance.emulators.generator` as one of the interchangeable emulator
+backends.
+"""
+
 import numpy as np
 
 from flip.utils import create_log

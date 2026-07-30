@@ -1,3 +1,11 @@
+"""Plotting helpers for covariances and fit results.
+
+Diagnostic plots for the covariance and inference steps: 1D and 2D visualizations
+of a model contraction (predicted covariance vs separation), the correlation
+implied by a likelihood, and summary plots of many fits (individual and mean
+best-fit parameters), plus helpers to select valid fits from a batch.
+"""
+
 import glob
 import os
 import pickle

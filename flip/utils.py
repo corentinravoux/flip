@@ -1,3 +1,13 @@
+"""Shared utilities for flip.
+
+Small building blocks used across the package: the logger factory
+(:func:`create_log` / :class:`Logger`), coordinate transforms between sky and
+Cartesian frames (and their Jacobian), the small-scale velocity damping
+:func:`Du`, dictionary helpers, and the prior classes
+(:class:`GaussianPrior`, :class:`PositivePrior`, :class:`UniformPrior`) plus their
+factory :func:`return_prior` and combiner :func:`prior_sum`.
+"""
+
 import logging
 import time
 
@@ -61,7 +71,20 @@ def spherical_to_cartesian(ra, dec, rcom):
 
 
 def spherical_to_cartesian_jacobian(ra, dec, rcom):
+    """Jacobian of the spherical-to-Cartesian transform.
 
+    Returns the matrix of partial derivatives of ``(x, y, z)`` with respect to
+    ``(rcom, ra, dec)``, used to propagate covariances from sky to Cartesian
+    coordinates.
+
+    Args:
+        ra (array-like): Right ascension (radians).
+        dec (array-like): Declination (radians).
+        rcom (array-like): Comoving distance (Mpc/h).
+
+    Returns:
+        numpy.ndarray: ``(3, 3, ...)`` Jacobian array.
+    """
     if isinstance(rcom, np.ndarray):
         null_component = np.zeros_like(rcom)
     else:
@@ -157,6 +180,13 @@ _logging_handler = None
 
 
 class Logger(object):
+    """Thin wrapper around the standard :mod:`logging` module.
+
+    Configures a stream (or file) handler with elapsed-time-stamped formatting and
+    exposes small static helpers (:meth:`add`, :meth:`add_array_statistics`) used
+    throughout flip for consistent progress reporting.
+    """
+
     def __init__(self, name="Python_Report", log_level="info"):
         """Initialize Logger wrapper.
 
@@ -179,7 +209,10 @@ class Logger(object):
         t0 = time.time()
 
         class Formatter(logging.Formatter):
+            """Log formatter prefixing each record with elapsed seconds."""
+
             def format(self, record):
+                """Prepend the elapsed time since logger creation to the record."""
                 s1 = "[ %09.2f ]: " % (time.time() - t0)
                 return s1 + logging.Formatter.format(self, record)
 
@@ -249,6 +282,20 @@ def return_prior(
     parameter_name,
     prior_properties,
 ):
+    """Build a prior object from a properties dictionary.
+
+    Args:
+        parameter_name (str): Name of the parameter the prior applies to.
+        prior_properties (dict): Must contain ``type`` (one of ``"gaussian"``,
+            ``"positive"``, ``"uniform"``) plus the type-specific keys
+            (``mean``/``standard_deviation`` for Gaussian, ``range`` for uniform).
+
+    Returns:
+        Prior: The corresponding prior instance.
+
+    Raises:
+        ValueError: If ``type`` is not one of the available priors.
+    """
     if prior_properties["type"].lower() not in _available_priors:
         raise ValueError(
             f"""The prior type {prior_properties["type"]} is not available"""
@@ -284,6 +331,7 @@ class Prior:
         self,
         parameter_name=None,
     ):
+        """Store the name of the parameter this prior applies to."""
         self.parameter_name = parameter_name
 
 
@@ -299,6 +347,7 @@ class GaussianPrior(Prior):
         prior_mean=None,
         prior_standard_deviation=None,
     ):
+        """Store the Gaussian prior mean and standard deviation."""
         super().__init__(parameter_name=parameter_name)
         self.prior_mean = prior_mean
         self.prior_standard_deviation = prior_standard_deviation
@@ -332,6 +381,7 @@ class PositivePrior(Prior):
         self,
         parameter_name=None,
     ):
+        """Initialize a positivity prior on the parameter."""
         super().__init__(parameter_name=parameter_name)
 
     def __call__(
@@ -356,6 +406,7 @@ class UniformPrior(Prior):
     """
 
     def __init__(self, parameter_name=None, range=None):
+        """Store the uniform prior interval ``range = [low, high]``."""
         super().__init__(parameter_name=parameter_name)
         self.range = range
 

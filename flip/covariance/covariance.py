@@ -1,3 +1,14 @@
+"""Covariance matrix container and assembly.
+
+Defines :class:`CovMatrix`, the central object holding the model covariance blocks
+(density-density, velocity-velocity and their cross term) for a given analytical
+model and set of coordinates. It is built from flip coefficients and terms
+(``CovMatrix.init_from_flip``), can be saved/loaded, and exposes the
+``compute_covariance_sum`` machinery that combines the pre-computed model blocks
+with parameter-dependent coefficients to form the total covariance entering the
+likelihood and Fisher forecasts.
+"""
+
 import importlib
 import pickle
 import time

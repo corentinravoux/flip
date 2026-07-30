@@ -1,3 +1,11 @@
+"""Direct covariance generator for the Carreres et al. (2023) velocity model.
+
+Builds the velocity-velocity covariance block by direct numerical integration of
+the velocity power spectrum against spherical Bessel functions, parallelized over
+object pairs. Exposes :func:`covariance_vv`, the reference velocity covariance
+used by the ``carreres23`` model.
+"""
+
 import multiprocessing as mp
 from functools import partial
 

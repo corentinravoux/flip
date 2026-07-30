@@ -1,3 +1,12 @@
+"""Model contraction: predicting the covariance at a pair separation.
+
+Defines :class:`Contraction`, which evaluates an analytical model's covariance
+for an arbitrary set of separations rather than for a fixed data catalog. It
+contracts the model's angular functions and coefficients with the multipole
+terms to predict the density/velocity/cross covariance as a function of
+separation coordinates, which is convenient for plotting and validating models.
+"""
+
 import importlib
 
 import numpy as np

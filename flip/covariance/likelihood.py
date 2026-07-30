@@ -1,3 +1,13 @@
+"""Likelihoods built from a covariance and a data vector.
+
+Combines a :class:`flip.covariance.covariance.CovMatrix` with a data vector into
+a callable Gaussian likelihood used by the fitters. Provides the base machinery
+(prior handling, covariance inversion method selection, optional JAX JIT and
+gradients) and concrete likelihoods: the plain multivariate Gaussian and its
+variants that interpolate the covariance over one or two nuisance parameters
+(e.g. the small-scale dispersion ``sigma_g``) for speed.
+"""
+
 import abc
 from functools import partial
 
@@ -180,6 +190,21 @@ class BaseLikelihood(abc.ABC):
         parameter_names=None,
         likelihood_properties={},
     ):
+        """Wire up covariance, data and properties, then build the likelihood.
+
+        Merges ``likelihood_properties`` with the class defaults, validates the
+        covariance and inversion method, assembles the combined free-parameter
+        list, initializes the prior and builds the callable likelihood (and its
+        gradient when available).
+
+        Args:
+            covariance (CovMatrix|list[CovMatrix]): Covariance model(s) to use.
+            data (object): Data provider exposing ``free_par`` and
+                ``give_data_and_variance``.
+            parameter_names (list[str]|None): Ordered parameter names.
+            likelihood_properties (dict): Overrides for inversion method, sign,
+                JIT and gradient options.
+        """
         self.covariance = covariance
         self.data = data
         self.parameter_names = parameter_names
@@ -338,6 +363,7 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
         parameter_names=None,
         likelihood_properties={},
     ):
+        """Initialize a single-model Gaussian likelihood (see :class:`BaseLikelihood`)."""
         super(MultivariateGaussianLikelihood, self).__init__(
             covariance=covariance,
             data=data,

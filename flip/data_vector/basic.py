@@ -141,6 +141,16 @@ class DataVector(abc.ABC):
             self.give_data_and_variance_jit = jit(self.give_data_and_variance)
 
     def check_covariance_observation(self):
+        """Validate the shape of a user-supplied observation covariance.
+
+        Ensures ``covariance_observation`` is ``(D*N, D*N)`` where ``N`` is the
+        number of data points and ``D`` the per-point dimension declared by the
+        subclass (``_number_dimension_observation_covariance``). Does nothing when
+        no observation covariance was provided.
+
+        Raises:
+            ValueError: If the covariance shape does not match ``D*N x D*N``.
+        """
         if self._covariance_observation is not None:
             if self._covariance_observation.shape != (
                 self._number_dimension_observation_covariance * self._number_datapoints,
@@ -220,6 +230,16 @@ class DataVector(abc.ABC):
 
 
 class Dens(DataVector):
+    """Density-contrast data vector.
+
+    Wraps a measured density field ``density`` with its per-point error
+    ``density_error`` (or a full observation covariance). Used to build the
+    density-density block of the covariance and the density likelihood.
+
+    Required keys:
+        ``density``, ``density_error``.
+    """
+
     _kind = "density"
     _needed_keys = ["density", "density_error"]
     _free_par = []
@@ -238,10 +258,31 @@ class Dens(DataVector):
         return self._data["density"], self._data["density_error"] ** 2
 
     def __init__(self, data, covariance_observation=None):
+        """Initialize the density vector.
+
+        Args:
+            data (dict): Must contain ``density`` and ``density_error`` plus the
+                coordinate keys required by the chosen covariance model.
+            covariance_observation (ndarray|None): Optional full density
+                covariance replacing the diagonal ``density_error**2``.
+        """
         super().__init__(data, covariance_observation=covariance_observation)
 
 
 class DirectVel(DataVector):
+    """Peculiar-velocity data vector from directly measured velocities.
+
+    Wraps line-of-sight peculiar velocities ``velocity`` (km/s) with their error
+    ``velocity_error`` (or a full observation covariance). If the data contain a
+    ``host_group_id`` column, velocities sharing a host are averaged through a
+    host matrix (see :func:`flip.data_vector.vector_utils.compute_host_matrix`),
+    which is important for e.g. multiple SNe Ia in the same galaxy.
+
+    Required keys:
+        ``velocity`` (and ``velocity_error`` when no observation covariance is
+        provided).
+    """
+
     _kind = "velocity"
     _needed_keys = ["velocity"]
     _free_par = []
@@ -250,17 +291,39 @@ class DirectVel(DataVector):
 
     @property
     def conditional_needed_keys(self):
+        """Add ``velocity_error`` to the required keys when no covariance is set.
+
+        Returns:
+            list[str]: ``["velocity_error"]`` if no observation covariance was
+            supplied, otherwise an empty list.
+        """
         cond_keys = []
         if self._covariance_observation is None:
             cond_keys += ["velocity_error"]
         return cond_keys
 
     def give_data_and_variance(self, *args):
+        """Return velocities and their variance.
+
+        Returns:
+            tuple: ``(velocity, velocity_error**2)`` for the diagonal case, or
+            ``(velocity, covariance_observation)`` when a full covariance is set.
+        """
         if self._covariance_observation is not None:
             return self._data["velocity"], self._covariance_observation
         return self._data["velocity"], self._data["velocity_error"] ** 2
 
     def __init__(self, data, covariance_observation=None):
+        """Initialize the velocity vector, optionally grouping shared hosts.
+
+        Args:
+            data (dict): Must contain ``velocity`` (and ``velocity_error`` when no
+                observation covariance is given) plus the coordinate keys required
+                by the covariance model. An optional ``host_group_id`` triggers
+                host averaging of velocities sharing the same host.
+            covariance_observation (ndarray|None): Optional full velocity
+                covariance replacing the diagonal ``velocity_error**2``.
+        """
         super().__init__(data, covariance_observation=covariance_observation)
 
         if "host_group_id" in self._data:
@@ -299,6 +362,13 @@ class DirectVel(DataVector):
 
 
 class DensMesh(Dens):
+    """Density vector defined on a regular mesh built from a sky catalog.
+
+    Same data/variance behaviour as :class:`Dens`, but adds
+    :meth:`init_from_catalog` to grid an object catalog into a density field on a
+    Cartesian mesh via :func:`flip.data_vector.mesh.grid_data_density`.
+    """
+
     _kind = "density"
     _needed_keys = ["density", "density_error"]
     _free_par = []
@@ -317,6 +387,7 @@ class DensMesh(Dens):
         return self._data["density"], self._data["density_error"] ** 2
 
     def __init__(self, data, covariance_observation=None):
+        """Initialize from a pre-gridded density dictionary (see :class:`Dens`)."""
         super().__init__(data, covariance_observation=covariance_observation)
 
     @classmethod
@@ -329,6 +400,21 @@ class DensMesh(Dens):
         kind,
         **kwargs,
     ):
+        """Build a :class:`DensMesh` by gridding a sky catalog onto a mesh.
+
+        Args:
+            data_position_sky (dict): Sky positions (and comoving distances) of
+                the objects to grid.
+            rcom_max (float): Comoving half-size of the box (Mpc/h).
+            grid_size (float): Cell size of the mesh (Mpc/h).
+            grid_type (str): Mesh geometry passed to
+                :func:`flip.data_vector.mesh.grid_data_density`.
+            kind (str): Density estimator / normalization convention.
+            **kwargs: Extra options forwarded to the mesh gridder.
+
+        Returns:
+            DensMesh: Vector wrapping the gridded density and its error.
+        """
         grid = mesh.grid_data_density(
             data_position_sky,
             rcom_max,
@@ -342,6 +428,14 @@ class DensMesh(Dens):
 
 
 class DirectVelMesh(DirectVel):
+    """Velocity vector defined on a regular mesh built from a sky catalog.
+
+    Same data/variance behaviour as :class:`DirectVel`, but adds
+    :meth:`init_from_catalog` to grid a velocity catalog into a momentum/velocity
+    field on a Cartesian mesh via
+    :func:`flip.data_vector.mesh.grid_data_velocity`.
+    """
+
     _kind = "velocity"
     _needed_keys = ["velocity", "velocity_error"]
     _free_par = []
@@ -360,6 +454,7 @@ class DirectVelMesh(DirectVel):
         return self._data["velocity"], self._data["velocity_error"] ** 2
 
     def __init__(self, data, covariance_observation=None):
+        """Initialize from a pre-gridded velocity dictionary (see :class:`DirectVel`)."""
         super().__init__(data, covariance_observation=covariance_observation)
 
     @classmethod
@@ -373,6 +468,23 @@ class DirectVelMesh(DirectVel):
         kind,
         **kwargs,
     ):
+        """Build a :class:`DirectVelMesh` by gridding a velocity catalog.
+
+        Args:
+            data_position_sky (dict): Sky positions (and comoving distances) of
+                the objects to grid.
+            data (dict): Must contain ``velocity`` and ``velocity_error`` for the
+                objects, used to grid the velocity field and its variance.
+            rcom_max (float): Comoving half-size of the box (Mpc/h).
+            grid_size (float): Cell size of the mesh (Mpc/h).
+            grid_type (str): Mesh geometry passed to
+                :func:`flip.data_vector.mesh.grid_data_velocity`.
+            kind (str): Velocity estimator / normalization convention.
+            **kwargs: Extra options forwarded to the mesh gridder.
+
+        Returns:
+            DirectVelMesh: Vector wrapping the gridded velocity and its error.
+        """
         grid_velocity = mesh.grid_data_velocity(
             data_position_sky,
             rcom_max,
@@ -388,6 +500,21 @@ class DirectVelMesh(DirectVel):
 
 
 class VelFromHDres(DataVector):
+    """Peculiar velocities derived from Hubble-diagram residuals.
+
+    Converts distance-modulus residuals ``dmu`` (:math:`\\Delta\\mu`) into
+    peculiar velocities using a redshift-dependent estimator
+    :math:`\\hat{v} = J(z)\\,(\\Delta\\mu - M_0)`, where the coefficient
+    :math:`J(z)` is selected by ``velocity_estimator`` (see
+    :func:`flip.data_vector.vector_utils.redshift_dependence_velocity` and the
+    "Velocity estimators" documentation page). ``M_0`` is a free zero-point
+    parameter of the fit.
+
+    Required keys:
+        ``dmu``, ``zobs`` (and ``dmu_error`` when no observation covariance is
+        provided).
+    """
+
     _kind = "velocity"
     _needed_keys = ["dmu", "zobs"]
     _free_par = ["M_0"]
@@ -396,12 +523,30 @@ class VelFromHDres(DataVector):
 
     @property
     def conditional_needed_keys(self):
+        """Add ``dmu_error`` to the required keys when no covariance is set.
+
+        Returns:
+            list[str]: Base keys plus ``["dmu_error"]`` when no observation
+            covariance was supplied.
+        """
         cond_keys = []
         if self._covariance_observation is None:
             cond_keys += ["dmu_error"]
         return self._needed_keys + cond_keys
 
     def give_data_and_variance(self, parameter_values_dict):
+        """Convert HD residuals into velocities and propagate the variance.
+
+        Args:
+            parameter_values_dict (dict): Fit parameters; must include ``M_0``
+                and any parameters required by the chosen velocity estimator
+                (e.g. ``q0``, ``j0`` for the Hubble high-order estimator).
+
+        Returns:
+            tuple: ``(velocity, velocity_variance)`` where ``velocity_variance``
+            is diagonal (:math:`(J\\,\\sigma_{\\Delta\\mu})^2`) or the full
+            :math:`J\\,C_{\\Delta\\mu}\\,J^T` when an observation covariance is set.
+        """
         distance_modulus_difference_to_velocity = (
             vector_utils.redshift_dependence_velocity(
                 self._data, self.velocity_estimator, **parameter_values_dict
@@ -428,13 +573,36 @@ class VelFromHDres(DataVector):
     def __init__(
         self, data, covariance_observation=None, velocity_estimator="full", **kwargs
     ):
+        """Initialize the HD-residual velocity vector.
 
+        Args:
+            data (dict): Must contain ``dmu`` and ``zobs`` (and ``dmu_error`` when
+                no observation covariance is given), plus any fields required by
+                the estimator (e.g. ``hubble_norm``, ``rcom_zobs`` for ``"full"``).
+            covariance_observation (ndarray|None): Optional full covariance of the
+                distance-modulus residuals.
+            velocity_estimator (str): Estimator name selecting :math:`J(z)`; one of
+                ``"full"``, ``"watkins"``, ``"lowz"``, ``"hubble highorder"``.
+            **kwargs: Extra options forwarded to the base class.
+        """
         self.velocity_estimator = velocity_estimator
 
         super().__init__(data, covariance_observation=covariance_observation)
 
 
 class VelFromIntrinsicScatter(DataVector):
+    """Velocity contribution from the intrinsic magnitude scatter.
+
+    Models the peculiar-velocity noise induced by the intrinsic magnitude
+    scatter :math:`\\sigma_M` of standard candles: a random distance modulus of
+    dispersion ``sigma_M`` mapped to velocity through :math:`J(z)`. The mean is a
+    random realization; the variance is :math:`J(z)^2\\,\\sigma_M^2`. Useful as an
+    additive velocity term whose amplitude ``sigma_M`` is fitted.
+
+    Required keys:
+        ``zobs``.
+    """
+
     _kind = "velocity"
     _needed_keys = ["zobs"]
     _free_par = ["sigma_M"]
@@ -442,6 +610,16 @@ class VelFromIntrinsicScatter(DataVector):
     _parameters_observation_covariance = []
 
     def give_data_and_variance(self, parameter_values_dict):
+        """Return the scatter-induced velocity realization and its variance.
+
+        Args:
+            parameter_values_dict (dict): Must include ``sigma_M`` and any
+                parameters required by the chosen velocity estimator.
+
+        Returns:
+            tuple: ``(velocity, velocity_variance)`` with variance
+            :math:`J(z)^2\\,\\sigma_M^2`.
+        """
         distance_modulus_difference_to_velocity = (
             vector_utils.redshift_dependence_velocity(
                 self._data, self.velocity_estimator, **parameter_values_dict
@@ -467,22 +645,44 @@ class VelFromIntrinsicScatter(DataVector):
         )
 
     def __init__(self, data, velocity_estimator="full"):
+        """Initialize the intrinsic-scatter velocity vector.
+
+        Args:
+            data (dict): Must contain ``zobs`` plus any fields required by the
+                estimator.
+            velocity_estimator (str): Estimator name selecting :math:`J(z)`.
+        """
         super().__init__(data)
         self.velocity_estimator = velocity_estimator
 
 
 class DensVel(DataVector):
+    """Joint density x velocity (cross) data vector.
+
+    Concatenates a density vector and a velocity vector so a single fit can use
+    the density-density, velocity-velocity and density-velocity cross covariance
+    blocks. Observation covariance on the velocity side combined with density is
+    not yet supported.
+    """
+
     _kind = "cross"
 
     @property
     def needed_keys(self):
+        """Union of the required keys of the density and velocity sub-vectors."""
         return self.densities.needed_keys + self.velocities.needed_keys
 
     @property
     def free_par(self):
+        """Concatenated free parameters of the density and velocity sub-vectors."""
         return self.densities.free_par + self.velocities.free_par
 
     def give_data_and_variance(self, *args):
+        """Stack density and velocity data and their (diagonal) variances.
+
+        Returns:
+            tuple: ``(data, variance)`` with density entries first, then velocity.
+        """
         data_density, density_variance = self.densities.give_data_and_variance(*args)
         data_velocity, velocity_variance = self.velocities.give_data_and_variance(*args)
         data = jnp.hstack((data_density, data_velocity))
@@ -490,6 +690,17 @@ class DensVel(DataVector):
         return data, variance
 
     def __init__(self, density_vector, velocity_vector):
+        """Initialize from an existing density and velocity vector.
+
+        Args:
+            density_vector (DataVector): A density-kind vector (e.g. :class:`Dens`).
+            velocity_vector (DataVector): A velocity-kind vector (e.g.
+                :class:`DirectVel`).
+
+        Raises:
+            NotImplementedError: If the velocity vector carries a full observation
+                covariance (not yet supported in the cross case).
+        """
         self.densities = density_vector
         self.velocities = velocity_vector
 
@@ -502,7 +713,23 @@ class DensVel(DataVector):
             self.give_data_and_variance_jit = jit(self.give_data_and_variance)
 
     def compute_covariance(self, model, power_spectrum_dict, **kwargs):
+        """Build the full density+velocity :class:`CovMatrix` for this pair.
 
+        Extracts ``(ra, dec, rcom_zobs)`` coordinates for both the density and
+        velocity sub-vectors and initializes the ``"full"`` covariance (all three
+        blocks) for the requested model.
+
+        Args:
+            model (str): Covariance model name under ``flip.covariance.analytical``.
+            power_spectrum_dict (dict): Power spectra inputs for the model.
+            **kwargs: Model-specific options.
+
+        Returns:
+            CovMatrix: Full cross covariance object.
+
+        Raises:
+            ImportError: If ``flip.covariance`` could not be imported.
+        """
         if CovMatrix is None:
             raise ImportError(
                 "flip.covariance module is not loaded."

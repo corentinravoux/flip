@@ -1,3 +1,16 @@
+"""Type-Ia supernova peculiar-velocity data vectors.
+
+Data vectors that turn SN Ia light-curve fit parameters into peculiar
+velocities. :class:`VelTrippRelation` standardizes SALT2 parameters
+(:math:`m_b`, :math:`x_1`, :math:`c`) through the Tripp relation,
+:math:`\\mu = m_b + \\alpha x_1 - \\beta c - M_0`, and converts the resulting
+Hubble-diagram residual into a velocity with a redshift-dependent estimator.
+:class:`VelCandleStandardized` handles already-standardized standard candles
+(a single ``mb`` per object). Both propagate measurement errors (or a full
+observation covariance) plus an intrinsic scatter ``sigma_M`` into the velocity
+variance, and support host grouping.
+"""
+
 from flip.utils import create_log
 
 from .._config import __use_jax__
@@ -36,6 +49,15 @@ def _variance_from_errors(
     beta,
     sigma_M,
 ):
+    """Propagate SALT2 fit errors into the distance-modulus variance.
+
+    Combines the diagonal errors and cross-covariances of ``mb``, ``x1`` and
+    ``c`` through the Tripp relation coefficients ``alpha``/``beta`` and adds the
+    intrinsic scatter ``sigma_M**2``.
+
+    Returns:
+        ndarray: Per-object distance-modulus variance.
+    """
     variance = e_mb**2 + alpha**2 * e_x1**2 + beta**2 * e_c**2
     variance += (
         2 * alpha * cov_mb_x1 - 2 * beta * cov_mb_c - 2 * alpha * beta * cov_x1_c
@@ -50,7 +72,15 @@ def _variance_from_covariance(
     beta,
     sigma_M,
 ):
+    """Propagate a full SALT2 observation covariance to distance modulus.
 
+    Builds the Jacobian ``[1, alpha, -beta] (x) I`` of the Tripp relation, maps
+    the ``3N x 3N`` observation covariance to the ``N x N`` distance-modulus
+    covariance, and adds ``sigma_M**2`` on the diagonal.
+
+    Returns:
+        ndarray: ``N x N`` distance-modulus covariance.
+    """
     weights_observation_covariance = jnp.array(
         [
             1.0,
@@ -76,6 +106,20 @@ if jax_installed:
 
 
 class VelTrippRelation(DataVector):
+    """Velocity vector from SALT2 SN Ia parameters via the Tripp relation.
+
+    Standardizes the SALT2 light-curve parameters through
+    :math:`\\mu = m_b + \\alpha x_1 - \\beta c - M_0` (optionally with a host-mass
+    step / ``gamma`` term), forms the Hubble-diagram residual against the
+    fiducial :math:`5\\log_{10}[(1+z)r(z)/h] + 25`, and converts it to a
+    peculiar velocity with the chosen redshift estimator. ``alpha``, ``beta``,
+    ``M_0`` and ``sigma_M`` are free parameters of the fit.
+
+    Required keys:
+        ``zobs``, ``mb``, ``x1``, ``c``, ``rcom_zobs`` (plus the SALT2 errors and
+        cross-covariances when no observation covariance is provided).
+    """
+
     _kind = "velocity"
     _needed_keys = ["zobs", "mb", "x1", "c", "rcom_zobs"]
     _free_par = ["alpha", "beta", "M_0", "sigma_M"]
@@ -318,6 +362,18 @@ class VelTrippRelation(DataVector):
 
 
 class VelCandleStandardized(DataVector):
+    """Velocity vector from already-standardized standard candles.
+
+    Like :class:`VelTrippRelation` but for candles whose magnitude ``mb`` is
+    already standardized, so the distance modulus is simply
+    :math:`\\mu = m_b - M_0` with only ``M_0`` and ``sigma_M`` as free
+    parameters. Converts the resulting Hubble-diagram residual into a peculiar
+    velocity with the chosen redshift estimator.
+
+    Required keys:
+        ``zobs``, ``mb`` (plus ``e_mb`` when no observation covariance is set).
+    """
+
     _kind = "velocity"
     _needed_keys = ["zobs", "mb"]
     _free_par = ["M_0", "sigma_M"]

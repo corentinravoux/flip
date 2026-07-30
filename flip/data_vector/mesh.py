@@ -1,3 +1,16 @@
+"""Gridding of object/velocity catalogs onto Cartesian meshes.
+
+Utilities that paint sky catalogs onto a regular 3D mesh to build the gridded
+density and velocity fields consumed by the mesh data vectors
+(:class:`flip.data_vector.basic.DensMesh`,
+:class:`flip.data_vector.basic.DirectVelMesh`,
+:class:`flip.data_vector.gw_vectors.GWDensMesh`). Supports several mass
+assignment schemes (NGP/CIC/TSC/PCS) with grid-window deconvolution, random
+catalogs for the density normalization, rectangular or spherical survey cuts,
+and kernel-based painting for probabilistic (e.g. gravitational-wave)
+localizations. Painting uses ``pmesh`` when available.
+"""
+
 try:
     from pmesh.pm import ParticleMesh
 except ImportError:
@@ -212,6 +225,7 @@ def define_randoms(
     """
 
     def _needed_params(needed_parameter):
+        """Raise ValueError if any required argument for the method is None."""
         for p in needed_parameter:
             if p is None:
                 raise ValueError(
@@ -370,6 +384,7 @@ def create_mesh(
     _slab_npoints_max = int(1024 * 1024 * 4)
 
     def paint(positions, weights, scaling, out, transform=None):
+        """Paint weighted positions onto ``out`` in memory-bounded slabs."""
         positions = positions - offset
         factor = 0.5
         if not np.isfinite(positions).all():
@@ -380,6 +395,7 @@ def create_mesh(
             weights = weights * scaling
 
         def paint_slab(sl):
+            """Decompose, exchange and paint a single slab of particles."""
             p = positions[sl]
             size = len(p)
             layout = pm.decompose(p, smoothing=factor * _grid_order_dict[assignement])
@@ -470,6 +486,17 @@ def cut_grid_type(
     grid_type,
     rcom_max,
 ):
+    """Apply the survey-geometry cut matching ``grid_type`` in-place.
+
+    Dispatches to :func:`cut_grid` with the appropriate bounds: a cube of
+    half-side ``rcom_max`` for ``"rect"``, or a sphere of radius ``rcom_max``
+    for ``"sphere"``. The origin cell is removed in both cases.
+
+    Args:
+        grid (dict): Grid dictionary to modify in-place.
+        grid_type (str): Either ``"rect"`` or ``"sphere"``.
+        rcom_max (float): Comoving half-size / radius of the retained region (Mpc/h).
+    """
     if grid_type == "rect":
         cut_grid(
             grid,
@@ -498,7 +525,29 @@ def prepare_data_position_kernel(
     coord_randoms=None,
     seed=None,
 ):
+    """Convert per-object sky localization kernels to Cartesian samples.
 
+    For each object, transforms its kernel samples given in sky coordinates
+    ``(ra, dec, rcom)`` into Cartesian ``(x, y, z)`` samples, and optionally
+    builds a random catalog for the density normalization.
+
+    Args:
+        data_position_sky_kernel (list[ndarray]): One ``(3, n_samples)`` array of
+            sky-coordinate kernel samples per object.
+        rcom_max (float): Maximum comoving radius of the retained region (Mpc/h).
+        overhead (float): Padding added to the mesh extent for the randoms.
+        random_method (str, optional): Random generation method passed to
+            :func:`define_randoms`; if None no randoms are built.
+        Nrandom (int, optional): Number of random points per object.
+        coord_randoms (tuple, optional): Input random sky coordinates for the
+            ``"file"`` random method.
+        seed (int, optional): Random seed used when generating randoms.
+
+    Returns:
+        tuple: ``(data_position_kernel, randoms_positions)`` where the first item
+        is a list of ``(n_samples, 3)`` Cartesian arrays and the second is the
+        ``(N_random, 3)`` random positions or None.
+    """
     data_position_kernel = []
     for i in range(len(data_position_sky_kernel)):
         kernel = data_position_sky_kernel[i]

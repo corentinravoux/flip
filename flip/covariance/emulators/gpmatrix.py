@@ -1,3 +1,12 @@
+"""Gaussian-process covariance emulator (GPy backend).
+
+Trains a Gaussian-process regression (via ``GPy``) of the covariance-matrix
+entries against the model parameters, returning both the predicted value and the
+emulator's own prediction variance. Used by
+:mod:`flip.covariance.emulators.generator` as one of the interchangeable
+emulator backends.
+"""
+
 import numpy as np
 
 from flip.utils import create_log

@@ -1,3 +1,12 @@
+"""Fisher-matrix forecasts.
+
+Defines :class:`FisherMatrix`, which builds the Gaussian Fisher information for a
+covariance model from the traces
+:math:`F_{ij} = \\tfrac{1}{2}\\,\\mathrm{Tr}[C^{-1} \\partial_i C\\, C^{-1} \\partial_j C]`.
+Used to forecast parameter uncertainties (e.g. on :math:`f\\sigma_8`) without
+running a full fit, given a covariance, its inverse and a fiducial parameter set.
+"""
+
 import importlib
 
 from flip.utils import create_log
@@ -99,7 +108,18 @@ class FisherMatrix:
         data_free_par=None,
         parameter_values_dict=None,
     ):
+        """Store the covariance, its inverse and the parameter set.
 
+        Args:
+            covariance (CovMatrix): Covariance model whose derivatives enter the
+                Fisher information.
+            inverse_covariance_sum (ndarray): Precomputed :math:`C^{-1}` of the
+                total (model + data) covariance, reused across trace evaluations.
+            data_free_par (list[str]|None): Extra free parameters contributed by
+                the data vector, appended to the covariance free parameters.
+            parameter_values_dict (dict): Parameter values at which the Fisher
+                matrix is evaluated.
+        """
         self.covariance = covariance
         self.inverse_covariance_sum = inverse_covariance_sum
         self.parameter_values_dict = parameter_values_dict

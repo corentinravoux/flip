@@ -1,3 +1,13 @@
+"""Symbolic derivation of covariance terms and coefficients.
+
+Offline ``sympy`` machinery that derives, per analytical model, the k-space
+multipole kernels (``M_ij``), angular functions (``N_ij``) and Fisher
+coefficient dictionaries, and writes them out as the generated
+``flip_terms.py`` / ``coefficients.py`` / ``fisher_terms.py`` modules used at
+runtime. This is a code-generation utility run when adding or updating a model,
+not part of the per-fit hot path.
+"""
+
 import itertools
 import multiprocessing as mp
 

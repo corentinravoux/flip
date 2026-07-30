@@ -1,6 +1,15 @@
 ### This code is adapted from cosmoprimo (https://github.com/cosmodesi/cosmoprimo)
 ### Special thanks to the GOAT Arnaud de Mattia.
 
+"""FFTLog / Hankel transforms between power spectrum and correlation.
+
+Fast log-spaced (FFTLog) transforms used to go from a power spectrum
+:math:`P(k)` to its real-space multipole correlation :math:`\\xi_\\ell(r)` (and
+back). Provides the :class:`PowerToCorrelation` transform and the spherical
+Bessel kernels it relies on, giving the covariance generators an accurate,
+much faster alternative to direct quadrature. Adapted from cosmoprimo.
+"""
+
 import os
 
 import numpy as np
@@ -505,9 +514,11 @@ class BaseKernel(object):
     """Base kernel."""
 
     def __call__(self, z):
+        """Evaluate the kernel at ``z`` (delegates to :meth:`eval`)."""
         return self.eval(z)
 
     def __eq__(self, other):
+        """Kernels are equal when they are of the same class."""
         return other.__class__ == self.__class__
 
 
@@ -515,9 +526,11 @@ class BaseBesselKernel(BaseKernel):
     """Base Bessel kernel."""
 
     def __init__(self, nu):
+        """Store the Bessel order ``nu`` of the kernel."""
         self.nu = nu
 
     def __eq__(self, other):
+        """Bessel kernels are equal when class and order ``nu`` match."""
         return other.__class__ == self.__class__ and other.nu == self.nu
 
 
@@ -525,6 +538,7 @@ class SphericalBesselJKernel(BaseBesselKernel):
     """(Mellin transform of) spherical Bessel kernel."""
 
     def eval(self, z):
+        """Return the Mellin-transform kernel of the spherical Bessel function."""
         return np.exp(
             np.log(2) * (z - 1.5)
             + loggamma(0.5 * (self.nu + z))

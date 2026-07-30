@@ -63,10 +63,12 @@ _PIP_NAMES = {
 
 
 def _has(pkg):
+    """Return True if ``pkg`` is importable without importing it."""
     return importlib.util.find_spec(pkg) is not None
 
 
 def _pip_name(pkg):
+    """Map an import name to its pip install name (e.g. ``sklearn`` -> ``scikit-learn``)."""
     return _PIP_NAMES.get(pkg, pkg)
 
 
@@ -107,10 +109,20 @@ def probe(name):
 
 
 def probe_all():
+    """Return the availability dict (see :func:`probe`) for every subpackage."""
     return {name: probe(name) for name in SUBPACKAGES}
 
 
 def format_banner(version):
+    """Render the subpackage-availability banner printed at ``import flip``.
+
+    Args:
+        version (str): flip version string to show in the banner header.
+
+    Returns:
+        str: Multi-line banner listing each subpackage as OK / UNAVAILABLE with
+        its optional-dependency status.
+    """
     status = probe_all()
     lines = [f"flip {version} -- subpackage availability"]
     width = max(len(n) for n in SUBPACKAGES)

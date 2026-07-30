@@ -1,3 +1,13 @@
+"""Parameter fitters and samplers.
+
+Drives the statistical inference step once a likelihood is built: a
+maximum-likelihood fitter based on ``iminuit`` (:class:`FitMinuit`) and an MCMC
+fitter based on ``emcee`` (:class:`FitMCMC`, driving :class:`EMCEESampler`),
+sharing a common :class:`BaseFitter` interface for setting initial points,
+running the fit or chains (optionally in parallel), and returning best-fit
+parameters and errors.
+"""
+
 import abc
 import multiprocessing as mp
 import os
@@ -478,7 +488,22 @@ class Sampler(abc.ABC):
 
 
 class EMCEESampler(Sampler):
+    """MCMC sampler wrapping ``emcee`` with an optional HDF5 backend.
+
+    Runs an affine-invariant ensemble sampler over the likelihood, with support
+    for checkpointing/resuming through an ``emcee`` HDF backend file.
+    """
+
     def __init__(self, likelihood, p0=None, backend_file=None):
+        """Create an emcee sampler with optional HDF backend.
+
+        Args:
+            likelihood (Callable): Log-probability function to sample.
+            p0 (numpy.ndarray, optional): Initial walker positions; may be omitted
+                when resuming from a backend file.
+            backend_file (str, optional): HDF backend filename to resume from or
+                checkpoint to.
+        """
         super().__init__(likelihood, p0=p0)
         """Create an emcee sampler with optional HDF backend.
 

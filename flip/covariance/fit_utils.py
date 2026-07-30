@@ -1,3 +1,13 @@
+"""High-level Minuit fitting recipes.
+
+Ready-made ``iminuit`` fit drivers that assemble a covariance, a data vector and a
+likelihood and run a maximum-likelihood fit for common cases: density-only,
+true-velocity and estimated-velocity fits, each with an optional variant that
+interpolates the likelihood over the small-scale dispersion parameter
+(``sigma_g`` / ``sigma_u``) for speed. These wrap
+:mod:`flip.covariance.fitter` into one-call helpers.
+"""
+
 import os
 import pickle
 

@@ -1,3 +1,13 @@
+"""Power-spectrum model prescriptions (mm / mt / tt).
+
+Turn a linear (and optionally non-linear) matter power spectrum into the three
+spectra used by the covariance models: matter-matter ``mm``, cross
+matter-velocity-divergence ``mt`` and velocity-divergence ``tt``. The ``bel``
+family applies the Bel et al. non-linear damping of the velocity-divergence and
+cross spectra as a function of :math:`\\sigma_8`; the ``linear`` / ``nonlinear``
+prescriptions return the input spectrum unchanged for all three terms.
+"""
+
 import numpy as np
 
 

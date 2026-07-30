@@ -1,3 +1,15 @@
+"""Galaxy peculiar-velocity data vectors from distance indicators.
+
+Data vectors that turn galaxy distance-indicator measurements into peculiar
+velocities: log-distance ratios ``eta`` (:class:`VelFromLogDist`), the
+Tully-Fisher relation (:class:`VelFromTullyFisher`) and the Fundamental Plane
+(:class:`VelFromFundamentalPlane`). Each standardizes its observables into a
+distance modulus, forms the Hubble-diagram residual against the fiducial
+:math:`5\\log_{10}[(1+z)r(z)/h] + 25`, converts it to a velocity with a
+redshift-dependent estimator, and propagates the measurement errors (or a full
+observation covariance) plus an intrinsic scatter ``sigma_M``.
+"""
+
 from flip.utils import create_log
 
 from .._config import __use_jax__
@@ -25,6 +37,17 @@ log = create_log()
 
 
 class VelFromLogDist(DataVector):
+    """Velocity vector from log-distance ratios ``eta``.
+
+    The log-distance ratio :math:`\\eta = \\log_{10}(d_z/d_H)` is mapped directly
+    to a peculiar velocity through :math:`v = 5\\,J(z)\\,\\eta`, where :math:`J(z)`
+    is the redshift-dependent estimator selected by ``velocity_estimator``. No
+    standardization parameters are fitted.
+
+    Required keys:
+        ``eta`` (and ``eta_error`` when no observation covariance is provided).
+    """
+
     _kind = "velocity"
     _needed_keys = ["eta"]
     _free_par = []
@@ -92,6 +115,17 @@ class VelFromLogDist(DataVector):
 
 
 class VelFromTullyFisher(DataVector):
+    """Velocity vector from the Tully-Fisher relation.
+
+    Standardizes the mean apparent magnitude ``m_mean`` against the log line
+    width ``logW`` through :math:`\\mu = m_{\\rm mean} + a\\,\\log W + b`, forms the
+    Hubble-diagram residual and converts it to a peculiar velocity. Slope ``a``,
+    zero-point ``b`` and intrinsic scatter ``sigma_M`` are free parameters.
+
+    Required keys:
+        ``zobs``, ``logW``, ``m_mean``, ``rcom_zobs`` (plus ``e_logW``,
+        ``e_m_mean`` when no observation covariance is provided).
+    """
 
     _kind = "velocity"
     _needed_keys = ["zobs", "logW", "m_mean", "rcom_zobs"]
@@ -304,6 +338,20 @@ class VelFromTullyFisher(DataVector):
 
 
 class VelFromFundamentalPlane(DataVector):
+    """Velocity vector from the Fundamental Plane relation.
+
+    Standardizes early-type galaxies through the Fundamental Plane
+    :math:`\\mu = 5(\\log R_e - a\\,\\log\\sigma - b\\,\\log I - c)`, forms the
+    Hubble-diagram residual and converts it to a peculiar velocity. Plane
+    coefficients ``a``, ``b``, ``c`` and intrinsic scatter ``sigma_M`` are free
+    parameters.
+
+    Required keys:
+        ``zobs``, ``logRe``, ``logsig``, ``logI``, ``rcom_zobs`` (plus
+        ``e_logRe``, ``e_logsig``, ``e_logI`` when no observation covariance is
+        provided).
+    """
+
     _kind = "velocity"
     _needed_keys = ["zobs", "logRe", "logsig", "logI", "rcom_zobs"]
     _free_par = ["a", "b", "c"]

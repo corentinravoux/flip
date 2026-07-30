@@ -1,62 +1,96 @@
 Velocity estimators
 ===================
 
-The velocities estimators from the Hubble diagram residulas :math:`\Delta\mu` are implemeted in the 
-:py:meth:`~flip.data_vector.basic.redshift_dependence_velocity`. 
-This function return the coefficient :math:`J(z)` such that :math:`\hat{v} = J(z)\Delta\mu`.
-
-Watkins estimator
------------------
-
-Watkins estimator from `Watkins and Feldman 2015 <http://academic.oup.com/mnras/article/450/2/1868/980317/An-unbiased-estimator-of-peculiar-velocity-with>`_ is such that
+The velocity data vectors (e.g. :py:class:`~flip.data_vector.basic.VelFromHDres`,
+:py:class:`~flip.data_vector.snia_vectors.VelTrippRelation`,
+:py:class:`~flip.data_vector.galaxypv_vectors.VelFromTullyFisher`, ...) convert a
+Hubble-diagram residual :math:`\Delta\mu` into a peculiar velocity through a
+redshift-dependent coefficient :math:`J(z)`:
 
 .. math::
 
-    J(z) = \frac{c\ln10}{5} \frac{z}{1+z}
-    
-Low z estimator
-----------------
+   \hat{v} = J(z)\,\Delta\mu .
 
-The low-z estimator is such as:
+The coefficient is computed by
+:py:func:`~flip.data_vector.vector_utils.redshift_dependence_velocity` and
+selected with the ``velocity_estimator`` argument. The available keys are
+``"watkins"``, ``"lowz"``, ``"hubblehighorder"``, ``"full"``, ``"full_lcdm"`` and
+``"empty_universe"``.
 
-.. math::
+Watkins
+-------
 
-    J(z) = \frac{c\ln10}{5} z
-
-
-Hubble highorder estimator
---------------------------
-
-The Hubble highorder estimator use an order 3 expansion with respect to :math:`z` of the Hubble law:
+The estimator of `Watkins & Feldman 2015
+<http://academic.oup.com/mnras/article/450/2/1868/980317/An-unbiased-estimator-of-peculiar-velocity-with>`_:
 
 .. math::
 
-    J(z) = \frac{\ln10}{5}\frac{z}{1 + z}\left[ 1 + \frac{1}{2} (1 - q_0)z - \frac{1}{6}(1 - q_0 - 3 q_0^2 + j_0) z^2\right]
+   J(z) = \frac{c\ln 10}{5}\,\frac{z}{1+z} .
 
-When using this estimator you need to pass the deceleration :math:`q_0` and jerk :math:`j_0` parameters. 
-
-
-Example with the :py:class:`~flip.data_vector.basic.VelFromHDres` class:
-
-.. code-block:: python 
-
-    from flip import data_vector
-
-    DataVel = data_vector.VelFromHDres(data, velocity_estimator="hubble highorder", q0=-0.55,j0=-1)
-
-
-Full estimator
---------------
-
-The Full estimator need to assume a cosmology it is such as:
+Low-z
+-----
 
 .. math::
 
-    J(z) = \frac{c\ln10}{5}\left(c\frac{1 + z}{r(z)H(z)} -1\right)^{-1}
+   J(z) = \frac{c\ln 10}{5}\,z .
 
-where :math:`r(z)` is the comoving distance and :math:`H(z)` the hubble function.
+Hubble high-order (``hubblehighorder``)
+---------------------------------------
 
-When using this estimator your data need to contain 
-the :code:`hubble_norm` and :code:`rcom_zobs` fields such that :code:`hubble_norm` is :math:`h(z) = H(z) / 100` and :code:`rcom_zobs` is the comoving distance in Mpc :math:`h^{-1}`.
+A third-order expansion in :math:`z` of the Hubble law:
 
+.. math::
 
+   J(z) = \frac{c\ln 10}{5}\,\frac{z}{1+z}
+   \left[\,1 + \tfrac{1}{2}(1 - q_0)\,z
+          - \tfrac{1}{6}(1 - q_0 - 3q_0^2 + j_0)\,z^2 \right] .
+
+This estimator requires the deceleration :math:`q_0` and jerk :math:`j_0`
+parameters, passed as keyword arguments:
+
+.. code-block:: python
+
+   from flip import data_vector
+
+   data_vel = data_vector.VelFromHDres(
+       data, velocity_estimator="hubblehighorder", q0=-0.55, j0=-1,
+   )
+
+Full
+----
+
+The ``full`` estimator assumes a cosmology through the data:
+
+.. math::
+
+   J(z) = \frac{c\ln 10}{5}
+   \left(c\,\frac{1+z}{r(z)\,H(z)} - 1\right)^{-1} .
+
+Your data must then contain the ``hubble_norm`` and ``rcom_zobs`` fields, where
+``hubble_norm`` is :math:`h(z) = H(z)/100` and ``rcom_zobs`` is the comoving
+distance in :math:`\mathrm{Mpc}\,h^{-1}`.
+
+Full LambdaCDM (``full_lcdm``)
+------------------------------
+
+Same functional form as ``full``, but :math:`r(z)` and :math:`H(z)` are computed
+on the fly from a flat :math:`\Lambda\mathrm{CDM}` cosmology; pass ``H0`` and
+``Omega_m0`` as keyword arguments instead of pre-computing ``hubble_norm`` /
+``rcom_zobs``:
+
+.. code-block:: python
+
+   data_vel = data_vector.VelFromHDres(
+       data, velocity_estimator="full_lcdm", H0=70.0, Omega_m0=0.3,
+   )
+
+Empty universe (``empty_universe``)
+-----------------------------------
+
+An empty-universe (coasting) approximation — eq. 4 of
+`arXiv:1610.04677 <https://arxiv.org/pdf/1610.04677>`_ — which needs no extra
+parameters:
+
+.. math::
+
+   J(z) = \frac{c\ln 10}{5}\,\frac{z\,(1 + z/2)}{(1+z)^2} .

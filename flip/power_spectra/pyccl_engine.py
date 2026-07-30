@@ -1,3 +1,11 @@
+"""pyCCL power-spectrum engine.
+
+Compute the linear (and optionally non-linear) matter power spectrum and the
+fiducial growth quantities (:math:`\\sigma_8`, :math:`f\\sigma_8`, ...) with the
+Core Cosmology Library (``pyccl``), in the sampling and conventions expected by
+:func:`flip.power_spectra.generator.compute_power_spectra`.
+"""
+
 import numpy as np
 
 from flip.utils import create_log

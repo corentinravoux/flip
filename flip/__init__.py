@@ -34,6 +34,7 @@ _LAZY_SUBPACKAGES = set(_subpackages.SUBPACKAGES)
 
 
 def __getattr__(name):
+    """Lazily import and cache a subpackage on first attribute access."""
     if name in _LAZY_SUBPACKAGES:
         mod = importlib.import_module(f"{__name__}.{name}")
         globals()[name] = mod
@@ -42,6 +43,7 @@ def __getattr__(name):
 
 
 def __dir__():
+    """Expose the lazily-loadable subpackages to ``dir(flip)`` / autocompletion."""
     return sorted(list(globals()) + list(_LAZY_SUBPACKAGES))
 
 

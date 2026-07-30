@@ -1,3 +1,12 @@
+"""Geometry helpers for covariance construction.
+
+Coordinate and geometry utilities shared by the covariance generators: converting
+sky positions to pair separations ``(r, theta, phi)`` under different
+line-of-sight conventions (midpoint, bisector, end-point), angular-separation
+math, and the flattened <-> full-matrix packing used to store the symmetric
+covariance efficiently.
+"""
+
 import numpy as np
 
 from flip import utils
@@ -249,6 +258,22 @@ def angle_separation(
 
 
 def compute_phi_bisector_theorem(r, theta, r_0, r_1):
+    """Angle of the pair separation to the bisector line of sight.
+
+    Uses the bisector convention for the line of sight: the angle ``phi`` between
+    the separation vector (length ``r``) and the bisector of the two radial
+    directions follows from the triangle identity
+    :math:`\\sin\\phi = \\frac{r_0 + r_1}{r}\\sin(\\theta/2)`.
+
+    Args:
+        r (array-like): Comoving separation between the two objects (Mpc/h).
+        theta (array-like): Angular separation between the two directions (rad).
+        r_0 (array-like): Comoving distance of the first object (Mpc/h).
+        r_1 (array-like): Comoving distance of the second object (Mpc/h).
+
+    Returns:
+        ndarray: Angle ``phi`` (rad) between the separation and the bisector.
+    """
     sin_phi = ((r_0 + r_1) / r) * np.sin(theta / 2)
     return np.arcsin(np.clip(sin_phi, -1, 1))
 

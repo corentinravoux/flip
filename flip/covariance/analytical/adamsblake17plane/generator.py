@@ -1,3 +1,12 @@
+"""Direct covariance generator for the Adams & Blake (2017) plane-parallel model.
+
+Builds the density/velocity covariance blocks by direct numerical integration of
+the model power spectra against spherical Bessel functions in the flat-sky
+(plane-parallel) approximation, parallelized over object pairs. Used as the
+reference/brute-force path against which the Hankel-transform generator is
+validated.
+"""
+
 import multiprocessing as mp
 from functools import partial
 

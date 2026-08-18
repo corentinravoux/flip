@@ -218,6 +218,25 @@ class DataVector(abc.ABC):
             **kwargs,
         )
 
+    def compute_effective_redshift(self,method, z_key="zobs",*args):
+        if z_key not in self.data:
+            raise ValueError(f"{z_key} not found in data")
+
+        if method == "mean":
+            return np.mean(self.data[z_key])
+        elif method == "median":
+            return np.median(self.data[z_key])
+        elif method == "weighted_mean":
+            out = self.give_data_and_variance(*args)
+            if out is None:
+                raise ValueError("give_data_and_variance returned None")
+            else:
+                _, variance = out
+                if variance.ndim == 1:
+                    weights = 1 / variance
+                else:
+                    weights = 1 / np.diag(variance)
+                return np.average(self.data[z_key], weights=weights)
 
 class Dens(DataVector):
     _kind = "density"

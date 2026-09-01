@@ -1,0 +1,58 @@
+site_name: FLIP
+site_description: Field Level Inference Package
+site_url: https://flip-doc.readthedocs.io/
+repo_url: https://github.com/corentinravoux/flip
+repo_name: corentinravoux/flip
+docs_dir: docs
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  logo: _static/flip_logo.svg
+  favicon: _static/flip_logo.svg
+  features:
+    - navigation.sections
+    - content.code.copy
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.arithmatex:
+      generic: true
+  - toc:
+      permalink: true
+
+extra_javascript:
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [.]
+          options:
+            members: true
+            docstring_style: numpy
+            show_source: false
+            inherited_members: true
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - Getting started: basicusage.md
+  - DataVector: DataVector.md
+  - Velocity estimators: vel_estimators.md
+  - Power spectra: power_spectra.md
+  - Covariance models: covariance_models.md
+  - Likelihoods: likelihoods.md
+  - Fitting & forecasts: fitting.md
+  - API reference:
+      - Overview: api/index.md
+      - data_vector: api/data_vector.md
+      - covariance: api/covariance.md
+      - power_spectra: api/power_spectra.md
+      - data: api/data.md
+      - utils: api/utils.md
+      - comparison: api/comparison.md

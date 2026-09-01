@@ -27,17 +27,8 @@ dependencies = [
 
 [project.optional-dependencies]
 docs = [
-    "markdown",
-    "sphinx >= 5.2.3",
-    "sphinx-markdown-tables >= 0.0.15",
-    "numpydoc",
-    "sphinx_book_theme",
-    "myst-parser",
-    "sphinx-copybutton",
-    "sphinx-design",
-    "sphinx-inline-tabs",
-    "sphinx-tabs",
-    "sphinx-autoapi",
+    "zensical",
+    "mkdocstrings[python]",
 ]
 
 [tool.setuptools.dynamic]

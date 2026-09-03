@@ -85,7 +85,7 @@ _class_acuracy_setting_defaults = {
 
 
 def get_fiducial_fs8(model, redshift):
-    """Return fiducial $f\sigma_8$ from a CLASS model at redshift.
+    r"""Return fiducial $f\sigma_8$ from a CLASS model at redshift.
 
     Args:
         model (Class): Initialized and computed CLASS wrapper.
@@ -98,7 +98,7 @@ def get_fiducial_fs8(model, redshift):
 
 
 def get_fiducial_s8(model, redshift):
-    """Return fiducial $\sigma_8$ from a CLASS model at redshift.
+    r"""Return fiducial $\sigma_8$ from a CLASS model at redshift.
 
     Args:
         model (Class): Initialized and computed CLASS wrapper.

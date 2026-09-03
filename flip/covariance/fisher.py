@@ -75,7 +75,7 @@ def inverse_covariance_cholesky_inverse(covariance):
 
 
 class FisherMatrix:
-    """Compute Fisher information matrix from covariance derivatives.
+    r"""Compute Fisher information matrix from covariance derivatives.
 
     Builds the Fisher matrix $F_{ij} = \tfrac{1}{2}\,\mathrm{Tr}[C^{-1} \partial_i C\, C^{-1} \partial_j C]$
     using model-specific derivative coefficients and a provided inverse covariance.
@@ -166,7 +166,7 @@ class FisherMatrix:
         self,
         partial_coefficients_dict_param,
     ):
-        """Assemble covariance derivative matrix for a single parameter.
+        r"""Assemble covariance derivative matrix for a single parameter.
 
         Uses model-kind-specific blocks and partial derivative coefficients to form
         $\partial_i C$ for the parameter `i`.

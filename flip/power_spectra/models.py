@@ -2,7 +2,7 @@ import numpy as np
 
 
 def bel_coefficients(sigma_8):
-    """Compute BEL model coefficients as a function of $\sigma_8$.
+    r"""Compute BEL model coefficients as a function of $\sigma_8$.
 
     Uses the parameterization from Bel et al. to construct coefficients
     for the non-linear damping terms.

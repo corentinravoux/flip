@@ -91,8 +91,10 @@ def correlation_hankel(ell, r, k, integrand, hankel_overhead_coefficient=2, kmin
             "Min pw spectrum k is too high, please take a lower one. Use kmin parameter to lower bound integration."
         )
     output = np.empty_like(r)
-    output[mask] = correlation_integration(ell, r[mask], k, integrand)
-    output[~mask] = (-1) ** (ell % 2) * np.interp(r[~mask], r_hankel, xi_hankel)
+    if np.any(mask):
+        output[mask] = correlation_integration(ell, r[mask], k, integrand)
+    if np.any(~mask):
+        output[~mask] = (-1) ** (ell % 2) * np.interp(r[~mask], r_hankel, xi_hankel)
 
     # Regularization
     if kmin is not None:

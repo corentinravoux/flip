@@ -28,7 +28,7 @@ def field_from_grid(field, positions, box_size, number_bins, order=1):
 
 
 @partial(jax.jit, static_argnames=("box_size", "number_bins", "order"))
-def radial_velocity_from_grid(
+def radial_velocity_from_grid_new(
     velocity,
     comoving_distance_targets,
     line_of_sight,
@@ -54,3 +54,21 @@ def density_from_grid(
     """Interpolate density field at target positions (distance * line of sight) -> (M,)."""
     positions = comoving_distance_targets[:, None] * line_of_sight
     return field_from_grid(density, positions, box_size, number_bins, order)
+
+
+@partial(jax.jit, static_argnames=("box_size", "number_bins", "order"))
+def radial_velocity_from_grid(
+    velocity,
+    comoving_distance_targets,
+    line_of_sight,
+    box_size,
+    number_bins,
+    order=1,
+):
+    """Interpolate velocity field at targets, project onto line of sight -> (M,)."""
+
+    r1d = jnp.linspace(0, box_size, number_bins) - box_size / 2
+    v_interp = jax.scipy.interpolate.RegularGridInterpolator((r1d, r1d, r1d), velocity)
+    v_model = v_interp(comoving_distance_targets[:, None] * line_of_sight)
+    vr = jnp.sum(v_model * line_of_sight, axis=-1)
+    return vr

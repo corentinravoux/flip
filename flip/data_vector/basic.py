@@ -218,7 +218,7 @@ class DataVector(abc.ABC):
             **kwargs,
         )
 
-    def compute_effective_redshift(self,method, z_key="zobs",*args):
+    def compute_effective_redshift(self,method, z_key="zobs",parameter_values_dict=None,):
         if z_key not in self.data:
             raise ValueError(f"{z_key} not found in data")
 
@@ -227,7 +227,10 @@ class DataVector(abc.ABC):
         elif method == "median":
             return np.median(self.data[z_key])
         elif method == "weighted_mean":
-            out = self.give_data_and_variance(*args)
+            if parameter_values_dict is None:
+                out = self.give_data_and_variance()
+            else:
+                out = self.give_data_and_variance(parameter_values_dict)
             if out is None:
                 raise ValueError("give_data_and_variance returned None")
             else:

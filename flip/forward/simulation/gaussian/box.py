@@ -118,6 +118,32 @@ class FourierBox(BaseSimulator):
         )
         return sampled_voxels
 
+    def get_voxels_in_direction(
+        self, ra, dec, dist_range=None, physical_unit=False, unique=False
+    ):
+        ra = jnp.atleast_1d(ra)
+        dec = jnp.atleast_1d(dec)
+
+        ntrial = self.number_bins * 10
+        xyz = jnp.stack(
+            spherical_to_cartesian(
+                ra[:, None],
+                dec[:, None],
+                jnp.linspace(*dist_range, ntrial),
+            )
+        ).T
+        if physical_unit:
+            xyz /= (
+                self.box_size / self.number_bins
+            )  # xyz now in ijk centered on (0,0,0)
+
+        xyz += self.get_centroid(physical_unit=False)  # ijk centered on centroid
+        volexin = jnp.asarray(xyz, dtype="int32")  # (ntrial, ntargets, 3)
+        volexin = jnp.moveaxis(volexin, 0, -1)  # (ntargets, 3, ntrial)
+        if unique:
+            volexin = [jnp.unique(v, axis=-1) for v in volexin]  # loops over targets
+        return volexin
+
     def get_line_of_sight(self, ra, dec):
         return jnp.stack(
             spherical_to_cartesian(

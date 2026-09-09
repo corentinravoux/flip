@@ -318,7 +318,7 @@ def define_randoms(
 
             return xobj_random, yobj_random, zobj_random , mask_random
 
-    return xobj_random, yobj_random, zobj_random 
+    return xobj_random, yobj_random, zobj_random, None
 
 
 def create_mesh(

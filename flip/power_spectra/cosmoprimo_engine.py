@@ -14,7 +14,7 @@ except ImportError:
 
 
 def get_fiducial_fs8(cosmology, redshift):
-    """Return fiducial $f\sigma_8$ using Cosmoprimo at redshift.
+    r"""Return fiducial $f\sigma_8$ using Cosmoprimo at redshift.
 
     Args:
         cosmology: Cosmoprimo cosmology instance.
@@ -27,7 +27,7 @@ def get_fiducial_fs8(cosmology, redshift):
 
 
 def get_fiducial_s8(cosmology, redshift):
-    """Return fiducial $\sigma_8$ using Cosmoprimo at redshift.
+    r"""Return fiducial $\sigma_8$ using Cosmoprimo at redshift.
 
     Args:
         cosmology: Cosmoprimo cosmology instance.

@@ -1,3 +1,5 @@
+import multiprocessing
+
 import numpy as np
 
 from flip.utils import create_log
@@ -12,10 +14,11 @@ try:
 
 except ImportError:
     sklearngp_installed = False
-    log.add(
-        "Install scikit-learn to use the sklearnmatrix emulator",
-        level="warning",
-    )
+    if multiprocessing.parent_process() is None:
+        log.add(
+            "Install scikit-learn to use the sklearnmatrix emulator",
+            level="warning",
+        )
 
 
 _emulator_type = "matrix"

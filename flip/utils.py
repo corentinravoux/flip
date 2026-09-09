@@ -288,7 +288,7 @@ class Prior:
 
 
 class GaussianPrior(Prior):
-    """Univariate Gaussian prior on a parameter.
+    r"""Univariate Gaussian prior on a parameter.
 
     Models $p(\theta) \propto \exp\{-\tfrac{1}{2}[(\theta-\mu)^2/\sigma^2]\}$.
     """

@@ -10,6 +10,7 @@ Set the ``FLIP_QUIET`` env var to any value to suppress the banner.
 """
 
 import importlib
+import multiprocessing
 import os
 
 from flip.utils import create_log
@@ -45,5 +46,5 @@ def __dir__():
     return sorted(list(globals()) + list(_LAZY_SUBPACKAGES))
 
 
-if not os.environ.get("FLIP_QUIET"):
+if not os.environ.get("FLIP_QUIET") and multiprocessing.parent_process() is None:
     print(_subpackages.format_banner(__version__))

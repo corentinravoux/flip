@@ -36,7 +36,7 @@ _avail_regularization_option = [
 
 
 def correlation_integration(ell, r, k, integrand):
-    """
+    r"""
     The correlation_integration function is used to calculate the correlation function for a given multipole.
     It does this by integrating over k, which is the magnitude of the wavevector. The integration is performed using
     the Simpson's rule (integrate.simps). This function takes in four arguments: l, r, k and integrand. l represents
@@ -64,7 +64,7 @@ def correlation_integration(ell, r, k, integrand):
 
 
 def correlation_hankel(ell, r, k, integrand, hankel_overhead_coefficient=2, kmin=None):
-    """
+    r"""
     The correlation_hankel function is a wrapper for the PowerToCorrelation function,
     which computes the correlation function from power spectrum using FFTLog (Hamilton 2000).
     The PowerToCorrelation class takes in an array of k values and an array of P(k) values, and returns
@@ -91,8 +91,10 @@ def correlation_hankel(ell, r, k, integrand, hankel_overhead_coefficient=2, kmin
             "Min pw spectrum k is too high, please take a lower one. Use kmin parameter to lower bound integration."
         )
     output = np.empty_like(r)
-    output[mask] = correlation_integration(ell, r[mask], k, integrand)
-    output[~mask] = (-1) ** (ell % 2) * np.interp(r[~mask], r_hankel, xi_hankel)
+    if np.any(mask):
+        output[mask] = correlation_integration(ell, r[mask], k, integrand)
+    if np.any(~mask):
+        output[~mask] = (-1) ** (ell % 2) * np.interp(r[~mask], r_hankel, xi_hankel)
 
     # Regularization
     if kmin is not None:

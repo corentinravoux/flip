@@ -41,7 +41,7 @@ _available_inversion_methods = [
 
 
 def log_likelihood_gaussian_inverse(vector, covariance_sum):
-    """Compute multivariate Gaussian log-likelihood using explicit inverse.
+    r"""Compute multivariate Gaussian log-likelihood using explicit inverse.
 
     This evaluates $\mathcal{L} = -\tfrac{1}{2}[N\log(2\pi) + \log|C| + \chi^2]$
     with $\chi^2 = v^T C^{-1} v$ by explicitly inverting the covariance matrix.
@@ -63,7 +63,7 @@ def log_likelihood_gaussian_inverse(vector, covariance_sum):
 
 
 def log_likelihood_gaussian_solve(vector, covariance_sum):
-    """Compute multivariate Gaussian log-likelihood via linear solver.
+    r"""Compute multivariate Gaussian log-likelihood via linear solver.
 
     Uses `solve(C, v)` to avoid explicit inversion when computing $\chi^2 = v^T C^{-1} v$.
 
@@ -81,7 +81,7 @@ def log_likelihood_gaussian_solve(vector, covariance_sum):
 
 
 def log_likelihood_gaussian_cholesky(vector, covariance_sum):
-    """Compute Gaussian log-likelihood using Cholesky factorization.
+    r"""Compute Gaussian log-likelihood using Cholesky factorization.
 
     Factorizes `C = L L^T` to compute both `log|C|` and $\chi^2$ stably.
 

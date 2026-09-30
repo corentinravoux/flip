@@ -639,9 +639,9 @@ def define_grid_from_mesh(mesh_data, grid_size):
             indexing="ij",
         )
     )
-    xgrid = np.ravel(coord_mesh[0, :, :, :]) + grid_size / 2
-    ygrid = np.ravel(coord_mesh[1, :, :, :]) + grid_size / 2
-    zgrid = np.ravel(coord_mesh[2, :, :, :]) + grid_size / 2
+    xgrid = np.ravel(coord_mesh[0, :, :, :])
+    ygrid = np.ravel(coord_mesh[1, :, :, :])
+    zgrid = np.ravel(coord_mesh[2, :, :, :])
 
     ragrid, decgrid, rcomgrid = utils.cartesian_to_spherical(xgrid, ygrid, zgrid)
 

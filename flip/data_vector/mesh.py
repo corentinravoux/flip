@@ -1134,9 +1134,7 @@ def grid_data_density_kernel_sampling(
 
     if n_subprocess_sampling > 1:
         with mp.Pool(n_subprocess_sampling) as pool:
-            mesh_data_random_samples = pool.starmap(
-                create_sub_grid, [seeds[i] for i in range(Nsampling)]
-            )
+            mesh_data_random_samples = pool.map(create_sub_grid, seeds)
     else:
         mesh_data_random_samples = [create_sub_grid(seeds[i]) for i in range(Nsampling)]
 

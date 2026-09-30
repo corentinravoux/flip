@@ -1027,6 +1027,7 @@ def create_sampled_grid(
     overhead,
     grid_size,
     kind,
+    seed,
 ):
     """Draw one random position per object and paint them onto a mesh.
 
@@ -1047,8 +1048,7 @@ def create_sampled_grid(
     Returns:
         numpy.ndarray: Painted mesh values with shape equal to the mesh grid.
     """
-    np.random.seed()  # ensure independent random state in each subprocess
-
+    np.random.seed(seed)
     number_of_objects = len(data_position_kernel)
     sampled_positions = np.empty((number_of_objects, 3))
     for i, kernel_rows in enumerate(data_position_kernel):
@@ -1127,14 +1127,18 @@ def grid_data_density_kernel_sampling(
         grid_size,
         kind,
     )
+    if seed is not None:
+        seeds = np.random.SeedSequence(seed).generate_state(Nsampling)
+    else:
+        seeds = [None] * Nsampling
 
     if n_subprocess_sampling > 1:
         with mp.Pool(n_subprocess_sampling) as pool:
             mesh_data_random_samples = pool.starmap(
-                create_sub_grid, [() for _ in range(Nsampling)]
+                create_sub_grid, [seeds[i] for i in range(Nsampling)]
             )
     else:
-        mesh_data_random_samples = [create_sub_grid() for _ in range(Nsampling)]
+        mesh_data_random_samples = [create_sub_grid(seeds[i]) for i in range(Nsampling)]
 
     average_mesh_data = np.nanmean(mesh_data_random_samples, axis=0)
     std_mesh_data = np.nanstd(mesh_data_random_samples, axis=0)

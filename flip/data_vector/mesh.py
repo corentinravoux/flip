@@ -4,7 +4,7 @@ from functools import partial
 
 import numpy as np
 
-from .._config import __use_jax__
+from flip._config import __use_jax__
 
 if __use_jax__:
     try:
@@ -24,13 +24,12 @@ else:
     jax_installed = False
 
 from flip import utils
-from flip.data_vector.mesh_utils import paint_catalog
+from flip.data_vector.mesh_utils import paint_catalog, paint_catalog_variance
 
-_grid_kind_avail = ["ngp", "ngp_errw", "cic", "tsc", "pcs"]
+_grid_kind_avail = ["ngp", "cic", "tsc", "pcs"]
 
 _grid_order_dict = {
     "ngp": 1,
-    "ngp_errw": 1,
     "cic": 2,
     "tsc": 3,
     "pcs": 4,
@@ -784,36 +783,18 @@ def grid_data_density(
         weights=randoms_weights,
     )
 
-    density_contrast = jnp.zeros_like(mesh_data.value)
     mask_randoms_nonzero = mesh_randoms.value != 0.0
-    if jax_installed:
-        density_contrast = density_contrast.at[mask_randoms_nonzero].set(
-            jnp.ravel(
-                mesh_data.value[mask_randoms_nonzero]
-                / mesh_randoms.value[mask_randoms_nonzero]
-                - 1
-            )
-        )
-        density_contrast = density_contrast.at[~mask_randoms_nonzero].set(jnp.nan)
-    else:
-        density_contrast[mask_randoms_nonzero] = jnp.ravel(
-            mesh_data.value[mask_randoms_nonzero]
-            / mesh_randoms.value[mask_randoms_nonzero]
-            - 1
-        )
-        density_contrast[~mask_randoms_nonzero] = jnp.nan
-
-    density_contrast = jnp.ravel(density_contrast)
+    safe_randoms = jnp.where(mask_randoms_nonzero, mesh_randoms.value, 1.0)
+    density_contrast = jnp.ravel(
+        jnp.where(mask_randoms_nonzero, mesh_data.value / safe_randoms - 1, jnp.nan)
+    )
 
     count_randoms = jnp.ravel(mesh_count_randoms.value).astype(int)
-    density_contrast_err = jnp.full(count_randoms.shape, jnp.nan)
     mask = count_randoms > min_count_random
-    if jax_installed:
-        density_contrast_err = density_contrast_err.at[mask].set(
-            jnp.sqrt(1 / (count_randoms[mask] * scaling))
-        )
-    else:
-        density_contrast_err[mask] = jnp.sqrt(1 / (count_randoms[mask] * scaling))
+    safe_count_randoms = jnp.where(mask, count_randoms, 1)
+    density_contrast_err = jnp.where(
+        mask, jnp.sqrt(1 / (safe_count_randoms * scaling)), jnp.nan
+    )
 
     xgrid, ygrid, zgrid, ragrid, decgrid, rcomgrid = define_grid_from_mesh(
         mesh_data,
@@ -935,27 +916,51 @@ def grid_data_density_multivariate_kernel(
 
     grid_positions = jnp.array([xgrid, ygrid, zgrid]).T
 
-    data_kernel_positions = []
-    data_kernel_weights = []
-    for i in range(data_positions.shape[0]):
-        kernel_weights = multivariate_kernel_density_estimation(
-            data_positions[i],
-            data_position_bandwith[i],
+    # Every object paints its normalised kernel on the voxel centres, so the
+    # objects can be summed per voxel before painting. Objects are processed
+    # in chunks of identical shape (the last one padded with masked objects),
+    # which bounds memory to chunk_size * number_of_voxels entries and lets
+    # JAX compile each operation once.
+    number_of_objects = data_positions.shape[0]
+    number_of_voxels = grid_positions.shape[0]
+    chunk_size = max(1, min(number_of_objects, 2**22 // number_of_voxels))
+    number_of_chunks = -(-number_of_objects // chunk_size)
+    number_of_padded = number_of_chunks * chunk_size - number_of_objects
+    padded_positions = jnp.concatenate(
+        [data_positions, jnp.zeros((number_of_padded, 3))], axis=0
+    )
+    padded_bandwidth = jnp.concatenate(
+        [
+            data_position_bandwith,
+            jnp.broadcast_to(jnp.eye(3), (number_of_padded, 3, 3)),
+        ],
+        axis=0,
+    )
+    is_object = jnp.arange(number_of_chunks * chunk_size) < number_of_objects
+
+    voxel_kernel_weights = jnp.zeros(number_of_voxels)
+    for start in range(0, number_of_chunks * chunk_size, chunk_size):
+        chunk = slice(start, start + chunk_size)
+        kernel_weights = _multivariate_kernel_weights_chunk(
+            padded_positions[chunk],
+            padded_bandwidth[chunk],
             grid_positions,
             grid_size,
             kernel=kernel,
             cutoff_type=cutoff_type,
             threshold=threshold,
         )
-        mask = kernel_weights != 0.0
-        data_kernel_positions.append(grid_positions[mask])
-        data_kernel_weights.append(kernel_weights[mask] / jnp.sum(kernel_weights[mask]))
+        # Normalise each object to one; objects with no weight paint nothing.
+        kernel_sum = jnp.sum(kernel_weights, axis=1, keepdims=True)
+        keep = is_object[chunk][:, None] & (kernel_sum > 0)
+        kernel_weights = jnp.where(
+            keep, kernel_weights / jnp.where(keep, kernel_sum, 1.0), 0.0
+        )
+        voxel_kernel_weights = voxel_kernel_weights + jnp.sum(kernel_weights, axis=0)
 
-    data_kernel_positions = jnp.concatenate(data_kernel_positions, axis=0)
-    data_kernel_weights = jnp.concatenate(data_kernel_weights, axis=0)
-
+    data_kernel_positions = grid_positions
     data_kernel_weights = (
-        data_positions.shape[0] * data_kernel_weights / jnp.sum(data_kernel_weights)
+        number_of_objects * voxel_kernel_weights / jnp.sum(voxel_kernel_weights)
     )
 
     mesh_data_kernel = create_mesh(
@@ -983,36 +988,20 @@ def grid_data_density_multivariate_kernel(
         weights=randoms_weights,
     )
 
-    density_contrast = jnp.zeros_like(mesh_data_kernel.value)
     mask_randoms_nonzero = mesh_randoms.value != 0.0
-    if jax_installed:
-        density_contrast = density_contrast.at[mask_randoms_nonzero].set(
-            jnp.ravel(
-                mesh_data_kernel.value[mask_randoms_nonzero]
-                / mesh_randoms.value[mask_randoms_nonzero]
-                - 1
-            )
+    safe_randoms = jnp.where(mask_randoms_nonzero, mesh_randoms.value, 1.0)
+    density_contrast = jnp.ravel(
+        jnp.where(
+            mask_randoms_nonzero, mesh_data_kernel.value / safe_randoms - 1, jnp.nan
         )
-        density_contrast = density_contrast.at[~mask_randoms_nonzero].set(jnp.nan)
-
-    else:
-        density_contrast[mask_randoms_nonzero] = jnp.ravel(
-            mesh_data_kernel.value[mask_randoms_nonzero]
-            / mesh_randoms.value[mask_randoms_nonzero]
-            - 1
-        )
-        density_contrast[~mask_randoms_nonzero] = jnp.nan
-    density_contrast = jnp.ravel(density_contrast)
+    )
 
     count_randoms = jnp.ravel(mesh_count_randoms.value).astype(int)
-    density_contrast_err = jnp.full(count_randoms.shape, jnp.nan)
     mask = count_randoms > min_count_random
-    if jax_installed:
-        density_contrast_err = density_contrast_err.at[mask].set(
-            jnp.sqrt(1 / (count_randoms[mask] * scaling))
-        )
-    else:
-        density_contrast_err[mask] = jnp.sqrt(1 / (count_randoms[mask] * scaling))
+    safe_count_randoms = jnp.where(mask, count_randoms, 1)
+    density_contrast_err = jnp.where(
+        mask, jnp.sqrt(1 / (safe_count_randoms * scaling)), jnp.nan
+    )
 
     grid = {
         "x": xgrid,
@@ -1073,9 +1062,8 @@ def multivariate_kernel_density_estimation(
 
         if bandwidth[0, 0] == 0 and bandwidth[1, 1] == 0 and bandwidth[2, 2] == 0:
             # null error case, assign all weight to the closest voxel
-            normalized_kernel = jnp.zeros((grid_positions.shape[0],))
             mask = jnp.sqrt(jnp.sum(distances_to_voxel**2, axis=1)) == 0
-            normalized_kernel[mask] = 1.0
+            normalized_kernel = jnp.where(mask, 1.0, 0.0)
         else:
 
             kernel = jnp.exp(
@@ -1104,6 +1092,86 @@ def multivariate_kernel_density_estimation(
             raise ValueError(f"Unsupported cutoff type: {cutoff_type}")
 
     return normalized_kernel
+
+
+def _multivariate_kernel_weights_chunk(
+    data_positions,
+    bandwidths,
+    grid_positions,
+    grid_size,
+    kernel="gaussian",
+    cutoff_type=None,
+    threshold=1e-5,
+):
+    """Evaluate multivariate kernel weights of several objects on a grid.
+
+    Batched version of :func:`multivariate_kernel_density_estimation`, written
+    without in-place assignment so that it runs on numpy and JAX.
+
+    Args:
+        data_positions (array-like): Object centres, shape ``(N, 3)``.
+        bandwidths (array-like): Kernel covariance matrices, shape ``(N, 3, 3)``.
+        grid_positions (array-like): Voxel centres, shape ``(M, 3)``.
+        grid_size (float): Cell size used to clip distances to voxel boundaries.
+        kernel (str): Kernel family to evaluate.
+        cutoff_type (str, optional): Optional truncation mode among
+            `kernel_unnormalized`, `kernel`, or `distance`.
+        threshold (float): Threshold used by `cutoff_type`.
+
+    Returns:
+        array: Kernel weights with shape ``(N, M)``.
+
+    Raises:
+        ValueError: If the kernel or cutoff type is unsupported.
+    """
+    if kernel != "gaussian":
+        raise ValueError(f"Unsupported kernel: {kernel}")
+
+    distances_to_voxel = jnp.maximum(
+        jnp.abs(data_positions[:, None, :] - grid_positions[None, :, :])
+        - grid_size / 2,
+        0,
+    )
+    distances = jnp.sqrt(jnp.sum(distances_to_voxel**2, axis=2))
+
+    # Null error case: all the weight goes to the voxel containing the object.
+    null_error = jnp.all(jnp.diagonal(bandwidths, axis1=1, axis2=2) == 0, axis=1)
+    null_kernel = (distances == 0).astype(distances.dtype)
+    bandwidths = jnp.where(null_error[:, None, None], jnp.eye(3), bandwidths)
+
+    unnormalized_kernel = jnp.exp(
+        -0.5
+        * jnp.sum(
+            (distances_to_voxel @ jnp.linalg.inv(bandwidths)) * distances_to_voxel,
+            axis=2,
+        )
+    )
+    norm = 1 / ((2 * jnp.pi) ** (1.5) * jnp.sqrt(jnp.linalg.det(bandwidths)))
+    unnormalized_kernel = jnp.where(
+        null_error[:, None], null_kernel, unnormalized_kernel
+    )
+    normalized_kernel = jnp.where(
+        null_error[:, None], null_kernel, unnormalized_kernel * norm[:, None]
+    )
+
+    if cutoff_type is not None:
+        if cutoff_type == "kernel_unnormalized":
+            cut = unnormalized_kernel < threshold
+        elif cutoff_type == "kernel":
+            cut = normalized_kernel < threshold
+        elif cutoff_type == "distance":
+            cut = distances > threshold
+        else:
+            raise ValueError(f"Unsupported cutoff type: {cutoff_type}")
+        normalized_kernel = jnp.where(cut, 0.0, normalized_kernel)
+
+    return normalized_kernel
+
+
+if jax_installed:
+    _multivariate_kernel_weights_chunk = jit(
+        _multivariate_kernel_weights_chunk, static_argnames=("kernel", "cutoff_type")
+    )
 
 
 def create_sampled_grid(
@@ -1225,7 +1293,7 @@ def grid_data_density_kernel_sampling(
         seed=seed,
     )
 
-    data_weights = jnp.ones(len(data_position_kernel))  # used for randoms scaling
+    data_weights = jnp.ones(len(data_position_kernel))
 
     create_sub_grid = partial(
         create_sampled_grid,

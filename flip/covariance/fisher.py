@@ -1,8 +1,7 @@
 import importlib
 
+from flip._config import __use_jax__
 from flip.utils import create_log
-
-from .._config import __use_jax__
 
 if __use_jax__:
     try:

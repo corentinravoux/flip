@@ -8,7 +8,6 @@ their import. Subpackages are loaded lazily on attribute access from
 
 import importlib.util
 
-
 SUBPACKAGES = {
     "data_vector": {
         "required": ["numpy", "scipy", "astropy", "pandas"],
@@ -138,7 +137,7 @@ def format_banner(version):
 
 
 def _format_jax_backend():
-    from ._config import __use_jax__
+    from flip._config import __use_jax__
 
     if not _has("jax"):
         return "JAX backend: not installed, using numpy/scipy"

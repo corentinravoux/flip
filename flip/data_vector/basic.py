@@ -11,10 +11,10 @@ except ImportError:
     pass
 
 
+from flip._config import __use_jax__
 from flip.data_vector import mesh
 from flip.utils import create_log
 
-from .._config import __use_jax__
 from . import vector_utils
 
 if __use_jax__:
@@ -218,7 +218,7 @@ class DataVector(abc.ABC):
             **kwargs,
         )
 
-    def compute_effective_redshift(self,method, z_key="zobs",*args):
+    def compute_effective_redshift(self, method, z_key="zobs", *args):
         if z_key not in self.data:
             raise ValueError(f"{z_key} not found in data")
 
@@ -237,6 +237,7 @@ class DataVector(abc.ABC):
                 else:
                     weights = 1 / np.diag(variance)
                 return np.average(self.data[z_key], weights=weights)
+
 
 class Dens(DataVector):
     _kind = "density"

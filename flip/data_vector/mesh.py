@@ -1289,43 +1289,14 @@ def grid_data_density_kernel_sampling(
     )
     count_randoms = jnp.ravel(mesh_count_randoms.value).astype(int)
 
-    density_contrast = jnp.zeros_like(average_mesh_data)
-    density_contrast_err = jnp.zeros_like(average_mesh_data)
-
     mask_randoms_nonzero = mesh_randoms.value != 0.0
-    if jax_installed:
-        density_contrast = density_contrast.at[mask_randoms_nonzero].set(
-            jnp.ravel(
-                average_mesh_data[mask_randoms_nonzero]
-                / mesh_randoms.value[mask_randoms_nonzero]
-                - 1
-            )
-        )
-        density_contrast = density_contrast.at[~mask_randoms_nonzero].set(jnp.nan)
-        density_contrast_err = density_contrast_err.at[mask_randoms_nonzero].set(
-            jnp.ravel(
-                std_mesh_data[mask_randoms_nonzero]
-                / mesh_randoms.value[mask_randoms_nonzero]
-            )
-        )
-        density_contrast_err = density_contrast_err.at[~mask_randoms_nonzero].set(
-            jnp.nan
-        )
-    else:
-        density_contrast[mask_randoms_nonzero] = jnp.ravel(
-            average_mesh_data[mask_randoms_nonzero]
-            / mesh_randoms.value[mask_randoms_nonzero]
-            - 1
-        )
-        density_contrast[~mask_randoms_nonzero] = jnp.nan
-        density_contrast_err[mask_randoms_nonzero] = jnp.ravel(
-            std_mesh_data[mask_randoms_nonzero]
-            / mesh_randoms.value[mask_randoms_nonzero]
-        )
-        density_contrast_err[~mask_randoms_nonzero] = jnp.nan
-
-    density_contrast = jnp.ravel(density_contrast)
-    density_contrast_err = jnp.ravel(density_contrast_err)
+    safe_randoms = jnp.where(mask_randoms_nonzero, mesh_randoms.value, 1.0)
+    density_contrast = jnp.ravel(
+        jnp.where(mask_randoms_nonzero, average_mesh_data / safe_randoms - 1, jnp.nan)
+    )
+    density_contrast_err = jnp.ravel(
+        jnp.where(mask_randoms_nonzero, std_mesh_data / safe_randoms, jnp.nan)
+    )
 
     xgrid, ygrid, zgrid, ragrid, decgrid, rcomgrid = define_grid_from_mesh(
         mesh_randoms,
@@ -1341,6 +1312,134 @@ def grid_data_density_kernel_sampling(
         "rcom_zobs": rcomgrid,
         "density": density_contrast,
         "density_error": density_contrast_err,
+        "count_random": count_randoms,
+        "count_random_scaled": count_randoms * scaling,
+    }
+
+    cut_grid_type(
+        grid,
+        grid_type,
+        rcom_max,
+    )
+
+    return grid
+
+
+def grid_data_density_kernel_sum(
+    data_position_sky_kernel,
+    rcom_max,
+    grid_size,
+    grid_type,
+    kind,
+    Nrandom=10,
+    random_method="cartesian",
+    coord_randoms=None,
+    overhead=20,
+    seed=None,
+    data_weights=None,
+    randoms_weights=None,
+    compute_density_contrast_error=False,
+):
+
+    kind = kind.lower()
+    if kind not in _grid_kind_avail:
+        allowed = ", ".join(_grid_kind_avail)
+        raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
+
+    data_position_kernel, randoms_positions = prepare_data_position_kernel(
+        data_position_sky_kernel,
+        rcom_max,
+        overhead,
+        random_method=random_method,
+        Nrandom=Nrandom,
+        coord_randoms=coord_randoms,
+        seed=seed,
+    )
+
+    counts = jnp.array([len(kernel_rows) for kernel_rows in data_position_kernel])
+    if data_weights is None:
+        data_weights_sum = jnp.repeat(1.0 / counts, counts)
+    else:
+        total_sum_weights = np.sum(data_weights)
+        data_weights_sum = jnp.repeat(
+            data_weights / (counts * total_sum_weights), counts
+        )
+
+    if randoms_weights is None:
+        randoms_weights = jnp.ones((randoms_positions.shape[0],))
+
+    data_position_kernel_sum = jnp.vstack(data_position_kernel)
+
+    mesh_data = create_mesh(
+        data_position_kernel_sum,
+        2 * (rcom_max + overhead),
+        grid_size,
+        assignement=kind,
+        weights=data_weights_sum,
+    )
+    scaling = jnp.sum(data_weights_sum) / jnp.sum(randoms_weights)
+
+    mesh_randoms = create_mesh(
+        randoms_positions,
+        2 * (rcom_max + overhead),
+        grid_size,
+        assignement=kind,
+        weights=randoms_weights,
+        scaling=scaling,
+    )
+    mask_randoms_nonzero = mesh_randoms.value != 0.0
+    safe_randoms = jnp.where(mask_randoms_nonzero, mesh_randoms.value, 1.0)
+    density_contrast = jnp.ravel(
+        jnp.where(mask_randoms_nonzero, mesh_data.value / safe_randoms - 1, jnp.nan)
+    )
+
+    mesh_count_randoms = create_mesh(
+        randoms_positions,
+        2 * (rcom_max + overhead),
+        grid_size,
+        assignement="ngp",
+        weights=randoms_weights,
+    )
+    count_randoms = jnp.ravel(mesh_count_randoms.value).astype(int)
+
+    if compute_density_contrast_error:
+        nmesh, boxsize, boxcenter = _get_mesh_attrs(
+            2 * (rcom_max + overhead), grid_size
+        )
+        groups = jnp.repeat(jnp.arange(len(counts)), counts)
+        object_weights = data_weights / total_sum_weights
+
+        var = paint_catalog_variance(
+            data_position_kernel_sum,
+            groups,
+            boxsize,
+            nmesh,
+            boxcenter=boxcenter,
+            resampler=kind,
+            object_weights=object_weights,
+        )
+        density_contrast_err = jnp.ravel(
+            jnp.where(mask_randoms_nonzero, jnp.sqrt(var.value) / safe_randoms, jnp.nan)
+        )
+
+    else:
+        density_contrast_err = jnp.full(count_randoms.shape, jnp.nan)
+
+    xgrid, ygrid, zgrid, ragrid, decgrid, rcomgrid = define_grid_from_mesh(
+        mesh_data,
+        grid_size,
+    )
+
+    grid = {
+        "x": xgrid,
+        "y": ygrid,
+        "z": zgrid,
+        "ra": ragrid,
+        "dec": decgrid,
+        "rcom_zobs": rcomgrid,
+        "density": density_contrast,
+        "density_error": density_contrast_err,
+        "value_data": jnp.ravel(mesh_data.value),
         "count_random": count_randoms,
         "count_random_scaled": count_randoms * scaling,
     }

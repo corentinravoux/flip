@@ -46,7 +46,6 @@ SUBPACKAGES = {
         ],
         "optional": {
             "jax (jit paths)": ["jax"],
-            "hankel cosmoprimo backend": ["cosmoprimo"],
             "skgp emulator": ["sklearn"],
             "nn emulator": ["torch"],
             "SN fit utils": ["snsim", "snutils"],

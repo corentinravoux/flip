@@ -1,13 +1,10 @@
-try:
-    from pmesh.pm import ParticleMesh
-except ImportError:
-    ParticleMesh = None
 import multiprocessing as mp
 from functools import partial
 
 import numpy as np
 
 from flip import utils
+from flip.data_vector.mesh_utils import paint_catalog
 
 _grid_kind_avail = ["ngp", "ngp_errw", "cic", "tsc", "pcs"]
 
@@ -300,9 +297,9 @@ def define_randoms(
     elif random_method == "file":
         _needed_params([coord_randoms])
         ra_random, dec_random, rcom_random = (
-            coord_randoms[:,0],
-            coord_randoms[:,1],
-            coord_randoms[:,2],
+            coord_randoms[:, 0],
+            coord_randoms[:, 1],
+            coord_randoms[:, 2],
         )
 
         xobj_random, yobj_random, zobj_random = utils.spherical_to_cartesian(
@@ -316,7 +313,7 @@ def define_randoms(
             yobj_random = yobj_random[mask_random]
             zobj_random = zobj_random[mask_random]
 
-            return xobj_random, yobj_random, zobj_random , mask_random
+            return xobj_random, yobj_random, zobj_random, mask_random
 
     return xobj_random, yobj_random, zobj_random, None
 
@@ -329,7 +326,7 @@ def create_mesh(
     weights=None,
     scaling=None,
 ):
-    """Paint weighted positions onto a `pmesh` mesh.
+    """Paint weighted positions onto a mesh.
 
     Args:
         positions (array-like): Cartesian positions with shape `(N, 3)`.
@@ -341,7 +338,7 @@ def create_mesh(
         scaling (float, optional): Extra multiplicative factor applied to weights.
 
     Returns:
-        pmesh.pm.RealField: Painted real-space mesh.
+        flip.data_vector.mesh_utils.RealField: Painted real-space mesh.
 
     Raises:
         ValueError: If positions or weights contain non-finite values.
@@ -361,52 +358,15 @@ def create_mesh(
         cellsize,
     )
 
-    pm = ParticleMesh(
-        BoxSize=boxsize,
-        Nmesh=nmesh,
-        dtype="f8",
+    return paint_catalog(
+        positions,
+        boxsize,
+        nmesh,
+        boxcenter=boxcenter,
+        resampler=resampler,
+        weights=weights,
+        scaling=scaling,
     )
-    offset = boxcenter - boxsize / 2.0
-    _slab_npoints_max = int(1024 * 1024 * 4)
-
-    def paint(positions, weights, scaling, out, transform=None):
-        positions = positions - offset
-        factor = 0.5
-        if not np.isfinite(positions).all():
-            raise ValueError("Some positions are NaN/inf")
-        if not np.isfinite(weights).all():
-            raise ValueError("Some weights are NaN/inf")
-        if scaling is not None:
-            weights = weights * scaling
-
-        def paint_slab(sl):
-            p = positions[sl]
-            size = len(p)
-            layout = pm.decompose(p, smoothing=factor * _grid_order_dict[assignement])
-            p = layout.exchange(p)
-            w = layout.exchange(weights[sl])
-            pm.paint(
-                p,
-                mass=w,
-                resampler=resampler,
-                transform=transform,
-                hold=True,
-                out=out,
-            )
-            return size
-
-        islab = 0
-        slab_npoints = _slab_npoints_max
-        while islab < len(positions):
-            sl = slice(islab, islab + slab_npoints)
-            _ = paint_slab(sl)
-            islab += slab_npoints
-            slab_npoints = min(_slab_npoints_max, int(slab_npoints * 1.2))
-
-    out = pm.create(type="real", value=0.0)
-    paint(positions, weights, scaling, out)
-
-    return out
 
 
 def cut_grid(
@@ -511,12 +471,7 @@ def prepare_data_position_kernel(
         data_position_kernel.append(kernel_cartesian)
 
     if random_method is not None:
-        (
-            xobj_random,
-            yobj_random,
-            zobj_random,
-            mask_random
-        ) = define_randoms(
+        xobj_random, yobj_random, zobj_random, mask_random = define_randoms(
             random_method,
             Nrandom=Nrandom,
             coord_randoms=coord_randoms,
@@ -587,12 +542,7 @@ def prepare_data_position(
 
     raobj, decobj, rcomobj = raobj[mask], decobj[mask], rcomobj[mask]
     if random_method is not None:
-        (
-            xobj_random,
-            yobj_random,
-            zobj_random,
-            mask_random
-        ) = define_randoms(
+        xobj_random, yobj_random, zobj_random, mask_random = define_randoms(
             random_method,
             xobj,
             yobj,
@@ -617,7 +567,7 @@ def prepare_data_position(
         data_position_bandwith,
         randoms_positions,
         mask,
-        mask_random
+        mask_random,
     )
 
 
@@ -625,7 +575,7 @@ def define_grid_from_mesh(mesh_data, grid_size):
     """Extract voxel-center coordinates and sky coordinates from a mesh.
 
     Args:
-        mesh_data: `pmesh` field used to define the grid geometry.
+        mesh_data: `RealField` used to define the grid geometry.
         grid_size (float): Cell size used to shift coordinates to voxel centers.
 
     Returns:
@@ -692,14 +642,16 @@ def grid_data_density(
         allowed = ", ".join(_grid_kind_avail)
         raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
 
-    data_positions, _, randoms_positions, mask_data, mask_random = prepare_data_position(
-        data_position_sky,
-        rcom_max,
-        overhead,
-        random_method=random_method,
-        Nrandom=Nrandom,
-        coord_randoms=coord_randoms,
-        seed=seed,
+    data_positions, _, randoms_positions, mask_data, mask_random = (
+        prepare_data_position(
+            data_position_sky,
+            rcom_max,
+            overhead,
+            random_method=random_method,
+            Nrandom=Nrandom,
+            coord_randoms=coord_randoms,
+            seed=seed,
+        )
     )
     if data_weights is None:
         data_weights = np.ones((data_positions.shape[0],))
@@ -828,17 +780,21 @@ def grid_data_density_multivariate_kernel(
         allowed = ", ".join(_grid_kind_avail)
         raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
 
-    data_positions, data_position_bandwith, randoms_positions, mask_data, mask_random = (
-        prepare_data_position(
-            data_position_sky,
-            rcom_max,
-            overhead,
-            random_method=random_method,
-            Nrandom=Nrandom,
-            coord_randoms=coord_randoms,
-            seed=seed,
-            data_position_sky_bandwidth=data_position_sky_bandwidth,
-        )
+    (
+        data_positions,
+        data_position_bandwith,
+        randoms_positions,
+        mask_data,
+        mask_random,
+    ) = prepare_data_position(
+        data_position_sky,
+        rcom_max,
+        overhead,
+        random_method=random_method,
+        Nrandom=Nrandom,
+        coord_randoms=coord_randoms,
+        seed=seed,
+        data_position_sky_bandwidth=data_position_sky_bandwidth,
     )
 
     if data_weights is None:
@@ -1265,6 +1221,9 @@ def grid_data_velocity(
     variance_grid = np.ravel(mesh_variance.value) / (N_in_cell**2)
 
     if velocity is not None:
+        velocity = velocity[mask_data]
+        variance = variance[mask_data]
+
         weights_weighted_mean = velocity / variance
 
         mesh_weighted_velocity = create_mesh(

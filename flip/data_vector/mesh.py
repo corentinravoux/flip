@@ -228,11 +228,11 @@ def define_randoms(
         tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]: Random x, y, z positions.
     """
 
-    def _needed_params(needed_parameter):
-        for p in needed_parameter:
+    def _needed_params(**needed_parameter):
+        for name, p in needed_parameter.items():
             if p is None:
                 raise ValueError(
-                    f"random_method={random_method} requires {p} to be provided"
+                    f"random_method={random_method} requires {name} to be provided"
                 )
 
     if seed is not None:
@@ -246,7 +246,7 @@ def define_randoms(
 
     # Uniform in X,Y,Z
     if random_method == "cartesian":
-        _needed_params([xobj, yobj, zobj])
+        _needed_params(xobj=xobj, yobj=yobj, zobj=zobj)
         N = xobj.size
         if jax_installed:
             jax_random_key, kx, ky, kz = jax.random.split(jax_random_key, num=4)
@@ -295,7 +295,7 @@ def define_randoms(
 
     # Choice in the ra, dec, and redshift data coordinates to create the random.
     elif random_method == "choice":
-        _needed_params([raobj, decobj, rcomobj])
+        _needed_params(raobj=raobj, decobj=decobj, rcomobj=rcomobj)
         N = raobj.size
         counts_ra, bins_ra = jnp.histogram(raobj, bins=1000)
         if jax_installed:
@@ -351,15 +351,15 @@ def define_randoms(
 
     # Uniform in ra and dec. Choice in the redshift data coordinates.
     elif random_method == "choice_redshift":
-        _needed_params([raobj, decobj, rcomobj])
+        _needed_params(raobj=raobj, decobj=decobj, rcomobj=rcomobj)
         N = raobj.size
         if jax_installed:
             jax_random_key, kx, ky = jax.random.split(jax_random_key, num=3)
             ra_random = (jnp.max(raobj) - jnp.min(raobj)) * jax.random.uniform(
-                kx, size=Nrandom * N
+                kx, shape=(Nrandom * N,)
             ) + jnp.min(raobj)
             dec_random = (jnp.max(decobj) - jnp.min(decobj)) * jax.random.uniform(
-                ky, size=Nrandom * N
+                ky, shape=(Nrandom * N,)
             ) + jnp.min(decobj)
         else:
             ra_random = (jnp.max(raobj) - jnp.min(raobj)) * jnp.random.random(
@@ -390,7 +390,7 @@ def define_randoms(
 
     # From random file
     elif random_method == "file":
-        _needed_params([coord_randoms])
+        _needed_params(coord_randoms=coord_randoms)
         ra_random, dec_random, rcom_random = (
             coord_randoms[:, 0],
             coord_randoms[:, 1],
@@ -1314,7 +1314,9 @@ def grid_data_density_kernel_sampling(
             jax_random_key = jax.random.key(int(time.time() * 1e6))
             seeds = jax.random.split(jax_random_key, num=Nsampling)
         else:
-            seeds = [None] * Nsampling
+            # Distinct seeds: forked workers would otherwise share the
+            # parent's numpy random state and draw identical samples.
+            seeds = jnp.random.SeedSequence().generate_state(Nsampling)
 
     if jax_installed:
         print("FLAG TO DEBUG: JAX is installed, using jax.vmap for parallelization.")
@@ -1427,11 +1429,13 @@ def grid_data_density_kernel_sum(
     counts = jnp.array([len(kernel_rows) for kernel_rows in data_position_kernel])
     if data_weights is None:
         data_weights_sum = jnp.repeat(1.0 / counts, counts)
+        object_weights = None
     else:
         total_sum_weights = np.sum(data_weights)
         data_weights_sum = jnp.repeat(
             data_weights / (counts * total_sum_weights), counts
         )
+        object_weights = data_weights / total_sum_weights
 
     if randoms_weights is None:
         randoms_weights = jnp.ones((randoms_positions.shape[0],))
@@ -1475,7 +1479,6 @@ def grid_data_density_kernel_sum(
             2 * (rcom_max + overhead), grid_size
         )
         groups = jnp.repeat(jnp.arange(len(counts)), counts)
-        object_weights = data_weights / total_sum_weights
 
         var = paint_catalog_variance(
             data_position_kernel_sum,
@@ -1490,9 +1493,6 @@ def grid_data_density_kernel_sum(
             jnp.where(mask_randoms_nonzero, jnp.sqrt(var.value) / safe_randoms, jnp.nan)
         )
 
-    else:
-        density_contrast_err = jnp.full(count_randoms.shape, jnp.nan)
-
     xgrid, ygrid, zgrid, ragrid, decgrid, rcomgrid = define_grid_from_mesh(
         mesh_data,
         grid_size,
@@ -1506,11 +1506,12 @@ def grid_data_density_kernel_sum(
         "dec": decgrid,
         "rcom_zobs": rcomgrid,
         "density": density_contrast,
-        "density_error": density_contrast_err,
         "value_data": jnp.ravel(mesh_data.value),
         "count_random": count_randoms,
         "count_random_scaled": count_randoms * scaling,
     }
+    if compute_density_contrast_error:
+        grid["density_error"] = density_contrast_err
 
     cut_grid_type(
         grid,
@@ -1559,6 +1560,7 @@ def grid_data_velocity(
         count_weights = jnp.ones((data_positions.shape[0],))
     else:
         count_weights = count_weights[mask_data]
+    variance = variance[mask_data]
 
     mesh_variance = create_mesh(
         data_positions,
@@ -1581,7 +1583,6 @@ def grid_data_velocity(
 
     if velocity is not None:
         velocity = velocity[mask_data]
-        variance = variance[mask_data]
 
         weights_weighted_mean = velocity / variance
 

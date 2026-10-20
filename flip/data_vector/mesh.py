@@ -1,10 +1,14 @@
 import multiprocessing as mp
+import time
 from functools import partial
+
+import numpy as np
 
 from .._config import __use_jax__
 
 if __use_jax__:
     try:
+        import jax
         import jax.numpy as jnp
         from jax import jit
 
@@ -18,8 +22,6 @@ else:
     import numpy as jnp
 
     jax_installed = False
-
-
 
 from flip import utils
 from flip.data_vector.mesh_utils import paint_catalog
@@ -50,7 +52,6 @@ def _compute_grid_window(grid_size, k, order, n):
     Returns:
         numpy.ndarray: Window values for each `k`.
     """
-    window = jnp.zeros_like(k)
     theta = jnp.linspace(0, jnp.pi, n)
     phi = jnp.linspace(0, 2 * jnp.pi, n)
     kx = jnp.outer(jnp.sin(theta), jnp.cos(phi))
@@ -60,14 +61,16 @@ def _compute_grid_window(grid_size, k, order, n):
     # Forgotten in Howlett et al. formula
     # we add spherical coordinate solid angle element
     dthetaphi = jnp.outer(jnp.sin(theta), jnp.ones(phi.size))
+    window = []
     for i in range(k.size):
         # the factor here has an extra jnp.pi because of the definition of jnp.sinc
         fact = (k[i] * grid_size) / (2 * jnp.pi)
         func = (
             jnp.sinc(fact * kx) * jnp.sinc(fact * ky) * jnp.sinc(fact * kz)
         ) ** order * dthetaphi
-        win_theta = jnp.trapz(func, x=phi)
-        window[i] = jnp.trapz(win_theta, x=theta)
+        win_theta = jnp.trapezoid(func, x=phi)
+        window.append(jnp.trapezoid(win_theta, x=theta))
+    window = jnp.asarray(window, dtype=jnp.result_type(k, float))
     window *= 1 / (4 * jnp.pi)
     return window
 
@@ -178,16 +181,16 @@ def _get_mesh_attrs(
         adjusted box size, and box center.
     """
     boxcenter = 0.0
-    boxsize = jnp.full((3,), boxsize, dtype="f8")
+    boxsize = np.full((3,), boxsize, dtype="f8")
 
-    cellsize = jnp.full((3,), cellsize, dtype="f8")
+    cellsize = np.full((3,), cellsize, dtype="f8")
     nmesh = boxsize / cellsize
-    nmesh = jnp.ceil(nmesh).astype("i8")
+    nmesh = np.ceil(nmesh).astype("i8")
     nmesh += nmesh % 2  # to make it even
     boxsize = nmesh * cellsize  # enforce exact cellsize
 
-    nmesh = jnp.full((3,), nmesh, dtype="i4")
-    boxcenter = jnp.full((3,), boxcenter, dtype="f8")
+    nmesh = np.full((3,), nmesh, dtype="i4")
+    boxcenter = np.full((3,), boxcenter, dtype="f8")
     return nmesh, boxsize, boxcenter
 
 
@@ -234,55 +237,112 @@ def define_randoms(
                 )
 
     if seed is not None:
-        jnp.random.seed(seed)
+        if jax_installed:
+            jax_random_key = jax.random.key(seed)
+        else:
+            jnp.random.seed(seed)
+    else:
+        if jax_installed:
+            jax_random_key = jax.random.key(int(time.time() * 1e6))
 
     # Uniform in X,Y,Z
     if random_method == "cartesian":
         _needed_params([xobj, yobj, zobj])
         N = xobj.size
-        xobj_random = (jnp.max(xobj) - jnp.min(xobj)) * jnp.random.random(
-            size=Nrandom * N
-        ) + jnp.min(xobj)
-        yobj_random = (jnp.max(yobj) - jnp.min(yobj)) * jnp.random.random(
-            size=Nrandom * N
-        ) + jnp.min(yobj)
-        zobj_random = (jnp.max(zobj) - jnp.min(zobj)) * jnp.random.random(
-            size=Nrandom * N
-        ) + jnp.min(zobj)
+        if jax_installed:
+            jax_random_key, kx, ky, kz = jax.random.split(jax_random_key, num=4)
+            xobj_random = (jnp.max(xobj) - jnp.min(xobj)) * jax.random.uniform(
+                kx, shape=(Nrandom * N,)
+            ) + jnp.min(xobj)
+            yobj_random = (jnp.max(yobj) - jnp.min(yobj)) * jax.random.uniform(
+                ky, shape=(Nrandom * N,)
+            ) + jnp.min(yobj)
+            zobj_random = (jnp.max(zobj) - jnp.min(zobj)) * jax.random.uniform(
+                kz, shape=(Nrandom * N,)
+            ) + jnp.min(zobj)
+        else:
+            xobj_random = (jnp.max(xobj) - jnp.min(xobj)) * jnp.random.random(
+                size=Nrandom * N
+            ) + jnp.min(xobj)
+            yobj_random = (jnp.max(yobj) - jnp.min(yobj)) * jnp.random.random(
+                size=Nrandom * N
+            ) + jnp.min(yobj)
+            zobj_random = (jnp.max(zobj) - jnp.min(zobj)) * jnp.random.random(
+                size=Nrandom * N
+            ) + jnp.min(zobj)
 
     elif random_method == "cartesian_max_coordinates":
-        xobj_random = (2 * max_coordinates) * jnp.random.random(
-            size=Nrandom
-        ) - max_coordinates
-        yobj_random = (2 * max_coordinates) * jnp.random.random(
-            size=Nrandom
-        ) - max_coordinates
-        zobj_random = (2 * max_coordinates) * jnp.random.random(
-            size=Nrandom
-        ) - max_coordinates
+        if jax_installed:
+            jax_random_key, kx, ky, kz = jax.random.split(jax_random_key, num=4)
+            xobj_random = (2 * max_coordinates) * jax.random.uniform(
+                kx, shape=(Nrandom,)
+            ) - max_coordinates
+            yobj_random = (2 * max_coordinates) * jax.random.uniform(
+                ky, shape=(Nrandom,)
+            ) - max_coordinates
+            zobj_random = (2 * max_coordinates) * jax.random.uniform(
+                kz, shape=(Nrandom,)
+            ) - max_coordinates
+        else:
+            xobj_random = (2 * max_coordinates) * jnp.random.random(
+                size=Nrandom
+            ) - max_coordinates
+            yobj_random = (2 * max_coordinates) * jnp.random.random(
+                size=Nrandom
+            ) - max_coordinates
+            zobj_random = (2 * max_coordinates) * jnp.random.random(
+                size=Nrandom
+            ) - max_coordinates
 
     # Choice in the ra, dec, and redshift data coordinates to create the random.
     elif random_method == "choice":
         _needed_params([raobj, decobj, rcomobj])
         N = raobj.size
         counts_ra, bins_ra = jnp.histogram(raobj, bins=1000)
-        ra_random = jnp.random.choice(
-            (bins_ra[1:] + bins_ra[:-1]) / 2,
-            p=counts_ra / float(counts_ra.sum()),
-            size=Nrandom * N,
-        )
+        if jax_installed:
+            jax_random_key, k = jax.random.split(jax_random_key)
+            ra_random = jax.random.choice(
+                k,
+                (bins_ra[1:] + bins_ra[:-1]) / 2,
+                p=counts_ra / float(counts_ra.sum()),
+                shape=(Nrandom * N,),
+            )
+        else:
+            ra_random = jnp.random.choice(
+                (bins_ra[1:] + bins_ra[:-1]) / 2,
+                p=counts_ra / float(counts_ra.sum()),
+                size=Nrandom * N,
+            )
         counts_dec, bins_dec = jnp.histogram(decobj, bins=1000)
-        dec_random = jnp.random.choice(
-            (bins_dec[1:] + bins_dec[:-1]) / 2,
-            p=counts_dec / float(counts_dec.sum()),
-            size=Nrandom * N,
-        )
+        if jax_installed:
+            jax_random_key, k = jax.random.split(jax_random_key)
+            dec_random = jax.random.choice(
+                k,
+                (bins_dec[1:] + bins_dec[:-1]) / 2,
+                p=counts_dec / float(counts_dec.sum()),
+                shape=(Nrandom * N,),
+            )
+        else:
+            dec_random = jnp.random.choice(
+                (bins_dec[1:] + bins_dec[:-1]) / 2,
+                p=counts_dec / float(counts_dec.sum()),
+                size=Nrandom * N,
+            )
         counts_rcom, bins_rcom = jnp.histogram(rcomobj, bins=1000)
-        rcom_random = jnp.random.choice(
-            (bins_rcom[1:] + bins_rcom[:-1]) / 2,
-            p=counts_rcom / float(counts_rcom.sum()),
-            size=Nrandom * N,
-        )
+        if jax_installed:
+            jax_random_key, k = jax.random.split(jax_random_key)
+            rcom_random = jax.random.choice(
+                k,
+                (bins_rcom[1:] + bins_rcom[:-1]) / 2,
+                p=counts_rcom / float(counts_rcom.sum()),
+                shape=(Nrandom * N,),
+            )
+        else:
+            rcom_random = jnp.random.choice(
+                (bins_rcom[1:] + bins_rcom[:-1]) / 2,
+                p=counts_rcom / float(counts_rcom.sum()),
+                size=Nrandom * N,
+            )
 
         xobj_random, yobj_random, zobj_random = utils.spherical_to_cartesian(
             ra_random,
@@ -294,18 +354,36 @@ def define_randoms(
     elif random_method == "choice_redshift":
         _needed_params([raobj, decobj, rcomobj])
         N = raobj.size
-        ra_random = (jnp.max(raobj) - jnp.min(raobj)) * jnp.random.random(
-            size=Nrandom * N
-        ) + jnp.min(raobj)
-        dec_random = (jnp.max(decobj) - jnp.min(decobj)) * jnp.random.random(
-            size=Nrandom * N
-        ) + jnp.min(decobj)
+        if jax_installed:
+            jax_random_key, kx, ky = jax.random.split(jax_random_key, num=3)
+            ra_random = (jnp.max(raobj) - jnp.min(raobj)) * jax.random.uniform(
+                kx, size=Nrandom * N
+            ) + jnp.min(raobj)
+            dec_random = (jnp.max(decobj) - jnp.min(decobj)) * jax.random.uniform(
+                ky, size=Nrandom * N
+            ) + jnp.min(decobj)
+        else:
+            ra_random = (jnp.max(raobj) - jnp.min(raobj)) * jnp.random.random(
+                size=Nrandom * N
+            ) + jnp.min(raobj)
+            dec_random = (jnp.max(decobj) - jnp.min(decobj)) * jnp.random.random(
+                size=Nrandom * N
+            ) + jnp.min(decobj)
         counts_rcom, bins_rcom = jnp.histogram(rcomobj, bins=1000)
-        rcom_random = jnp.random.choice(
-            (bins_rcom[1:] + bins_rcom[:-1]) / 2,
-            p=counts_rcom / float(counts_rcom.sum()),
-            size=Nrandom * N,
-        )
+        if jax_installed:
+            jax_random_key, k = jax.random.split(jax_random_key)
+            rcom_random = jax.random.choice(
+                k,
+                (bins_rcom[1:] + bins_rcom[:-1]) / 2,
+                p=counts_rcom / float(counts_rcom.sum()),
+                shape=(Nrandom * N,),
+            )
+        else:
+            rcom_random = jnp.random.choice(
+                (bins_rcom[1:] + bins_rcom[:-1]) / 2,
+                p=counts_rcom / float(counts_rcom.sum()),
+                size=Nrandom * N,
+            )
 
         xobj_random, yobj_random, zobj_random = utils.spherical_to_cartesian(
             ra_random, dec_random, rcom_random
@@ -708,17 +786,34 @@ def grid_data_density(
 
     density_contrast = jnp.zeros_like(mesh_data.value)
     mask_randoms_nonzero = mesh_randoms.value != 0.0
-    density_contrast[mask_randoms_nonzero] = jnp.ravel(
-        mesh_data.value[mask_randoms_nonzero] / mesh_randoms.value[mask_randoms_nonzero]
-        - 1
-    )
-    density_contrast[~mask_randoms_nonzero] = jnp.nan
+    if jax_installed:
+        density_contrast = density_contrast.at[mask_randoms_nonzero].set(
+            jnp.ravel(
+                mesh_data.value[mask_randoms_nonzero]
+                / mesh_randoms.value[mask_randoms_nonzero]
+                - 1
+            )
+        )
+        density_contrast = density_contrast.at[~mask_randoms_nonzero].set(jnp.nan)
+    else:
+        density_contrast[mask_randoms_nonzero] = jnp.ravel(
+            mesh_data.value[mask_randoms_nonzero]
+            / mesh_randoms.value[mask_randoms_nonzero]
+            - 1
+        )
+        density_contrast[~mask_randoms_nonzero] = jnp.nan
+
     density_contrast = jnp.ravel(density_contrast)
 
     count_randoms = jnp.ravel(mesh_count_randoms.value).astype(int)
     density_contrast_err = jnp.full(count_randoms.shape, jnp.nan)
     mask = count_randoms > min_count_random
-    density_contrast_err[mask] = jnp.sqrt(1 / (count_randoms[mask] * scaling))
+    if jax_installed:
+        density_contrast_err = density_contrast_err.at[mask].set(
+            jnp.sqrt(1 / (count_randoms[mask] * scaling))
+        )
+    else:
+        density_contrast_err[mask] = jnp.sqrt(1 / (count_randoms[mask] * scaling))
 
     xgrid, ygrid, zgrid, ragrid, decgrid, rcomgrid = define_grid_from_mesh(
         mesh_data,
@@ -890,18 +985,34 @@ def grid_data_density_multivariate_kernel(
 
     density_contrast = jnp.zeros_like(mesh_data_kernel.value)
     mask_randoms_nonzero = mesh_randoms.value != 0.0
-    density_contrast[mask_randoms_nonzero] = jnp.ravel(
-        mesh_data_kernel.value[mask_randoms_nonzero]
-        / mesh_randoms.value[mask_randoms_nonzero]
-        - 1
-    )
-    density_contrast[~mask_randoms_nonzero] = jnp.nan
+    if jax_installed:
+        density_contrast = density_contrast.at[mask_randoms_nonzero].set(
+            jnp.ravel(
+                mesh_data_kernel.value[mask_randoms_nonzero]
+                / mesh_randoms.value[mask_randoms_nonzero]
+                - 1
+            )
+        )
+        density_contrast = density_contrast.at[~mask_randoms_nonzero].set(jnp.nan)
+
+    else:
+        density_contrast[mask_randoms_nonzero] = jnp.ravel(
+            mesh_data_kernel.value[mask_randoms_nonzero]
+            / mesh_randoms.value[mask_randoms_nonzero]
+            - 1
+        )
+        density_contrast[~mask_randoms_nonzero] = jnp.nan
     density_contrast = jnp.ravel(density_contrast)
 
     count_randoms = jnp.ravel(mesh_count_randoms.value).astype(int)
     density_contrast_err = jnp.full(count_randoms.shape, jnp.nan)
     mask = count_randoms > min_count_random
-    density_contrast_err[mask] = jnp.sqrt(1 / (count_randoms[mask] * scaling))
+    if jax_installed:
+        density_contrast_err = density_contrast_err.at[mask].set(
+            jnp.sqrt(1 / (count_randoms[mask] * scaling))
+        )
+    else:
+        density_contrast_err[mask] = jnp.sqrt(1 / (count_randoms[mask] * scaling))
 
     grid = {
         "x": xgrid,
@@ -1005,8 +1116,9 @@ def create_sampled_grid(
 ):
     """Draw one random position per object and paint them onto a mesh.
 
-    For each object its kernel is a block of rows (one row per count), so
-    the fastest unweighted draw is a single ``jnp.random.randint`` per object.
+    For each object its kernel is a block of rows (one row per count). The
+    kernels are stacked, and a single ``random.randint`` call draws one row
+    offset per object, with the upper bound set to each object's row count.
     The resulting ``(N_objects, 3)`` array of Cartesian positions is then
     painted with unit weights.
 
@@ -1022,12 +1134,34 @@ def create_sampled_grid(
     Returns:
         numpy.ndarray: Painted mesh values with shape equal to the mesh grid.
     """
-    jnp.random.seed(seed)
-    number_of_objects = len(data_position_kernel)
-    sampled_positions = jnp.empty((number_of_objects, 3))
-    for i, kernel_rows in enumerate(data_position_kernel):
+    if seed is not None:
+        if jax_installed:
+            jax_random_key = seed
+        else:
+            jnp.random.seed(seed)
+    else:
+        if jax_installed:
+            jax_random_key = jax.random.key(int(time.time() * 1e6))
 
-        sampled_positions[i] = kernel_rows[jnp.random.randint(len(kernel_rows)), :3]
+    # Stack all kernels: object i owns rows starts[i] to starts[i] + counts[i].
+    counts = jnp.array([len(kernel_rows) for kernel_rows in data_position_kernel])
+    starts = jnp.concatenate(
+        [jnp.zeros(1, dtype=counts.dtype), jnp.cumsum(counts)[:-1]]
+    )
+    kernel_stack = jnp.concatenate(
+        [jnp.asarray(kernel_rows)[:, :3] for kernel_rows in data_position_kernel]
+    )
+
+    if jax_installed:
+        jax_random_key, k = jax.random.split(jax_random_key)
+        choice_offsets = jax.random.randint(
+            k, shape=counts.shape, minval=0, maxval=counts
+        )
+    else:
+        choice_offsets = jnp.random.randint(0, counts)
+    sampled_positions = kernel_stack[starts + choice_offsets]
+
+    number_of_objects = counts.shape[0]
     data_weights = jnp.ones(number_of_objects)
 
     mesh_data_random = create_mesh(
@@ -1102,15 +1236,35 @@ def grid_data_density_kernel_sampling(
         kind,
     )
     if seed is not None:
-        seeds = jnp.random.SeedSequence(seed).generate_state(Nsampling)
+        if jax_installed:
+            jax_random_key = jax.random.key(seed)
+            seeds = jax.random.split(jax_random_key, num=Nsampling)
+        else:
+            seeds = jnp.random.SeedSequence(seed).generate_state(Nsampling)
     else:
-        seeds = [None] * Nsampling
+        if jax_installed:
+            jax_random_key = jax.random.key(int(time.time() * 1e6))
+            seeds = jax.random.split(jax_random_key, num=Nsampling)
+        else:
+            seeds = [None] * Nsampling
+
+    if jax_installed:
+        print("FLAG TO DEBUG: JAX is installed, using jax.vmap for parallelization.")
 
     if n_subprocess_sampling > 1:
-        with mp.Pool(n_subprocess_sampling) as pool:
-            mesh_data_random_samples = pool.map(create_sub_grid, seeds)
+        if jax_installed:
+            vmap_create_sub_grid = jax.vmap(create_sub_grid, in_axes=0)
+            mesh_data_random_samples = vmap_create_sub_grid(seeds)
+        else:
+            with mp.Pool(n_subprocess_sampling) as pool:
+                mesh_data_random_samples = pool.map(create_sub_grid, seeds)
     else:
-        mesh_data_random_samples = [create_sub_grid(seeds[i]) for i in range(Nsampling)]
+        if jax_installed:
+            mesh_data_random_samples = jax.lax.map(create_sub_grid, seeds)
+        else:
+            mesh_data_random_samples = [
+                create_sub_grid(seeds[i]) for i in range(Nsampling)
+            ]
 
     average_mesh_data = jnp.nanmean(mesh_data_random_samples, axis=0)
     std_mesh_data = jnp.nanstd(mesh_data_random_samples, axis=0)
@@ -1139,16 +1293,36 @@ def grid_data_density_kernel_sampling(
     density_contrast_err = jnp.zeros_like(average_mesh_data)
 
     mask_randoms_nonzero = mesh_randoms.value != 0.0
-    density_contrast[mask_randoms_nonzero] = jnp.ravel(
-        average_mesh_data[mask_randoms_nonzero]
-        / mesh_randoms.value[mask_randoms_nonzero]
-        - 1
-    )
-    density_contrast[~mask_randoms_nonzero] = jnp.nan
-    density_contrast_err[mask_randoms_nonzero] = jnp.ravel(
-        std_mesh_data[mask_randoms_nonzero] / mesh_randoms.value[mask_randoms_nonzero]
-    )
-    density_contrast_err[~mask_randoms_nonzero] = jnp.nan
+    if jax_installed:
+        density_contrast = density_contrast.at[mask_randoms_nonzero].set(
+            jnp.ravel(
+                average_mesh_data[mask_randoms_nonzero]
+                / mesh_randoms.value[mask_randoms_nonzero]
+                - 1
+            )
+        )
+        density_contrast = density_contrast.at[~mask_randoms_nonzero].set(jnp.nan)
+        density_contrast_err = density_contrast_err.at[mask_randoms_nonzero].set(
+            jnp.ravel(
+                std_mesh_data[mask_randoms_nonzero]
+                / mesh_randoms.value[mask_randoms_nonzero]
+            )
+        )
+        density_contrast_err = density_contrast_err.at[~mask_randoms_nonzero].set(
+            jnp.nan
+        )
+    else:
+        density_contrast[mask_randoms_nonzero] = jnp.ravel(
+            average_mesh_data[mask_randoms_nonzero]
+            / mesh_randoms.value[mask_randoms_nonzero]
+            - 1
+        )
+        density_contrast[~mask_randoms_nonzero] = jnp.nan
+        density_contrast_err[mask_randoms_nonzero] = jnp.ravel(
+            std_mesh_data[mask_randoms_nonzero]
+            / mesh_randoms.value[mask_randoms_nonzero]
+        )
+        density_contrast_err[~mask_randoms_nonzero] = jnp.nan
 
     density_contrast = jnp.ravel(density_contrast)
     density_contrast_err = jnp.ravel(density_contrast_err)

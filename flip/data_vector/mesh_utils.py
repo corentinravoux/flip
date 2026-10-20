@@ -1107,28 +1107,74 @@ if jax_installed:
     jax.tree_util.register_pytree_node_class(ComplexField)
 
 
+def _check_finite(values, name, xp):
+    """Raise if ``values`` contain NaN/inf.
+
+    The check is skipped when ``values`` are traced (under ``jit``, ``vmap``
+    or ``lax.map``), since their content is unknown at trace time.
+    """
+    if values is None:
+        return
+    try:
+        finite = bool(xp.all(xp.isfinite(xp.asarray(values))))
+    except Exception as error:
+        if jax_installed and isinstance(
+            error,
+            (jax.errors.ConcretizationTypeError, jax.errors.TracerArrayConversionError),
+        ):
+            return
+        raise
+    if not finite:
+        raise ValueError(f"Some {name} are NaN/inf")
+
+
+def _static_geometry(value, name, ndim, dtype):
+    """Convert a mesh geometry parameter to a numpy array of shape ``(ndim,)``.
+
+    The geometry fixes the mesh shape, so it must be concrete even when the
+    positions and weights are traced.
+    """
+    try:
+        value = np.asarray(value, dtype=dtype)
+    except Exception as error:
+        if jax_installed and isinstance(
+            error,
+            (jax.errors.ConcretizationTypeError, jax.errors.TracerArrayConversionError),
+        ):
+            raise ValueError(
+                f"{name} must be concrete (not traced): it sets the mesh "
+                "geometry. Compute it with numpy or outside jit/vmap/lax.map."
+            ) from error
+        raise
+    return np.broadcast_to(value, (ndim,))
+
+
 def _catalog_mesh(positions, boxsize, nmesh, boxcenter, resampler, dtype, backend):
     """Build the mesh of a catalog and shift positions to its corner.
+
+    Positions stay on the array module of ``backend`` and may be traced; the
+    geometry (``boxsize``, ``nmesh``, ``boxcenter``) must be concrete.
 
     Returns:
         tuple: ParticleMesh and positions minus
         ``offset = boxcenter - boxsize / 2``.
     """
-    positions = np.asarray(positions)
+    xp = get_array_module(backend)
+    positions = xp.asarray(positions)
     ndim = positions.shape[-1]
-    boxsize = np.broadcast_to(np.asarray(boxsize, dtype="f8"), (ndim,))
-    boxcenter = np.broadcast_to(np.asarray(boxcenter, dtype="f8"), (ndim,))
+    boxsize = _static_geometry(boxsize, "boxsize", ndim, "f8")
+    boxcenter = _static_geometry(boxcenter, "boxcenter", ndim, "f8")
+    nmesh = _static_geometry(nmesh, "nmesh", ndim, "i8")
     offset = boxcenter - boxsize / 2.0
-    if not np.isfinite(positions).all():
-        raise ValueError("Some positions are NaN/inf")
+    _check_finite(positions, "positions", xp)
     pm = ParticleMesh(
-        Nmesh=np.broadcast_to(nmesh, (ndim,)),
+        Nmesh=nmesh,
         BoxSize=boxsize,
         dtype=dtype,
         resampler=resampler,
         backend=backend,
     )
-    return pm, positions - offset
+    return pm, positions - xp.asarray(offset, dtype=positions.dtype)
 
 
 def paint_catalog(
@@ -1174,8 +1220,7 @@ def paint_catalog(
     )
     if weights is None:
         weights = 1.0
-    if not np.isfinite(weights).all():
-        raise ValueError("Some weights are NaN/inf")
+    _check_finite(weights, "weights", pm.xp)
     if scaling is not None:
         weights = weights * scaling
     return pm.paint(positions, mass=weights, chunk_size=chunk_size)
@@ -1226,8 +1271,7 @@ def paint_catalog_moments(
         positions, boxsize, nmesh, boxcenter, resampler, dtype, backend
     )
     for values in (probability, object_weights):
-        if values is not None and not np.isfinite(values).all():
-            raise ValueError("Some weights are NaN/inf")
+        _check_finite(values, "weights", pm.xp)
     return pm.paint_moments(
         positions,
         groups,

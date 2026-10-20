@@ -66,3 +66,28 @@ class GWDensMesh(Dens):
             **kwargs,
         )
         return cls(grid)
+
+
+
+    @classmethod
+    def init_from_kernel_summing(
+        cls,
+        data_position_sky_kernel,
+        rcom_max,
+        grid_size,
+        grid_type,
+        kind,
+        **kwargs,
+    ):
+
+
+
+        grid = mesh.grid_data_density(
+            data_position_sky_kernel,
+            rcom_max,
+            grid_size,
+            grid_type,
+            kind,
+            **kwargs,
+        )
+        return cls(grid)

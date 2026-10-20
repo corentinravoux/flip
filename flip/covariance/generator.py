@@ -175,7 +175,7 @@ def coefficient_hankel(
     return cov_ab_i
 
 
-def coefficient_trapz(
+def coefficient_trapezoid(
     model_name,
     covariance_type,
     term_index,
@@ -187,7 +187,7 @@ def coefficient_trapz(
     **kwargs,
 ):
     """
-    The coefficient_trapz function computes the covariance matrix element for a given term.
+    The coefficient_trapezoid function computes the covariance matrix element for a given term.
 
     Args:
         model_name: Call the dictionary_subterms function from the flip_terms file
@@ -462,7 +462,7 @@ def compute_coeficient(
     if hankel:
         coefficient = coefficient_hankel
     else:
-        coefficient = coefficient_trapz
+        coefficient = coefficient_trapezoid
 
     flip_terms = importlib.import_module(
         f"flip.covariance.analytical.{model_name}.flip_terms", package=__package__

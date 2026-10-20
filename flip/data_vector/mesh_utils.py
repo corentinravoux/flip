@@ -491,7 +491,7 @@ def readout(
     return _readout_jax(mesh, positions, *args)
 
 
-def _moments_impl(
+def _variance_impl(
     mesh,
     positions,
     groups,
@@ -505,7 +505,7 @@ def _moments_impl(
 ):
     shape = mesh.shape
     if positions.shape[0] == 0:
-        return mesh, xp.zeros_like(mesh)
+        return xp.zeros_like(mesh)
 
     index, window = _stencil(
         positions, None, shape, resampler, scale, translate, period, None, xp
@@ -564,25 +564,22 @@ def _moments_impl(
         segment_cell = jnp.zeros(n_segments, cell.dtype).at[segment].set(cell)
         segment_group = jnp.zeros(n_segments, group.dtype).at[segment].set(group)
 
-    weight = object_weights[segment_group]
-    mean = weight * first
     # Cauchy-Schwarz guarantees second >= first**2; clip rounding errors.
+    weight = object_weights[segment_group]
     variance = weight**2 * xp.maximum(second - first * first, 0)
 
     if xp is np:
-        mean = np.bincount(segment_cell, weights=mean, minlength=flat_size)
         variance = np.bincount(segment_cell, weights=variance, minlength=flat_size)
     else:
-        zeros = jnp.zeros(flat_size, dtype=mean.dtype)
-        mean = zeros.at[segment_cell].add(mean, mode="promise_in_bounds")
-        variance = zeros.at[segment_cell].add(variance, mode="promise_in_bounds")
-    return (
-        mean.reshape(shape).astype(mesh.dtype),
-        variance.reshape(shape).astype(mesh.dtype),
-    )
+        variance = (
+            jnp.zeros(flat_size, dtype=variance.dtype)
+            .at[segment_cell]
+            .add(variance, mode="promise_in_bounds")
+        )
+    return variance.reshape(shape).astype(mesh.dtype)
 
 
-def _moments_jax(
+def _variance_jax(
     mesh,
     positions,
     groups,
@@ -593,7 +590,7 @@ def _moments_jax(
     translate,
     period,
 ):
-    return _moments_impl(
+    return _variance_impl(
         mesh,
         positions,
         groups,
@@ -608,10 +605,31 @@ def _moments_jax(
 
 
 if jax_installed:
-    _moments_jax = jax.jit(_moments_jax, static_argnames=("resampler", "period"))
+    _variance_jax = jax.jit(_variance_jax, static_argnames=("resampler", "period"))
 
 
-def paint_moments(
+def _prepare_groups(groups, probability, object_weights, num_objects, dtype, xp):
+    """Return object indices, draw probabilities and object masses as arrays.
+
+    ``probability`` defaults to ``1 / n_i`` and ``object_weights`` to 1.
+    """
+    groups = xp.asarray(groups).reshape(-1)
+    if num_objects is None:
+        num_objects = int(groups.max()) + 1 if groups.size else 0
+    if probability is None:
+        if xp is np:
+            count = np.bincount(groups, minlength=num_objects)
+        else:
+            count = jnp.bincount(groups, length=num_objects)
+        probability = 1.0 / count[groups]
+    probability = xp.asarray(probability, dtype=dtype).reshape(-1)
+    if object_weights is None:
+        object_weights = xp.ones(num_objects, dtype=dtype)
+    object_weights = xp.asarray(object_weights, dtype=dtype).reshape(-1)
+    return groups, probability, object_weights
+
+
+def paint_variance(
     shape,
     positions,
     groups,
@@ -625,7 +643,7 @@ def paint_moments(
     dtype="f8",
     backend=None,
 ):
-    """Exact mean and variance meshes of a one-point-per-object random draw.
+    """Exact variance mesh of a one-point-per-object random draw.
 
     Object ``i`` owns the points ``x_ik`` (rows of ``positions`` with
     ``groups == i``). A realisation draws one point per object, point ``k``
@@ -634,14 +652,15 @@ def paint_moments(
 
         a_ic = sum_k p_ik W(c, x_ik)
         b_ic = sum_k p_ik W(c, x_ik)**2
-        mean_c = sum_i w_i a_ic
         variance_c = sum_i w_i**2 (b_ic - a_ic**2)
 
-    This is the limit of the Monte Carlo mean and variance over infinitely
-    many realisations, obtained with one sort of the ``(point, node)`` pairs.
-    For ``nnb`` (``W**2 == W``), ``variance_c = sum_i w_i**2 a_ic (1 - a_ic)``,
-    the Poisson binomial variance. Memory scales with the number of points
-    times ``support**ndim``; there is no chunking.
+    This is the limit of the Monte Carlo variance over infinitely many
+    realisations, obtained with one sort of the ``(point, node)`` pairs. For
+    ``nnb`` (``W**2 == W``), ``variance_c = sum_i w_i**2 a_ic (1 - a_ic)``,
+    the Poisson binomial variance. The mean, ``sum_i w_i a_ic``, needs no
+    sort: it is :func:`paint` with masses ``w_i * p_ik`` (see
+    :func:`paint_moments`). Memory scales with the number of points times
+    ``support**ndim``; there is no chunking.
 
     Args:
         shape (tuple[int]): Mesh shape.
@@ -660,38 +679,85 @@ def paint_moments(
         translate (float or array-like): Shift in grid units, per axis.
         period (int or tuple[int], optional): Periodicity per axis in grid
             units, ``0`` for none. Defaults to the mesh shape.
-        dtype (str): Dtype of the returned meshes.
+        dtype (str): Dtype of the returned mesh.
         backend (str, optional): ``jax`` or ``numpy``, see
             :func:`get_array_module`.
 
     Returns:
-        tuple[array, array]: Mean and variance meshes.
+        array: Variance mesh.
     """
     xp = get_array_module(backend)
     mesh = xp.zeros(tuple(shape), dtype=dtype)
     positions, _, scale, translate, period = _prepare(
         mesh, positions, None, scale, translate, period, xp
     )
-    groups = xp.asarray(groups).reshape(-1)
-    if num_objects is None:
-        num_objects = int(groups.max()) + 1 if groups.size else 0
-    if probability is None:
-        if xp is np:
-            count = np.bincount(groups, minlength=num_objects)
-        else:
-            count = jnp.bincount(groups, length=num_objects)
-        probability = 1.0 / count[groups]
-    probability = xp.asarray(probability, dtype=positions.dtype).reshape(-1)
-    if object_weights is None:
-        object_weights = xp.ones(num_objects, dtype=positions.dtype)
-    object_weights = xp.asarray(object_weights, dtype=positions.dtype).reshape(-1)
-
+    groups, probability, object_weights = _prepare_groups(
+        groups, probability, object_weights, num_objects, positions.dtype, xp
+    )
     args = (get_resampler(resampler), scale, translate, period)
     if xp is np:
-        return _moments_impl(
+        return _variance_impl(
             mesh, positions, groups, probability, object_weights, *args, np
         )
-    return _moments_jax(mesh, positions, groups, probability, object_weights, *args)
+    return _variance_jax(mesh, positions, groups, probability, object_weights, *args)
+
+
+def paint_moments(
+    shape,
+    positions,
+    groups,
+    probability=None,
+    object_weights=None,
+    num_objects=None,
+    resampler="cic",
+    scale=1.0,
+    translate=0.0,
+    period=None,
+    dtype="f8",
+    backend=None,
+):
+    """Exact mean and variance meshes of a one-point-per-object random draw.
+
+    The mean is :func:`paint` with masses ``w_i * p_ik``; the variance is
+    :func:`paint_variance`. Arguments as in :func:`paint_variance`.
+
+    Returns:
+        tuple[array, array]: Mean and variance meshes.
+    """
+    xp = get_array_module(backend)
+    groups_array, probability_array, object_weights_array = _prepare_groups(
+        groups,
+        probability,
+        object_weights,
+        num_objects,
+        xp.result_type(xp.asarray(positions).dtype, dtype, float),
+        xp,
+    )
+    mean = paint(
+        xp.zeros(tuple(shape), dtype=dtype),
+        positions,
+        mass=object_weights_array[groups_array] * probability_array,
+        resampler=resampler,
+        scale=scale,
+        translate=translate,
+        period=period,
+        backend=backend,
+    )
+    variance = paint_variance(
+        shape,
+        positions,
+        groups_array,
+        probability=probability_array,
+        object_weights=object_weights_array,
+        num_objects=object_weights_array.shape[0],
+        resampler=resampler,
+        scale=scale,
+        translate=translate,
+        period=period,
+        dtype=dtype,
+        backend=backend,
+    )
+    return mean, variance
 
 
 def fwindow(w, resampler, backend=None):
@@ -910,6 +976,43 @@ class ParticleMesh(object):
             return RealField(self, value)
         out.value = value
         return out
+
+    def paint_variance(
+        self,
+        pos,
+        groups,
+        probability=None,
+        object_weights=None,
+        num_objects=None,
+        resampler=None,
+        transform=None,
+    ):
+        """Exact variance field of a one-point-per-object draw.
+
+        See :func:`paint_variance` for the arguments.
+
+        Returns:
+            RealField: Variance field.
+        """
+        if transform is None:
+            transform = self.affine
+        if resampler is None:
+            resampler = self.resampler
+        variance = paint_variance(
+            self.shape,
+            pos,
+            groups,
+            probability=probability,
+            object_weights=object_weights,
+            num_objects=num_objects,
+            resampler=resampler,
+            scale=transform.scale,
+            translate=transform.translate,
+            period=tuple(transform.period),
+            dtype=self.dtype,
+            backend=self.backend,
+        )
+        return RealField(self, variance)
 
     def paint_moments(
         self,
@@ -1226,6 +1329,63 @@ def paint_catalog(
     return pm.paint(positions, mass=weights, chunk_size=chunk_size)
 
 
+def paint_catalog_variance(
+    positions,
+    groups,
+    boxsize,
+    nmesh,
+    boxcenter=0.0,
+    resampler="cic",
+    probability=None,
+    object_weights=None,
+    num_objects=None,
+    dtype="f8",
+    backend=None,
+):
+    """Exact variance mesh of a catalog of point distributions.
+
+    Mesh geometry as in :func:`paint_catalog`, variance as in
+    :func:`paint_variance`: each object ``i`` is represented by the points
+    ``positions[groups == i]``, one of which is drawn per realisation. The
+    matching mean is :func:`paint_catalog` with weights
+    ``object_weights[groups] * probability``.
+
+    Args:
+        positions (array-like): Points of all objects, shape ``(P, ndim)``.
+        groups (array-like): Object index of each point, shape ``(P,)``.
+        boxsize (float or array-like): Box size per axis.
+        nmesh (int or array-like): Number of mesh nodes per axis.
+        boxcenter (float or array-like): Box centre per axis.
+        resampler (str): ``nnb``, ``cic``, ``tsc`` or ``pcs`` (or an alias).
+        probability (array-like, optional): Draw probability of each point.
+            Defaults to uniform within each object.
+        object_weights (array-like, optional): Mass of each object.
+            Defaults to 1.
+        num_objects (int, optional): Number of objects.
+        dtype (str): Real dtype of the mesh.
+        backend (str, optional): ``jax`` or ``numpy``, see
+            :func:`get_array_module`.
+
+    Returns:
+        RealField: Variance mesh.
+
+    Raises:
+        ValueError: If positions or weights contain non-finite values.
+    """
+    pm, positions = _catalog_mesh(
+        positions, boxsize, nmesh, boxcenter, resampler, dtype, backend
+    )
+    for values in (probability, object_weights):
+        _check_finite(values, "weights", pm.xp)
+    return pm.paint_variance(
+        positions,
+        groups,
+        probability=probability,
+        object_weights=object_weights,
+        num_objects=num_objects,
+    )
+
+
 def paint_catalog_moments(
     positions,
     groups,
@@ -1241,25 +1401,9 @@ def paint_catalog_moments(
 ):
     """Exact mean and variance meshes of a catalog of point distributions.
 
-    Mesh geometry as in :func:`paint_catalog`, moments as in
-    :func:`paint_moments`: each object ``i`` is represented by the points
-    ``positions[groups == i]``, one of which is drawn per realisation.
-
-    Args:
-        positions (array-like): Points of all objects, shape ``(P, ndim)``.
-        groups (array-like): Object index of each point, shape ``(P,)``.
-        boxsize (float or array-like): Box size per axis.
-        nmesh (int or array-like): Number of mesh nodes per axis.
-        boxcenter (float or array-like): Box centre per axis.
-        resampler (str): ``nnb``, ``cic``, ``tsc`` or ``pcs`` (or an alias).
-        probability (array-like, optional): Draw probability of each point.
-            Defaults to uniform within each object.
-        object_weights (array-like, optional): Mass of each object.
-            Defaults to 1.
-        num_objects (int, optional): Number of objects.
-        dtype (str): Real dtype of the meshes.
-        backend (str, optional): ``jax`` or ``numpy``, see
-            :func:`get_array_module`.
+    Mean from :func:`paint_catalog`, variance from
+    :func:`paint_catalog_variance`. Arguments as in
+    :func:`paint_catalog_variance`.
 
     Returns:
         tuple[RealField, RealField]: Mean and variance meshes.

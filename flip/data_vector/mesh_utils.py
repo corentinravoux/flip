@@ -781,16 +781,21 @@ def _coarse_grain_impl(density, fine_axis, x0, h, n, resampler, xp):
         matrix = np.zeros((n, n_fine), dtype=weight.dtype)
         np.add.at(matrix, (index, fine), weight)
     else:
-        matrix = jnp.zeros((n, n_fine), dtype=weight.dtype).at[index, fine].add(weight)
+        matrix = jnp.zeros((n, n_fine), dtype=weight.dtype)
+        matrix = matrix.at[index, fine].add(weight)
 
     # The window is separable: apply the one-axis matrix along each axis.
+    def separable_sum(field):
+        field = field.reshape((n_fine, n_fine, n_fine))
+        return xp.einsum(
+            "ai,bj,ck,ijk->abc", matrix, matrix, matrix, field, optimize=True
+        )
+
     finite = xp.isfinite(density)
-    cube = (n_fine, n_fine, n_fine)
-    weighted, weights = (
-        xp.einsum("ai,bj,ck,ijk->abc", matrix, matrix, matrix, field.reshape(cube), optimize=True)
-        for field in (xp.where(finite, density, 0.0), finite.astype(density.dtype))
-    )
-    coarse = xp.where(weights > 0, weighted / xp.where(weights > 0, weights, 1.0), xp.nan)
+    weighted = separable_sum(xp.where(finite, density, 0.0))
+    weights = separable_sum(finite.astype(density.dtype))
+    filled = weights > 0
+    coarse = xp.where(filled, weighted / xp.where(filled, weights, 1.0), xp.nan)
     return coarse.reshape(n**3)
 
 
@@ -829,10 +834,124 @@ def coarse_grain(density, fine_axis, x0, h, n, resampler="ngp", backend=None):
         array: Coarse density, shape ``(n**3,)``, x varying slowest.
     """
     xp = get_array_module(backend)
-    args = (xp.asarray(density), xp.asarray(fine_axis), x0, h)
+    density, fine_axis = xp.asarray(density), xp.asarray(fine_axis)
+    n, resampler = int(n), get_resampler(resampler)
     if xp is np:
-        return _coarse_grain_impl(*args, int(n), get_resampler(resampler), np)
-    return _coarse_grain_jax(*args, n=int(n), resampler=get_resampler(resampler))
+        return _coarse_grain_impl(density, fine_axis, x0, h, n, resampler, np)
+    return _coarse_grain_jax(density, fine_axis, x0, h, n=n, resampler=resampler)
+
+
+def _coarse_grain_points_impl(x, y, z, density, x0, h, n, resampler, xp):
+    if resampler == "nnb":
+        i, j, k = (xp.floor((c - x0) / h + 0.5 + 1e-6).astype(int) for c in (x, y, z))
+        inside = (i >= 0) & (i < n) & (j >= 0) & (j < n) & (k >= 0) & (k < n)
+        cell = xp.where(inside, (i * n + j) * n + k, n**3)  # n**3: dropped bin
+
+        def cell_sum(w):
+            if xp is np:
+                return np.bincount(cell, weights=w, minlength=n**3 + 1)[:-1]
+            return jnp.bincount(cell, weights=w, length=n**3 + 1)[:-1]
+
+    else:
+        positions = xp.stack([x, y, z], axis=-1)
+        empty = xp.zeros((n, n, n), dtype=density.dtype)
+
+        def cell_sum(w):
+            painted = paint(
+                empty,
+                positions,
+                w,
+                resampler=resampler,
+                scale=1.0 / h,
+                translate=1e-6 - x0 / h,
+                period=0,
+                backend="numpy" if xp is np else "jax",
+            )
+            return painted.reshape(n**3)
+
+    finite = xp.isfinite(density)
+    weighted = cell_sum(xp.where(finite, density, 0.0))
+    weights = cell_sum(finite.astype(density.dtype))
+    filled = weights > 0
+    return xp.where(filled, weighted / xp.where(filled, weights, 1.0), xp.nan)
+
+
+def _coarse_grain_points_jax(x, y, z, density, x0, h, n, resampler):
+    return _coarse_grain_points_impl(x, y, z, density, x0, h, n, resampler, jnp)
+
+
+def _is_full_cube(x, y, z, axis, xp):
+    n = axis.shape[0]
+    shape = (n, n, n)
+    return (
+        xp.allclose(x.reshape(shape), axis[:, None, None])
+        & xp.allclose(y.reshape(shape), axis[None, :, None])
+        & xp.allclose(z.reshape(shape), axis[None, None, :])
+    )
+
+
+def _is_full_cube_jax(x, y, z, axis):
+    return _is_full_cube(x, y, z, axis, jnp)
+
+
+if jax_installed:
+    _coarse_grain_points_jax = jax.jit(
+        _coarse_grain_points_jax, static_argnames=("n", "resampler")
+    )
+    _is_full_cube_jax = jax.jit(_is_full_cube_jax)
+
+
+def coarse_grain_points(x, y, z, density, x0, h, n, resampler="ngp", backend=None):
+    """Same as :func:`coarse_grain` for fine nodes at any positions ``(x, y, z)``.
+
+    ``ngp`` sums values and counts per coarse cell with bincount; other windows
+    paint them with :func:`paint`. Slower than :func:`coarse_grain`.
+    """
+    xp = get_array_module(backend)
+    x, y, z, density = (xp.asarray(a) for a in (x, y, z, density))
+    n, resampler = int(n), get_resampler(resampler)
+    if xp is np:
+        return _coarse_grain_points_impl(x, y, z, density, x0, h, n, resampler, np)
+    return _coarse_grain_points_jax(x, y, z, density, x0, h, n=n, resampler=resampler)
+
+
+def full_cube_axis(x, y, z, backend=None):
+    """Axis of the fine grid if ``(x, y, z)`` is a full cube in tensor order, else None.
+
+    Tensor order: x varying slowest, the same axis on the three dimensions.
+    """
+    xp = get_array_module(backend)
+    n = round(len(z) ** (1 / 3))
+    if n**3 != len(z):
+        return None
+    x, y, z = (xp.asarray(c) for c in (x, y, z))
+    axis = z[:n]
+    if xp is np:
+        is_cube = _is_full_cube(x, y, z, axis, np)
+    else:
+        is_cube = _is_full_cube_jax(x, y, z, axis)
+    return axis if bool(is_cube) else None
+
+
+def lattice_index(x, y, z):
+    """Cubic lattice spanning the nodes ``(x, y, z)`` and their flat indices on it.
+
+    Returns:
+        tuple: First node ``x0``, spacing ``h``, nodes per axis ``n`` and the flat
+        index of each node (x varying slowest).
+
+    Raises:
+        ValueError: If a node is not on the lattice.
+    """
+    x, y, z = (np.asarray(c) for c in (x, y, z))
+    axis = np.unique(np.concatenate([x, y, z]))
+    x0, h = axis[0], np.min(np.diff(axis))
+    n = int(np.rint((axis[-1] - x0) / h)) + 1
+    ijk = [(c - x0) / h for c in (x, y, z)]
+    if not all(np.allclose(t, np.rint(t), atol=1e-6) for t in ijk):
+        raise ValueError("The grid nodes are not on a regular lattice.")
+    i, j, k = (np.rint(t).astype(int) for t in ijk)
+    return x0, h, n, (i * n + j) * n + k
 
 
 def fwindow(w, resampler, backend=None):

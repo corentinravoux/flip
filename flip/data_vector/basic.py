@@ -341,6 +341,8 @@ class DensMesh(Dens):
     def __init__(self, data, covariance_observation=None):
         self.grid3d = False
         self.interpolator = None
+        self.full_cube = False
+        self.cube_axis = None
         super().__init__(data, covariance_observation=covariance_observation)
 
     @classmethod
@@ -371,6 +373,7 @@ class DensMesh(Dens):
             for key in self.data:
                 self._data[key] = self.data[key].reshape(n, n, n)
             self.grid3d = True
+            self.full_cube, self.cube_axis = False, None  # coordinates reshaped
         except ValueError:
             print(
                 "Cannot reshape data into a 3D grid."
@@ -415,30 +418,45 @@ class DensMesh(Dens):
         )
         return self.interpolator(points)
 
+    def check_full_cube(self):
+        """Check once whether this grid is a full cube in tensor order.
+
+        Sets ``full_cube`` and ``cube_axis``, used by :meth:`coarse_grain_density`
+        to take the fast separable path. Run it again if the coordinates change.
+        """
+        self.cube_axis = mesh_utils.full_cube_axis(
+            self.data["x"], self.data["y"], self.data["z"]
+        )
+        self.full_cube = self.cube_axis is not None
+
     def coarse_grain_density(self, grid, resampler="ngp"):
-        """Average this density over the cells of a coarser full-cube ``grid``.
+        """Average this density over the cells of a coarser ``grid``.
 
         Use it to go from a fine to a coarser grid (``interpolate_density`` goes
-        the other way). Both grids must be full cubes in 1D layout (not cut, not
-        regridded in 3D). See :func:`mesh_utils.coarse_grain`.
+        the other way). Both grids in 1D layout. This grid can be anything; the
+        fast separable path is used if :meth:`check_full_cube` was run and found
+        a full cube. ``grid`` can be cut or reordered but its nodes must lie on
+        one regular lattice.
 
         Args:
             grid (DensMesh): Target grid, with cells larger than this one.
             resampler (str): ``ngp`` (mean over each cell), ``cic``, ``tsc`` or ``pcs``.
 
         Returns:
-            array: Coarse-grained density, NaN where no input node contributes.
+            array: Coarse-grained density at the nodes of ``grid``, NaN where no
+            fine node contributes.
         """
-        n_fine = round(self.data["density"].size ** (1 / 3))
-        axis = np.unique(np.asarray(grid.data["x"]))
-        return mesh_utils.coarse_grain(
-            self.data["density"],
-            self.data["z"][:n_fine],  # z varies fastest: first row = fine axis
-            axis[0],
-            axis[1] - axis[0],
-            axis.size,
-            resampler=resampler,
+        x0, h, n, index = mesh_utils.lattice_index(
+            grid.data["x"], grid.data["y"], grid.data["z"]
         )
+        x, y, z, density = (self.data[key] for key in ("x", "y", "z", "density"))
+        if not self.full_cube:
+            cube = mesh_utils.coarse_grain_points(
+                x, y, z, density, x0, h, n, resampler
+            )
+        else:
+            cube = mesh_utils.coarse_grain(density, self.cube_axis, x0, h, n, resampler)
+        return cube[index]
 
 
 class DirectVelMesh(DirectVel, DensMesh):

@@ -22,11 +22,13 @@ if __use_jax__:
         import jax.numpy as jnp
         from jax import jit, random
         from jax.experimental.sparse import BCOO
+        from jax.scipy.interpolate import RegularGridInterpolator
 
         jax_installed = True
 
     except ImportError:
         import numpy as jnp
+        from scipy.interpolate import RegularGridInterpolator
 
         jax_installed = False
 else:
@@ -337,6 +339,8 @@ class DensMesh(Dens):
         return self._data["density"], self._data["density_error"] ** 2
 
     def __init__(self, data, covariance_observation=None):
+        self.grid3d = False
+        self.interpolator = None
         super().__init__(data, covariance_observation=covariance_observation)
 
     @classmethod
@@ -360,8 +364,59 @@ class DensMesh(Dens):
 
         return cls(grid)
 
+    def regrid_in_3d(self):
+        first_key = next(iter(self.data.keys()))
+        n = round(self.data[first_key].size ** (1 / 3))
+        try:
+            for key in self.data:
+                self._data[key] = self.data[key].reshape(n, n, n)
+            self.grid3d = True
+        except ValueError:
+            print(
+                "Cannot reshape data into a 3D grid."
+                "Ensure the number of data points is a perfect cube."
+                "Not reshaping data."
+            )
 
-class DirectVelMesh(DirectVel):
+    def return_interpolator(self, method="linear", bounds_error=False, fill_value=None):
+        if not self.grid3d:
+            raise ValueError(
+                "Data is not in 3D grid format. Call regrid_in_3d() first."
+            )
+
+        axes = (
+            self.data["x"][:, 0, 0],
+            self.data["y"][0, :, 0],
+            self.data["z"][0, 0, :],
+        )  # physical node positions
+
+        self.interpolator = RegularGridInterpolator(
+            axes,
+            self.data["density"],
+            method=method,
+            bounds_error=bounds_error,
+            fill_value=fill_value,
+        )
+        if jax_installed:
+            self.interpolator = jit(self.interpolator)
+
+    def interpolate_density(self, grid):
+        if self.interpolator is None:
+            raise ValueError(
+                "Interpolator not initialized. Call return_interpolator() first."
+            )
+        points = jnp.stack(
+            [
+                grid.data["x"],
+                grid.data["y"],
+                grid.data["z"],
+            ],
+            axis=-1,
+        )
+        return self.interpolator(points)
+
+
+class DirectVelMesh(DirectVel, DensMesh):
     _kind = "velocity"
     _needed_keys = ["velocity", "velocity_error"]
     _free_par = []

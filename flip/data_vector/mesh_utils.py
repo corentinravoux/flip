@@ -760,6 +760,81 @@ def paint_moments(
     return mean, variance
 
 
+def _coarse_grain_impl(density, fine_axis, x0, h, n, resampler, xp):
+    n_fine = fine_axis.shape[0]
+    # One-axis weights of each fine node on the coarse nodes, as in paint
+    # (non-periodic). The 1e-6 shift (in coarse cells) sends fine nodes lying
+    # exactly on a coarse-cell edge to the upper cell, whatever the rounding.
+    index, weight = _stencil(
+        fine_axis[:, None],
+        None,
+        (n,),
+        resampler,
+        xp.asarray([1.0 / h]),
+        xp.asarray([1e-6 - x0 / h]),
+        (0,),
+        None,
+        xp,
+    )
+    fine = xp.broadcast_to(xp.arange(n_fine)[:, None], index.shape)
+    if xp is np:
+        matrix = np.zeros((n, n_fine), dtype=weight.dtype)
+        np.add.at(matrix, (index, fine), weight)
+    else:
+        matrix = jnp.zeros((n, n_fine), dtype=weight.dtype).at[index, fine].add(weight)
+
+    # The window is separable: apply the one-axis matrix along each axis.
+    finite = xp.isfinite(density)
+    cube = (n_fine, n_fine, n_fine)
+    weighted, weights = (
+        xp.einsum("ai,bj,ck,ijk->abc", matrix, matrix, matrix, field.reshape(cube), optimize=True)
+        for field in (xp.where(finite, density, 0.0), finite.astype(density.dtype))
+    )
+    coarse = xp.where(weights > 0, weighted / xp.where(weights > 0, weights, 1.0), xp.nan)
+    return coarse.reshape(n**3)
+
+
+def _coarse_grain_jax(density, fine_axis, x0, h, n, resampler):
+    return _coarse_grain_impl(density, fine_axis, x0, h, n, resampler, jnp)
+
+
+if jax_installed:
+    _coarse_grain_jax = jax.jit(_coarse_grain_jax, static_argnames=("n", "resampler"))
+
+
+def coarse_grain(density, fine_axis, x0, h, n, resampler="ngp", backend=None):
+    """Window-weighted mean of a fine cubic grid on the nodes of a coarser one.
+
+    Equivalent to painting every fine node with weight ``density`` and with
+    weight 1 onto the coarse grid (non-periodic) and taking the ratio, but the
+    window is separable on a regular grid, so it is computed as three products
+    with a one-axis ``(n, n_fine)`` weight matrix: exact for any window and any
+    cell ratio. ``ngp`` gives the plain mean over each coarse cell; ``cic``,
+    ``tsc`` and ``pcs`` give smoother weights. NaN fine values are ignored and
+    coarse nodes receiving no fine node are NaN.
+
+    Args:
+        density (array-like): Fine density, full cube flattened with x varying
+            slowest, shape ``(n_fine**3,)``.
+        fine_axis (array-like): Fine node positions along one axis, shape
+            ``(n_fine,)`` (the same on the three axes).
+        x0 (float): Position of the first coarse node on each axis.
+        h (float): Coarse cell size.
+        n (int): Number of coarse nodes per axis.
+        resampler (str): ``ngp``, ``cic``, ``tsc`` or ``pcs`` (or an alias).
+        backend (str, optional): ``jax`` or ``numpy``, see
+            :func:`get_array_module`.
+
+    Returns:
+        array: Coarse density, shape ``(n**3,)``, x varying slowest.
+    """
+    xp = get_array_module(backend)
+    args = (xp.asarray(density), xp.asarray(fine_axis), x0, h)
+    if xp is np:
+        return _coarse_grain_impl(*args, int(n), get_resampler(resampler), np)
+    return _coarse_grain_jax(*args, n=int(n), resampler=get_resampler(resampler))
+
+
 def fwindow(w, resampler, backend=None):
     """Fourier transform of a 1D resampling window.
 

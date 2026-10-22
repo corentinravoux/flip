@@ -12,7 +12,7 @@ except ImportError:
 
 
 from flip._config import __use_jax__
-from flip.data_vector import mesh
+from flip.data_vector import mesh, mesh_utils
 from flip.utils import create_log
 
 from . import vector_utils
@@ -414,6 +414,31 @@ class DensMesh(Dens):
             axis=-1,
         )
         return self.interpolator(points)
+
+    def coarse_grain_density(self, grid, resampler="ngp"):
+        """Average this density over the cells of a coarser full-cube ``grid``.
+
+        Use it to go from a fine to a coarser grid (``interpolate_density`` goes
+        the other way). Both grids must be full cubes in 1D layout (not cut, not
+        regridded in 3D). See :func:`mesh_utils.coarse_grain`.
+
+        Args:
+            grid (DensMesh): Target grid, with cells larger than this one.
+            resampler (str): ``ngp`` (mean over each cell), ``cic``, ``tsc`` or ``pcs``.
+
+        Returns:
+            array: Coarse-grained density, NaN where no input node contributes.
+        """
+        n_fine = round(self.data["density"].size ** (1 / 3))
+        axis = np.unique(np.asarray(grid.data["x"]))
+        return mesh_utils.coarse_grain(
+            self.data["density"],
+            self.data["z"][:n_fine],  # z varies fastest: first row = fine axis
+            axis[0],
+            axis[1] - axis[0],
+            axis.size,
+            resampler=resampler,
+        )
 
 
 class DirectVelMesh(DirectVel, DensMesh):

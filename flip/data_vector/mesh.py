@@ -1318,9 +1318,6 @@ def grid_data_density_kernel_sampling(
             # parent's numpy random state and draw identical samples.
             seeds = jnp.random.SeedSequence().generate_state(Nsampling)
 
-    if jax_installed:
-        print("FLAG TO DEBUG: JAX is installed, using jax.vmap for parallelization.")
-
     if n_subprocess_sampling > 1:
         if jax_installed:
             vmap_create_sub_grid = jax.vmap(create_sub_grid, in_axes=0)

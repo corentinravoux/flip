@@ -29,7 +29,7 @@ pip install -e ".[docs]"
 | `sympy` | required by `flip.covariance` (symbolic term generation) |
 | `classy` (CLASS) | the CLASS power-spectrum engine |
 | `pyccl` | the pyCCL power-spectrum engine |
-| [`cosmoprimo`](https://github.com/cosmodesi/cosmoprimo) | the cosmoprimo power-spectrum engine, and a faster Hankel-transform backend |
+| [`cosmoprimo`](https://github.com/cosmodesi/cosmoprimo) | the cosmoprimo power-spectrum engine |
 | `scikit-learn` | the Gaussian-process covariance emulator |
 | `torch` | the neural-network covariance emulator |
 | `jax-cosmo`, `tensorflow-probability` | required by `flip.forward` |

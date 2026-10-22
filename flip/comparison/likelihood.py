@@ -1,10 +1,9 @@
 import abc
 from functools import partial
 
+from flip._config import __use_jax__
 from flip.data_vector.basic import DensMesh
 from flip.utils import create_log, prior_sum, return_prior
-
-from .._config import __use_jax__
 
 if __use_jax__:
     try:

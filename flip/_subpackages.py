@@ -8,7 +8,6 @@ their import. Subpackages are loaded lazily on attribute access from
 
 import importlib.util
 
-
 SUBPACKAGES = {
     "data_vector": {
         "required": ["numpy", "scipy", "astropy", "pandas"],
@@ -46,7 +45,6 @@ SUBPACKAGES = {
         ],
         "optional": {
             "jax (jit paths)": ["jax"],
-            "hankel cosmoprimo backend": ["cosmoprimo"],
             "skgp emulator": ["sklearn"],
             "nn emulator": ["torch"],
             "SN fit utils": ["snsim", "snutils"],
@@ -134,4 +132,18 @@ def format_banner(version):
             extras.append("optional missing: " + "; ".join(opt_missing))
         suffix = ("  [" + " | ".join(extras) + "]") if extras else ""
         lines.append(f"  {name:<{width}}  OK{suffix}")
+    lines.append(_format_jax_backend())
     return "\n".join(lines)
+
+
+def _format_jax_backend():
+    from flip._config import __use_jax__
+
+    if not _has("jax"):
+        return "JAX backend: not installed, using numpy/scipy"
+    if __use_jax__:
+        return (
+            "JAX backend: on (set FLIP_USE_JAX=0 before `import flip` "
+            "to use numpy/scipy)"
+        )
+    return "JAX backend: off, FLIP_USE_JAX=0 (unset it to use JAX)"

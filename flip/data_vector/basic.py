@@ -11,10 +11,10 @@ except ImportError:
     pass
 
 
-from flip.data_vector import mesh
+from flip._config import __use_jax__
+from flip.data_vector import mesh, mesh_utils
 from flip.utils import create_log
 
-from .._config import __use_jax__
 from . import vector_utils
 
 if __use_jax__:
@@ -22,11 +22,13 @@ if __use_jax__:
         import jax.numpy as jnp
         from jax import jit, random
         from jax.experimental.sparse import BCOO
+        from jax.scipy.interpolate import RegularGridInterpolator
 
         jax_installed = True
 
     except ImportError:
         import numpy as jnp
+        from scipy.interpolate import RegularGridInterpolator
 
         jax_installed = False
 else:
@@ -218,7 +220,7 @@ class DataVector(abc.ABC):
             **kwargs,
         )
 
-    def compute_effective_redshift(self,method, z_key="zobs",*args):
+    def compute_effective_redshift(self, method, z_key="zobs", *args):
         if z_key not in self.data:
             raise ValueError(f"{z_key} not found in data")
 
@@ -237,6 +239,7 @@ class DataVector(abc.ABC):
                 else:
                     weights = 1 / np.diag(variance)
                 return np.average(self.data[z_key], weights=weights)
+
 
 class Dens(DataVector):
     _kind = "density"
@@ -336,6 +339,8 @@ class DensMesh(Dens):
         return self._data["density"], self._data["density_error"] ** 2
 
     def __init__(self, data, covariance_observation=None):
+        self.grid3d = False
+        self.interpolator = None
         super().__init__(data, covariance_observation=covariance_observation)
 
     @classmethod
@@ -359,8 +364,84 @@ class DensMesh(Dens):
 
         return cls(grid)
 
+    def regrid_in_3d(self):
+        first_key = next(iter(self.data.keys()))
+        n = round(self.data[first_key].size ** (1 / 3))
+        try:
+            for key in self.data:
+                self._data[key] = self.data[key].reshape(n, n, n)
+            self.grid3d = True
+        except ValueError:
+            print(
+                "Cannot reshape data into a 3D grid."
+                "Ensure the number of data points is a perfect cube."
+                "Not reshaping data."
+            )
 
-class DirectVelMesh(DirectVel):
+    def return_interpolator(self, method="linear", bounds_error=False, fill_value=None):
+        if not self.grid3d:
+            raise ValueError(
+                "Data is not in 3D grid format. Call regrid_in_3d() first."
+            )
+
+        axes = (
+            self.data["x"][:, 0, 0],
+            self.data["y"][0, :, 0],
+            self.data["z"][0, 0, :],
+        )  # physical node positions
+
+        self.interpolator = RegularGridInterpolator(
+            axes,
+            self.data["density"],
+            method=method,
+            bounds_error=bounds_error,
+            fill_value=fill_value,
+        )
+        if jax_installed:
+            self.interpolator = jit(self.interpolator)
+
+    def interpolate_density(self, grid):
+        if self.interpolator is None:
+            raise ValueError(
+                "Interpolator not initialized. Call return_interpolator() first."
+            )
+        points = jnp.stack(
+            [
+                grid.data["x"],
+                grid.data["y"],
+                grid.data["z"],
+            ],
+            axis=-1,
+        )
+        return self.interpolator(points)
+
+    def coarse_grain_density(self, grid, resampler="ngp"):
+        """Average this density over the cells of a coarser full-cube ``grid``.
+
+        Use it to go from a fine to a coarser grid (``interpolate_density`` goes
+        the other way). Both grids must be full cubes in 1D layout (not cut, not
+        regridded in 3D). See :func:`mesh_utils.coarse_grain`.
+
+        Args:
+            grid (DensMesh): Target grid, with cells larger than this one.
+            resampler (str): ``ngp`` (mean over each cell), ``cic``, ``tsc`` or ``pcs``.
+
+        Returns:
+            array: Coarse-grained density, NaN where no input node contributes.
+        """
+        n_fine = round(self.data["density"].size ** (1 / 3))
+        axis = np.unique(np.asarray(grid.data["x"]))
+        return mesh_utils.coarse_grain(
+            self.data["density"],
+            self.data["z"][:n_fine],  # z varies fastest: first row = fine axis
+            axis[0],
+            axis[1] - axis[0],
+            axis.size,
+            resampler=resampler,
+        )
+
+
+class DirectVelMesh(DirectVel, DensMesh):
     _kind = "velocity"
     _needed_keys = ["velocity", "velocity_error"]
     _free_par = []

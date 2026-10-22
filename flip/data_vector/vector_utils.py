@@ -5,8 +5,7 @@ from astropy.cosmology import FlatLambdaCDM
 from scipy.sparse import coo_array
 
 import flip.utils as utils
-
-from .._config import __use_jax__
+from flip._config import __use_jax__
 
 if __use_jax__:
     try:
@@ -70,7 +69,9 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
             )
 
         redshift_dependence = (
-            (1 + redshift_obs) * utils._C_LIGHT_KMS_ / (data["hubble_norm"] * data["rcom_zobs"])
+            (1 + redshift_obs)
+            * utils._C_LIGHT_KMS_
+            / (data["hubble_norm"] * data["rcom_zobs"])
             - 1.0
         ) ** (-1)
 
@@ -92,7 +93,9 @@ def redshift_dependence_velocity(data, velocity_estimator, **kwargs):
         ) ** (-1)
 
     elif velocity_estimator == "empty_universe":
-        redshift_dependence = redshift_obs * (1 + redshift_obs / 2) / (1 + redshift_obs) ** 2
+        redshift_dependence = (
+            redshift_obs * (1 + redshift_obs / 2) / (1 + redshift_obs) ** 2
+        )
     else:
         raise ValueError(
             f"""Please choose a velocity_estimator from salt fit among {_avail_velocity_estimator}"""

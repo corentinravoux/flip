@@ -1,6 +1,6 @@
+from flip._config import __use_jax__
 from flip.utils import create_log
 
-from .._config import __use_jax__
 from . import vector_utils
 from .basic import DataVector
 

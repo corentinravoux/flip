@@ -5,10 +5,9 @@ from functools import partial
 
 import numpy as np
 
+from flip._config import __use_jax__
 from flip.covariance import cov_utils
 from flip.utils import create_log
-
-from .._config import __use_jax__
 
 if __use_jax__:
     try:
@@ -99,26 +98,29 @@ def compute_covariance_sum(
     elif kind == "full":
         keys = ["gg", "vv", "gv"]
 
-        
     covariance_sum_ = {}
     number_tracers = []
     for k in keys:
         if parameter_values_dict is not None:
-            if k == 'gv':
+            if k == "gv":
                 covariance_evaluated = np.array(
-                                        [cov(parameter_values_dict, number_tracers[0], number_tracers[1]) 
-                                        for i, cov in enumerate(covariance_dict[k])]
-                                        )
+                    [
+                        cov(parameter_values_dict, number_tracers[0], number_tracers[1])
+                        for i, cov in enumerate(covariance_dict[k])
+                    ]
+                )
             else:
                 covariance_evaluated = np.array(
-                                        [cov(parameter_values_dict) for i, cov in enumerate(covariance_dict[k])]
-                                        )
+                    [
+                        cov(parameter_values_dict)
+                        for i, cov in enumerate(covariance_dict[k])
+                    ]
+                )
                 number_tracers.append(covariance_evaluated.shape[1])
-                
+
         else:
             covariance_evaluated = covariance_dict[k]
-        
-              
+
         coefficient_3d = jnp.atleast_3d(jnp.atleast_2d(coefficients_dict[k].T).T)
 
         covariance_sum_[k] = jnp.sum(
@@ -709,7 +711,7 @@ class CovMatrix:
             elif key == "gv":
                 new_shape = (
                     self.covariance_dict[key].shape[0],
-                    self.number_densities * self.number_velocities ,
+                    self.number_densities * self.number_velocities,
                 )
             elif key == "vv":
                 new_shape = (

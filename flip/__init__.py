@@ -7,6 +7,8 @@ loads only ``flip.forward`` and its dependencies, leaving the rest of
 the package untouched.
 
 Set the ``FLIP_QUIET`` env var to any value to suppress the banner.
+Set the ``FLIP_USE_JAX`` env var to ``0`` before ``import flip`` to run
+on numpy and scipy instead of JAX.
 """
 
 import importlib

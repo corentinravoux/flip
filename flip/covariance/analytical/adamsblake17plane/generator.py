@@ -88,7 +88,7 @@ def intp(win, k, pk):
         Scalar integral value.
     """
     pint = win.T * pk
-    return np.trapz(pint, x=k)
+    return np.trapezoid(pint, x=k)
 
 
 def compute_coef_gg(k, pk, coord):
@@ -181,7 +181,7 @@ def covariance_vv(
         pool_results = pool.map(func, batches)
     values = np.concatenate(pool_results)
 
-    var_val = np.trapz(power_spectrum / 3, x=wavenumber)
+    var_val = np.trapezoid(power_spectrum / 3, x=wavenumber)
     cov = np.insert(values, 0, var_val)
     cov = 100**2 / (2 * np.pi**2) * cov
     return cov

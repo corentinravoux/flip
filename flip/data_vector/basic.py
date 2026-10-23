@@ -11,10 +11,10 @@ except ImportError:
     pass
 
 
-from flip.data_vector import mesh
+from flip._config import __use_jax__
+from flip.data_vector import mesh, mesh_utils
 from flip.utils import create_log
 
-from .._config import __use_jax__
 from . import vector_utils
 
 if __use_jax__:
@@ -22,11 +22,13 @@ if __use_jax__:
         import jax.numpy as jnp
         from jax import jit, random
         from jax.experimental.sparse import BCOO
+        from jax.scipy.interpolate import RegularGridInterpolator
 
         jax_installed = True
 
     except ImportError:
         import numpy as jnp
+        from scipy.interpolate import RegularGridInterpolator
 
         jax_installed = False
 else:
@@ -241,6 +243,7 @@ class DataVector(abc.ABC):
                     weights = 1 / np.diag(variance)
                 return np.average(self.data[z_key], weights=weights)
 
+
 class Dens(DataVector):
     _kind = "density"
     _needed_keys = ["density", "density_error"]
@@ -339,6 +342,10 @@ class DensMesh(Dens):
         return self._data["density"], self._data["density_error"] ** 2
 
     def __init__(self, data, covariance_observation=None):
+        self.grid3d = False
+        self.interpolator = None
+        self.full_cube = False
+        self.cube_axis = None
         super().__init__(data, covariance_observation=covariance_observation)
 
     @classmethod
@@ -362,8 +369,100 @@ class DensMesh(Dens):
 
         return cls(grid)
 
+    def regrid_in_3d(self):
+        first_key = next(iter(self.data.keys()))
+        n = round(self.data[first_key].size ** (1 / 3))
+        try:
+            for key in self.data:
+                self._data[key] = self.data[key].reshape(n, n, n)
+            self.grid3d = True
+            self.full_cube, self.cube_axis = False, None  # coordinates reshaped
+        except ValueError:
+            print(
+                "Cannot reshape data into a 3D grid."
+                "Ensure the number of data points is a perfect cube."
+                "Not reshaping data."
+            )
 
-class DirectVelMesh(DirectVel):
+    def return_interpolator(self, method="linear", bounds_error=False, fill_value=None):
+        if not self.grid3d:
+            raise ValueError(
+                "Data is not in 3D grid format. Call regrid_in_3d() first."
+            )
+
+        axes = (
+            self.data["x"][:, 0, 0],
+            self.data["y"][0, :, 0],
+            self.data["z"][0, 0, :],
+        )  # physical node positions
+
+        self.interpolator = RegularGridInterpolator(
+            axes,
+            self.data["density"],
+            method=method,
+            bounds_error=bounds_error,
+            fill_value=fill_value,
+        )
+        if jax_installed:
+            self.interpolator = jit(self.interpolator)
+
+    def interpolate_density(self, grid):
+        if self.interpolator is None:
+            raise ValueError(
+                "Interpolator not initialized. Call return_interpolator() first."
+            )
+        points = jnp.stack(
+            [
+                grid.data["x"],
+                grid.data["y"],
+                grid.data["z"],
+            ],
+            axis=-1,
+        )
+        return self.interpolator(points)
+
+    def check_full_cube(self):
+        """Check once whether this grid is a full cube in tensor order.
+
+        Sets ``full_cube`` and ``cube_axis``, used by :meth:`coarse_grain_density`
+        to take the fast separable path. Run it again if the coordinates change.
+        """
+        self.cube_axis = mesh_utils.full_cube_axis(
+            self.data["x"], self.data["y"], self.data["z"]
+        )
+        self.full_cube = self.cube_axis is not None
+
+    def coarse_grain_density(self, grid, resampler="ngp"):
+        """Average this density over the cells of a coarser ``grid``.
+
+        Use it to go from a fine to a coarser grid (``interpolate_density`` goes
+        the other way). Both grids in 1D layout. This grid can be anything; the
+        fast separable path is used if :meth:`check_full_cube` was run and found
+        a full cube. ``grid`` can be cut or reordered but its nodes must lie on
+        one regular lattice.
+
+        Args:
+            grid (DensMesh): Target grid, with cells larger than this one.
+            resampler (str): ``ngp`` (mean over each cell), ``cic``, ``tsc`` or ``pcs``.
+
+        Returns:
+            array: Coarse-grained density at the nodes of ``grid``, NaN where no
+            fine node contributes.
+        """
+        x0, h, n, index = mesh_utils.lattice_index(
+            grid.data["x"], grid.data["y"], grid.data["z"]
+        )
+        x, y, z, density = (self.data[key] for key in ("x", "y", "z", "density"))
+        if not self.full_cube:
+            cube = mesh_utils.coarse_grain_points(
+                x, y, z, density, x0, h, n, resampler
+            )
+        else:
+            cube = mesh_utils.coarse_grain(density, self.cube_axis, x0, h, n, resampler)
+        return cube[index]
+
+
+class DirectVelMesh(DirectVel, DensMesh):
     _kind = "velocity"
     _needed_keys = ["velocity", "velocity_error"]
     _free_par = []

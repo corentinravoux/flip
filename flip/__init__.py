@@ -7,9 +7,12 @@ loads only ``flip.forward`` and its dependencies, leaving the rest of
 the package untouched.
 
 Set the ``FLIP_QUIET`` env var to any value to suppress the banner.
+Set the ``FLIP_USE_JAX`` env var to ``0`` before ``import flip`` to run
+on numpy and scipy instead of JAX.
 """
 
 import importlib
+import multiprocessing
 import os
 
 from flip.utils import create_log
@@ -27,7 +30,7 @@ except ImportError:
     log.add("Jax is not available, loading numpy and scipy instead")
 
 __flip_dir_path__ = os.path.dirname(__file__)
-__version__ = "2.0.8"
+__version__ = "2.0.11"
 
 
 _LAZY_SUBPACKAGES = set(_subpackages.SUBPACKAGES)
@@ -45,5 +48,5 @@ def __dir__():
     return sorted(list(globals()) + list(_LAZY_SUBPACKAGES))
 
 
-if not os.environ.get("FLIP_QUIET"):
+if not os.environ.get("FLIP_QUIET") and multiprocessing.parent_process() is None:
     print(_subpackages.format_banner(__version__))

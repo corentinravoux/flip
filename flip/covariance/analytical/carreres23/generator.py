@@ -70,7 +70,7 @@ def intp(win, k, pk):
         Scalar integral value via trapezoidal rule.
     """
     pint = win.T * pk
-    return np.trapz(pint, x=k)
+    return np.trapezoid(pint, x=k)
 
 
 def covariance_vv(
@@ -123,7 +123,7 @@ def covariance_vv(
         pool_results = pool.map(func, batches)
     values = np.concatenate(pool_results)
 
-    var_val = np.trapz(pk / 3, x=k_in)
+    var_val = np.trapezoid(pk / 3, x=k_in)
     cov = np.insert(values, 0, var_val)
     cov = 100**2 / (2 * np.pi**2) * cov
     return cov

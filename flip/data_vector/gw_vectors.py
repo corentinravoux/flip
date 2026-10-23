@@ -1,8 +1,8 @@
 from . import mesh
-from .basic import Dens
+from .basic import DensMesh
 
 
-class GWDensMesh(Dens):
+class GWDensMesh(DensMesh):
     _kind = "density"
     _needed_keys = ["density", "density_error"]
     _free_par = []
@@ -65,4 +65,28 @@ class GWDensMesh(Dens):
             kind,
             **kwargs,
         )
+        return cls(grid)
+
+    @classmethod
+    def init_from_kernel_sum(
+        cls,
+        data_position_sky_kernel,
+        rcom_max,
+        grid_size,
+        grid_type,
+        kind,
+        **kwargs,
+    ):
+
+        grid = mesh.grid_data_density_kernel_sum(
+            data_position_sky_kernel,
+            rcom_max,
+            grid_size,
+            grid_type,
+            kind,
+            cut_grid=False,  # needed for recomputing 3D grid
+            compute_density_contrast_error=True,
+            **kwargs,
+        )
+
         return cls(grid)

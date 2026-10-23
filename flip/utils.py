@@ -5,7 +5,7 @@ import astropy.constants as acst
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ._config import __use_jax__
+from flip._config import __use_jax__
 
 if __use_jax__:
     try:
@@ -288,7 +288,7 @@ class Prior:
 
 
 class GaussianPrior(Prior):
-    """Univariate Gaussian prior on a parameter.
+    r"""Univariate Gaussian prior on a parameter.
 
     Models $p(\theta) \propto \exp\{-\tfrac{1}{2}[(\theta-\mu)^2/\sigma^2]\}$.
     """

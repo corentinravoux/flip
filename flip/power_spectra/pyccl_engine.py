@@ -19,7 +19,7 @@ _pyccl_setting_default = {}
 
 
 def get_fiducial_fs8(model, redshift):
-    """Return fiducial $f\sigma_8$ using PyCCL at redshift.
+    r"""Return fiducial $f\sigma_8$ using PyCCL at redshift.
 
     Args:
         model (ccl.Cosmology): PyCCL cosmology.
@@ -32,7 +32,7 @@ def get_fiducial_fs8(model, redshift):
 
 
 def get_fiducial_s8(model, redshift):
-    """Return fiducial $\sigma_8$ using PyCCL at redshift.
+    r"""Return fiducial $\sigma_8$ using PyCCL at redshift.
 
     Args:
         model (ccl.Cosmology): PyCCL cosmology.

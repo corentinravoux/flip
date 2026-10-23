@@ -24,18 +24,12 @@ class BaseSimulator(abc.ABC):
 
 def return_simulator(model_name, **kwargs):
 
-    # CR - the flox simulator will be removed.
-    if model_name == "flox":
-        from flip.forward.flox.box import CosmoBox
-
-        return CosmoBox(**kwargs)
-
-    elif model_name == "gaussian":
+    if model_name == "gaussian":
         from flip.forward.simulation.gaussian.field_model import GaussianRandomFieldBox
 
         return GaussianRandomFieldBox(**kwargs)
 
     else:
         raise ValueError(
-            f"Unsupported model '{model_name}'. Supported models are 'flox' and 'gaussian'."
+            f"Unsupported model '{model_name}'. Supported model is 'gaussian'."
         )

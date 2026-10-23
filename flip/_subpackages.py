@@ -18,8 +18,11 @@ SUBPACKAGES = {
         "optional": {},
     },
     "forward": {
-        "required": ["jax", "jax_cosmo", "tensorflow_probability"],
-        "optional": {},
+        "required": ["jax", "jax_cosmo"],
+        "optional": {
+            "tfp sampler": ["tensorflow_probability"],
+            "blackjax sampler": ["blackjax"],
+        },
     },
     "power_spectra": {
         "required": ["numpy"],

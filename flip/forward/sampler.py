@@ -14,12 +14,11 @@ try:
     from tensorflow_probability.substrates.jax.mcmc import NoUTurnSampler as NUTS
 
     tfp_installed = True
-# AttributeError: tfp releases that do not match the installed jax fail at import
-except (ImportError, AttributeError):
+except ImportError:
     tfp_installed = False
     if multiprocessing.parent_process() is None:
         log.add(
-            "Install a tensorflow-probability compatible with jax to use the NutsSampler",
+            "Install tensorflow-probability to use the NutsSampler",
             level="warning",
         )
 

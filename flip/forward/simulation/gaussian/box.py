@@ -36,7 +36,10 @@ class FourierBox(BaseSimulator):
         self._load_wavenumber_grid()
 
         self._xcube, self._ycube, self._zcube = jnp.meshgrid(
-            jnp.arange(number_bins), jnp.arange(number_bins), jnp.arange(number_bins)
+            jnp.arange(number_bins),
+            jnp.arange(number_bins),
+            jnp.arange(number_bins),
+            indexing="ij",
         )
         xyz = (
             jnp.vstack(
@@ -66,23 +69,10 @@ class FourierBox(BaseSimulator):
     def get_voxel_coordinates(
         self, ids=None, centroid=None, physical_unit=False, as_spherical=False
     ):
-        # convert into coordinates
-        X, Y, Z = jnp.meshgrid(
-            jnp.linspace(0, self.number_bins - 1, self.number_bins),
-            jnp.linspace(0, self.number_bins - 1, self.number_bins),
-            jnp.linspace(0, self.number_bins - 1, self.number_bins),
-        )
-
-        x_flat, y_flat, z_flat = (
-            X.reshape(self.shape_flat),
-            Y.reshape(self.shape_flat),
-            Z.reshape(self.shape_flat),
-        )
-        # selected coordinates
-        if ids is not None:
-            xyz = jnp.stack([x_flat[ids], y_flat[ids], z_flat[ids]])
-        else:
-            xyz = jnp.stack([x_flat, y_flat, z_flat])
+        # flat voxel id -> (i, j, k) array indices, C order as in reshape(shape_flat)
+        if ids is None:
+            ids = self.voxel_id
+        xyz = jnp.stack(jnp.unravel_index(ids, self.shape)).astype(float)
 
         if physical_unit:
             xyz *= self.bins_to_physical
@@ -104,7 +94,7 @@ class FourierBox(BaseSimulator):
 
     def draw_voxelid(self, size, seed, density=None):
         if density is not None:
-            density_flat = density.reshape(self.shape_flat)
+            density_flat = jnp.clip(density.reshape(self.shape_flat), 0.0)
             density_flat_normed = density_flat / density_flat.sum()
         else:
             density_flat_normed = None
@@ -117,6 +107,32 @@ class FourierBox(BaseSimulator):
             seed, self.voxel_id, shape=size, p=density_flat_normed
         )
         return sampled_voxels
+
+    def get_voxels_in_direction(
+        self, ra, dec, dist_range=None, physical_unit=False, unique=False
+    ):
+        ra = jnp.atleast_1d(ra)
+        dec = jnp.atleast_1d(dec)
+
+        ntrial = self.number_bins * 10
+        xyz = jnp.stack(
+            spherical_to_cartesian(
+                ra[:, None],
+                dec[:, None],
+                jnp.linspace(*dist_range, ntrial),
+            )
+        ).T
+        if physical_unit:
+            xyz /= (
+                self.box_size / self.number_bins
+            )  # xyz now in ijk centered on (0,0,0)
+
+        xyz += self.get_centroid(physical_unit=False)  # ijk centered on centroid
+        volexin = jnp.asarray(xyz, dtype="int32")  # (ntrial, ntargets, 3)
+        volexin = jnp.moveaxis(volexin, 0, -1)  # (ntargets, 3, ntrial)
+        if unique:
+            volexin = [jnp.unique(v, axis=-1) for v in volexin]  # loops over targets
+        return volexin
 
     def get_line_of_sight(self, ra, dec):
         return jnp.stack(

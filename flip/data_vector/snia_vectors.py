@@ -420,7 +420,7 @@ class VelCandleStandardized(DataVector):
         if self._covariance_observation is None:
 
             variance_distance_modulus = (
-                self._data["mb"] ** 2 + parameter_values_dict["sigma_M"] ** 2
+                self._data["e_mb"] ** 2 + parameter_values_dict["sigma_M"] ** 2
             )
             if self.optional_covariance_observed_distance_modulus is not None:
                 variance_distance_modulus = (

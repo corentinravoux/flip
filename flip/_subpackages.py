@@ -8,14 +8,19 @@ their import. Subpackages are loaded lazily on attribute access from
 
 import importlib.util
 
+# ``import flip`` itself needs numpy, astropy and matplotlib (flip.utils).
 SUBPACKAGES = {
+    "data": {
+        "required": ["pandas", "pyarrow"],
+        "optional": {},
+    },
     "data_vector": {
-        "required": ["numpy", "scipy", "astropy", "pandas"],
+        "required": ["numpy", "scipy", "astropy"],
         "optional": {"jax (jit paths)": ["jax"]},
     },
     "comparison": {
-        "required": [],
-        "optional": {},
+        "required": ["numpy", "scipy", "astropy"],
+        "optional": {"jax (jit paths)": ["jax"]},
     },
     "forward": {
         "required": ["jax", "jax_cosmo", "tensorflow_probability"],
@@ -29,25 +34,16 @@ SUBPACKAGES = {
             "cosmoprimo engine": ["cosmoprimo"],
         },
     },
-    "simulation": {
-        "required": [],
-        "optional": {},
-    },
     "covariance": {
-        "required": [
-            "numpy",
-            "scipy",
-            "sympy",
-            "mpmath",
-            "emcee",
-            "iminuit",
-            "pandas",
-        ],
+        "required": ["numpy", "scipy", "sympy", "mpmath", "emcee", "iminuit"],
         "optional": {
             "jax (jit paths)": ["jax"],
+            "parquet io": ["pyarrow"],
+            "gp emulator": ["GPy"],
             "skgp emulator": ["sklearn"],
             "nn emulator": ["torch"],
-            "SN fit utils": ["snsim", "snutils"],
+            "firecrown interface": ["firecrown"],
+            "SN fit utils": ["pandas", "snsim", "snutils"],
         },
     },
 }

@@ -7,10 +7,7 @@ log = create_log()
 try:
     import pyccl as ccl
 except ImportError:
-    log.add(
-        "Install CCL https://github.com/LSSTDESC/CCL to use pyccl_engine.py module",
-        level="warning",
-    )
+    pass
 
 
 _minimal_suggested_settings = ("h", "Omega_b", "Omega_c", "sigma8", "n_s")

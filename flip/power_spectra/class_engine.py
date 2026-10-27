@@ -7,10 +7,7 @@ log = create_log()
 try:
     from classy import Class
 except ImportError:
-    log.add(
-        "Install CLASS https://github.com/lesgourg/class_public to use class_engine.py module",
-        level="warning",
-    )
+    pass
 
 _minimal_suggested_settings = ("h", "omega_b", "omega_cdm", "sigma8", "n_s")
 

@@ -149,17 +149,14 @@ def compute_power_spectrum(
             number_points,
         )
 
+    class_settings = {
+        **_class_acuracy_setting_defaults,
+        **_class_setting_default,
+        **power_spectrum_settings,
+        "z_max_pk": redshift,
+    }
     if non_linear_model is not None:
-        power_spectrum_settings.update(
-            {
-                "non linear": non_linear_model,
-            }
-        )
-    power_spectrum_settings.update({"z_max_pk": redshift})
-
-    class_settings = _class_acuracy_setting_defaults
-    class_settings.update(_class_setting_default)
-    class_settings.update(power_spectrum_settings)
+        class_settings["non linear"] = non_linear_model
 
     try:
         model = Class()

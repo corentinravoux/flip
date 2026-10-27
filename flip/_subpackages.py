@@ -43,7 +43,6 @@ SUBPACKAGES = {
             "skgp emulator": ["sklearn"],
             "nn emulator": ["torch"],
             "firecrown interface": ["firecrown"],
-            "SN fit utils": ["pandas", "snsim", "snutils"],
         },
     },
 }

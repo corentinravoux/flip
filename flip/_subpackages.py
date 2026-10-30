@@ -52,6 +52,9 @@ SUBPACKAGES = {
     },
 }
 
+# Required packages in minimal mode (FLIP_MINIMAL).
+MINIMAL_REQUIRED = {"covariance": ["numpy", "scipy"]}
+
 
 _PIP_NAMES = {
     "jax_cosmo": "jax-cosmo",
@@ -75,8 +78,12 @@ def require(name):
     a subpackage with unmet dependencies produces a single clear message
     with an install hint, instead of a deep ``ModuleNotFoundError``.
     """
-    spec = SUBPACKAGES[name]
-    missing = [p for p in spec["required"] if not _has(p)]
+    from flip._config import __minimal__
+
+    required = SUBPACKAGES[name]["required"]
+    if __minimal__:
+        required = MINIMAL_REQUIRED.get(name, required)
+    missing = [p for p in required if not _has(p)]
     if not missing:
         return
     pip_cmd = "pip install " + " ".join(_pip_name(p) for p in missing)

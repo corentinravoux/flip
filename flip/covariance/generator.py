@@ -2,7 +2,6 @@ import importlib
 import multiprocessing as mp
 from functools import partial
 
-import mpmath
 import numpy as np
 from scipy import integrate
 from scipy.signal import savgol_filter
@@ -286,6 +285,8 @@ def regularize_M(
             return M_function(*additional_parameters_values)(wavenumber)
 
         elif regularization_option == "mpmath":
+            import mpmath
+
             flip_terms.set_backend("mpmath")
             mpmath.mp.dps = mpmmath_decimal_precision
             wavenumber_mpmath = wavenumber * mpmath.mpf(1)

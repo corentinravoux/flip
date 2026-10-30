@@ -33,27 +33,3 @@ jobs:
     - name: Test with pytest
       run: |
         pytest
-
-  minimal:
-    # Sparse checkout + FLIP_MINIMAL: velocity covariance with numpy, scipy,
-    # astropy and matplotlib only (pandas/pyarrow read the test data).
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        sparse-checkout: |
-          flip/covariance/analytical/carreres23
-          flip/covariance/analytical/adamsblake20
-          flip/data
-          test
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.12"
-    - name: Install minimal dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install -r requirements-minimal.txt pandas pyarrow pytest
-    - name: Test minimal mode
-      run: |
-        pytest test/test_minimal_mode.py

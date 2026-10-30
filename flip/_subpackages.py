@@ -52,23 +52,8 @@ SUBPACKAGES = {
     },
 }
 
-# FLIP_MINIMAL: only flip.covariance, restricted to velocity covariances.
-MINIMAL_SUBPACKAGES = {
-    "covariance": {
-        "required": ["numpy", "scipy"],
-        "optional": {
-            "jax (jit paths)": ["jax"],
-            "mpmath regularization": ["mpmath"],
-        },
-    },
-}
-
-
-def active_subpackages():
-    """Return the subpackage manifest for the current mode."""
-    from flip._config import __minimal__
-
-    return MINIMAL_SUBPACKAGES if __minimal__ else SUBPACKAGES
+# Required packages in minimal mode (FLIP_MINIMAL).
+MINIMAL_REQUIRED = {"covariance": ["numpy", "scipy"]}
 
 
 _PIP_NAMES = {
@@ -93,8 +78,12 @@ def require(name):
     a subpackage with unmet dependencies produces a single clear message
     with an install hint, instead of a deep ``ModuleNotFoundError``.
     """
-    spec = active_subpackages()[name]
-    missing = [p for p in spec["required"] if not _has(p)]
+    from flip._config import __minimal__
+
+    required = SUBPACKAGES[name]["required"]
+    if __minimal__:
+        required = MINIMAL_REQUIRED.get(name, required)
+    missing = [p for p in required if not _has(p)]
     if not missing:
         return
     pip_cmd = "pip install " + " ".join(_pip_name(p) for p in missing)
@@ -106,7 +95,7 @@ def require(name):
 
 def probe(name):
     """Return availability dict for one subpackage."""
-    spec = active_subpackages()[name]
+    spec = SUBPACKAGES[name]
     missing_required = [p for p in spec["required"] if not _has(p)]
     optional_status = {
         label: {
@@ -123,17 +112,13 @@ def probe(name):
 
 
 def probe_all():
-    return {name: probe(name) for name in active_subpackages()}
+    return {name: probe(name) for name in SUBPACKAGES}
 
 
 def format_banner(version):
     status = probe_all()
-    from flip._config import __minimal__
-
     lines = [f"flip {version} -- subpackage availability"]
-    if __minimal__:
-        lines.append("  minimal mode (FLIP_MINIMAL): velocity covariance only")
-    width = max(len(n) for n in status)
+    width = max(len(n) for n in SUBPACKAGES)
     for name, s in status.items():
         if not s["available"]:
             lines.append(

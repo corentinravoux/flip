@@ -27,20 +27,18 @@ from flip.data import load_data_test
 coordinates_velocity, velocity = load_data_test.load_velocity_data(subsample=50)
 power_spectrum_dict = {"vv": [[ktt, ptt * utils.Du(ktt, 15.0) ** 2]]}
 
-model, kwargs, parameters = json.loads(sys.argv[1])
-if "additional_parameters_values" in kwargs:
-    kwargs["additional_parameters_values"] = tuple(kwargs["additional_parameters_values"])
 cov = CovMatrix.init_from_flip(
-    model,
+    "carreres23",
     "velocity",
     power_spectrum_dict,
     coordinates_velocity=coordinates_velocity,
     size_batch=50_000,
     number_worker=1,
-    **kwargs,
 )
 C = np.asarray(
-    cov.compute_covariance_sum(parameters, np.asarray(velocity["velocity_error"]) ** 2)
+    cov.compute_covariance_sum(
+        {"fs8": 0.5, "sigv": 0.0}, np.asarray(velocity["velocity_error"]) ** 2
+    )
 )
 import flip
 print(json.dumps({
@@ -53,17 +51,8 @@ print(json.dumps({
 }))
 """.replace("{NOT_NEEDED}", repr(set(NOT_NEEDED)))
 
-CASES = [
-    ("carreres23", {}, {"fs8": 0.5, "sigv": 0.0}),
-    (
-        "adamsblake20",
-        {"variant": "nobeta", "additional_parameters_values": [15.0]},
-        {"fs8": 0.5, "bs8": 1.0, "sigv": 0.0, "beta_f": 0.5},
-    ),
-]
 
-
-def run_minimal(case):
+def run_minimal():
     env = dict(
         os.environ,
         FLIP_MINIMAL="1",
@@ -72,7 +61,7 @@ def run_minimal(case):
         PYTHONPATH=str(REPO),
     )
     result = subprocess.run(
-        [sys.executable, "-c", SCRIPT, json.dumps(case)],
+        [sys.executable, "-c", SCRIPT],
         cwd=REPO,
         env=env,
         capture_output=True,
@@ -82,10 +71,8 @@ def run_minimal(case):
     return json.loads(result.stdout.strip().splitlines()[-1])
 
 
-@pytest.mark.parametrize("case", CASES, ids=[c[0] for c in CASES])
-def test_minimal_velocity_covariance(case):
-    got = run_minimal(case)
-    model = case[0]
+def test_minimal_velocity_covariance():
+    got = run_minimal()
 
     assert Path(got["flip_file"]).resolve().is_relative_to(REPO)
     assert not [m for m in got["loaded"] if m.split(".")[0] in NOT_NEEDED]
@@ -93,25 +80,11 @@ def test_minimal_velocity_covariance(case):
         assert f"flip.covariance.{module}" not in got["loaded"]
     # Only the requested model is imported.
     models = {m.split(".")[3] for m in got["loaded"] if m.count(".") >= 3}
-    assert models == {model}
+    assert models == {"carreres23"}
 
     reference = json.loads(
         (REPO / "flip" / "data" / "test_covariance_reference_values.json").read_text()
-    )[f"{model}:velocity"]
+    )["carreres23:velocity"]
     for key in ["trace", "entry_0_0", "entry_0_-1"]:
         assert got[key] == pytest.approx(reference[key], rel=1e-10)
 
-
-def test_banner_minimal():
-    env = dict(os.environ, FLIP_MINIMAL="1", FLIP_USE_JAX="0", PYTHONPATH=str(REPO))
-    env.pop("FLIP_QUIET", None)
-    out = subprocess.run(
-        [sys.executable, "-c", "import flip"],
-        cwd=REPO,
-        env=env,
-        capture_output=True,
-        text=True,
-        check=True,
-    ).stdout
-    assert "minimal mode" in out
-    assert "data_vector" not in out

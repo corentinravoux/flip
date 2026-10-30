@@ -33,7 +33,7 @@ __flip_dir_path__ = os.path.dirname(__file__)
 __version__ = "2.0.11"
 
 
-_LAZY_SUBPACKAGES = set(_subpackages.SUBPACKAGES)
+_LAZY_SUBPACKAGES = set(_subpackages.active_subpackages())
 
 
 def __getattr__(name):

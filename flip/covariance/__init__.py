@@ -12,6 +12,7 @@ from . import (
     fisher,
     fitter,
     generator,
+    io,
     likelihood,
     symbolic,
 )

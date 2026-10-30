@@ -1,5 +1,4 @@
 import importlib
-import pickle
 import time
 from functools import partial
 
@@ -7,6 +6,7 @@ import numpy as np
 
 from flip._config import __use_jax__
 from flip.covariance import cov_utils
+from flip.covariance import io as covariance_io
 from flip.utils import create_log
 
 if __use_jax__:
@@ -27,7 +27,6 @@ else:
 
 
 log = create_log()
-
 
 def _read_free_par(
     model_name,
@@ -463,31 +462,28 @@ class CovMatrix:
         filename,
         file_format,
     ):
-        """Load a CovMatrix from file.
+        """Load a CovMatrix written by `write` (see `flip.covariance.io`).
+
+        The coefficients module is re-imported from `model_name` and the
+        covariance-sum functions are rebuilt, as for any new CovMatrix. A
+        covariance written in flat form is therefore returned in matrix form.
 
         Args:
             filename (str): Path without extension.
-            file_format (str): One of `pickle`, `npz` (parquet not yet implemented).
+            file_format (str): One of `pickle`, `npz`, `parquet`.
 
         Returns:
             CovMatrix: Loaded covariance matrix.
 
         Raises:
-            NotImplementedError: For parquet reading.
+            ValueError: For an unknown format or a file not written by flip.
         """
-        if file_format == "parquet":
-            raise NotImplementedError("Reading from parquet not implemented yet")
-        if file_format == "pickle":
-            with open(f"{filename}.pickle", "rb") as file_read:
-                class_attrs_dictionary = pickle.load(file_read)
-        if file_format == "npz":
-            class_attrs_dictionary = dict(np.load(f"{filename}.npz", allow_pickle=True))
-            for key in class_attrs_dictionary.keys():
-                if class_attrs_dictionary[key].size == 1:
-                    class_attrs_dictionary[key] = class_attrs_dictionary[key].item()
-                else:
-                    class_attrs_dictionary[key] = list(class_attrs_dictionary[key])
-        return cls(**class_attrs_dictionary)
+        init_arguments = covariance_io.read(filename, file_format)
+        init_arguments["covariance_dict"] = {
+            key: jnp.asarray(value)
+            for key, value in init_arguments["covariance_dict"].items()
+        }
+        return cls(**init_arguments)
 
     @property
     def kind(self):
@@ -741,42 +737,22 @@ class CovMatrix:
         filename,
         file_format,
     ):
-        """Write the covariance matrix to disk.
+        """Write the covariance matrix to disk (see `flip.covariance.io`).
+
+        Saves the model attributes, the covariance blocks (in their current
+        flat or matrix form) and `covariance_prefactor_dict` as plain arrays.
+        The file only appears once the write has succeeded.
 
         Args:
             filename (str): Output path without extension.
-            file_format (str): One of `parquet`, `pickle`, `npz`.
+            file_format (str): One of `pickle`, `npz`, `parquet`.
+
+        Raises:
+            ValueError: For an unknown format.
+            NotImplementedError: For emulator covariances (callable blocks).
+            TypeError: If a block or prefactor is not a numeric array.
         """
-        class_attrs_dictionary = {
-            key: eval(f"self.{key}", {"self": self}) for key in vars(self)
-        }
-        if file_format == "parquet":
-            import pyarrow
-
-            metadata = {}
-            for key in ["gg", "gv", "vv"]:
-                if key in self.covariance_dict:
-                    metadata[f"number_matrices_{key}"] = str(
-                        self.covariance_dict[key].shape[0]
-                    )
-
-            class_attrs_dictionary.pop("covariance_dict")
-            metadata.update(class_attrs_dictionary)
-            for key in metadata:
-                metadata[key] = str(metadata[key])
-            covariance_dict_flatten = self.covariance_dict.copy()
-            for key in covariance_dict_flatten:
-                covariance_dict_flatten[key] = covariance_dict_flatten[key].ravel()
-            pa_table = pyarrow.table(covariance_dict_flatten)
-            pa_table = pa_table.replace_schema_metadata(metadata)
-            pyarrow.parquet.write_table(pa_table, f"{filename}.parquet")
-
-        elif file_format == "pickle":
-            with open(f"{filename}.pickle", "wb") as file_save:
-                pickle.dump(class_attrs_dictionary, file_save)
-
-        elif file_format == "npz":
-            np.savez(f"{filename}.npz", **class_attrs_dictionary)
+        covariance_io.write(self, filename, file_format)
 
     def mask(self, mask_vel=None, mask_dens=None):
         """Return a masked copy of the covariance restricting indices.

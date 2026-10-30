@@ -86,6 +86,46 @@ def load_velocity_data(subsample=None):
     return coordinates_velocity, velocity
 
 
+def load_velocity_sacc_inputs(subsample=None, velocity_error=0.0):
+    """Inputs of ``firecrown_interface.write_sacc`` from the velocity test data.
+
+    Used for the firecrown integration: writes
+    ``flip/data/data_velocity_sacc.fits.gz`` with ``write_sacc(data, filename,
+    keys, covariance_observation, tags=["rcom_zobs", "hubble_norm"])``.
+
+    Returns:
+        tuple: ``data`` (dict of arrays), ``keys`` (``velocity``, ``mb``,
+        ``x1``, ``c``) and ``covariance_observation`` in flip order (velocity
+        errors ``velocity_error``, SALT2 errors per SN).
+    """
+    _, velocity = load_velocity_data(subsample=subsample)
+    data = {k: np.asarray(v) for k, v in velocity.items()}
+    number = len(data["zobs"])
+    keys = ["velocity", "mb", "x1", "c"]
+    salt2_covariance = {
+        ("mb", "mb"): data["e_mb"] ** 2,
+        ("x1", "x1"): data["e_x1"] ** 2,
+        ("c", "c"): data["e_c"] ** 2,
+        ("mb", "x1"): data["cov_mb_x1"],
+        ("mb", "c"): data["cov_mb_c"],
+        ("x1", "c"): data["cov_x1_c"],
+    }
+    covariance_observation = np.zeros((4 * number, 4 * number))
+    covariance_observation[:number, :number] = np.diag(
+        np.full(number, velocity_error**2)
+    )
+    for (key_1, key_2), values in salt2_covariance.items():
+        i, j = keys.index(key_1), keys.index(key_2)
+        block = np.diag(values)
+        covariance_observation[
+            i * number : (i + 1) * number, j * number : (j + 1) * number
+        ] = block
+        covariance_observation[
+            j * number : (j + 1) * number, i * number : (i + 1) * number
+        ] = block
+    return data, keys, covariance_observation
+
+
 def load_e2e_test_reference_values():
     data_path = get_data_path()
     with open(os.path.join(data_path, "test_e2e_reference_values.json"), "r") as f:

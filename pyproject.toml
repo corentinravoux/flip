@@ -47,6 +47,8 @@ flip = [
     "data/*.txt",
     "data/*.json",
     "data/*.parquet",
-    "data/*.mplstyle"
+    "data/*.mplstyle",
+    "data/*.fits.gz",
+    "data/*.ini"
     ]
 

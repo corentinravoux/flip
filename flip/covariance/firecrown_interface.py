@@ -1,4 +1,4 @@
-"""Experimental firecrown interface for flip likelihoods.
+"""Firecrown interface for flip likelihoods.
 
 ``FlipLikelihood`` wraps a flip likelihood as a ``firecrown.likelihood.Likelihood``,
 so that it can be sampled through the firecrown connectors (Cobaya, CosmoSIS,
@@ -104,8 +104,8 @@ class FlipLikelihood(Likelihood):
                 ),
             )
 
-    def read(self, sacc_data):
-        """Do nothing: the data are held by the flip ``DataVector``."""
+    def read(self, _):
+        """Abstract in firecrown; the data are held by the flip ``DataVector``."""
 
     def compute_loglike(self, tools):
         """Evaluate the flip log-likelihood, rebuilding it if the cosmology changed.

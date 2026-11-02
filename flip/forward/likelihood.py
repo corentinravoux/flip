@@ -7,6 +7,7 @@ import jax_cosmo as jcosmo
 from jax.scipy.special import gammaln
 
 from flip.forward.field_utils import density_from_grid, radial_velocity_from_grid
+from flip.utils import prior_sum, return_prior
 
 # CR - replace this function
 # We need something more general for the redshift to distance conversion.
@@ -94,6 +95,11 @@ def log_prior_density_function(
     # No 0.5 factor in front of the sum, as we are not considering the complex conjugate modes.
     # No sigma8 because the modes are already scaled by sigma8 in the simulator.
     variance = power_spectrum_grid * (number_bins / box_size) ** 3 * number_bins**3
+    # The kz=0 and kz=N/2 planes store both k and -k, and irfftn keeps only
+    # (delta(k) + delta*(-k)) / 2: each stored copy needs twice the variance.
+    variance = variance.at[..., 0].multiply(2.0)
+    if number_bins % 2 == 0:
+        variance = variance.at[..., -1].multiply(2.0)
     prior_density = -jnp.abs(delta_fourier) ** 2 / variance - jnp.log(jnp.pi * variance)
     return jnp.sum(prior_density)
 
@@ -252,11 +258,35 @@ class BaseLikelihood(abc.ABC):
     ):
         self.parameter_names = parameter_names
         self.likelihood_properties = likelihood_properties
+        self.parameter_prior = self.initialize_parameter_prior()
         self.likelihood_evaluation, self.likelihood_grad = self._init_likelihood()
 
     @abc.abstractmethod
     def _init_likelihood(self):
         pass
+
+    def initialize_parameter_prior(
+        self,
+    ):
+        """Build prior function from likelihood properties.
+
+        Returns:
+            Callable: Prior function mapping parameter dict to log-prior.
+        """
+        if "prior" not in self.likelihood_properties.keys():
+            return lambda x: 0
+        else:
+            prior_dict = self.likelihood_properties["prior"]
+            priors = []
+            for parameter_name, prior_properties in prior_dict.items():
+                prior = return_prior(
+                    parameter_name,
+                    prior_properties,
+                )
+                priors.append(prior)
+
+            prior_function = partial(prior_sum, priors)
+            return prior_function
 
 
 class CandleGridGaussianLikelihood(BaseLikelihood):
@@ -316,6 +346,7 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
                 log_likelihood_targets_val
                 + log_prior_fields_val
                 + log_prior_distance_val
+                + self.parameter_prior(parameter_values_dict)
             )
             return log_likelihood_val
 

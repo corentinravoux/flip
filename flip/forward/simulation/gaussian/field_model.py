@@ -93,7 +93,7 @@ class GaussianRandomFieldBox(FourierBox):
     def init_delta_fourier(self):
         self.delta_fourier_base = jnp.zeros(
             shape=(self.number_bins, self.number_bins, self.number_bins // 2 + 1),
-            dtype="complex64",
+            dtype=complex,
         )
 
     def compute_power_spectrum_grid(self, kmax=0.1, fillvalue=1e-10):
@@ -222,7 +222,8 @@ class GaussianRandomFieldBox(FourierBox):
             centroid = self.get_centroid(physical_unit=False)
 
         seed = get_seed_from_parameter_values_dict(parameter_values_dict)
-        sampled_voxels = self.draw_voxelid(size_sample, seed, density=density)
+        key_targets = jax.random.fold_in(seed, 1)
+        sampled_voxels = self.draw_voxelid(size_sample, key_targets, density=density)
         i, j, k = self.get_voxel_coordinates(
             sampled_voxels,
             physical_unit=False,

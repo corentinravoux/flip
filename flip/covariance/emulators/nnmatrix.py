@@ -1,5 +1,3 @@
-import multiprocessing
-
 import numpy as np
 
 from flip.utils import create_log
@@ -13,11 +11,6 @@ try:
 
 except ImportError:
     torch_install = False
-    if multiprocessing.parent_process() is None:
-        log.add(
-            "Install pytorch to use the nnmatrix emulator",
-            level="warning",
-        )
 if torch_install:
     default_regression_object = torch.nn.Module
     default_activation_function = torch.nn.ReLU

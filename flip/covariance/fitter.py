@@ -117,8 +117,6 @@ class BaseFitter(abc.ABC):
             likelihood_class = flik.MultivariateGaussianLikelihood
         elif likelihood_type == "multivariate_gaussian_interp1d":
             likelihood_class = flik.MultivariateGaussianLikelihoodInterpolate1D
-        elif likelihood_type == "multivariate_gaussian_interp2d":
-            likelihood_class = flik.MultivariateGaussianLikelihoodInterpolate2D
         return likelihood_class
 
 

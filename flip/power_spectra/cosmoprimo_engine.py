@@ -1,16 +1,9 @@
 import numpy as np
 
-from flip.utils import create_log
-
-log = create_log()
-
 try:
     from cosmoprimo import Fourier
 except ImportError:
-    log.add(
-        "Install cosmoprimo https://github.com/cosmodesi/cosmoprimo to use cosmoprimo_engine.py module",
-        level="warning",
-    )
+    pass
 
 
 def get_fiducial_fs8(cosmology, redshift):

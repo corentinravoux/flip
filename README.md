@@ -17,6 +17,18 @@ cd flip
 pip install .
 ```
 
+## Minimal install
+
+Velocity covariance only (`carreres23` model), with numpy, scipy, astropy and matplotlib. Checks out only the files listed in `minimal_files.txt`:
+```bash
+git clone --filter=blob:none --no-checkout https://github.com/corentinravoux/flip.git
+cd flip
+git show main:minimal_files.txt | git sparse-checkout set --no-cone --stdin
+git checkout main
+pip install --no-deps .
+```
+Set `FLIP_MINIMAL=1` before `import flip`. Example (in the full repository): `scripts/flip_minimal_velocity_covariance.py`.
+
 ## Required packages
 
 Mandatory: numpy, scipy, matplotlib, iminuit, emcee, sympy

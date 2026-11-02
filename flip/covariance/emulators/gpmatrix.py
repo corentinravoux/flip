@@ -1,10 +1,4 @@
-import multiprocessing
-
 import numpy as np
-
-from flip.utils import create_log
-
-log = create_log()
 
 try:
     import GPy
@@ -12,11 +6,6 @@ try:
     gpy_installed = True
 except ImportError:
     gpy_installed = False
-    if multiprocessing.parent_process() is None:
-        log.add(
-            "Install GPy to use the gpmatrix emulator",
-            level="warning",
-        )
 
 
 _emulator_type = "matrix"

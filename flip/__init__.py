@@ -27,10 +27,10 @@ try:
 
     jax.config.update("jax_enable_x64", True)
 except ImportError:
-    log.add("Jax is not available, loading numpy and scipy instead")
+    pass
 
 __flip_dir_path__ = os.path.dirname(__file__)
-__version__ = "2.0.11"
+__version__ = "2.0.12"
 
 
 _LAZY_SUBPACKAGES = set(_subpackages.SUBPACKAGES)

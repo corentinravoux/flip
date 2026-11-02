@@ -16,13 +16,15 @@ license = "MIT"
 dependencies = [
     "pandas",
     "numpy",
-    "scipy >= 1.12",
+    "scipy >= 1.15",
     "matplotlib",
     "importlib-metadata",
     "emcee",
     "iminuit",
     "astropy",
-    "mpmath"
+    "mpmath",
+    "sympy",
+    "pyarrow"
 ]
 
 [project.optional-dependencies]

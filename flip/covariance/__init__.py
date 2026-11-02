@@ -11,7 +11,7 @@ from flip._subpackages import require
 require("covariance")
 
 if __minimal__:
-    from . import analytical, cov_utils, generator
+    from . import analytical, cov_utils, generator, io
 else:
     from . import (
         analytical,
@@ -21,6 +21,7 @@ else:
         fisher,
         fitter,
         generator,
+        io,
         likelihood,
         symbolic,
     )

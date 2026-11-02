@@ -199,7 +199,6 @@ def write_output(
 
     """
     f = open(filename, "w")
-    f.write("import mpmath\n")
     f.write("import numpy\n")
     f.write("import scipy\n")
     f.write("\n")
@@ -210,6 +209,8 @@ def write_output(
     f.write("        np = numpy\n")
     f.write("        erf = scipy.special.erf\n")
     f.write("""    elif module == "mpmath":\n""")
+    f.write("        import mpmath\n")
+    f.write("\n")
     f.write("        np = mpmath.mp\n")
     f.write("        erf = mpmath.erf\n")
     f.write("\n")

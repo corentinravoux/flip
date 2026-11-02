@@ -1,4 +1,3 @@
-import mpmath
 import numpy
 import scipy
 
@@ -9,6 +8,8 @@ def set_backend(module):
         np = numpy
         erf = scipy.special.erf
     elif module == "mpmath":
+        import mpmath
+
         np = mpmath.mp
         erf = mpmath.erf
 

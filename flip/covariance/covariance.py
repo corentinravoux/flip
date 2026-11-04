@@ -72,6 +72,26 @@ def _read_free_par(
     return list(set(free_par))
 
 
+def _add_to_diagonal(matrix, diagonal):
+    """Add a scalar or a vector to the diagonal of a square matrix.
+
+    Avoids building a dense N x N identity or diagonal matrix. The NumPy
+    branch works in place: only call it on a freshly built matrix.
+
+    Args:
+        matrix (array-like): Square matrix.
+        diagonal (float or array-like): Value(s) added to the diagonal.
+
+    Returns:
+        array-like: Matrix with the updated diagonal.
+    """
+    if jax_installed:
+        index = jnp.arange(matrix.shape[0])
+        return matrix.at[index, index].add(diagonal)
+    matrix[np.diag_indices_from(matrix)] += diagonal
+    return matrix
+
+
 def compute_covariance_sum(
     covariance_dict,
     coefficients_dict,
@@ -128,16 +148,21 @@ def compute_covariance_sum(
         else:
             covariance_evaluated = covariance_dict[k]
 
-        coefficient_3d = jnp.atleast_3d(jnp.atleast_2d(coefficients_dict[k].T).T)
-
-        covariance_sum_[k] = jnp.sum(
-            coefficient_3d * covariance_evaluated,
-            axis=0,
-        )
+        if coefficients_dict[k].ndim == 1:
+            covariance_sum_[k] = jnp.tensordot(
+                coefficients_dict[k], covariance_evaluated, axes=1
+            )
+        else:
+            # Per-object coefficients (n_terms, N): scale rows of each term
+            coefficient_3d = jnp.atleast_3d(jnp.atleast_2d(coefficients_dict[k].T).T)
+            covariance_sum_[k] = jnp.sum(
+                coefficient_3d * covariance_evaluated,
+                axis=0,
+            )
 
         if k in coefficients_dict_diagonal:
-            covariance_sum_[k] += coefficients_dict_diagonal[k] * jnp.eye(
-                covariance_sum_[k].shape[0]
+            covariance_sum_[k] = _add_to_diagonal(
+                covariance_sum_[k], coefficients_dict_diagonal[k]
             )
 
     if len(keys) == 1:
@@ -163,7 +188,7 @@ def compute_covariance_sum(
             )
 
     if len(vector_variance.shape) == 1:
-        covariance_sum += jnp.diag(vector_variance)
+        covariance_sum = _add_to_diagonal(covariance_sum, vector_variance)
     else:
         covariance_sum += vector_variance
     return covariance_sum
@@ -694,9 +719,8 @@ class CovMatrix:
         covariance_sum = self.compute_covariance_sum(
             parameter_values_dict,
             vector_variance,
-            covariance_prefactor_dict=self.covariance_prefactor_dict,
         )
-        return np.linalg.eigvals(covariance_sum)
+        return np.linalg.eigvalsh(covariance_sum)
 
     def generate_field_from_covariance(
         self,
@@ -710,7 +734,6 @@ class CovMatrix:
         covariance_sum = self.compute_covariance_sum(
             parameter_values_dict,
             vector_variance,
-            covariance_prefactor_dict=self.covariance_prefactor_dict,
         )
 
         if generation_method == "inverse":
@@ -877,60 +900,54 @@ class CovMatrix:
                 raise ValueError("Velocities mask size does not match vel cov size")
 
             if self.matrix_form:
-                masked_cov_dic["vv"] = np.array(
-                    [
-                        cov[np.ix_(mask_vel, mask_vel)]
-                        for cov in self.covariance_dict["vv"]
-                    ]
-                )
+                index_vel = np.flatnonzero(mask_vel)
+                masked_cov_dic["vv"] = self.covariance_dict["vv"][
+                    :, index_vel[:, None], index_vel[None, :]
+                ]
             else:
                 cov_vv_mask = np.outer(mask_vel, mask_vel)[
                     np.triu_indices(self.number_velocities, k=1)
                 ]
                 cov_vv_mask = np.insert(cov_vv_mask, 0, True)
 
-                masked_cov_dic["vv"] = np.array(
-                    [cov[cov_vv_mask] for cov in self.covariance_dict["vv"]]
-                )
+                masked_cov_dic["vv"] = self.covariance_dict["vv"][:, cov_vv_mask]
 
         if mask_dens is not None:
             if len(mask_dens) != self.number_densities:
                 raise ValueError("Densities mask size does not match density cov size")
 
             if self.matrix_form:
-                masked_cov_dic["gg"] = np.array(
-                    [
-                        cov[np.ix_(mask_dens, mask_dens)]
-                        for cov in self.covariance_dict["gg"]
-                    ]
-                )
+                index_dens = np.flatnonzero(mask_dens)
+                masked_cov_dic["gg"] = self.covariance_dict["gg"][
+                    :, index_dens[:, None], index_dens[None, :]
+                ]
             else:
                 cov_gg_mask = np.outer(mask_dens, mask_dens)[
                     np.triu_indices(self.number_densities, k=1)
                 ]
                 cov_gg_mask = np.insert(cov_gg_mask, 0, True)
-                masked_cov_dic["gg"] = np.array(
-                    [cov[cov_gg_mask] for cov in self.covariance_dict["gg"]]
-                )
+                masked_cov_dic["gg"] = self.covariance_dict["gg"][:, cov_gg_mask]
 
-        if self.number_densities is not None and self.number_velocities is not None:
+        if (
+            self.number_densities is not None
+            and self.number_velocities is not None
+            and self.model_kind == "full"
+        ):
             if mask_vel is None:
                 mask_vel = np.ones(self.number_velocities, dtype=bool)
             elif mask_dens is None:
                 mask_dens = np.ones(self.number_densities, dtype=bool)
 
             if self.matrix_form:
-                masked_cov_dic["gv"] = np.array(
-                    [
-                        cov[np.ix_(mask_dens, mask_vel)]
-                        for cov in self.covariance_dict["gv"]
-                    ]
-                )
+
+                masked_cov_dic["gv"] = self.covariance_dict["gv"][
+                    :,
+                    np.flatnonzero(mask_dens)[:, None],
+                    np.flatnonzero(mask_vel)[None, :],
+                ]
             else:
                 cov_gv_mask = np.outer(mask_dens, mask_vel).flatten()
-                masked_cov_dic["gv"] = np.array(
-                    [cov[cov_gv_mask] for cov in self.covariance_dict["gv"]]
-                )
+                masked_cov_dic["gv"] = self.covariance_dict["gv"][:, cov_gv_mask]
 
         for k in self.covariance_dict:
             if k not in masked_cov_dic:
@@ -946,4 +963,7 @@ class CovMatrix:
             number_densities=np.sum(mask_dens),
             number_velocities=np.sum(mask_vel),
             variant=self.variant,
+            coefficients=self.coefficients,
+            emulator_flag=self.emulator_flag,
+            covariance_prefactor_dict=self.covariance_prefactor_dict,
         )

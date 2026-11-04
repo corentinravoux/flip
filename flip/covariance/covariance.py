@@ -11,6 +11,7 @@ from flip.utils import create_log
 
 if __use_jax__:
     try:
+        import jax
         import jax.numpy as jnp
         from jax import jit
 
@@ -27,6 +28,13 @@ else:
 
 
 log = create_log()
+
+
+_available_generation_methods = [
+    "inverse",
+    "cholesky",
+]
+
 
 def _read_free_par(
     model_name,
@@ -159,6 +167,65 @@ def compute_covariance_sum(
     else:
         covariance_sum += vector_variance
     return covariance_sum
+
+
+def generate_field_inverse(covariance_sum, number_draws, seed=None):
+    """Generate a random field from the covariance using inverse transform sampling.
+
+    Args:
+        covariance_sum (array-like): Total covariance matrix.
+        number_draws (int): Number of random draws to generate.
+        seed (int, optional): Random seed for reproducibility."""
+    if seed is not None:
+        if jax_installed:
+            jax_random_key = jax.random.key(seed)
+        else:
+            jnp.random.seed(seed)
+    else:
+        if jax_installed:
+            jax_random_key = jax.random.key(int(time.time() * 1e6))
+
+    if jax_installed:
+        return jax.random.multivariate_normal(
+            jax_random_key,
+            jnp.zeros(len(covariance_sum)),
+            covariance_sum,
+            (number_draws,),
+        )
+    else:
+        return jnp.random.multivariate_normal(
+            jnp.zeros(len(covariance_sum)),
+            covariance_sum,
+            (number_draws,),
+        )
+
+
+def generate_field_cholesky(covariance_sum, number_draws, seed=None):
+    """Generate a random field from the covariance using Cholesky decomposition.
+
+    Args:
+        covariance_sum (array-like): Total covariance matrix.
+        seed (int, optional): Random seed for reproducibility."""
+
+    if seed is not None:
+        if jax_installed:
+            jax_random_key = jax.random.key(seed)
+        else:
+            jnp.random.seed(seed)
+    else:
+        if jax_installed:
+            jax_random_key = jax.random.key(int(time.time() * 1e6))
+
+    cholesky_matrix = jnp.linalg.cholesky(covariance_sum)
+    if jax_installed:
+        random_draws = jax.random.normal(
+            jax_random_key,
+            (number_draws, len(covariance_sum)),
+        )
+    else:
+        random_draws = jnp.random.standard_normal((number_draws, len(covariance_sum)))
+
+    return jnp.dot(random_draws, cholesky_matrix.T)
 
 
 class CovMatrix:
@@ -630,6 +697,40 @@ class CovMatrix:
             covariance_prefactor_dict=self.covariance_prefactor_dict,
         )
         return np.linalg.eigvals(covariance_sum)
+
+    def generate_field_from_covariance(
+        self,
+        parameter_values_dict,
+        vector_variance,
+        number_draws=1,
+        generation_method="cholesky",
+        seed=None,
+    ):
+
+        covariance_sum = self.compute_covariance_sum(
+            parameter_values_dict,
+            vector_variance,
+            covariance_prefactor_dict=self.covariance_prefactor_dict,
+        )
+
+        if generation_method == "inverse":
+            return generate_field_inverse(
+                covariance_sum,
+                number_draws,
+                seed=seed,
+            )
+
+        elif generation_method == "cholesky":
+            return generate_field_cholesky(
+                covariance_sum,
+                number_draws,
+                seed=seed,
+            )
+        else:
+            raise ValueError(
+                f"Generation method {generation_method} not recognized. "
+                f"Choose from {_available_generation_methods}"
+            )
 
     # CR - the two next functions should be more general (covariance_type[0] != covariance_type[1] case or not)
 

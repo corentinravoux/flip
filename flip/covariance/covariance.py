@@ -88,7 +88,7 @@ def _add_to_diagonal(matrix, diagonal):
     if jax_installed:
         index = jnp.arange(matrix.shape[0])
         return matrix.at[index, index].add(diagonal)
-    matrix[np.diag_indices_from(matrix)] += diagonal
+    matrix[jnp.diag_indices_from(matrix)] += diagonal
     return matrix
 
 
@@ -900,7 +900,7 @@ class CovMatrix:
                 raise ValueError("Velocities mask size does not match vel cov size")
 
             if self.matrix_form:
-                index_vel = np.flatnonzero(mask_vel)
+                index_vel = jnp.flatnonzero(mask_vel)
                 masked_cov_dic["vv"] = self.covariance_dict["vv"][
                     :, index_vel[:, None], index_vel[None, :]
                 ]
@@ -917,7 +917,7 @@ class CovMatrix:
                 raise ValueError("Densities mask size does not match density cov size")
 
             if self.matrix_form:
-                index_dens = np.flatnonzero(mask_dens)
+                index_dens = jnp.flatnonzero(mask_dens)
                 masked_cov_dic["gg"] = self.covariance_dict["gg"][
                     :, index_dens[:, None], index_dens[None, :]
                 ]
@@ -942,8 +942,8 @@ class CovMatrix:
 
                 masked_cov_dic["gv"] = self.covariance_dict["gv"][
                     :,
-                    np.flatnonzero(mask_dens)[:, None],
-                    np.flatnonzero(mask_vel)[None, :],
+                    jnp.flatnonzero(mask_dens)[:, None],
+                    jnp.flatnonzero(mask_vel)[None, :],
                 ]
             else:
                 cov_gv_mask = np.outer(mask_dens, mask_vel).flatten()

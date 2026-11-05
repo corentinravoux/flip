@@ -1026,14 +1026,15 @@ class ProjectedCovariance:
                 the smallest diagonal noise over the points and the basis signal is
                 the sum of their signals.
             vector_variance_fiducial (array-like or list): Data variance at the
-                fiducial point(s), shape `(N,)`. One per design point if a list.
+                fiducial point(s): shape `(N,)`, or a fixed `(N, N)` matrix that does
+                not depend on the parameters. One per design point if a list.
             snr_min (float): Keep the whitened modes with S/N above this threshold.
             k (int, optional): Number of kept modes; overrides `snr_min`.
             remainder (bool): Apply the diagonal remainder correction.
 
         Raises:
             NotImplementedError: For emulated covariances, matrix (per-object)
-                coefficients or a non-diagonal data variance.
+                coefficients or a 2D data variance coupling densities and velocities.
         """
         if covariance.emulator_flag:
             raise NotImplementedError("Projection of emulated covariances is not supported")
@@ -1057,24 +1058,30 @@ class ProjectedCovariance:
         if isinstance(parameter_values_fiducial, dict):
             parameter_values_fiducial = [parameter_values_fiducial]
             vector_variance_fiducial = [vector_variance_fiducial]
+        vector_variance_fiducial = [np.asarray(v, dtype=float) for v in vector_variance_fiducial]
+
+        # A fixed 2D data variance V = Q diag(lambda) Q^T: everything below is done in
+        # the Q frame, where the noise lambda + diagonal coefficients is diagonal again
+        self.rotation = None
+        if vector_variance_fiducial[0].ndim == 2:
+            self.rotation, self.rotated_variance = self._diagonalise(vector_variance_fiducial[0])
+            vector_variance_fiducial = [self.rotated_variance] * len(parameter_values_fiducial)
 
         # Whitening noise: the smallest diagonal noise over the design points
-        noise = []
-        for parameter_values_dict, vector_variance in zip(
-            parameter_values_fiducial, vector_variance_fiducial
-        ):
-            vector_variance = np.asarray(vector_variance, dtype=float)
-            if vector_variance.ndim != 1:
-                raise NotImplementedError(
-                    "Only a diagonal data variance is supported by the projected covariance"
-                )
-            noise.append(vector_variance + np.asarray(self.diagonal(parameter_values_dict)))
+        noise = [
+            vector_variance + np.asarray(self.diagonal(parameter_values_dict))
+            for parameter_values_dict, vector_variance in zip(
+                parameter_values_fiducial, vector_variance_fiducial
+            )
+        ]
         inverse_sqrt_noise = 1.0 / np.sqrt(np.min(noise, axis=0))
 
         # Basis: top whitened eigenmodes of the summed fiducial signal
         signal = np.zeros((self.size, self.size))
         for parameter_values_dict in parameter_values_fiducial:
             signal += np.asarray(self._signal(self._coefficients_dict(parameter_values_dict)))
+        if self.rotation is not None:
+            signal = self.rotation.T @ signal @ self.rotation
         signal *= inverse_sqrt_noise[:, None]
         signal *= inverse_sqrt_noise[None, :]
         eigenvalues, eigenvectors = np.linalg.eigh(signal)
@@ -1092,30 +1099,67 @@ class ProjectedCovariance:
         basis = eigenvectors[:, ::-1][:, : self.k]
         phi = basis / inverse_sqrt_noise[:, None]
         psi = basis * inverse_sqrt_noise[:, None]
+        # Psi in the original frame, to project the terms as stored
+        psi_terms = psi if self.rotation is None else self.rotation @ psi
 
         # Projected terms W_n = Psi^T C_n Psi and the diagonal they lose
         w_terms, remainder_terms = [], []
         for block, i in self.terms:
             term = np.asarray(covariance.covariance_dict[block][i])
             rows, columns = self._block_slices[block]
-            w_n = psi[rows].T @ term @ psi[columns]
+            w_n = psi_terms[rows].T @ term @ psi_terms[columns]
             # gv enters as [[0, B], [B^T, 0]]: both off-diagonal blocks project
             w_n = w_n + w_n.T if block == "gv" else 0.5 * (w_n + w_n.T)
             w_terms.append(w_n)
             if remainder:
                 diagonal_n = np.zeros(self.size)
-                if block != "gv":
+                if block != "gv" and self.rotation is None:
                     diagonal_n[rows] = np.diag(term)
+                elif block != "gv":
+                    # diagonal of Q^T C_n Q on the block (Q is block diagonal)
+                    rotation_block = self.rotation[rows, rows]
+                    diagonal_n[rows] = np.sum(rotation_block * (term @ rotation_block), axis=0)
                 remainder_terms.append(diagonal_n - np.sum((phi @ w_n) * phi, axis=1))
 
         self.phi = jnp.array(phi)
         self.w_terms = jnp.array(np.array(w_terms))
         self.remainder_terms = jnp.array(np.array(remainder_terms)) if remainder else None
+        if self.rotation is not None:
+            self.rotation = jnp.array(self.rotation)
+            self.rotated_variance = jnp.array(self.rotated_variance)
 
     @property
     def size(self):
         """int: Size `N` of the data vector."""
         return self.number_densities + self.number_velocities
+
+    def _diagonalise(self, vector_variance):
+        """Eigendecomposition of a 2D data variance, block by block.
+
+        Returns:
+            tuple: Block-diagonal rotation `Q` of shape `(N, N)` and the eigenvalues
+            `lambda`, with `vector_variance = Q diag(lambda) Q^T`.
+
+        Raises:
+            NotImplementedError: If the variance couples densities and velocities.
+        """
+        density, velocity = self._block_slices["gv"]
+        if np.any(vector_variance[density, velocity]):
+            raise NotImplementedError(
+                "A 2D data variance coupling densities and velocities is not supported"
+            )
+        rotation = np.zeros_like(vector_variance)
+        eigenvalues = np.zeros(self.size)
+        for rows in (density, velocity):
+            if rows.stop > rows.start:
+                eigenvalues[rows], rotation[rows, rows] = np.linalg.eigh(
+                    vector_variance[rows, rows]
+                )
+        return rotation, eigenvalues
+
+    def to_frame(self, vector):
+        """Data vector in the frame of the projection (rotated for a 2D data variance)."""
+        return vector if self.rotation is None else self.rotation.T @ vector
 
     def _coefficients_dict(self, parameter_values_dict):
         """Coefficients per block, checked to be scalars (one per term)."""
@@ -1190,13 +1234,17 @@ class ProjectedCovariance:
 
         Args:
             parameter_values_dict (dict): Parameter values.
-            vector_variance (array-like): Diagonal data variance, shape `(N,)`.
+            vector_variance (array-like): Diagonal data variance, shape `(N,)`. Not
+                used for a fixed 2D data variance, which is stored at construction.
 
         Returns:
             tuple: `(w, noise)`, with $W = \\sum_n a_n W_n$ of shape `(K, K)` and the
             diagonal noise $\\hat D$ (data variance, diagonal coefficients and, if
             `remainder`, the clipped diagonal remainder) of shape `(N,)`.
         """
+        if self.rotation is not None:
+            # fixed 2D data variance, diagonal in the frame of the projection
+            vector_variance = self.rotated_variance
         coefficients = self.coefficients(parameter_values_dict)
         w = jnp.tensordot(coefficients, self.w_terms, axes=1)
         noise = vector_variance + self.diagonal(parameter_values_dict)

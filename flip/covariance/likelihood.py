@@ -598,6 +598,16 @@ class MultivariateGaussianLikelihoodProjected(BaseLikelihood):
                 data.give_data_and_variance(parameter_values_dict)[1]
                 for parameter_values_dict in parameter_values_fiducial
             ]
+            if jnp.ndim(vector_variance_fiducial[0]) == 2:
+                # the projection supports a 2D data variance only if it is fixed
+                perturbed = {k: 1.01 * v for k, v in parameter_values_fiducial[0].items()}
+                if not jnp.allclose(
+                    data.give_data_and_variance(perturbed)[1], vector_variance_fiducial[0]
+                ):
+                    raise NotImplementedError(
+                        "The 2D data variance depends on the parameters: "
+                        "use the dense likelihood"
+                    )
             projected_covariance = ProjectedCovariance(
                 covariance, parameter_values_fiducial, vector_variance_fiducial, **options
             )
@@ -617,11 +627,13 @@ class MultivariateGaussianLikelihoodProjected(BaseLikelihood):
             tuple[Callable, Callable|None]: `(likelihood_call, likelihood_grad)`.
         """
         likelihood_function = eval(f"log_likelihood_gaussian_woodbury{self._jit_suffix()}")
-        phi = self.projected_covariance.phi
-        compute_projected_covariance = self.projected_covariance.compute_projected_covariance
+        projected_covariance = self.projected_covariance
+        phi = projected_covariance.phi
 
         def log_likelihood(vector, parameter_values_dict, vector_variance):
-            w, noise = compute_projected_covariance(parameter_values_dict, vector_variance)
-            return likelihood_function(vector, phi, w, noise)
+            w, noise = projected_covariance.compute_projected_covariance(
+                parameter_values_dict, vector_variance
+            )
+            return likelihood_function(projected_covariance.to_frame(vector), phi, w, noise)
 
         return self._wrap_log_likelihood(log_likelihood)

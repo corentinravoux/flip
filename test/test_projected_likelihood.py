@@ -51,7 +51,7 @@ def compare_projected_to_dense(
             parameter_values_dict, vector_variance
         )
         projected = log_likelihood_gaussian_woodbury(
-            vector, projected_covariance.phi, w, noise
+            projected_covariance.to_frame(vector), projected_covariance.phi, w, noise
         )
         differences.append(float(projected - dense))
     return np.array(differences)
@@ -172,10 +172,69 @@ def test_projected_design_points_basis():
     assert several.k >= single.k
 
 
-def test_projected_rejects_full_data_covariance():
-    covariance_object, _, _, variance = _velocity_setup(100)
+def _correlated_variance(variance, seed=3):
+    # diagonal errors plus a few correlated (systematic-like) modes
+    modes = np.random.default_rng(seed).normal(0, 1, (variance.size, 3))
+    return np.diag(variance) + 0.3 * np.median(variance) * modes @ modes.T
+
+
+def test_projected_exact_at_full_rank_2d_variance():
+    covariance_object, _, vector, variance = _velocity_setup(100)
+    variance_2d = _correlated_variance(variance)
+    projected = ProjectedCovariance(
+        covariance_object, _velocity_fiducial, variance_2d, k=vector.size
+    )
+    np.testing.assert_allclose(
+        compare_projected_to_dense(projected, vector, _velocity_points, variance_2d),
+        0.0,
+        atol=1e-6,
+    )
+
+
+def test_projected_2d_variance_through_fitter():
+    covariance_object, velocity_vector, _, variance = _velocity_setup(100)
+    data = {"velocity": np.asarray(velocity_vector.give_data_and_variance()[0])}
+    data_2d = data_vector.DirectVel(
+        data, covariance_observation=_correlated_variance(variance)
+    )
+    likelihoods = [
+        fitter.FitMinuit.init_from_covariance(
+            covariance_object,
+            data_2d,
+            _velocity_params,
+            likelihood_type=likelihood_type,
+            likelihood_properties=properties,
+        ).likelihood
+        for likelihood_type, properties in (
+            ("multivariate_gaussian", _dense_properties),
+            ("multivariate_gaussian_projected", _projected_properties),
+        )
+    ]
+    for point in _velocity_points:
+        x = np.array([point["fs8"], point["sigv"]])
+        np.testing.assert_allclose(likelihoods[1](x), likelihoods[0](x), rtol=1e-10, atol=1e-6)
+
+
+class _ParameterDependentVariance(data_vector.DirectVel):
+    def give_data_and_variance(self, parameter_values_dict, *args):
+        vector, variance = super().give_data_and_variance()
+        return vector, variance * parameter_values_dict["fs8"]
+
+
+def test_projected_rejects_parameter_dependent_2d_variance():
+    covariance_object, velocity_vector, _, variance = _velocity_setup(100)
+    data = {"velocity": np.asarray(velocity_vector.give_data_and_variance()[0])}
+    data_2d = _ParameterDependentVariance(
+        data, covariance_observation=_correlated_variance(variance)
+    )
     with pytest.raises(NotImplementedError):
-        ProjectedCovariance(covariance_object, _velocity_fiducial, np.diag(variance))
+        fitter.FitMinuit.init_from_covariance(
+            covariance_object,
+            data_2d,
+            _velocity_params,
+            likelihood_type="multivariate_gaussian_projected",
+            likelihood_properties=_projected_properties,
+        )
 
 
 def test_projected_likelihood_through_fitter():

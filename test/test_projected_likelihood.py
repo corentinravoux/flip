@@ -7,7 +7,7 @@ from flip.covariance.covariance import ProjectedCovariance
 from flip.covariance.likelihood import (
     jax_installed,
     log_likelihood_gaussian_cholesky,
-    log_likelihood_gaussian_woodbury,
+    log_likelihood_projected,
 )
 from flip.data import load_data_test
 from flip.data_vector.vector_utils import redshift_dependence_velocity
@@ -47,11 +47,8 @@ def compare_projected_to_dense(
                 parameter_values_dict, vector_variance
             ),
         )
-        w, noise = projected_covariance.compute_projected_covariance(
-            parameter_values_dict, vector_variance
-        )
-        projected = log_likelihood_gaussian_woodbury(
-            projected_covariance.to_frame(vector), projected_covariance.phi, w, noise
+        projected = log_likelihood_projected(
+            vector, parameter_values_dict, vector_variance, projected_covariance
         )
         differences.append(float(projected - dense))
     return np.array(differences)
@@ -161,6 +158,56 @@ def test_projected_exact_density_accuracy():
     assert projected.k < vector.size
     differences = compare_projected_to_dense(projected, vector, _full_points, variance)
     assert np.max(np.abs(differences - differences.mean())) < 0.05
+
+
+def _per_object_setup(model_name, variant):
+    # per-object (N x N) coefficients: rcrk24 (outer product), genericzdep (fixed)
+    coordinates_velocity, velocity_vector = _velocity_vector(80)
+    z = np.asarray(load_data_test.load_velocity_data(subsample=80)[1]["zobs"])
+    power_spectrum_dict = load_data_test.load_power_spectrum_dict()
+    prefactor = {"redshift_velocity": z}
+    if model_name == "genericzdep":
+        power_spectrum_dict = {"vv": power_spectrum_dict["vv"] * 3}
+        prefactor.update(f_z=0.5 + z, E_z=1 + z, D_growth_z=1 - 0.5 * z)
+    covariance_object = covariance.CovMatrix.init_from_flip(
+        model_name,
+        "velocity",
+        power_spectrum_dict,
+        coordinates_velocity=coordinates_velocity,
+        size_batch=50_000,
+        number_worker=1,
+        variant=variant,
+        covariance_prefactor_dict=prefactor,
+        additional_parameters_values=(0.2,) if model_name == "genericzdep" else None,
+    )
+    vector, variance = velocity_vector.give_data_and_variance()
+    return covariance_object, np.asarray(vector), np.asarray(variance)
+
+
+@pytest.mark.parametrize(
+    "model_name, variant, fiducial, points",
+    [
+        (
+            "rcrk24",
+            "growth_index",
+            {"Om0": 0.3, "gamma": 0.55, "sigv": 150.0},
+            [{"Om0": 0.25, "gamma": 0.7, "sigv": 200.0}, {"Om0": 0.35, "gamma": 0.45, "sigv": 100.0}],
+        ),
+        (
+            "rcrk24",
+            "growth_rate",
+            {"fs8": 0.47, "sigv": 150.0},
+            _velocity_points,
+        ),
+        ("genericzdep", None, {"sigv": 150.0}, [{"sigv": 200.0}, {"sigv": 100.0}]),
+    ],
+)
+def test_projected_per_object_exact_at_full_rank(model_name, variant, fiducial, points):
+    covariance_object, vector, variance = _per_object_setup(model_name, variant)
+    projected = ProjectedCovariance(covariance_object, fiducial, variance, k=vector.size)
+    np.testing.assert_allclose(
+        compare_projected_to_dense(projected, vector, points, variance), 0.0, atol=1e-6
+    )
 
 
 def test_projected_accuracy_velocity():

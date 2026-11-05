@@ -167,6 +167,40 @@ def log_likelihood_gaussian_woodbury(vector, phi, w, noise):
     return -0.5 * (vector.size * jnp.log(2 * jnp.pi) + logdet + chi2)
 
 
+def log_likelihood_projected(
+    vector,
+    parameter_values_dict,
+    vector_variance,
+    projected_covariance,
+    likelihood_function=log_likelihood_gaussian_woodbury,
+):
+    """Gaussian log-likelihood with a `ProjectedCovariance`.
+
+    Moves the data vector to the frame of the projection (rotation for a fixed 2D
+    data variance, division by the per-object scale $g$), then evaluates the
+    Woodbury form. The Jacobian of the scaling adds $-\\sum \\log g$.
+
+    Args:
+        vector (array-like): Data vector, shape `(N,)`.
+        parameter_values_dict (dict): Parameter values.
+        vector_variance (array-like): Data variance.
+        projected_covariance (ProjectedCovariance): Projection.
+        likelihood_function (Callable): `log_likelihood_gaussian_woodbury` or its JIT.
+
+    Returns:
+        float: Log-likelihood value.
+    """
+    w, noise, scale = projected_covariance.compute_projected_covariance(
+        parameter_values_dict, vector_variance
+    )
+    vector = projected_covariance.to_frame(vector)
+    if scale is None:
+        return likelihood_function(vector, projected_covariance.phi, w, noise)
+    return likelihood_function(
+        vector / scale, projected_covariance.phi, w, noise
+    ) - jnp.sum(jnp.log(scale))
+
+
 if jax_installed:
     log_likelihood_gaussian_inverse_jit = jit(log_likelihood_gaussian_inverse)
     log_likelihood_gaussian_cholesky_jit = jit(log_likelihood_gaussian_cholesky)
@@ -628,12 +662,14 @@ class MultivariateGaussianLikelihoodProjected(BaseLikelihood):
         """
         likelihood_function = eval(f"log_likelihood_gaussian_woodbury{self._jit_suffix()}")
         projected_covariance = self.projected_covariance
-        phi = projected_covariance.phi
 
         def log_likelihood(vector, parameter_values_dict, vector_variance):
-            w, noise = projected_covariance.compute_projected_covariance(
-                parameter_values_dict, vector_variance
+            return log_likelihood_projected(
+                vector,
+                parameter_values_dict,
+                vector_variance,
+                projected_covariance,
+                likelihood_function,
             )
-            return likelihood_function(projected_covariance.to_frame(vector), phi, w, noise)
 
         return self._wrap_log_likelihood(log_likelihood)

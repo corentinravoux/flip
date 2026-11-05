@@ -6,6 +6,7 @@ from flip.covariance import covariance, fitter
 from flip.covariance.covariance import ProjectedCovariance
 from flip.covariance.likelihood import (
     MultivariateGaussianLikelihoodInterpolate1D,
+    MultivariateGaussianLikelihoodProjected,
     MultivariateGaussianLikelihoodProjectedInterpolate1D,
     jax_installed,
     log_likelihood_gaussian_cholesky,
@@ -32,9 +33,6 @@ _full_points = [
     {"bs8": 0.8, "fs8": 0.32, "beta_f": 0.30, "sigv": 160.0, "sigg": 0.8},
 ]
 _dense_properties = {"inversion_method": "cholesky"}
-_projected_properties = {
-    "projection": {"parameter_values_fiducial": _velocity_fiducial, "k": 100}
-}
 
 
 def compare_projected_to_dense(
@@ -105,15 +103,28 @@ def _full_setup(n):
     return covariance_object, np.asarray(vector), np.asarray(variance)
 
 
-def _velocity_likelihood(likelihood_type, likelihood_properties):
-    covariance_object, velocity_vector, _, _ = _velocity_setup(100)
+def _velocity_likelihood(
+    likelihood_type, likelihood_properties, covariance_object=None, data=None
+):
+    # dense with the CovMatrix, projected with a ProjectedCovariance as covariance
+    dense_covariance, velocity_vector, _, _ = _velocity_setup(100)
     return fitter.FitMinuit.init_from_covariance(
-        covariance_object,
-        velocity_vector,
+        dense_covariance if covariance_object is None else covariance_object,
+        velocity_vector if data is None else data,
         _velocity_params,
         likelihood_type=likelihood_type,
         likelihood_properties=likelihood_properties,
     ).likelihood
+
+
+def _velocity_projection(data=None):
+    covariance_object, velocity_vector, _, _ = _velocity_setup(100)
+    return ProjectedCovariance.init_from_data(
+        covariance_object,
+        velocity_vector if data is None else data,
+        _velocity_fiducial,
+        k=100,
+    )
 
 
 def test_projected_exact_at_full_rank_velocity():
@@ -122,7 +133,9 @@ def test_projected_exact_at_full_rank_velocity():
         covariance_object, _velocity_fiducial, variance, k=vector.size
     )
     np.testing.assert_allclose(
-        compare_projected_to_dense(projected, vector, _velocity_points, variance), 0.0, atol=1e-6
+        compare_projected_to_dense(projected, vector, _velocity_points, variance),
+        0.0,
+        atol=1e-6,
     )
 
 
@@ -133,7 +146,9 @@ def test_projected_exact_at_full_rank_full():
     )
     assert len(projected.terms) == 30
     np.testing.assert_allclose(
-        compare_projected_to_dense(projected, vector, _full_points, variance), 0.0, atol=1e-6
+        compare_projected_to_dense(projected, vector, _full_points, variance),
+        0.0,
+        atol=1e-6,
     )
 
 
@@ -148,7 +163,9 @@ def test_projected_exact_density_full_rank():
     )
     assert projected.k == vector.size
     np.testing.assert_allclose(
-        compare_projected_to_dense(projected, vector, _full_points, variance), 0.0, atol=1e-6
+        compare_projected_to_dense(projected, vector, _full_points, variance),
+        0.0,
+        atol=1e-6,
     )
 
 
@@ -163,7 +180,7 @@ def test_projected_exact_density_accuracy():
 
 
 def _per_object_setup(model_name, variant):
-    # per-object (N x N) coefficients: rcrk24 (outer product), genericzdep (fixed)
+    # per-object (N x N) coefficients: genericzdep (fixed), rcrk24 (parameter dependent)
     coordinates_velocity, velocity_vector = _velocity_vector(80)
     z = np.asarray(load_data_test.load_velocity_data(subsample=80)[1]["zobs"])
     power_spectrum_dict = load_data_test.load_power_spectrum_dict()
@@ -186,30 +203,29 @@ def _per_object_setup(model_name, variant):
     return covariance_object, np.asarray(vector), np.asarray(variance)
 
 
-@pytest.mark.parametrize(
-    "model_name, variant, fiducial, points",
-    [
-        (
-            "rcrk24",
-            "growth_index",
-            {"Om0": 0.3, "gamma": 0.55, "sigv": 150.0},
-            [{"Om0": 0.25, "gamma": 0.7, "sigv": 200.0}, {"Om0": 0.35, "gamma": 0.45, "sigv": 100.0}],
-        ),
-        (
-            "rcrk24",
-            "growth_rate",
-            {"fs8": 0.47, "sigv": 150.0},
-            _velocity_points,
-        ),
-        ("genericzdep", None, {"sigv": 150.0}, [{"sigv": 200.0}, {"sigv": 100.0}]),
-    ],
-)
-def test_projected_per_object_exact_at_full_rank(model_name, variant, fiducial, points):
-    covariance_object, vector, variance = _per_object_setup(model_name, variant)
-    projected = ProjectedCovariance(covariance_object, fiducial, variance, k=vector.size)
+def test_projected_fixed_per_object_exact_at_full_rank():
+    covariance_object, vector, variance = _per_object_setup("genericzdep", None)
+    projected = ProjectedCovariance(
+        covariance_object, {"sigv": 150.0}, variance, k=vector.size
+    )
+    points = [{"sigv": 200.0}, {"sigv": 100.0}]
     np.testing.assert_allclose(
         compare_projected_to_dense(projected, vector, points, variance), 0.0, atol=1e-6
     )
+
+
+@pytest.mark.parametrize(
+    "variant, fiducial",
+    [
+        ("growth_index", {"Om0": 0.3, "gamma": 0.55, "sigv": 150.0}),
+        ("growth_rate", {"fs8": 0.0, "sigv": 150.0}),
+    ],
+)
+def test_projected_rejects_parameter_dependent_per_object(variant, fiducial):
+    # rcrk24: per-object coefficients that depend on the parameters (fs8 = 0 included)
+    covariance_object, _, variance = _per_object_setup("rcrk24", variant)
+    with pytest.raises(NotImplementedError):
+        ProjectedCovariance(covariance_object, fiducial, variance)
 
 
 def test_projected_accuracy_velocity():
@@ -218,7 +234,9 @@ def test_projected_accuracy_velocity():
         covariance_object, _velocity_fiducial, variance, snr_min=0.01
     )
     assert projected.k < vector.size
-    differences = compare_projected_to_dense(projected, vector, _velocity_points, variance)
+    differences = compare_projected_to_dense(
+        projected, vector, _velocity_points, variance
+    )
     # likelihood shape: the constant offset does not matter, its variation does
     assert np.max(np.abs(differences - differences.mean())) < 0.05
 
@@ -272,21 +290,19 @@ def test_projected_2d_variance_through_fitter():
         data, covariance_observation=_correlated_variance(variance)
     )
     likelihoods = [
-        fitter.FitMinuit.init_from_covariance(
-            covariance_object,
+        _velocity_likelihood("multivariate_gaussian", _dense_properties, data=data_2d),
+        _velocity_likelihood(
+            "multivariate_gaussian_projected",
+            {},
+            _velocity_projection(data_2d),
             data_2d,
-            _velocity_params,
-            likelihood_type=likelihood_type,
-            likelihood_properties=properties,
-        ).likelihood
-        for likelihood_type, properties in (
-            ("multivariate_gaussian", _dense_properties),
-            ("multivariate_gaussian_projected", _projected_properties),
-        )
+        ),
     ]
     for point in _velocity_points:
         x = np.array([point["fs8"], point["sigv"]])
-        np.testing.assert_allclose(likelihoods[1](x), likelihoods[0](x), rtol=1e-10, atol=1e-6)
+        np.testing.assert_allclose(
+            likelihoods[1](x), likelihoods[0](x), rtol=1e-10, atol=1e-6
+        )
 
 
 class _ParameterDependentVariance(data_vector.DirectVel):
@@ -302,18 +318,16 @@ def test_projected_rejects_parameter_dependent_2d_variance():
         data, covariance_observation=_correlated_variance(variance)
     )
     with pytest.raises(NotImplementedError):
-        fitter.FitMinuit.init_from_covariance(
-            covariance_object,
-            data_2d,
-            _velocity_params,
-            likelihood_type="multivariate_gaussian_projected",
-            likelihood_properties=_projected_properties,
+        ProjectedCovariance.init_from_data(
+            covariance_object, data_2d, _velocity_fiducial
         )
 
 
 def test_projected_likelihood_through_fitter():
     dense = _velocity_likelihood("multivariate_gaussian", _dense_properties)
-    projected = _velocity_likelihood("multivariate_gaussian_projected", _projected_properties)
+    projected = _velocity_likelihood(
+        "multivariate_gaussian_projected", {}, _velocity_projection()
+    )
     for point in _velocity_points:
         x = np.array([point["fs8"], point["sigv"]])
         np.testing.assert_allclose(projected(x), dense(x), rtol=1e-10, atol=1e-6)
@@ -326,7 +340,7 @@ def test_projected_gradient_matches_dense():
         "multivariate_gaussian", {"use_jit": True, **_dense_properties}
     )
     projected = _velocity_likelihood(
-        "multivariate_gaussian_projected", {"use_jit": True, **_projected_properties}
+        "multivariate_gaussian_projected", {"use_jit": True}, _velocity_projection()
     )
     x = np.array([0.4, 200.0])
     np.testing.assert_allclose(
@@ -358,21 +372,35 @@ def test_projected_interpolation_matches_interpolate1d(exact):
     ]
     names = ["bs8", "fs8", "beta_f", "sigv", "sig_g"]
     fiducial = {"bs8": 1.1, "fs8": 0.47, "beta_f": 0.45, "sigv": 150.0, "sig_g": 1.2}
-    projection = {"parameter_values_fiducial": fiducial}
-    if exact:
-        projection["k"] = 80  # every mode
+    # basis built at the grid point nearest the fiducial sig_g, shared by the others
+    options = {"k": 80} if exact else {}  # k = 80: every mode
+    reference = ProjectedCovariance.init_from_data(
+        covariances[1], data, fiducial, **options
+    )
+    projections = [
+        (
+            reference
+            if i == 1
+            else ProjectedCovariance.init_from_data(c, data, fiducial, basis=reference)
+        )
+        for i, c in enumerate(covariances)
+    ]
     likelihoods = [
         likelihood_class(
-            covariance=covariances,
+            covariance=covariance_list,
             data=data,
             parameter_names=names,
             likelihood_properties=properties,
             interpolation_value_name="sig_g",
             interpolation_value_range=grid,
         )
-        for likelihood_class, properties in (
-            (MultivariateGaussianLikelihoodInterpolate1D, _dense_properties),
-            (MultivariateGaussianLikelihoodProjectedInterpolate1D, {"projection": projection}),
+        for likelihood_class, covariance_list, properties in (
+            (
+                MultivariateGaussianLikelihoodInterpolate1D,
+                covariances,
+                _dense_properties,
+            ),
+            (MultivariateGaussianLikelihoodProjectedInterpolate1D, projections, {}),
         )
     ]
     points = [
@@ -387,3 +415,30 @@ def test_projected_interpolation_matches_interpolate1d(exact):
         np.testing.assert_allclose(differences, 0.0, atol=1e-6)
     else:
         assert np.max(np.abs(differences - differences.mean())) < 0.05
+
+
+def test_projected_likelihood_rejects_dense_covariance():
+    covariance_object, velocity_vector, _, _ = _velocity_setup(100)
+    with pytest.raises(TypeError):
+        MultivariateGaussianLikelihoodProjected(
+            covariance=covariance_object,
+            data=velocity_vector,
+            parameter_names=["fs8", "sigv"],
+        )
+
+
+def test_projected_interpolation_rejects_unshared_basis():
+    _, velocity_vector, _, _ = _velocity_setup(100)
+    with pytest.raises(ValueError):
+        MultivariateGaussianLikelihoodProjectedInterpolate1D(
+            covariance=[_velocity_projection(), _velocity_projection()],
+            data=velocity_vector,
+            parameter_names=["fs8", "sigv", "sig_g"],
+            interpolation_value_name="sig_g",
+            interpolation_value_range=np.array([0.5, 1.0]),
+        )
+
+
+def test_select_likelihood_rejects_unknown_type():
+    with pytest.raises(ValueError):
+        fitter.BaseFitter.select_likelihood("multivariate_gaussian_interp2d")

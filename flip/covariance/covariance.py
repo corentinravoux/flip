@@ -991,9 +991,10 @@ class ProjectedCovariance:
 
     The projection is a local approximation: it is accurate for coefficients close to
     the fiducial ones, not for any linear combination of the terms. Supported: scalar
-    coefficients, per-object coefficients $g g^T \circ M(\theta_0)$ (velocity models),
-    a diagonal or a fixed 2D data variance, exact densities (`exact_density`), and a
-    shared basis along an interpolation grid (`basis`). The derivation is in the note
+    coefficients, fixed per-object coefficients (genericzdep; not rcrk24, whose
+    coefficients depend on the parameters), a diagonal or a fixed 2D data variance,
+    exact densities (`exact_density`), and a shared basis along an interpolation grid
+    (`basis`). The derivation is in the note
     ``woodbury_maths.pdf`` (flip-woodbury feasibility report, 2026-11-03).
 
     Attributes:
@@ -1047,63 +1048,92 @@ class ProjectedCovariance:
 
         Raises:
             NotImplementedError: For emulated covariances, a 2D data variance coupling
-                densities and velocities, or per-object (N x N) coefficients that are
-                not of the form handled by `_init_matrix_coefficients`.
+                densities and velocities, or per-object (N x N) coefficients that
+                depend on the parameters.
         """
         if covariance.emulator_flag:
-            raise NotImplementedError("Projection of emulated covariances is not supported")
+            raise NotImplementedError(
+                "Projection of emulated covariances is not supported"
+            )
         if not covariance.matrix_form:
             covariance.compute_matrix_covariance()
 
         self.covariance = covariance
         self.blocks = _blocks_per_kind[covariance.model_kind]
         self.remainder = remainder
-        self.number_densities = covariance.number_densities if "gg" in self.blocks else 0
-        self.number_velocities = covariance.number_velocities if "vv" in self.blocks else 0
+        self.number_densities = (
+            covariance.number_densities if "gg" in self.blocks else 0
+        )
+        self.number_velocities = (
+            covariance.number_velocities if "vv" in self.blocks else 0
+        )
         self.terms = [
             (block, i)
             for block in self.blocks
             for i in range(np.shape(covariance.covariance_dict[block])[0])
         ]
         # (rows, columns) of each block in the full matrix
-        density, velocity = slice(0, self.number_densities), slice(self.number_densities, self.size)
-        self._block_slices = {"gg": (density, density), "vv": (velocity, velocity), "gv": (density, velocity)}
+        density = slice(0, self.number_densities)
+        velocity = slice(self.number_densities, self.size)
+        self._block_slices = {
+            "gg": (density, density),
+            "vv": (velocity, velocity),
+            "gv": (density, velocity),
+        }
 
         if isinstance(parameter_values_fiducial, dict):
             parameter_values_fiducial = [parameter_values_fiducial]
             vector_variance_fiducial = [vector_variance_fiducial]
-        vector_variance_fiducial = [np.asarray(v, dtype=float) for v in vector_variance_fiducial]
+        vector_variance_fiducial = [
+            np.asarray(v, dtype=float) for v in vector_variance_fiducial
+        ]
 
-        # Per-object (N x N) coefficients: M_n(theta_0) is folded into the terms
-        self._matrix_reference, self._scale_reference = None, None
+        # Fixed per-object (N x N) coefficients are folded into the terms
+        self._per_object_coefficients = None
         reference = self._coefficients_dict(parameter_values_fiducial[0])
         if any(reference[block].ndim > 1 for block in self.blocks):
-            if vector_variance_fiducial[0].ndim == 2:
-                raise NotImplementedError(
-                    "Per-object coefficients with a 2D data variance are not supported"
-                )
-            self._init_matrix_coefficients(reference, parameter_values_fiducial[0])
+            self._init_per_object_coefficients(reference, parameter_values_fiducial[0])
 
         if basis is None:
             self._build_basis(
-                parameter_values_fiducial, vector_variance_fiducial, snr_min, k, exact_density
+                parameter_values_fiducial,
+                vector_variance_fiducial,
+                snr_min,
+                k,
+                exact_density,
             )
         else:
             # share the basis and frame of another projection (interpolation grid)
-            for name in ("rotation", "rotated_variance", "eigenvalues", "k", "phi", "_whitening"):
+            for name in (
+                "rotation",
+                "rotated_variance",
+                "eigenvalues",
+                "k",
+                "phi",
+                "_whitening",
+            ):
                 setattr(self, name, getattr(basis, name))
         self._project_terms()
 
     def _build_basis(
-        self, parameter_values_fiducial, vector_variance_fiducial, snr_min, k, exact_density
+        self,
+        parameter_values_fiducial,
+        vector_variance_fiducial,
+        snr_min,
+        k,
+        exact_density,
     ):
         """Set `phi`, `k`, `eigenvalues`, the whitening and, for a 2D variance, the rotation."""
         # A fixed 2D data variance V = Q diag(lambda) Q^T: the projection is built in the
         # Q frame, where the noise lambda + diagonal coefficients is diagonal again
         self.rotation, self.rotated_variance = None, None
         if vector_variance_fiducial[0].ndim == 2:
-            self.rotation, self.rotated_variance = self._diagonalise(vector_variance_fiducial[0])
-            vector_variance_fiducial = [self.rotated_variance] * len(parameter_values_fiducial)
+            self.rotation, self.rotated_variance = self._diagonalise(
+                vector_variance_fiducial[0]
+            )
+            vector_variance_fiducial = [self.rotated_variance] * len(
+                parameter_values_fiducial
+            )
 
         # Whitening noise: the smallest diagonal noise over the design points
         noise = [
@@ -1117,14 +1147,18 @@ class ProjectedCovariance:
         # Basis: top whitened eigenmodes of the summed fiducial signal
         signal = np.zeros((self.size, self.size))
         for parameter_values_dict in parameter_values_fiducial:
-            signal += np.asarray(self._signal(self._coefficients_dict(parameter_values_dict)))
+            signal += np.asarray(
+                self._signal(self._coefficients_dict(parameter_values_dict))
+            )
         if self.rotation is not None:
             signal = self.rotation.T @ signal @ self.rotation
         signal *= self._whitening[:, None]
         signal *= self._whitening[None, :]
         if exact_density:
             if "gg" not in self.blocks or "vv" not in self.blocks:
-                raise ValueError("exact_density needs a model with densities and velocities")
+                raise ValueError(
+                    "exact_density needs a model with densities and velocities"
+                )
             velocity = self._block_slices["vv"][0]
             signal = signal[velocity, velocity]
         eigenvalues, eigenvectors = np.linalg.eigh(signal)
@@ -1143,7 +1177,10 @@ class ProjectedCovariance:
             # [density unit vectors, velocity modes], in the whitened frame
             basis = np.block(
                 [
-                    [np.eye(self.number_densities), np.zeros((self.number_densities, number_modes))],
+                    [
+                        np.eye(self.number_densities),
+                        np.zeros((self.number_densities, number_modes)),
+                    ],
                     [np.zeros((self.number_velocities, self.number_densities)), basis],
                 ]
             )
@@ -1164,25 +1201,72 @@ class ProjectedCovariance:
         w_terms, remainder_terms = [], []
         for block, i in self.terms:
             term = np.asarray(self.covariance.covariance_dict[block][i])
-            if self._matrix_reference is not None:
-                term = term * self._matrix_reference[i]
+            if self._per_object_coefficients is not None:
+                term = term * self._per_object_coefficients[i]
             rows, columns = self._block_slices[block]
             w_n = psi_terms[rows].T @ term @ psi_terms[columns]
             # gv enters as [[0, B], [B^T, 0]]: both off-diagonal blocks project
             w_n = w_n + w_n.T if block == "gv" else 0.5 * (w_n + w_n.T)
             w_terms.append(w_n)
             if self.remainder:
+                # diagonal of the term in the frame of the projection (none for gv)
                 diagonal_n = np.zeros(self.size)
-                if block != "gv" and rotation is None:
-                    diagonal_n[rows] = np.diag(term)
-                elif block != "gv":
-                    # diagonal of Q^T C_n Q on the block (Q is block diagonal)
-                    rotation_block = rotation[rows, rows]
-                    diagonal_n[rows] = np.sum(rotation_block * (term @ rotation_block), axis=0)
+                if block != "gv":
+                    if rotation is None:
+                        diagonal_n[rows] = np.diag(term)
+                    else:
+                        # diagonal of Q^T C_n Q on the block (Q is block diagonal)
+                        rotation_block = rotation[rows, rows]
+                        diagonal_n[rows] = np.sum(
+                            rotation_block * (term @ rotation_block), axis=0
+                        )
                 remainder_terms.append(diagonal_n - np.sum((phi @ w_n) * phi, axis=1))
 
         self.w_terms = jnp.array(np.array(w_terms))
-        self.remainder_terms = jnp.array(np.array(remainder_terms)) if self.remainder else None
+        self.remainder_terms = (
+            jnp.array(np.array(remainder_terms)) if self.remainder else None
+        )
+
+    @classmethod
+    def init_from_data(cls, covariance, data, parameter_values_fiducial, **kwargs):
+        """Build the projection with the data variance of `data` at the fiducial point(s).
+
+        Args:
+            covariance (CovMatrix): Covariance with analytical terms.
+            data (DataVector): Data vector providing `give_data_and_variance`.
+            parameter_values_fiducial (dict or list[dict]): Fiducial point(s).
+            **kwargs: Other arguments of `ProjectedCovariance` (`snr_min`, `k`,
+                `remainder`, `exact_density`, `basis`).
+
+        Returns:
+            ProjectedCovariance: The projection.
+
+        Raises:
+            NotImplementedError: If a 2D data variance depends on the parameters.
+        """
+        if isinstance(parameter_values_fiducial, dict):
+            parameter_values_fiducial = [parameter_values_fiducial]
+        vector_variance_fiducial = [
+            data.give_data_and_variance(parameter_values_dict)[1]
+            for parameter_values_dict in parameter_values_fiducial
+        ]
+        if np.ndim(vector_variance_fiducial[0]) == 2:
+            # a 2D data variance is supported only if it is fixed
+            perturbed = cls._perturbed_parameters(parameter_values_fiducial[0])
+            if not np.allclose(
+                data.give_data_and_variance(perturbed)[1], vector_variance_fiducial[0]
+            ):
+                raise NotImplementedError(
+                    "The 2D data variance depends on the parameters: use the dense likelihood"
+                )
+        return cls(
+            covariance, parameter_values_fiducial, vector_variance_fiducial, **kwargs
+        )
+
+    @property
+    def free_par(self):
+        """list[str]: Free parameters of the covariance model."""
+        return self.covariance.free_par
 
     @property
     def size(self):
@@ -1217,46 +1301,38 @@ class ProjectedCovariance:
         """Data vector in the frame of the projection (rotated for a 2D data variance)."""
         return vector if self.rotation is None else self.rotation.T @ vector
 
-    def _init_matrix_coefficients(self, reference, parameter_values_dict):
-        """Per-object coefficients of the form $M_n(\\theta) = g g^T \\circ M_n(\\theta_0)$.
+    @staticmethod
+    def _perturbed_parameters(parameter_values_dict):
+        """Parameter values all moved away from `parameter_values_dict` (zeros included).
 
-        $M_n(\\theta_0)$ is folded into the terms. If the coefficients depend on the
-        parameters, $g(\\theta)$ (see `scale`) rescales the data at each call, which is
-        exact: $C = \\mathrm{diag}(g)\\,(T + D/g^2)\\,\\mathrm{diag}(g)$. Velocity models only
-        (rcrk24, genericzdep).
+        Used to check that a quantity (coefficients, 2D data variance) does not depend
+        on the parameters.
+        """
+        return {k: 1.1 * v + 0.1 for k, v in parameter_values_dict.items()}
+
+    def _init_per_object_coefficients(self, reference, parameter_values_dict):
+        """Per-object (N x N) coefficients that do not depend on the parameters.
+
+        They are folded into the terms once, with unit coefficients (genericzdep).
+        Velocity models only.
 
         Raises:
-            NotImplementedError: For another model kind or another dependence.
+            NotImplementedError: For another model kind, or coefficients that depend
+                on the parameters (e.g. rcrk24): use the dense likelihood.
         """
         if self.blocks != ["vv"]:
             raise NotImplementedError(
                 "Per-object coefficients are supported for velocity models only"
             )
-        self._matrix_reference = np.asarray(reference["vv"])
-        perturbed = {k: 1.01 * v for k, v in parameter_values_dict.items()}
-        coefficients = np.asarray(self._coefficients_dict(perturbed)["vv"])
-        if np.allclose(coefficients, self._matrix_reference):
-            return
-        self._scale_reference = np.sqrt(np.diag(self._matrix_reference[0]))
-        scale = np.sqrt(np.diag(coefficients[0])) / self._scale_reference
-        if not np.allclose(coefficients, np.outer(scale, scale) * self._matrix_reference):
+        perturbed = self._coefficients_dict(
+            self._perturbed_parameters(parameter_values_dict)
+        )
+        if not np.allclose(perturbed["vv"], reference["vv"]):
             raise NotImplementedError(
-                "Per-object coefficients must be of the form g g^T * M(theta_0)"
+                "Per-object coefficients that depend on the parameters are not "
+                "supported by the projected covariance: use the dense likelihood"
             )
-
-    def scale(self, parameter_values_dict):
-        """Per-object scale $g(\\theta)$, or None when the coefficients are scalars or fixed.
-
-        Args:
-            parameter_values_dict (dict): Parameter values.
-
-        Returns:
-            array-like or None: $g = \\sqrt{\\mathrm{diag}\\,M_1(\\theta) / \\mathrm{diag}\\,M_1(\\theta_0)}$, shape `(N,)`.
-        """
-        if self._scale_reference is None:
-            return None
-        coefficient = self._coefficients_dict(parameter_values_dict)["vv"][0]
-        return jnp.sqrt(jnp.diag(coefficient)) / self._scale_reference
+        self._per_object_coefficients = np.asarray(reference["vv"])
 
     def _coefficients_dict(self, parameter_values_dict):
         """Coefficients per block, as returned by the model."""
@@ -1287,19 +1363,14 @@ class ProjectedCovariance:
             parameter_values_dict (dict): Parameter values.
 
         Returns:
-            array-like: Coefficients, shape `(n_terms,)`. Ones for per-object
-            coefficients, which are folded into the terms (see `scale`).
+            array-like: Coefficients, shape `(n_terms,)`. Ones for fixed per-object
+            coefficients, which are folded into the terms.
         """
-        if self._matrix_reference is not None:
+        if self._per_object_coefficients is not None:
             return jnp.ones(len(self.terms))
-        coefficients_dict = self.covariance.coefficients.get_coefficients(
-            parameter_values_dict,
-            self.covariance.model_kind,
-            variant=self.covariance.variant,
-            covariance_prefactor_dict=self.covariance.covariance_prefactor_dict,
-        )
+        coefficients_dict = self._coefficients_dict(parameter_values_dict)
         return jnp.concatenate(
-            [jnp.atleast_1d(jnp.asarray(coefficients_dict[block])) for block in self.blocks]
+            [jnp.atleast_1d(coefficients_dict[block]) for block in self.blocks]
         )
 
     def diagonal(self, parameter_values_dict):
@@ -1333,11 +1404,10 @@ class ProjectedCovariance:
                 used for a fixed 2D data variance, which is stored at construction.
 
         Returns:
-            tuple: `(w, noise, scale)`, with $W = \\sum_n a_n W_n$ of shape `(K, K)`,
-            the diagonal noise $\\hat D$ (data variance, diagonal coefficients and, if
-            `remainder`, the clipped diagonal remainder) of shape `(N,)`, and the
-            per-object scale $g$ (None for scalar coefficients): in the frame of the
-            projection, $C = \\mathrm{diag}(g)\\,(\\hat D + \\Phi W \\Phi^T)\\,\\mathrm{diag}(g)$.
+            tuple: `(w, noise)`, with $W = \\sum_n a_n W_n$ of shape `(K, K)` and the
+            diagonal noise $\\hat D$ (data variance, diagonal coefficients and, if
+            `remainder`, the clipped diagonal remainder) of shape `(N,)`, in the frame
+            of the projection (see `to_frame`).
         """
         if self.rotation is not None:
             # fixed 2D data variance, diagonal in the frame of the projection
@@ -1345,9 +1415,6 @@ class ProjectedCovariance:
         coefficients = self.coefficients(parameter_values_dict)
         w = jnp.tensordot(coefficients, self.w_terms, axes=1)
         noise = vector_variance + self.diagonal(parameter_values_dict)
-        scale = self.scale(parameter_values_dict)
-        if scale is not None:
-            noise = noise / scale**2
         if self.remainder:
             noise = noise + jnp.clip(coefficients @ self.remainder_terms, 0.0, None)
-        return w, noise, scale
+        return w, noise

@@ -990,9 +990,11 @@ class ProjectedCovariance:
     `flip.covariance.likelihood.log_likelihood_gaussian_woodbury`).
 
     The projection is a local approximation: it is accurate for coefficients close to
-    the fiducial ones, not for any linear combination of the terms. Only scalar
-    coefficients and a diagonal data variance are supported. The derivation is in the
-    note ``woodbury_maths.pdf`` (flip-woodbury feasibility report, 2026-11-03).
+    the fiducial ones, not for any linear combination of the terms. Supported: scalar
+    coefficients, per-object coefficients $g g^T \circ M(\theta_0)$ (velocity models),
+    a diagonal or a fixed 2D data variance, exact densities (`exact_density`), and a
+    shared basis along an interpolation grid (`basis`). The derivation is in the note
+    ``woodbury_maths.pdf`` (flip-woodbury feasibility report, 2026-11-03).
 
     Attributes:
         covariance (CovMatrix): Source covariance, in matrix form.
@@ -1006,6 +1008,8 @@ class ProjectedCovariance:
         w_terms (array-like): Projected terms $W_n$, shape `(n_terms, K, K)`.
         remainder_terms (array-like): Diagonal remainders $r_n$, shape `(n_terms, N)`.
         remainder (bool): Whether the diagonal remainder correction is applied.
+        rotation (array-like or None): Rotation $Q$ of a fixed 2D data variance.
+        rotated_variance (array-like or None): Its eigenvalues $\lambda$.
     """
 
     def __init__(

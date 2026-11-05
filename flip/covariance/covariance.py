@@ -1016,6 +1016,7 @@ class ProjectedCovariance:
         snr_min=0.01,
         k=None,
         remainder=True,
+        exact_density=False,
     ):
         """Build the basis and project every term.
 
@@ -1031,6 +1032,10 @@ class ProjectedCovariance:
             snr_min (float): Keep the whitened modes with S/N above this threshold.
             k (int, optional): Number of kept modes; overrides `snr_min`.
             remainder (bool): Apply the diagonal remainder correction.
+            exact_density (bool): Keep every density entry exactly and truncate only
+                the velocity block (hybrid: density cells are signal dominated and do
+                not compress). `snr_min`, `k` and `eigenvalues` then refer to the
+                velocity modes only.
 
         Raises:
             NotImplementedError: For emulated covariances, matrix (per-object)
@@ -1084,19 +1089,32 @@ class ProjectedCovariance:
             signal = self.rotation.T @ signal @ self.rotation
         signal *= inverse_sqrt_noise[:, None]
         signal *= inverse_sqrt_noise[None, :]
+        if exact_density:
+            if "gg" not in self.blocks or "vv" not in self.blocks:
+                raise ValueError("exact_density needs a model with densities and velocities")
+            velocity = self._block_slices["vv"][0]
+            signal = signal[velocity, velocity]
         eigenvalues, eigenvectors = np.linalg.eigh(signal)
         del signal
         self.eigenvalues = eigenvalues[::-1]
 
-        self.k = int(np.sum(self.eigenvalues > snr_min)) if k is None else int(k)
-        self.k = max(self.k, 1)
-        if k is None and self.k > self.size / 10:
+        number_modes = int(np.sum(self.eigenvalues > snr_min)) if k is None else int(k)
+        number_modes = max(number_modes, 1)
+        if k is None and number_modes > self.eigenvalues.size / 10:
             log.add(
-                f"Projected covariance keeps K = {self.k} of N = {self.size} modes: "
+                f"Projected covariance keeps {number_modes} of {self.eigenvalues.size} modes: "
                 "the data are signal dominated and the projection gains little."
             )
-
-        basis = eigenvectors[:, ::-1][:, : self.k]
+        basis = eigenvectors[:, ::-1][:, :number_modes]
+        if exact_density:
+            # [density unit vectors, velocity modes], in the whitened frame
+            basis = np.block(
+                [
+                    [np.eye(self.number_densities), np.zeros((self.number_densities, number_modes))],
+                    [np.zeros((self.number_velocities, self.number_densities)), basis],
+                ]
+            )
+        self.k = basis.shape[1]
         phi = basis / inverse_sqrt_noise[:, None]
         psi = basis * inverse_sqrt_noise[:, None]
         # Psi in the original frame, to project the terms as stored

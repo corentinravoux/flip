@@ -138,6 +138,31 @@ def test_projected_exact_at_full_rank_full():
     )
 
 
+def test_projected_exact_density_full_rank():
+    covariance_object, vector, variance = _full_setup(60)
+    projected = ProjectedCovariance(
+        covariance_object,
+        _full_fiducial,
+        variance,
+        k=covariance_object.number_velocities,
+        exact_density=True,
+    )
+    assert projected.k == vector.size
+    np.testing.assert_allclose(
+        compare_projected_to_dense(projected, vector, _full_points, variance), 0.0, atol=1e-6
+    )
+
+
+def test_projected_exact_density_accuracy():
+    covariance_object, vector, variance = _full_setup(200)
+    projected = ProjectedCovariance(
+        covariance_object, _full_fiducial, variance, snr_min=0.01, exact_density=True
+    )
+    assert projected.k < vector.size
+    differences = compare_projected_to_dense(projected, vector, _full_points, variance)
+    assert np.max(np.abs(differences - differences.mean())) < 0.05
+
+
 def test_projected_accuracy_velocity():
     covariance_object, _, vector, variance = _velocity_setup(500)
     projected = ProjectedCovariance(

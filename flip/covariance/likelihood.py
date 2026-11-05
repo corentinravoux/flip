@@ -506,7 +506,9 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}{suffix}"
         )
         interpolation_value_name = self.interpolation_value_name
-        interpolation_value_range = jnp.array(self.interpolation_value_range)
+        interpolation_value_range = self.interpolation_value_range
+        if suffix == "_jit":
+            interpolation_value_range = jnp.array(interpolation_value_range)
 
         def log_likelihood(vector, parameter_values_dict, vector_variance):
             """Log-likelihood with the covariance linearly interpolated along the grid.

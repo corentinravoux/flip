@@ -5,6 +5,8 @@ import pytest
 from flip.covariance import covariance, fitter
 from flip.covariance.covariance import ProjectedCovariance
 from flip.covariance.likelihood import (
+    MultivariateGaussianLikelihoodInterpolate1D,
+    MultivariateGaussianLikelihoodProjectedInterpolate1D,
     jax_installed,
     log_likelihood_gaussian_cholesky,
     log_likelihood_projected,
@@ -332,3 +334,56 @@ def test_projected_gradient_matches_dense():
         np.asarray(dense.likelihood_grad(x)),
         rtol=1e-6,
     )
+
+
+@pytest.mark.parametrize("exact", [True, False])
+def test_projected_interpolation_matches_interpolate1d(exact):
+    # sig_g enters inside the density terms: one covariance per grid point
+    coordinates_density, density_data = load_data_test.load_density_data(subsample=40)
+    coordinates_velocity, velocity_vector = _velocity_vector(40)
+    data = data_vector.DensVel(data_vector.Dens(density_data), velocity_vector)
+    grid = np.array([0.5, 1.0, 2.0, 4.0])
+    covariances = [
+        covariance.CovMatrix.init_from_flip(
+            "adamsblake20",
+            "full",
+            load_data_test.load_power_spectrum_dict(),
+            coordinates_density=coordinates_density,
+            coordinates_velocity=coordinates_velocity,
+            size_batch=50_000,
+            number_worker=1,
+            additional_parameters_values=(sig_g,),
+        )
+        for sig_g in grid
+    ]
+    names = ["bs8", "fs8", "beta_f", "sigv", "sig_g"]
+    fiducial = {"bs8": 1.1, "fs8": 0.47, "beta_f": 0.45, "sigv": 150.0, "sig_g": 1.2}
+    projection = {"parameter_values_fiducial": fiducial}
+    if exact:
+        projection["k"] = 80  # every mode
+    likelihoods = [
+        likelihood_class(
+            covariance=covariances,
+            data=data,
+            parameter_names=names,
+            likelihood_properties=properties,
+            interpolation_value_name="sig_g",
+            interpolation_value_range=grid,
+        )
+        for likelihood_class, properties in (
+            (MultivariateGaussianLikelihoodInterpolate1D, _dense_properties),
+            (MultivariateGaussianLikelihoodProjectedInterpolate1D, {"projection": projection}),
+        )
+    ]
+    points = [
+        np.array([1.0, 0.4, 0.4, 200.0, 0.7]),
+        np.array([0.8, 0.3, 0.3, 120.0, 1.6]),
+        np.array([1.2, 0.5, 0.5, 250.0, 3.0]),
+    ]
+    dense = np.array([likelihoods[0](x) for x in points])
+    assert np.ptp(dense) > 1  # the points, sig_g included, change the likelihood
+    differences = np.array([likelihoods[1](x) for x in points]) - dense
+    if exact:
+        np.testing.assert_allclose(differences, 0.0, atol=1e-6)
+    else:
+        assert np.max(np.abs(differences - differences.mean())) < 0.05

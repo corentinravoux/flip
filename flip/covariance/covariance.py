@@ -1017,6 +1017,7 @@ class ProjectedCovariance:
         k=None,
         remainder=True,
         exact_density=False,
+        basis=None,
     ):
         """Build the basis and project every term.
 
@@ -1036,6 +1037,9 @@ class ProjectedCovariance:
                 the velocity block (hybrid: density cells are signal dominated and do
                 not compress). `snr_min`, `k` and `eigenvalues` then refer to the
                 velocity modes only.
+            basis (ProjectedCovariance, optional): Reuse the basis of another projection
+                instead of building one (`snr_min`, `k` and `exact_density` are then
+                ignored). Used along an interpolation grid.
 
         Raises:
             NotImplementedError: For emulated covariances, a 2D data variance coupling
@@ -1076,9 +1080,23 @@ class ProjectedCovariance:
                 )
             self._init_matrix_coefficients(reference, parameter_values_fiducial[0])
 
-        # A fixed 2D data variance V = Q diag(lambda) Q^T: everything below is done in
-        # the Q frame, where the noise lambda + diagonal coefficients is diagonal again
-        self.rotation = None
+        if basis is None:
+            self._build_basis(
+                parameter_values_fiducial, vector_variance_fiducial, snr_min, k, exact_density
+            )
+        else:
+            # share the basis and frame of another projection (interpolation grid)
+            for name in ("rotation", "rotated_variance", "eigenvalues", "k", "phi", "_whitening"):
+                setattr(self, name, getattr(basis, name))
+        self._project_terms()
+
+    def _build_basis(
+        self, parameter_values_fiducial, vector_variance_fiducial, snr_min, k, exact_density
+    ):
+        """Set `phi`, `k`, `eigenvalues`, the whitening and, for a 2D variance, the rotation."""
+        # A fixed 2D data variance V = Q diag(lambda) Q^T: the projection is built in the
+        # Q frame, where the noise lambda + diagonal coefficients is diagonal again
+        self.rotation, self.rotated_variance = None, None
         if vector_variance_fiducial[0].ndim == 2:
             self.rotation, self.rotated_variance = self._diagonalise(vector_variance_fiducial[0])
             vector_variance_fiducial = [self.rotated_variance] * len(parameter_values_fiducial)
@@ -1090,7 +1108,7 @@ class ProjectedCovariance:
                 parameter_values_fiducial, vector_variance_fiducial
             )
         ]
-        inverse_sqrt_noise = 1.0 / np.sqrt(np.min(noise, axis=0))
+        self._whitening = 1.0 / np.sqrt(np.min(noise, axis=0))
 
         # Basis: top whitened eigenmodes of the summed fiducial signal
         signal = np.zeros((self.size, self.size))
@@ -1098,8 +1116,8 @@ class ProjectedCovariance:
             signal += np.asarray(self._signal(self._coefficients_dict(parameter_values_dict)))
         if self.rotation is not None:
             signal = self.rotation.T @ signal @ self.rotation
-        signal *= inverse_sqrt_noise[:, None]
-        signal *= inverse_sqrt_noise[None, :]
+        signal *= self._whitening[:, None]
+        signal *= self._whitening[None, :]
         if exact_density:
             if "gg" not in self.blocks or "vv" not in self.blocks:
                 raise ValueError("exact_density needs a model with densities and velocities")
@@ -1126,15 +1144,22 @@ class ProjectedCovariance:
                 ]
             )
         self.k = basis.shape[1]
-        phi = basis / inverse_sqrt_noise[:, None]
-        psi = basis * inverse_sqrt_noise[:, None]
-        # Psi in the original frame, to project the terms as stored
-        psi_terms = psi if self.rotation is None else self.rotation @ psi
+        self.phi = jnp.array(basis / self._whitening[:, None])
+        if self.rotation is not None:
+            self.rotation = jnp.array(self.rotation)
+            self.rotated_variance = jnp.array(self.rotated_variance)
 
-        # Projected terms W_n = Psi^T C_n Psi and the diagonal they lose
+    def _project_terms(self):
+        """Set the projected terms $W_n = \\Psi^T C_n \\Psi$ and their diagonal remainders."""
+        phi = np.asarray(self.phi)
+        psi = phi * self._whitening[:, None] ** 2
+        rotation = None if self.rotation is None else np.asarray(self.rotation)
+        # Psi in the original frame, to project the terms as stored
+        psi_terms = psi if rotation is None else rotation @ psi
+
         w_terms, remainder_terms = [], []
         for block, i in self.terms:
-            term = np.asarray(covariance.covariance_dict[block][i])
+            term = np.asarray(self.covariance.covariance_dict[block][i])
             if self._matrix_reference is not None:
                 term = term * self._matrix_reference[i]
             rows, columns = self._block_slices[block]
@@ -1142,22 +1167,18 @@ class ProjectedCovariance:
             # gv enters as [[0, B], [B^T, 0]]: both off-diagonal blocks project
             w_n = w_n + w_n.T if block == "gv" else 0.5 * (w_n + w_n.T)
             w_terms.append(w_n)
-            if remainder:
+            if self.remainder:
                 diagonal_n = np.zeros(self.size)
-                if block != "gv" and self.rotation is None:
+                if block != "gv" and rotation is None:
                     diagonal_n[rows] = np.diag(term)
                 elif block != "gv":
                     # diagonal of Q^T C_n Q on the block (Q is block diagonal)
-                    rotation_block = self.rotation[rows, rows]
+                    rotation_block = rotation[rows, rows]
                     diagonal_n[rows] = np.sum(rotation_block * (term @ rotation_block), axis=0)
                 remainder_terms.append(diagonal_n - np.sum((phi @ w_n) * phi, axis=1))
 
-        self.phi = jnp.array(phi)
         self.w_terms = jnp.array(np.array(w_terms))
-        self.remainder_terms = jnp.array(np.array(remainder_terms)) if remainder else None
-        if self.rotation is not None:
-            self.rotation = jnp.array(self.rotation)
-            self.rotated_variance = jnp.array(self.rotated_variance)
+        self.remainder_terms = jnp.array(np.array(remainder_terms)) if self.remainder else None
 
     @property
     def size(self):

@@ -193,12 +193,43 @@ def log_likelihood_projected(
     w, noise, scale = projected_covariance.compute_projected_covariance(
         parameter_values_dict, vector_variance
     )
+    return _log_likelihood_in_frame(
+        vector, projected_covariance, w, noise, scale, likelihood_function
+    )
+
+
+def _log_likelihood_in_frame(vector, projected_covariance, w, noise, scale, likelihood_function):
+    """Woodbury log-likelihood after moving `vector` to the frame of the projection."""
     vector = projected_covariance.to_frame(vector)
     if scale is None:
         return likelihood_function(vector, projected_covariance.phi, w, noise)
     return likelihood_function(
         vector / scale, projected_covariance.phi, w, noise
     ) - jnp.sum(jnp.log(scale))
+
+
+def _interpolate_on_grid(values, interpolation_value_range, interpolation_value):
+    """Linear interpolation of `values` (stacked along axis 0) on a sorted grid."""
+    upper_index = jnp.searchsorted(interpolation_value_range, interpolation_value)
+    upper_index = jnp.min(jnp.array([upper_index, len(interpolation_value_range) - 1]))
+    fraction_interpolation = (
+        interpolation_value_range[upper_index] - interpolation_value
+    ) / (
+        interpolation_value_range[upper_index]
+        - interpolation_value_range[upper_index - 1]
+    )
+    return (1 - fraction_interpolation) * values[upper_index] + fraction_interpolation * values[
+        upper_index - 1
+    ]
+
+
+def _grid_log_prior(interpolation_value_range, interpolation_value):
+    """Uniform log-prior on the interpolation range."""
+    return jsc.stats.uniform.logpdf(
+        interpolation_value,
+        loc=interpolation_value_range[0],
+        scale=interpolation_value_range[-1] - interpolation_value_range[0],
+    )
 
 
 if jax_installed:
@@ -550,51 +581,56 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
             Includes the uniform prior on the interpolation range.
             """
             interpolation_value = parameter_values_dict[interpolation_value_name]
-
-            prior_interpolation_range = jsc.stats.uniform.logpdf(
+            covariance_sum = _interpolate_on_grid(
+                jnp.array(
+                    [
+                        compute_covariance_sum(parameter_values_dict, vector_variance)
+                        for compute_covariance_sum in compute_covariance_sum_list
+                    ]
+                ),
+                interpolation_value_range,
                 interpolation_value,
-                loc=interpolation_value_range[0],
-                scale=interpolation_value_range[-1] - interpolation_value_range[0],
             )
-
-            # INTERPOLATION
-            upper_index = jnp.searchsorted(
+            return likelihood_function(vector, covariance_sum) + _grid_log_prior(
                 interpolation_value_range, interpolation_value
             )
-            upper_index = jnp.min(
-                jnp.array([upper_index, len(interpolation_value_range) - 1])
-            )
-
-            covariance_sum_list = jnp.array(
-                [
-                    compute_covariance_sum(
-                        parameter_values_dict,
-                        vector_variance,
-                    )
-                    for compute_covariance_sum in compute_covariance_sum_list
-                ]
-            )
-
-            covariance_sum_upper = covariance_sum_list[upper_index]
-
-            covariance_sum_lower = covariance_sum_list[upper_index - 1]
-
-            fraction_interpolation = (
-                interpolation_value_range[upper_index] - interpolation_value
-            )
-            fraction_interpolation /= (
-                interpolation_value_range[upper_index]
-                - interpolation_value_range[upper_index - 1]
-            )
-
-            covariance_sum = (
-                1 - fraction_interpolation
-            ) * covariance_sum_upper + fraction_interpolation * covariance_sum_lower
-            # END INTERPOLATION
-
-            return likelihood_function(vector, covariance_sum) + prior_interpolation_range
 
         return self._wrap_log_likelihood(log_likelihood)
+
+
+def _projection_from_data(covariance, data, likelihood_properties, basis=None):
+    """Build a `ProjectedCovariance` from ``likelihood_properties["projection"]``.
+
+    The fiducial data variance is taken from the data at the fiducial point(s).
+
+    Raises:
+        ValueError: If ``parameter_values_fiducial`` is missing.
+        NotImplementedError: If a 2D data variance depends on the parameters.
+    """
+    options = dict(likelihood_properties.get("projection", {}))
+    if "parameter_values_fiducial" not in options:
+        raise ValueError(
+            "likelihood_properties['projection']['parameter_values_fiducial'] is required"
+        )
+    parameter_values_fiducial = options.pop("parameter_values_fiducial")
+    if isinstance(parameter_values_fiducial, dict):
+        parameter_values_fiducial = [parameter_values_fiducial]
+    vector_variance_fiducial = [
+        data.give_data_and_variance(parameter_values_dict)[1]
+        for parameter_values_dict in parameter_values_fiducial
+    ]
+    if jnp.ndim(vector_variance_fiducial[0]) == 2:
+        # the projection supports a 2D data variance only if it is fixed
+        perturbed = {k: 1.01 * v for k, v in parameter_values_fiducial[0].items()}
+        if not jnp.allclose(
+            data.give_data_and_variance(perturbed)[1], vector_variance_fiducial[0]
+        ):
+            raise NotImplementedError(
+                "The 2D data variance depends on the parameters: use the dense likelihood"
+            )
+    return ProjectedCovariance(
+        covariance, parameter_values_fiducial, vector_variance_fiducial, basis=basis, **options
+    )
 
 
 class MultivariateGaussianLikelihoodProjected(BaseLikelihood):
@@ -620,30 +656,8 @@ class MultivariateGaussianLikelihoodProjected(BaseLikelihood):
         projected_covariance=None,
     ):
         if projected_covariance is None:
-            options = dict(likelihood_properties.get("projection", {}))
-            if "parameter_values_fiducial" not in options:
-                raise ValueError(
-                    "likelihood_properties['projection']['parameter_values_fiducial'] is required"
-                )
-            parameter_values_fiducial = options.pop("parameter_values_fiducial")
-            if isinstance(parameter_values_fiducial, dict):
-                parameter_values_fiducial = [parameter_values_fiducial]
-            vector_variance_fiducial = [
-                data.give_data_and_variance(parameter_values_dict)[1]
-                for parameter_values_dict in parameter_values_fiducial
-            ]
-            if jnp.ndim(vector_variance_fiducial[0]) == 2:
-                # the projection supports a 2D data variance only if it is fixed
-                perturbed = {k: 1.01 * v for k, v in parameter_values_fiducial[0].items()}
-                if not jnp.allclose(
-                    data.give_data_and_variance(perturbed)[1], vector_variance_fiducial[0]
-                ):
-                    raise NotImplementedError(
-                        "The 2D data variance depends on the parameters: "
-                        "use the dense likelihood"
-                    )
-            projected_covariance = ProjectedCovariance(
-                covariance, parameter_values_fiducial, vector_variance_fiducial, **options
+            projected_covariance = _projection_from_data(
+                covariance, data, likelihood_properties
             )
         self.projected_covariance = projected_covariance
 
@@ -671,5 +685,101 @@ class MultivariateGaussianLikelihoodProjected(BaseLikelihood):
                 projected_covariance,
                 likelihood_function,
             )
+
+        return self._wrap_log_likelihood(log_likelihood)
+
+
+class MultivariateGaussianLikelihoodProjectedInterpolate1D(BaseLikelihood):
+    """Projected likelihood interpolated along a parameter grid (e.g. ``sig_g``).
+
+    One `ProjectedCovariance` per grid point, all sharing the basis built at the grid
+    point nearest the fiducial value. $W$ and the noise are interpolated linearly, as
+    `MultivariateGaussianLikelihoodInterpolate1D` interpolates the covariance: both
+    are linear, so the two agree exactly when every mode is kept. Projection options as
+    in `MultivariateGaussianLikelihoodProjected`; the fiducial point must contain the
+    interpolation parameter.
+    """
+
+    def __init__(
+        self,
+        covariance=None,
+        data=None,
+        parameter_names=None,
+        likelihood_properties={},
+        interpolation_value_name=None,
+        interpolation_value_range=None,
+    ):
+        self.interpolation_value_name = interpolation_value_name
+        self.interpolation_value_range = interpolation_value_range
+
+        parameter_values_fiducial = likelihood_properties["projection"]["parameter_values_fiducial"]
+        if isinstance(parameter_values_fiducial, list):
+            parameter_values_fiducial = parameter_values_fiducial[0]
+        reference_index = int(
+            jnp.argmin(
+                jnp.abs(
+                    jnp.array(interpolation_value_range)
+                    - parameter_values_fiducial[interpolation_value_name]
+                )
+            )
+        )
+        reference = _projection_from_data(
+            covariance[reference_index], data, likelihood_properties
+        )
+        self.projected_covariance = [
+            reference
+            if i == reference_index
+            else _projection_from_data(covariance_i, data, likelihood_properties, basis=reference)
+            for i, covariance_i in enumerate(covariance)
+        ]
+
+        super(MultivariateGaussianLikelihoodProjectedInterpolate1D, self).__init__(
+            covariance=covariance,
+            data=data,
+            parameter_names=parameter_names,
+            likelihood_properties=likelihood_properties,
+        )
+
+        self.free_par = [interpolation_value_name] + self.free_par
+
+    def _init_likelihood(self):
+        """Build callable likelihood and optional gradient.
+
+        Returns:
+            tuple[Callable, Callable|None]: `(likelihood_call, likelihood_grad)`.
+        """
+        suffix = self._jit_suffix()
+        likelihood_function = eval(f"log_likelihood_gaussian_woodbury{suffix}")
+        projected_covariances = self.projected_covariance
+        interpolation_value_name = self.interpolation_value_name
+        interpolation_value_range = self.interpolation_value_range
+        if suffix == "_jit":
+            interpolation_value_range = jnp.array(interpolation_value_range)
+
+        def log_likelihood(vector, parameter_values_dict, vector_variance):
+            interpolation_value = parameter_values_dict[interpolation_value_name]
+            projected = [
+                projected_covariance.compute_projected_covariance(
+                    parameter_values_dict, vector_variance
+                )
+                for projected_covariance in projected_covariances
+            ]
+            w, noise = (
+                _interpolate_on_grid(
+                    jnp.array([p[index] for p in projected]),
+                    interpolation_value_range,
+                    interpolation_value,
+                )
+                for index in (0, 1)
+            )
+            # the scale g does not depend on the grid: same model coefficients
+            return _log_likelihood_in_frame(
+                vector,
+                projected_covariances[0],
+                w,
+                noise,
+                projected[0][2],
+                likelihood_function,
+            ) + _grid_log_prior(interpolation_value_range, interpolation_value)
 
         return self._wrap_log_likelihood(log_likelihood)

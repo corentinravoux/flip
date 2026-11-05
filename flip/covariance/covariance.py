@@ -28,6 +28,14 @@ else:
 
 log = create_log()
 
+# covariance blocks of each model kind; gv comes last (it needs the gg and vv sizes)
+_blocks_per_kind = {
+    "density": ["gg"],
+    "velocity": ["vv"],
+    "density_velocity": ["gg", "vv"],
+    "full": ["gg", "vv", "gv"],
+}
+
 def _read_free_par(
     model_name,
     model_kind,
@@ -88,14 +96,7 @@ def compute_covariance_sum(
     Returns:
         array-like: Total covariance matrix `C`.
     """
-    if kind == "density":
-        keys = ["gg"]
-    elif kind == "velocity":
-        keys = ["vv"]
-    elif kind == "density_velocity":
-        keys = ["gg", "vv"]
-    elif kind == "full":
-        keys = ["gg", "vv", "gv"]
+    keys = _blocks_per_kind[kind]
 
     covariance_sum_ = {}
     number_tracers = []
@@ -846,3 +847,238 @@ class CovMatrix:
             number_velocities=np.sum(mask_vel),
             variant=self.variant,
         )
+
+
+class ProjectedCovariance:
+    r"""Signal terms of a `CovMatrix` projected on a fixed basis.
+
+    flip assembles $C(\theta) = \sum_n a_n(\theta) C_n + D(\theta)$, with $D$ the
+    diagonal of data variance and diagonal coefficients, and factorises it densely at
+    every call. Here the signal terms are projected once on a basis chosen at fiducial
+    parameters, so that every call only involves $K \times K$ matrices:
+
+    - whitened fiducial signal $D_0^{-1/2} S_0 D_0^{-1/2} = V \Lambda V^T$; the modes with
+      signal-to-noise $\lambda_k > s$ are kept,
+    - $\Phi = D_0^{1/2} V_K$ and $\Psi = D_0^{-1/2} V_K$ (so $\Psi^T \Phi = I$),
+    - $W_n = \Psi^T C_n \Psi$ and the diagonal remainders
+      $r_n = \mathrm{diag}(C_n - \Phi W_n \Phi^T)$, precomputed.
+
+    Per call, $C(\theta) \simeq \hat D + \Phi W \Phi^T$ with $W = \sum_n a_n W_n$ and
+    $\hat D = D + \max(\sum_n a_n r_n, 0)$, evaluated with the Woodbury identity in a
+    form that never inverts $W$ (see
+    `flip.covariance.likelihood.log_likelihood_gaussian_woodbury`).
+
+    The projection is a local approximation: it is accurate for coefficients close to
+    the fiducial ones, not for any linear combination of the terms. Only scalar
+    coefficients and a diagonal data variance are supported. The derivation is in the
+    note ``woodbury_maths.pdf`` (flip-woodbury feasibility report, 2026-11-03).
+
+    Attributes:
+        covariance (CovMatrix): Source covariance, in matrix form.
+        blocks (list[str]): Covariance blocks of the model kind.
+        terms (list[tuple[str, int]]): `(block, index)` of every term, in coefficient order.
+        number_densities (int): Number of density entries.
+        number_velocities (int): Number of velocity entries.
+        eigenvalues (numpy.ndarray): Whitened S/N spectrum of the basis signal, decreasing.
+        k (int): Number of kept modes.
+        phi (array-like): Basis $\Phi$, shape `(N, K)`.
+        w_terms (array-like): Projected terms $W_n$, shape `(n_terms, K, K)`.
+        remainder_terms (array-like): Diagonal remainders $r_n$, shape `(n_terms, N)`.
+        remainder (bool): Whether the diagonal remainder correction is applied.
+    """
+
+    def __init__(
+        self,
+        covariance,
+        parameter_values_fiducial,
+        vector_variance_fiducial,
+        snr_min=0.01,
+        k=None,
+        remainder=True,
+    ):
+        """Build the basis and project every term.
+
+        Args:
+            covariance (CovMatrix): Covariance with analytical terms (no emulator).
+            parameter_values_fiducial (dict or list[dict]): Fiducial parameters. A list
+                builds the basis from several design points: the whitening noise is
+                the smallest diagonal noise over the points and the basis signal is
+                the sum of their signals.
+            vector_variance_fiducial (array-like or list): Data variance at the
+                fiducial point(s), shape `(N,)`. One per design point if a list.
+            snr_min (float): Keep the whitened modes with S/N above this threshold.
+            k (int, optional): Number of kept modes; overrides `snr_min`.
+            remainder (bool): Apply the diagonal remainder correction.
+
+        Raises:
+            NotImplementedError: For emulated covariances, matrix (per-object)
+                coefficients or a non-diagonal data variance.
+        """
+        if covariance.emulator_flag:
+            raise NotImplementedError("Projection of emulated covariances is not supported")
+        if not covariance.matrix_form:
+            covariance.compute_matrix_covariance()
+
+        self.covariance = covariance
+        self.blocks = _blocks_per_kind[covariance.model_kind]
+        self.remainder = remainder
+        self.number_densities = covariance.number_densities if "gg" in self.blocks else 0
+        self.number_velocities = covariance.number_velocities if "vv" in self.blocks else 0
+        self.terms = [
+            (block, i)
+            for block in self.blocks
+            for i in range(np.shape(covariance.covariance_dict[block])[0])
+        ]
+        # (rows, columns) of each block in the full matrix
+        density, velocity = slice(0, self.number_densities), slice(self.number_densities, self.size)
+        self._block_slices = {"gg": (density, density), "vv": (velocity, velocity), "gv": (density, velocity)}
+
+        if isinstance(parameter_values_fiducial, dict):
+            parameter_values_fiducial = [parameter_values_fiducial]
+            vector_variance_fiducial = [vector_variance_fiducial]
+
+        # Whitening noise: the smallest diagonal noise over the design points
+        noise = []
+        for parameter_values_dict, vector_variance in zip(
+            parameter_values_fiducial, vector_variance_fiducial
+        ):
+            vector_variance = np.asarray(vector_variance, dtype=float)
+            if vector_variance.ndim != 1:
+                raise NotImplementedError(
+                    "Only a diagonal data variance is supported by the projected covariance"
+                )
+            noise.append(vector_variance + np.asarray(self.diagonal(parameter_values_dict)))
+        inverse_sqrt_noise = 1.0 / np.sqrt(np.min(noise, axis=0))
+
+        # Basis: top whitened eigenmodes of the summed fiducial signal
+        signal = np.zeros((self.size, self.size))
+        for parameter_values_dict in parameter_values_fiducial:
+            signal += np.asarray(self._signal(self._coefficients_dict(parameter_values_dict)))
+        signal *= inverse_sqrt_noise[:, None]
+        signal *= inverse_sqrt_noise[None, :]
+        eigenvalues, eigenvectors = np.linalg.eigh(signal)
+        del signal
+        self.eigenvalues = eigenvalues[::-1]
+
+        self.k = int(np.sum(self.eigenvalues > snr_min)) if k is None else int(k)
+        self.k = max(self.k, 1)
+        if k is None and self.k > self.size / 10:
+            log.add(
+                f"Projected covariance keeps K = {self.k} of N = {self.size} modes: "
+                "the data are signal dominated and the projection gains little."
+            )
+
+        basis = eigenvectors[:, ::-1][:, : self.k]
+        phi = basis / inverse_sqrt_noise[:, None]
+        psi = basis * inverse_sqrt_noise[:, None]
+
+        # Projected terms W_n = Psi^T C_n Psi and the diagonal they lose
+        w_terms, remainder_terms = [], []
+        for block, i in self.terms:
+            term = np.asarray(covariance.covariance_dict[block][i])
+            rows, columns = self._block_slices[block]
+            w_n = psi[rows].T @ term @ psi[columns]
+            # gv enters as [[0, B], [B^T, 0]]: both off-diagonal blocks project
+            w_n = w_n + w_n.T if block == "gv" else 0.5 * (w_n + w_n.T)
+            w_terms.append(w_n)
+            if remainder:
+                diagonal_n = np.zeros(self.size)
+                if block != "gv":
+                    diagonal_n[rows] = np.diag(term)
+                remainder_terms.append(diagonal_n - np.sum((phi @ w_n) * phi, axis=1))
+
+        self.phi = jnp.array(phi)
+        self.w_terms = jnp.array(np.array(w_terms))
+        self.remainder_terms = jnp.array(np.array(remainder_terms)) if remainder else None
+
+    @property
+    def size(self):
+        """int: Size `N` of the data vector."""
+        return self.number_densities + self.number_velocities
+
+    def _coefficients_dict(self, parameter_values_dict):
+        """Coefficients per block, checked to be scalars (one per term)."""
+        coefficients_dict = {
+            block: jnp.array(coefficient)
+            for block, coefficient in self.covariance.coefficients.get_coefficients(
+                parameter_values_dict,
+                self.covariance.model_kind,
+                variant=self.covariance.variant,
+                covariance_prefactor_dict=self.covariance.covariance_prefactor_dict,
+            ).items()
+        }
+        if any(coefficients_dict[block].ndim > 1 for block in self.blocks):
+            raise NotImplementedError(
+                "Per-object (matrix) coefficients are not supported by the projected covariance"
+            )
+        return coefficients_dict
+
+    def _signal(self, coefficients_dict):
+        """Dense signal $\\sum_n a_n C_n$ without noise, used once to build the basis."""
+        return compute_covariance_sum(
+            self.covariance.covariance_dict,
+            coefficients_dict,
+            {},
+            np.zeros(self.size),
+            kind=self.covariance.model_kind,
+        )
+
+    def coefficients(self, parameter_values_dict):
+        """Scalar coefficients $a_n(\\theta)$ in the order of `terms`.
+
+        Args:
+            parameter_values_dict (dict): Parameter values.
+
+        Returns:
+            array-like: Coefficients, shape `(n_terms,)`.
+        """
+        coefficients_dict = self.covariance.coefficients.get_coefficients(
+            parameter_values_dict,
+            self.covariance.model_kind,
+            variant=self.covariance.variant,
+            covariance_prefactor_dict=self.covariance.covariance_prefactor_dict,
+        )
+        return jnp.concatenate(
+            [jnp.atleast_1d(jnp.asarray(coefficients_dict[block])) for block in self.blocks]
+        )
+
+    def diagonal(self, parameter_values_dict):
+        """Diagonal coefficients (e.g. $\\sigma_v^2$ on vv) as a vector of size `N`.
+
+        Args:
+            parameter_values_dict (dict): Parameter values.
+
+        Returns:
+            array-like: Diagonal noise from the model, shape `(N,)`.
+        """
+        diagonal_dict = self.covariance.coefficients.get_diagonal_coefficients(
+            parameter_values_dict, self.covariance.model_kind
+        )
+        return jnp.concatenate(
+            [
+                diagonal_dict.get("gg", 0.0) * jnp.ones(self.number_densities),
+                diagonal_dict.get("vv", 0.0) * jnp.ones(self.number_velocities),
+            ]
+        )
+
+    def compute_projected_covariance(self, parameter_values_dict, vector_variance):
+        """Projected covariance at given parameters: $C \\simeq \\hat D + \\Phi W \\Phi^T$.
+
+        Counterpart of `compute_covariance_sum` for the dense path: it returns the
+        covariance, the likelihood is evaluated in `flip.covariance.likelihood`.
+
+        Args:
+            parameter_values_dict (dict): Parameter values.
+            vector_variance (array-like): Diagonal data variance, shape `(N,)`.
+
+        Returns:
+            tuple: `(w, noise)`, with $W = \\sum_n a_n W_n$ of shape `(K, K)` and the
+            diagonal noise $\\hat D$ (data variance, diagonal coefficients and, if
+            `remainder`, the clipped diagonal remainder) of shape `(N,)`.
+        """
+        coefficients = self.coefficients(parameter_values_dict)
+        w = jnp.tensordot(coefficients, self.w_terms, axes=1)
+        noise = vector_variance + self.diagonal(parameter_values_dict)
+        if self.remainder:
+            noise = noise + jnp.clip(coefficients @ self.remainder_terms, 0.0, None)
+        return w, noise

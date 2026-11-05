@@ -2,6 +2,7 @@ import abc
 from functools import partial
 
 from flip._config import __use_jax__
+from flip.covariance.covariance import ProjectedCovariance
 from flip.utils import create_log, prior_sum, return_prior
 
 if __use_jax__:
@@ -135,6 +136,37 @@ def log_likelihood_gaussian_cholesky_regularized(vector, covariance_sum):
     return -0.5 * (vector.size * jnp.log(2 * jnp.pi) + logdet + chi2)
 
 
+def log_likelihood_gaussian_woodbury(vector, phi, w, noise):
+    r"""Compute Gaussian log-likelihood for $C = \mathrm{diag}(d) + \Phi W \Phi^T$.
+
+    Woodbury identity in a form that never inverts $W$. With
+    $G = \Phi^T D^{-1} \Phi = R R^T$, $b = \Phi^T D^{-1} v$ and $T = I + R^T W R$:
+    $\chi^2 = v^T D^{-1} v - b^T W b + (R^T W b)^T T^{-1} (R^T W b)$ and
+    $\log|C| = \log|D| + \log|T|$. Cost $O(N K^2 + K^3)$, no $N \times N$ matrix.
+
+    Args:
+        vector (array-like): Residual data vector `v` of shape `(N,)`.
+        phi (array-like): Basis $\Phi$ of shape `(N, K)`.
+        w (array-like): Symmetric projected signal $W$ of shape `(K, K)`.
+        noise (array-like): Diagonal $d$ of shape `(N,)`, positive.
+
+    Returns:
+        float: Log-likelihood value of the Gaussian model.
+    """
+    whitened_vector = vector / noise
+    phi_whitened = phi / jnp.sqrt(noise)[:, None]
+    r = jsc.linalg.cholesky(jnp.dot(phi_whitened.T, phi_whitened), lower=True)
+    b = phi.T @ whitened_vector
+    wb = w @ b
+    t = jnp.eye(w.shape[0]) + r.T @ w @ r
+    cholesky_t = jsc.linalg.cholesky(t, lower=True)
+    x = jsc.linalg.solve_triangular(cholesky_t, r.T @ wb, lower=True)
+
+    chi2 = jnp.dot(vector, whitened_vector) - jnp.dot(b, wb) + jnp.dot(x, x)
+    logdet = jnp.sum(jnp.log(noise)) + 2 * jnp.sum(jnp.log(jnp.diag(cholesky_t)))
+    return -0.5 * (vector.size * jnp.log(2 * jnp.pi) + logdet + chi2)
+
+
 if jax_installed:
     log_likelihood_gaussian_inverse_jit = jit(log_likelihood_gaussian_inverse)
     log_likelihood_gaussian_cholesky_jit = jit(log_likelihood_gaussian_cholesky)
@@ -142,6 +174,7 @@ if jax_installed:
         log_likelihood_gaussian_cholesky_inverse
     )
     log_likelihood_gaussian_solve_jit = jit(log_likelihood_gaussian_solve)
+    log_likelihood_gaussian_woodbury_jit = jit(log_likelihood_gaussian_woodbury)
 
 
 class BaseLikelihood(abc.ABC):
@@ -279,6 +312,61 @@ class BaseLikelihood(abc.ABC):
             prior_function = partial(prior_sum, priors)
             return prior_function
 
+    def _jit_suffix(self):
+        """Return `"_jit"` when JAX is installed and `use_jit` is set, else `""`."""
+        if jax_installed & self.likelihood_properties["use_jit"]:
+            return "_jit"
+        return ""
+
+    def _wrap_log_likelihood(self, log_likelihood):
+        """Turn a log-likelihood of the data into the likelihood call and its gradient.
+
+        Adds what every likelihood shares: the data lookup, the prior, the sign
+        convention, and the optional JAX gradient and JIT.
+
+        Args:
+            log_likelihood (Callable): `(vector, parameter_values_dict, vector_variance)`
+                to log-likelihood.
+
+        Returns:
+            tuple[Callable, Callable|None]: `(likelihood_call, likelihood_grad)`.
+        """
+        use_jit = jax_installed & self.likelihood_properties["use_jit"]
+        give_data_and_variance = getattr(
+            self.data, f"give_data_and_variance{self._jit_suffix()}"
+        )
+        prior = jit(self.prior) if use_jit else self.prior
+
+        def likelihood_evaluation(
+            parameter_values,
+        ):
+            """Evaluate likelihood for given parameters.
+
+            Args:
+                parameter_values (array-like): Parameter vector aligned to names.
+
+            Returns:
+                float: Likelihood value (sign depends on `negative_log_likelihood`).
+            """
+            parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
+            vector, vector_variance = give_data_and_variance(parameter_values_dict)
+            likelihood_value = log_likelihood(
+                vector, parameter_values_dict, vector_variance
+            ) + prior(parameter_values_dict)
+
+            if self.likelihood_properties["negative_log_likelihood"]:
+                likelihood_value *= -1
+            return likelihood_value
+
+        if jax_installed:
+            likelihood_grad = grad(likelihood_evaluation)
+            if use_jit:
+                likelihood_evaluation = jit(likelihood_evaluation)
+                likelihood_grad = jit(likelihood_grad)
+        else:
+            likelihood_grad = None
+        return likelihood_evaluation, likelihood_grad
+
     def verify_covariance(self):
         """Ensure covariance matrices are ready for likelihood evaluation.
 
@@ -348,58 +436,18 @@ class MultivariateGaussianLikelihood(BaseLikelihood):
             tuple[Callable, Callable|None]: `(likelihood_call, likelihood_grad)`.
         """
 
-        use_jit = self.likelihood_properties["use_jit"]
-
-        if jax_installed & use_jit:
-            suffix = "_jit"
-        else:
-            suffix = ""
-
-        give_data_and_variance = eval(f"self.data.give_data_and_variance{suffix}")
-        compute_covariance_sum = eval(f"self.covariance.compute_covariance_sum{suffix}")
-
+        suffix = self._jit_suffix()
+        compute_covariance_sum = getattr(self.covariance, f"compute_covariance_sum{suffix}")
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}{suffix}"
         )
 
-        if jax_installed & use_jit:
-            prior = jit(self.prior)
-        else:
-            prior = self.prior
-
-        def likelihood_evaluation(
-            parameter_values,
-        ):
-            """Evaluate likelihood for given parameters.
-
-            Args:
-                parameter_values (array-like): Parameter vector aligned to names.
-
-            Returns:
-                float: Likelihood value (sign depends on `negative_log_likelihood`).
-            """
-            parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
-            vector, vector_variance = give_data_and_variance(parameter_values_dict)
-            covariance_sum = compute_covariance_sum(
-                parameter_values_dict,
-                vector_variance,
-            )
-            likelihood_value = likelihood_function(vector, covariance_sum) + prior(
-                parameter_values_dict
+        def log_likelihood(vector, parameter_values_dict, vector_variance):
+            return likelihood_function(
+                vector, compute_covariance_sum(parameter_values_dict, vector_variance)
             )
 
-            if self.likelihood_properties["negative_log_likelihood"]:
-                likelihood_value *= -1
-            return likelihood_value
-
-        if jax_installed:
-            likelihood_grad = grad(likelihood_evaluation)
-            if use_jit:
-                likelihood_evaluation = jit(likelihood_evaluation)
-                likelihood_grad = jit(likelihood_grad)
-        else:
-            likelihood_grad = None
-        return likelihood_evaluation, likelihood_grad
+        return self._wrap_log_likelihood(log_likelihood)
 
 
 class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
@@ -449,56 +497,29 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
         Returns:
             tuple[Callable, Callable|None]: `(likelihood_call, likelihood_grad)`.
         """
-        use_jit = self.likelihood_properties["use_jit"]
-
-        if jax_installed & use_jit:
-            suffix = "_jit"
-        else:
-            suffix = ""
-
-        give_data_and_variance = eval(f"self.data.give_data_and_variance{suffix}")
-
-        compute_covariance_sum_list = []
-        for i in range(len(self.covariance)):
-            compute_covariance_sum_list.append(
-                eval(f"self.covariance[{i}].compute_covariance_sum{suffix}")
-            )
-
+        suffix = self._jit_suffix()
+        compute_covariance_sum_list = [
+            getattr(covariance, f"compute_covariance_sum{suffix}")
+            for covariance in self.covariance
+        ]
         likelihood_function = eval(
             f"log_likelihood_gaussian_{self.likelihood_properties['inversion_method']}{suffix}"
         )
+        interpolation_value_name = self.interpolation_value_name
+        interpolation_value_range = jnp.array(self.interpolation_value_range)
 
-        interpolation_value_range = self.interpolation_value_range
-        if jax_installed & use_jit:
-            prior = jit(self.prior)
-            interpolation_value_range = jnp.array(interpolation_value_range)
-        else:
-            prior = self.prior
+        def log_likelihood(vector, parameter_values_dict, vector_variance):
+            """Log-likelihood with the covariance linearly interpolated along the grid.
 
-        def likelihood_evaluation(
-            parameter_values,
-        ):
-            """Evaluate likelihood with interpolated covariance.
-
-            Performs linear interpolation between nearest covariances along the
-            interpolation axis.
-
-            Args:
-                parameter_values (array-like): Parameter vector.
-
-            Returns:
-                float: Likelihood value including prior on interpolation range.
+            Includes the uniform prior on the interpolation range.
             """
-            parameter_values_dict = dict(zip(self.parameter_names, parameter_values))
-            interpolation_value = parameter_values_dict[self.interpolation_value_name]
+            interpolation_value = parameter_values_dict[interpolation_value_name]
 
             prior_interpolation_range = jsc.stats.uniform.logpdf(
                 interpolation_value,
                 loc=interpolation_value_range[0],
                 scale=interpolation_value_range[-1] - interpolation_value_range[0],
             )
-
-            vector, vector_variance = give_data_and_variance(parameter_values_dict)
 
             # INTERPOLATION
             upper_index = jnp.searchsorted(
@@ -535,22 +556,70 @@ class MultivariateGaussianLikelihoodInterpolate1D(BaseLikelihood):
             ) * covariance_sum_upper + fraction_interpolation * covariance_sum_lower
             # END INTERPOLATION
 
-            likelihood_value = (
-                likelihood_function(vector, covariance_sum)
-                + prior(parameter_values_dict)
-                + prior_interpolation_range
+            return likelihood_function(vector, covariance_sum) + prior_interpolation_range
+
+        return self._wrap_log_likelihood(log_likelihood)
+
+
+class MultivariateGaussianLikelihoodProjected(BaseLikelihood):
+    """Gaussian likelihood using a `ProjectedCovariance`.
+
+    Not an inversion method: an inversion method only sees the assembled matrix, from
+    which the signal/noise split and the fixed basis cannot be recovered.
+
+    The projection is built at construction, unless one is passed. Its options go in
+    ``likelihood_properties["projection"]``: ``parameter_values_fiducial`` (dict or
+    list[dict], required; take them close to the posterior and at the smallest noise
+    the prior allows), then any keyword of `ProjectedCovariance` (``snr_min``, ``k``,
+    ``remainder``). The fiducial data variance is taken from the data at the fiducial
+    point(s).
+    """
+
+    def __init__(
+        self,
+        covariance=None,
+        data=None,
+        parameter_names=None,
+        likelihood_properties={},
+        projected_covariance=None,
+    ):
+        if projected_covariance is None:
+            options = dict(likelihood_properties.get("projection", {}))
+            if "parameter_values_fiducial" not in options:
+                raise ValueError(
+                    "likelihood_properties['projection']['parameter_values_fiducial'] is required"
+                )
+            parameter_values_fiducial = options.pop("parameter_values_fiducial")
+            if isinstance(parameter_values_fiducial, dict):
+                parameter_values_fiducial = [parameter_values_fiducial]
+            vector_variance_fiducial = [
+                data.give_data_and_variance(parameter_values_dict)[1]
+                for parameter_values_dict in parameter_values_fiducial
+            ]
+            projected_covariance = ProjectedCovariance(
+                covariance, parameter_values_fiducial, vector_variance_fiducial, **options
             )
+        self.projected_covariance = projected_covariance
 
-            if self.likelihood_properties["negative_log_likelihood"]:
-                likelihood_value *= -1
-            return likelihood_value
+        super(MultivariateGaussianLikelihoodProjected, self).__init__(
+            covariance=covariance,
+            data=data,
+            parameter_names=parameter_names,
+            likelihood_properties=likelihood_properties,
+        )
 
-        if jax_installed:
-            likelihood_grad = grad(likelihood_evaluation)
-            if use_jit:
-                likelihood_evaluation = jit(likelihood_evaluation)
-                likelihood_grad = jit(likelihood_grad)
-        else:
-            likelihood_grad = None
+    def _init_likelihood(self):
+        """Build callable likelihood and optional gradient.
 
-        return likelihood_evaluation, likelihood_grad
+        Returns:
+            tuple[Callable, Callable|None]: `(likelihood_call, likelihood_grad)`.
+        """
+        likelihood_function = eval(f"log_likelihood_gaussian_woodbury{self._jit_suffix()}")
+        phi = self.projected_covariance.phi
+        compute_projected_covariance = self.projected_covariance.compute_projected_covariance
+
+        def log_likelihood(vector, parameter_values_dict, vector_variance):
+            w, noise = compute_projected_covariance(parameter_values_dict, vector_variance)
+            return likelihood_function(vector, phi, w, noise)
+
+        return self._wrap_log_likelihood(log_likelihood)

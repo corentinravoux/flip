@@ -108,7 +108,8 @@ class BaseFitter(abc.ABC):
 
         Args:
             likelihood_type (str): One of `multivariate_gaussian`,
-                `multivariate_gaussian_interp1d`, `multivariate_gaussian_interp2d`.
+                `multivariate_gaussian_interp1d`, `multivariate_gaussian_interp2d`,
+                `multivariate_gaussian_projected`.
 
         Returns:
             type: Likelihood class.
@@ -117,6 +118,8 @@ class BaseFitter(abc.ABC):
             likelihood_class = flik.MultivariateGaussianLikelihood
         elif likelihood_type == "multivariate_gaussian_interp1d":
             likelihood_class = flik.MultivariateGaussianLikelihoodInterpolate1D
+        elif likelihood_type == "multivariate_gaussian_projected":
+            likelihood_class = flik.MultivariateGaussianLikelihoodProjected
         return likelihood_class
 
 

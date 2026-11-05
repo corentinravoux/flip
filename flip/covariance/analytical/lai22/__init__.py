@@ -6,6 +6,7 @@ _free_par = {
     "bs8": "density@all",
     "sigv": "velocity@all",
     "beta_f": "density@baseline",
+    "sigg": "density@all",
 }
 
 _coordinate_keys = ["ra", "dec", "rcom_zobs"]

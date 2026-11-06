@@ -1,5 +1,6 @@
-import itertools
+import glob
 import multiprocessing as mp
+import os
 
 import numpy as np
 import sympy as sy
@@ -64,20 +65,23 @@ def simplify_term(
 
 
 def generate_MN_ab_i_l_function_wide_angle(
-    term_B,
+    term_F,
     ell,
     l1,
     l2,
+    term_N_prefactor,
 ):
     """
     The generate_MN_ab_i_l_function_wide_angle function generates the M and N terms for a given l, l', and l'' value.
 
     Args:
-        term_B: Define the integrand of the integral over mu_2
+        term_F: Geometric term F_ab,n(k, mu1, mu2) of the power spectrum
+            decomposition (Ravoux et al. 2025), expanded in Legendre
+            polynomials of mu1 and mu2 to give M_ab,n^{l1,l2}(k)
         l: Determine the order of the legendre polynomial
         l1: Define the first legendre polynomial in the integral
         l2: Determine the order of the legendre polynomial in the second integral
-        : Determine the number of terms in the sum
+        term_N_prefactor: The prefactor for the N term
 
     Returns:
         The terms m_l,l',l'' and n_l, l', l''
@@ -85,7 +89,7 @@ def generate_MN_ab_i_l_function_wide_angle(
     """
     theta, phi = sy.symbols("theta phi")
     mu1, mu2 = sy.symbols("mu1 mu2")
-    integral_mu1_M_l = sy.integrate(term_B * legendre_poly(l1, x=mu1), (mu1, -1, 1))
+    integral_mu1_M_l = sy.integrate(term_F * legendre_poly(l1, x=mu1), (mu1, -1, 1))
     integral_mu1_mu2_M_l = sy.integrate(
         integral_mu1_M_l * legendre_poly(l2, x=mu2), (mu2, -1, 1)
     )
@@ -99,9 +103,9 @@ def generate_MN_ab_i_l_function_wide_angle(
 
                 # The spherical harmonic terms are taken from Lai et al. 2022 matematica notebook
                 # The sy.pi phase is put to l2 term instead of l1, to obtain the same results as Lai et al. 2022
-                # This is understood by the asymetry term inside the B_ab modeling.
+                # This is understood by the asymetry term inside the F_ab,n modeling.
                 # Changing this will have an impact on the modeling.
-                # Be sure to accord B_ab terms with sperical harmonic definition here.
+                # Be sure to accord F_ab,n terms with sperical harmonic definition here.
 
                 # The sy.pi term with phi is directly linked to the definition of r chosen in flip.
                 # For the order of term chosen, the sy.pi must be added here.
@@ -113,7 +117,11 @@ def generate_MN_ab_i_l_function_wide_angle(
                 )
                 term_N_l_l1_l2 = term_N_l_l1_l2 + term_N_l_l1_l2_m_m1_m2
     term_M_l_l1_l2 = (1 / sy.Rational(4)) * integral_mu1_mu2_M_l.expand(func=True)
-    term_N_l_l1_l2 = (sy.Rational(4) * sy.pi) ** 2 * term_N_l_l1_l2.expand(func=True)
+    term_N_l_l1_l2 = (
+        term_N_prefactor
+        * (sy.Rational(4) * sy.pi) ** 2
+        * term_N_l_l1_l2.expand(func=True)
+    )
     term_M_l_l1_l2 = simplify_term(
         term_M_l_l1_l2,
         simplification_method="simplify_iteration",
@@ -126,14 +134,16 @@ def generate_MN_ab_i_l_function_wide_angle(
     return term_M_l_l1_l2, term_N_l_l1_l2
 
 
-def generate_MN_ab_i_l_function_parallel_plane(term_B, ell):
+def generate_MN_ab_i_l_function_parallel_plane(term_F, ell):
     """
-    The generate_MN_ab_i_l_function_parallel_plane function takes in a term_B and an l value.
-    It then generates the M_l and N_l functions for that particular term B, which is used to calculate the parallel plane integral.
+    The generate_MN_ab_i_l_function_parallel_plane function takes in a term_F and an l value.
+    It then generates the M_l and N_l functions for that particular term F_ab,n, which is used to calculate the parallel plane integral.
     The function returns both M_l and N_l as sympy expressions.
 
     Args:
-        term_B: Define the term b in the equation for m_l and n_l
+        term_F: Geometric term F_ab,n(k, mu) of the power spectrum
+            decomposition (Ravoux et al. 2025), expanded in Legendre
+            polynomials of mu to give M_ab,n^l(k)
         l: Determine the order of the legendre polynomial
 
     Returns:
@@ -143,7 +153,7 @@ def generate_MN_ab_i_l_function_parallel_plane(term_B, ell):
     phi = sy.symbols("phi")
     mu = sy.symbols("mu")
     M_l = sy.Rational(1 / 2) * sy.integrate(
-        term_B * legendre_poly(ell, x=mu), (mu, -1, 1)
+        term_F * legendre_poly(ell, x=mu), (mu, -1, 1)
     )
     # The sy.pi term is directly linked to the definition of r chosen in flip.
     # For the order of term chosen, the sy.pi must be added here.
@@ -296,7 +306,7 @@ def write_M_N_functions(
     type_list,
     term_index_list,
     lmax_list,
-    dict_B,
+    dict_F,
     additional_parameters=None,
     number_worker=1,
     wide_angle=False,
@@ -304,6 +314,7 @@ def write_M_N_functions(
     l2max_list=None,
     multi_index_model=False,
     regularize_M_terms="None",
+    dict_N_prefactors=None,
 ):
     """
     The write_M_N_functions function is used to generate the M_N functions for a given model.
@@ -315,7 +326,8 @@ def write_M_N_functions(
         type_list: Specify the type of terms that are to be included in the calculation
         term_index_list: Specify the index of each term in a given type
         lmax_list: Determine the maximum value of l for each term in the model
-        dict_B: Store the b_ab_i values
+        dict_F: Geometric terms F_ab,n, keyed "F_{type}_{index}"
+            (e.g. "F_vv_0"), following Ravoux et al. 2025 notation
         additional_parameters: Add additional parameters to the output file
         number_worker: Specify the number of processes to be used
         wide_angle: Determine if the function should be written for wide angle or not
@@ -334,15 +346,23 @@ def write_M_N_functions(
     for k, type in enumerate(type_list):
         for i, t in enumerate(term_index_list[k]):
             for ell in range(lmax_list[k][i] + 1):
-                B_ab_i = dict_B[f"B_{type}_{t}"]
+                F_ab_n = dict_F[f"F_{type}_{t}"]
                 if wide_angle:
                     for l1 in range(l1max_list[k][i] + 1):
                         for l2 in range(l2max_list[k][i] + 1):
-                            params_pool.append([B_ab_i, ell, l1, l2])
+                            if dict_N_prefactors is not None:
+                                prefactor_N_ab_n = dict_N_prefactors[
+                                    f"N_prefactor_{type}_{t}"
+                                ]
+                                params_pool.append(
+                                    [F_ab_n, ell, l1, l2, prefactor_N_ab_n]
+                                )
+                            else:
+                                params_pool.append([F_ab_n, ell, l1, l2, 1])
                             index_pool[f"{type}_{t}_{ell}_{l1}_{l2}"] = index
                             index = index + 1
                 else:
-                    params_pool.append([B_ab_i, ell])
+                    params_pool.append([F_ab_n, ell])
                     index_pool[f"{type}_{t}_{ell}"] = index
                     index = index + 1
 
@@ -384,413 +404,81 @@ def write_M_N_functions(
     )
 
 
-def generate_generalized_genericzdep_functions(
-    filename="./analytical/genericzdep/flip_terms.py", number_worker=8
-):
-    """
-    The generate_generalized_genericzdep_functions function generates the flip_terms.py file in the genericzdep directory, which contains functions that calculate M and N terms for a generalized version of Carreres' (2012) model 2 and 3.
+def generate_flip_terms(config_file, filename=None, number_worker=8):
+    """Generate a flip_terms.py file from a YAML model description.
+
+    The YAML file lists the geometric terms F_ab,n of the power spectrum
+    decomposition P_ab = sum_n w_ab,n F_ab,n(k, mu1, mu2) P_ab,n(k)
+    (Ravoux et al. 2025). Example::
+
+        wide_angle: true                 # F(k, mu1, mu2) if true, F(k, mu) if false
+        additional_parameters: [sig_g]   # extra arguments of the M functions
+        multi_index_model: false
+        regularize_M_terms: null         # or {gg: mpmath, gv: mpmath, vv: null}
+        terms:
+          vv:                            # field pair (gg, gv, vv)
+            '0':                         # term index n
+              F: 10000*mu1*mu2/k**2      # F_ab,n as a sympy expression
+              lmax: 2
+              l1max: 1                   # wide angle only
+              l2max: 1                   # wide angle only
+              N_prefactor: cos(theta)    # optional, wide angle only
 
     Args:
-        filename: Specify the name of the file that will be generated
-        number_worker: Determine the number of processes to use for multiprocessing
-
-    Returns:
-        A list of functions,
-
+        config_file: Path to the YAML file.
+        filename: Output file. Defaults to flip_terms.py next to the YAML file.
+        number_worker: Number of processes for the symbolic integration.
     """
-    mu1, mu2 = sy.symbols("mu1 mu2")
-    k = sy.symbols("k", positive=True, finite=True, real=True)
-    kNL = sy.symbols("kNL", positive=True, finite=True, real=True)
-    additional_parameters = ["kNL"]
+    import yaml
 
-    type_list = ["vv"]
-    term_index_list = [["0", "1", "2"]]
-    lmax_list = [[2, 2, 2]]
-    l1max_list = [[1, 1, 1]]
-    l2max_list = [[1, 1, 1]]
-    dict_B = {
-        "B_vv_0": mu1 * mu2 / k**2,
-        "B_vv_1": mu1 * mu2 / kNL**2,
-        "B_vv_2": mu1 * mu2 * k**2 / kNL**4,
-    }
+    with open(config_file) as f:
+        config = yaml.safe_load(f)
+    if filename is None:
+        filename = os.path.join(
+            os.path.dirname(os.path.abspath(config_file)), "flip_terms.py"
+        )
 
-    regularize_M_terms = "None"
-    write_M_N_functions(
-        filename,
-        type_list,
-        term_index_list,
-        lmax_list,
-        dict_B,
-        number_worker=number_worker,
-        wide_angle=True,
-        l1max_list=l1max_list,
-        l2max_list=l2max_list,
-        regularize_M_terms=regularize_M_terms,
-        additional_parameters=additional_parameters,
-    )
+    wide_angle = config["wide_angle"]
+    additional_parameters = config.get("additional_parameters") or []
 
+    positive = dict(positive=True, finite=True, real=True)
+    namespace = {name: sy.Symbol(name) for name in ["mu", "mu1", "mu2", "theta", "phi"]}
+    namespace["k"] = sy.Symbol("k", **positive)
+    for name in additional_parameters:
+        if not name.startswith("*"):
+            namespace[name] = sy.Symbol(name, **positive)
 
-def generate_generalized_adamsblake17plane_functions(
-    filename="./analytical/adamsblake17plane/flip_terms.py", number_worker=8
-):
-    mu = sy.symbols("mu")
-    k = sy.symbols("k", positive=True, finite=True, real=True)
-    type_list = ["gg", "gv", "vv"]
-    term_index_list = [["0"], ["0"], ["0"]]
-    lmax_list = [[0], [1], [2]]
-    dict_B = {
-        "B_gg_0": 1,
-        "B_gv_0": 100 * (mu / k),
-        "B_vv_0": 100**2 * mu**2 / k**2,
-    }
-    regularize_M_terms = "None"
-
-    write_M_N_functions(
-        filename,
-        type_list,
-        term_index_list,
-        lmax_list,
-        dict_B,
-        number_worker=number_worker,
-        wide_angle=False,
-        regularize_M_terms=regularize_M_terms,
-    )
-
-
-def generate_generalized_adamsblake17_functions(
-    filename="./analytical/adamsblake17/flip_terms.py", number_worker=8
-):
-
-    mu1, mu2 = sy.symbols("mu1 mu2")
-    k = sy.symbols("k", positive=True, finite=True, real=True)
-    type_list = ["gg", "gv", "vv"]
-    term_index_list = [["0"], ["0"], ["0"]]
-    lmax_list = [[2], [2], [2]]
-    l1max_list = [[2], [2], [2]]
-    l2max_list = [[2], [2], [2]]
-    dict_B = {
-        "B_gg_0": 1,
-        "B_gv_0": 100 * (mu2 / k),
-        "B_vv_0": 100**2 * mu1 * mu2 / k**2,
-    }
-
-    regularize_M_terms = "None"
-    write_M_N_functions(
-        filename,
-        type_list,
-        term_index_list,
-        lmax_list,
-        dict_B,
-        number_worker=number_worker,
-        wide_angle=True,
-        l1max_list=l1max_list,
-        l2max_list=l2max_list,
-        regularize_M_terms=regularize_M_terms,
-    )
-
-
-def generate_generalized_adamsblake20_functions(
-    filename="./analytical/adamsblake20/flip_terms.py", number_worker=8
-):
-    """
-    The generate_generalized_adamsblake20_functions function generates the functions needed to compute the M and N matrices for a generalized version of Adams, Blake &amp; Kitching (2020).
-
-    Args:
-        filename: Specify the name of the file where the functions will be written
-        number_worker: Parallelize the computation of the m and n functions
-
-    Returns:
-        A dictionary of functions
-
-    """
-    mu = sy.symbols("mu")
-    k = sy.symbols("k", positive=True, finite=True, real=True)
-    sig_g = sy.symbols("sig_g", positive=True, finite=True, real=True)
-    type_list = ["gg", "gv", "vv"]
-    term_index_list = [["0", "1", "2"], ["0", "1"], ["0"]]
-    lmax_list = [[4, 4, 4], [3, 3], [2]]  # lmax list to stick to AD20
-    # lmax_list = [[6, 6, 6], [5, 5], [2]]  # lmax list to generate lmax + 1
-    dict_B = {
-        "B_gg_0": sy.exp(-((k * sig_g * mu) ** 2)),
-        "B_gg_1": 2 * mu**2 * sy.exp(-((k * sig_g * mu) ** 2)),
-        "B_gg_2": mu**4 * sy.exp(-((k * sig_g * mu) ** 2)),
-        "B_gv_0": 100 * (mu / k) * sy.exp(-((k * sig_g * mu) ** 2) / 2),
-        "B_gv_1": 100 * (mu**3 / k) * sy.exp(-((k * sig_g * mu) ** 2) / 2),
-        "B_vv_0": 100**2 * mu**2 / k**2,
-    }
-    regularize_M_terms = """{"gg": "mpmath", "gv": "mpmath", "vv": None}"""
-
-    write_M_N_functions(
-        filename,
-        type_list,
-        term_index_list,
-        lmax_list,
-        dict_B,
-        additional_parameters=["sig_g"],
-        number_worker=number_worker,
-        wide_angle=False,
-        regularize_M_terms=regularize_M_terms,
-    )
-
-
-def generate_generalized_lai22_functions(
-    filename="./analytical/lai22/flip_terms.py", number_worker=8
-):
-    """
-    The generate_generalized_lai22_functions function generates the functions for calculating the M and N terms in
-    the generalized Lai22 model. The function is called by running:
-
-    Args:
-        filename: Specify the name of the file where all functions will be written
-        number_worker: Determine the number of processes that will be used to generate the functions
-
-    Returns:
-        A set of functions that are used in the calculation of the scattering matrix
-
-    """
-    mu1, mu2 = sy.symbols("mu1 mu2")
-    k = sy.symbols("k", positive=True, finite=True, real=True)
-
-    # gg
-    term_index_list_gg = []
-    lmax_list_gg = []
-    l1max_list_gg = []
-    l2max_list_gg = []
-
-    pmax_gg, qmax_gg = 3, 3
-    p_index = np.arange(pmax_gg + 1)
-    q_index = np.arange(qmax_gg + 1)
-    m_index_gg = np.arange(0, (qmax_gg + pmax_gg) + 1)
-    iter_pq = np.array(list(itertools.product(p_index, q_index)))
-    sum_iter_pq = np.sum(iter_pq, axis=1)
-    dict_B = {}
-    for i in ["0", "1", "2"]:
-        for m_value in m_index_gg:
-            pq_index = iter_pq[sum_iter_pq == m_value]
-            term_index_list_gg.append(f"{i}_{m_value}")
-            if i == "0":
-                lmax_list_gg.append(2 * m_value)
-                l1max_list_gg.append(min(2 * m_value, 2 * pmax_gg))
-                l2max_list_gg.append(min(2 * m_value, 2 * qmax_gg))
-            elif i == "1":
-                lmax_list_gg.append(2 * (m_value + 1))
-                l1max_list_gg.append(min(2 * (m_value + 1), 2 * (pmax_gg + 1)))
-                l2max_list_gg.append(min(2 * (m_value + 1), 2 * (qmax_gg + 1)))
-            elif i == "2":
-                lmax_list_gg.append(2 * (m_value + 2))
-                l1max_list_gg.append(min(2 * (m_value + 1), 2 * (pmax_gg + 1)))
-                l2max_list_gg.append(min(2 * (m_value + 1), 2 * (qmax_gg + 1)))
-
-            B_gg_i = 0
-            for pq in pq_index:
-                p, q = pq[0], pq[1]
-
-                if i == "0":
-                    add = 1
-                elif i == "1":
-                    add = mu1**2 + mu2**2
-                elif i == "2":
-                    add = mu1**2 * mu2**2
-                B_gg_i = (
-                    B_gg_i
-                    + (
-                        (-1) ** (p + q)
-                        / (2 ** (p + q) * sy.factorial(p) * sy.factorial(q))
-                    )
-                    * k ** (2 * (p + q))
-                    * mu1 ** (2 * p)
-                    * mu2 ** (2 * q)
-                    * add
-                )
-                dict_B[f"B_gg_{i}_{m_value}"] = B_gg_i
-
-    # gv
-    term_index_list_gv = []
-    lmax_list_gv = []
-    l1max_list_gv = []
-    l2max_list_gv = []
-
-    pmax_gv = 3
-    m_index_gv = np.arange(pmax_gv + 1)
-
-    for i in ["0", "1"]:
-        for m_value in m_index_gv:
-            term_index_list_gv.append(f"{i}_{m_value}")
-            l2max_list_gv.append(1)
-            B_gv_i = 0
-            if i == "0":
-                add = 1
-                lmax_list_gv.append(2 * m_value + 1)
-                l1max_list_gv.append(2 * m_value)
-            elif i == "1":
-                add = mu1**2
-                lmax_list_gv.append(2 * m_value + 3)
-                l1max_list_gv.append(2 * m_value + 2)
-            B_gv_i = (
-                B_gv_i
-                + ((-1) ** (m_value) / (2 ** (m_value) * sy.factorial(m_value)))
-                * k ** (2 * m_value - 1)
-                * mu1 ** (2 * m_value)
-                * mu2
-                * add
+    type_list, term_index_list = [], []
+    lmax_list, l1max_list, l2max_list = [], [], []
+    dict_F, dict_N_prefactors = {}, {}
+    for type, terms in config["terms"].items():
+        type_list.append(type)
+        term_index_list.append([str(t) for t in terms])
+        lmax_list.append([term["lmax"] for term in terms.values()])
+        l1max_list.append([term.get("l1max") for term in terms.values()])
+        l2max_list.append([term.get("l2max") for term in terms.values()])
+        for t, term in terms.items():
+            if not wide_angle and "N_prefactor" in term:
+                raise ValueError("N_prefactor is only available for wide_angle models")
+            dict_F[f"F_{type}_{t}"] = sy.sympify(str(term["F"]), locals=namespace)
+            dict_N_prefactors[f"N_prefactor_{type}_{t}"] = sy.sympify(
+                str(term.get("N_prefactor", 1)), locals=namespace
             )
-            dict_B[f"B_gv_{i}_{m_value}"] = 100 * B_gv_i
 
-    # vv
-    lmax_list_vv = [2]
-    l1max_list_vv = [1]
-    l2max_list_vv = [1]
-    term_index_list_vv = ["0_0"]
-    dict_B["B_vv_0_0"] = 100**2 * mu1 * mu2 / k**2
-
-    type_list = ["gg", "gv", "vv"]
-    term_index_list = [term_index_list_gg, term_index_list_gv, term_index_list_vv]
-    lmax_list = [lmax_list_gg, lmax_list_gv, lmax_list_vv]
-    l1max_list = [l1max_list_gg, l1max_list_gv, l1max_list_vv]
-    l2max_list = [l2max_list_gg, l2max_list_gv, l2max_list_vv]
-
-    regularize_M_terms = "None"
     write_M_N_functions(
         filename,
         type_list,
         term_index_list,
         lmax_list,
-        dict_B,
-        additional_parameters=None,
+        dict_F,
+        additional_parameters=additional_parameters or None,
         number_worker=number_worker,
-        wide_angle=True,
-        l1max_list=l1max_list,
-        l2max_list=l2max_list,
-        multi_index_model=True,
-        regularize_M_terms=regularize_M_terms,
-    )
-
-
-def generate_generalized_carreres23_functions(
-    filename="./analytical/carreres23/flip_terms.py", number_worker=8
-):
-    """
-    The generate_generalized_carreres23_functions function generates the flip_terms.py file in the carreres23 directory, which contains functions that calculate M and N terms for a generalized version of Carreres' (2012) model 2 and 3.
-
-    Args:
-        filename: Specify the name of the file that will be generated
-        number_worker: Determine the number of processes to use for multiprocessing
-
-    Returns:
-        A list of functions,
-
-    """
-    mu1, mu2 = sy.symbols("mu1 mu2")
-    k = sy.symbols("k", positive=True, finite=True, real=True)
-    type_list = ["vv"]
-    term_index_list = [["0"]]
-    lmax_list = [[2]]
-    l1max_list = [[1]]
-    l2max_list = [[1]]
-    dict_B = {"B_vv_0": 100**2 * mu1 * mu2 / k**2}
-
-    regularize_M_terms = "None"
-    write_M_N_functions(
-        filename,
-        type_list,
-        term_index_list,
-        lmax_list,
-        dict_B,
-        number_worker=number_worker,
-        wide_angle=True,
-        l1max_list=l1max_list,
-        l2max_list=l2max_list,
-        regularize_M_terms=regularize_M_terms,
-    )
-
-
-def generate_generalized_ravouxcarreres_functions(
-    filename="./analytical/ravouxcarreres/flip_terms.py", number_worker=8
-):
-    """
-    The generate_generalized_ravouxcarreres_functions function generates the functions needed to compute the generalized Ravoux-Carreres model.
-
-    Args:
-        filename: Specify the name of the file where you want to write your functions
-        number_worker: Specify the number of cores to use for multiprocessing
-
-    Returns:
-        A dictionary of functions
-
-    """
-    mu1, mu2 = sy.symbols("mu1 mu2")
-    k = sy.symbols("k", positive=True, finite=True, real=True)
-    sig_g = sy.symbols("sig_g", positive=True, finite=True, real=True)
-    type_list = ["gg", "gv", "vv"]
-    term_index_list = [["0", "1", "2"], ["0", "1"], ["0"]]
-    lmax_list = [[4, 4, 4], [3, 3], [2]]  # Lists to follow the logic of AD20
-    l1max_list = [[2, 2, 2], [2, 2], [1]]
-    l2max_list = [[2, 2, 2], [1, 1], [1]]
-    # lmax_list = [[6, 6, 6] , [5, 5] , [2]] # Lists to generate the model lmax + 1
-    # l1max_list = [[4, 4, 4] , [4, 4] , [1]]
-    # l2max_list = [[4, 4, 4] , [1, 1] , [1]]
-    dict_B = {
-        "B_gg_0": sy.exp(-((k * sig_g) ** 2) * (mu1**2 + mu2**2) / 2),
-        "B_gg_1": (mu1**2 + mu2**2)
-        * sy.exp(-((k * sig_g) ** 2) * (mu1**2 + mu2**2) / 2),
-        "B_gg_2": (mu1**2 * mu2**2)
-        * sy.exp(-((k * sig_g) ** 2) * (mu1**2 + mu2**2) / 2),
-        "B_gv_0": 100 * (mu2 / k) * sy.exp(-((k * sig_g * mu1) ** 2) / 2),
-        "B_gv_1": 100 * (mu2 * mu1**2 / k) * sy.exp(-((k * sig_g * mu1) ** 2) / 2),
-        "B_vv_0": 100**2 * mu1 * mu2 / k**2,
-    }
-
-    regularize_M_terms = """{"gg": "mpmath", "gv": "mpmath", "vv": None}"""
-    write_M_N_functions(
-        filename,
-        type_list,
-        term_index_list,
-        lmax_list,
-        dict_B,
-        additional_parameters=["sig_g"],
-        number_worker=number_worker,
-        wide_angle=True,
-        l1max_list=l1max_list,
-        l2max_list=l2max_list,
-        regularize_M_terms=regularize_M_terms,
-    )
-
-
-def generate_generalized_rcrk24_functions(
-    filename="./analytical/rcrk24/flip_terms.py", number_worker=8
-):
-    """
-    The generate_generalized_rcrk24_functions function generates the flip_terms.py file in the carreres23 directory, which contains functions that calculate M and N terms for a generalized version of Carreres' (2012) model 2 and 3.
-
-    Args:
-        filename: Specify the name of the file that will be generated
-        number_worker: Determine the number of processes to use for multiprocessing
-
-    Returns:
-        A list of functions,
-
-    """
-    mu1, mu2 = sy.symbols("mu1 mu2")
-    k = sy.symbols("k", positive=True, finite=True, real=True)
-    type_list = ["vv"]
-    term_index_list = [["0"]]
-    lmax_list = [[2]]
-    l1max_list = [[1]]
-    l2max_list = [[1]]
-    dict_B = {"B_vv_0": 100**2 * mu1 * mu2 / k**2}
-
-    regularize_M_terms = "None"
-    write_M_N_functions(
-        filename,
-        type_list,
-        term_index_list,
-        lmax_list,
-        dict_B,
-        number_worker=number_worker,
-        wide_angle=True,
-        l1max_list=l1max_list,
-        l2max_list=l2max_list,
-        regularize_M_terms=regularize_M_terms,
+        wide_angle=wide_angle,
+        l1max_list=l1max_list if wide_angle else None,
+        l2max_list=l2max_list if wide_angle else None,
+        multi_index_model=config.get("multi_index_model", False),
+        regularize_M_terms=repr(config.get("regularize_M_terms")),
+        dict_N_prefactors=dict_N_prefactors if wide_angle else None,
     )
 
 
@@ -1279,27 +967,11 @@ def generate_fisher_coefficients_dictionnary_lai22(
     )
 
 
-def generate_files():
-    """
-    The generate_files function generates the following files:
-        - generalized_carreres23.py
-        - generalized_adamsblake20.py
-        - generalized_lai22.py
-        - generalized_ravouxcarreres.py
-
-    Args:
-
-    Returns:
-        A list of all the functions that have been generated
-
-    """
-    generate_generalized_carreres23_functions()
-    generate_generalized_adamsblake17_functions()
-    generate_generalized_adamsblake17plane_functions()
-    generate_generalized_adamsblake20_functions()
-    generate_generalized_lai22_functions()
-    generate_generalized_ravouxcarreres_functions()
-    generate_generalized_rcrk24_functions()
+def generate_files(number_worker=8):
+    """Regenerate flip_terms.py for every model directory holding a flip_terms.yml."""
+    root = os.path.dirname(os.path.abspath(__file__))
+    for config_file in sorted(glob.glob(os.path.join(root, "*", "flip_terms.yml"))):
+        generate_flip_terms(config_file, number_worker=number_worker)
 
 
 def generate_fisher_files():

@@ -1,0 +1,160 @@
+# flip_terms generator configuration: Lai et al. 2022.
+# Regenerate with flip.covariance.analytical.symbolic.generate_flip_terms("flip_terms.yml").
+wide_angle: true
+additional_parameters: []
+multi_index_model: true
+regularize_M_terms: null
+terms:
+  gg:
+    '0_0':
+      F: '1'
+      lmax: 0
+      l1max: 0
+      l2max: 0
+    '0_1':
+      F: -k**2*mu1**2/2 - k**2*mu2**2/2
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '0_2':
+      F: k**4*mu1**4/8 + k**4*mu1**2*mu2**2/4 + k**4*mu2**4/8
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '0_3':
+      F: -k**6*mu1**6/48 - k**6*mu1**4*mu2**2/16 - k**6*mu1**2*mu2**4/16 - k**6*mu2**6/48
+      lmax: 6
+      l1max: 6
+      l2max: 6
+    '0_4':
+      F: k**8*mu1**6*mu2**2/96 + k**8*mu1**4*mu2**4/64 + k**8*mu1**2*mu2**6/96
+      lmax: 8
+      l1max: 6
+      l2max: 6
+    '0_5':
+      F: -k**10*mu1**6*mu2**4/384 - k**10*mu1**4*mu2**6/384
+      lmax: 10
+      l1max: 6
+      l2max: 6
+    '0_6':
+      F: k**12*mu1**6*mu2**6/2304
+      lmax: 12
+      l1max: 6
+      l2max: 6
+    '1_0':
+      F: mu1**2 + mu2**2
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '1_1':
+      F: -k**2*mu1**2*(mu1**2 + mu2**2)/2 - k**2*mu2**2*(mu1**2 + mu2**2)/2
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '1_2':
+      F: k**4*mu1**4*(mu1**2 + mu2**2)/8 + k**4*mu1**2*mu2**2*(mu1**2 + mu2**2)/4 + k**4*mu2**4*(mu1**2 + mu2**2)/8
+      lmax: 6
+      l1max: 6
+      l2max: 6
+    '1_3':
+      F: -k**6*mu1**6*(mu1**2 + mu2**2)/48 - k**6*mu1**4*mu2**2*(mu1**2 + mu2**2)/16 - k**6*mu1**2*mu2**4*(mu1**2 + mu2**2)/16 - k**6*mu2**6*(mu1**2 + mu2**2)/48
+      lmax: 8
+      l1max: 8
+      l2max: 8
+    '1_4':
+      F: k**8*mu1**6*mu2**2*(mu1**2 + mu2**2)/96 + k**8*mu1**4*mu2**4*(mu1**2 + mu2**2)/64 + k**8*mu1**2*mu2**6*(mu1**2 + mu2**2)/96
+      lmax: 10
+      l1max: 8
+      l2max: 8
+    '1_5':
+      F: -k**10*mu1**6*mu2**4*(mu1**2 + mu2**2)/384 - k**10*mu1**4*mu2**6*(mu1**2 + mu2**2)/384
+      lmax: 12
+      l1max: 8
+      l2max: 8
+    '1_6':
+      F: k**12*mu1**6*mu2**6*(mu1**2 + mu2**2)/2304
+      lmax: 14
+      l1max: 8
+      l2max: 8
+    '2_0':
+      F: mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '2_1':
+      F: -k**2*mu1**4*mu2**2/2 - k**2*mu1**2*mu2**4/2
+      lmax: 6
+      l1max: 4
+      l2max: 4
+    '2_2':
+      F: k**4*mu1**6*mu2**2/8 + k**4*mu1**4*mu2**4/4 + k**4*mu1**2*mu2**6/8
+      lmax: 8
+      l1max: 6
+      l2max: 6
+    '2_3':
+      F: -k**6*mu1**8*mu2**2/48 - k**6*mu1**6*mu2**4/16 - k**6*mu1**4*mu2**6/16 - k**6*mu1**2*mu2**8/48
+      lmax: 10
+      l1max: 8
+      l2max: 8
+    '2_4':
+      F: k**8*mu1**8*mu2**4/96 + k**8*mu1**6*mu2**6/64 + k**8*mu1**4*mu2**8/96
+      lmax: 12
+      l1max: 8
+      l2max: 8
+    '2_5':
+      F: -k**10*mu1**8*mu2**6/384 - k**10*mu1**6*mu2**8/384
+      lmax: 14
+      l1max: 8
+      l2max: 8
+    '2_6':
+      F: k**12*mu1**8*mu2**8/2304
+      lmax: 16
+      l1max: 8
+      l2max: 8
+  gv:
+    '0_0':
+      F: 100*mu2/k
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '0_1':
+      F: -50*k*mu1**2*mu2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '0_2':
+      F: 25*k**3*mu1**4*mu2/2
+      lmax: 5
+      l1max: 4
+      l2max: 1
+    '0_3':
+      F: -25*k**5*mu1**6*mu2/12
+      lmax: 7
+      l1max: 6
+      l2max: 1
+    '1_0':
+      F: 100*mu1**2*mu2/k
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '1_1':
+      F: -50*k*mu1**4*mu2
+      lmax: 5
+      l1max: 4
+      l2max: 1
+    '1_2':
+      F: 25*k**3*mu1**6*mu2/2
+      lmax: 7
+      l1max: 6
+      l2max: 1
+    '1_3':
+      F: -25*k**5*mu1**8*mu2/12
+      lmax: 9
+      l1max: 8
+      l2max: 1
+  vv:
+    '0_0':
+      F: 10000*mu1*mu2/k**2
+      lmax: 2
+      l1max: 1
+      l2max: 1

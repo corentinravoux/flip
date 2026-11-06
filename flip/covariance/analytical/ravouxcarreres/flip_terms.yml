@@ -1,0 +1,45 @@
+# flip_terms generator configuration: Ravoux & Carreres (Ravoux et al. 2025).
+# Regenerate with flip.covariance.analytical.symbolic.generate_flip_terms("flip_terms.yml").
+# lmax follows Adams & Blake 2020; lmax + 1 variant: gg (6, l1 4, l2 4), gv (5, l1 4, l2 1).
+wide_angle: true
+additional_parameters:
+- sig_g
+multi_index_model: false
+regularize_M_terms:
+  gg: mpmath
+  gv: mpmath
+  vv: null
+terms:
+  gg:
+    '0':
+      F: exp(-k**2*sig_g**2*(mu1**2 + mu2**2)/2)
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '1':
+      F: (mu1**2 + mu2**2)*exp(-k**2*sig_g**2*(mu1**2 + mu2**2)/2)
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '2':
+      F: mu1**2*mu2**2*exp(-k**2*sig_g**2*(mu1**2 + mu2**2)/2)
+      lmax: 4
+      l1max: 2
+      l2max: 2
+  gv:
+    '0':
+      F: 100*mu2*exp(-k**2*mu1**2*sig_g**2/2)/k
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '1':
+      F: 100*mu1**2*mu2*exp(-k**2*mu1**2*sig_g**2/2)/k
+      lmax: 3
+      l1max: 2
+      l2max: 1
+  vv:
+    '0':
+      F: 10000*mu1*mu2/k**2
+      lmax: 2
+      l1max: 1
+      l2max: 1

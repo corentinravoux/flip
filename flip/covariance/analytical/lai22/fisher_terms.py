@@ -2382,10 +2382,33 @@ def get_partial_derivative_coefficients_full(
                     * parameter_values_dict["s8"]
                     * parameter_values_dict["sigg"] ** 6
                     / parameter_values_dict["Omegam"],
-                    0,
-                    0,
-                    0,
-                    0,
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["gamma"]
+                    * parameter_values_dict["s8"]
+                    / parameter_values_dict["Omegam"],
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["gamma"]
+                    * parameter_values_dict["s8"]
+                    * parameter_values_dict["sigg"] ** 2
+                    / parameter_values_dict["Omegam"],
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["gamma"]
+                    * parameter_values_dict["s8"]
+                    * parameter_values_dict["sigg"] ** 4
+                    / parameter_values_dict["Omegam"],
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["gamma"]
+                    * parameter_values_dict["s8"]
+                    * parameter_values_dict["sigg"] ** 6
+                    / parameter_values_dict["Omegam"],
                 ],
                 "vv": [
                     2
@@ -2440,10 +2463,29 @@ def get_partial_derivative_coefficients_full(
                     * parameter_values_dict["s8"]
                     * parameter_values_dict["sigg"] ** 6
                     * np.log(parameter_values_dict["Omegam"]),
-                    0,
-                    0,
-                    0,
-                    0,
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["s8"]
+                    * np.log(parameter_values_dict["Omegam"]),
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["s8"]
+                    * parameter_values_dict["sigg"] ** 2
+                    * np.log(parameter_values_dict["Omegam"]),
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["s8"]
+                    * parameter_values_dict["sigg"] ** 4
+                    * np.log(parameter_values_dict["Omegam"]),
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["s8"]
+                    * parameter_values_dict["sigg"] ** 6
+                    * np.log(parameter_values_dict["Omegam"]),
                 ],
                 "vv": [
                     2
@@ -2489,10 +2531,21 @@ def get_partial_derivative_coefficients_full(
                     parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
                     * parameter_values_dict["bs8"]
                     * parameter_values_dict["sigg"] ** 6,
-                    0,
-                    0,
-                    0,
-                    0,
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"],
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["sigg"] ** 2,
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["sigg"] ** 4,
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["sigg"] ** 6,
                 ],
                 "vv": [
                     2
@@ -2587,20 +2640,20 @@ def get_partial_derivative_coefficients_full(
                     parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
                     * parameter_values_dict["s8"]
                     * parameter_values_dict["sigg"] ** 6,
-                    2
-                    * parameter_values_dict["beta_f"] ** 2
-                    * parameter_values_dict["bs8"],
-                    2
-                    * parameter_values_dict["beta_f"] ** 2
-                    * parameter_values_dict["bs8"]
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["s8"],
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["s8"]
                     * parameter_values_dict["sigg"] ** 2,
-                    2
-                    * parameter_values_dict["beta_f"] ** 2
-                    * parameter_values_dict["bs8"]
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["s8"]
                     * parameter_values_dict["sigg"] ** 4,
-                    2
-                    * parameter_values_dict["beta_f"] ** 2
-                    * parameter_values_dict["bs8"]
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["s8"]
                     * parameter_values_dict["sigg"] ** 6,
                 ],
                 "vv": [
@@ -2662,20 +2715,20 @@ def get_partial_derivative_coefficients_full(
                     0,
                     0,
                     0,
-                    2
-                    * parameter_values_dict["beta_f"]
-                    * parameter_values_dict["bs8"] ** 2,
-                    2
-                    * parameter_values_dict["beta_f"]
-                    * parameter_values_dict["bs8"] ** 2
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["s8"],
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["s8"]
                     * parameter_values_dict["sigg"] ** 2,
-                    2
-                    * parameter_values_dict["beta_f"]
-                    * parameter_values_dict["bs8"] ** 2
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["s8"]
                     * parameter_values_dict["sigg"] ** 4,
-                    2
-                    * parameter_values_dict["beta_f"]
-                    * parameter_values_dict["bs8"] ** 2
+                    parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["s8"]
                     * parameter_values_dict["sigg"] ** 6,
                 ],
                 "vv": [
@@ -2773,16 +2826,22 @@ def get_partial_derivative_coefficients_full(
                     * parameter_values_dict["sigg"] ** 5,
                     0,
                     2
-                    * parameter_values_dict["beta_f"] ** 2
-                    * parameter_values_dict["bs8"] ** 2
+                    * parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["s8"]
                     * parameter_values_dict["sigg"],
                     4
-                    * parameter_values_dict["beta_f"] ** 2
-                    * parameter_values_dict["bs8"] ** 2
+                    * parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["s8"]
                     * parameter_values_dict["sigg"] ** 3,
                     6
-                    * parameter_values_dict["beta_f"] ** 2
-                    * parameter_values_dict["bs8"] ** 2
+                    * parameter_values_dict["Omegam"] ** parameter_values_dict["gamma"]
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["s8"]
                     * parameter_values_dict["sigg"] ** 5,
                 ],
                 "vv": [
@@ -3620,10 +3679,16 @@ def get_partial_derivative_coefficients_full(
                     parameter_values_dict["bs8"] * parameter_values_dict["sigg"] ** 2,
                     parameter_values_dict["bs8"] * parameter_values_dict["sigg"] ** 4,
                     parameter_values_dict["bs8"] * parameter_values_dict["sigg"] ** 6,
-                    0,
-                    0,
-                    0,
-                    0,
+                    parameter_values_dict["beta_f"] * parameter_values_dict["bs8"],
+                    parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["sigg"] ** 2,
+                    parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["sigg"] ** 4,
+                    parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["sigg"] ** 6,
                 ],
                 "vv": [
                     2 * parameter_values_dict["fs8"],
@@ -3708,20 +3773,15 @@ def get_partial_derivative_coefficients_full(
                     parameter_values_dict["fs8"] * parameter_values_dict["sigg"] ** 2,
                     parameter_values_dict["fs8"] * parameter_values_dict["sigg"] ** 4,
                     parameter_values_dict["fs8"] * parameter_values_dict["sigg"] ** 6,
-                    2
-                    * parameter_values_dict["beta_f"] ** 2
-                    * parameter_values_dict["bs8"],
-                    2
-                    * parameter_values_dict["beta_f"] ** 2
-                    * parameter_values_dict["bs8"]
+                    parameter_values_dict["beta_f"] * parameter_values_dict["fs8"],
+                    parameter_values_dict["beta_f"]
+                    * parameter_values_dict["fs8"]
                     * parameter_values_dict["sigg"] ** 2,
-                    2
-                    * parameter_values_dict["beta_f"] ** 2
-                    * parameter_values_dict["bs8"]
+                    parameter_values_dict["beta_f"]
+                    * parameter_values_dict["fs8"]
                     * parameter_values_dict["sigg"] ** 4,
-                    2
-                    * parameter_values_dict["beta_f"] ** 2
-                    * parameter_values_dict["bs8"]
+                    parameter_values_dict["beta_f"]
+                    * parameter_values_dict["fs8"]
                     * parameter_values_dict["sigg"] ** 6,
                 ],
                 "vv": [
@@ -3783,20 +3843,15 @@ def get_partial_derivative_coefficients_full(
                     0,
                     0,
                     0,
-                    2
-                    * parameter_values_dict["beta_f"]
-                    * parameter_values_dict["bs8"] ** 2,
-                    2
-                    * parameter_values_dict["beta_f"]
-                    * parameter_values_dict["bs8"] ** 2
+                    parameter_values_dict["bs8"] * parameter_values_dict["fs8"],
+                    parameter_values_dict["bs8"]
+                    * parameter_values_dict["fs8"]
                     * parameter_values_dict["sigg"] ** 2,
-                    2
-                    * parameter_values_dict["beta_f"]
-                    * parameter_values_dict["bs8"] ** 2
+                    parameter_values_dict["bs8"]
+                    * parameter_values_dict["fs8"]
                     * parameter_values_dict["sigg"] ** 4,
-                    2
-                    * parameter_values_dict["beta_f"]
-                    * parameter_values_dict["bs8"] ** 2
+                    parameter_values_dict["bs8"]
+                    * parameter_values_dict["fs8"]
                     * parameter_values_dict["sigg"] ** 6,
                 ],
                 "vv": [
@@ -3891,16 +3946,19 @@ def get_partial_derivative_coefficients_full(
                     * parameter_values_dict["sigg"] ** 5,
                     0,
                     2
-                    * parameter_values_dict["beta_f"] ** 2
-                    * parameter_values_dict["bs8"] ** 2
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["fs8"]
                     * parameter_values_dict["sigg"],
                     4
-                    * parameter_values_dict["beta_f"] ** 2
-                    * parameter_values_dict["bs8"] ** 2
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["fs8"]
                     * parameter_values_dict["sigg"] ** 3,
                     6
-                    * parameter_values_dict["beta_f"] ** 2
-                    * parameter_values_dict["bs8"] ** 2
+                    * parameter_values_dict["beta_f"]
+                    * parameter_values_dict["bs8"]
+                    * parameter_values_dict["fs8"]
                     * parameter_values_dict["sigg"] ** 5,
                 ],
                 "vv": [

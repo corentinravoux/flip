@@ -50,6 +50,7 @@ flip = [
     "data/*.json",
     "data/*.parquet",
     "data/*.mplstyle",
-    "covariance/analytical/*/flip_terms.yml"
+    "covariance/analytical/*/flip_terms.yml",
+    "covariance/analytical/*/fisher_terms.yml"
     ]
 

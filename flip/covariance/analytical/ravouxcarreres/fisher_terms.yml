@@ -1,0 +1,67 @@
+# Fisher partial-derivative generator configuration.
+# Each variant lists its parameters (Fisher matrix order) and the coefficients w_ab,n,
+# keyed by the term indices n of flip_terms.yml. null = default variant.
+# Regenerate with flip.covariance.analytical.symbolic.generate_fisher_terms("fisher_terms.yml").
+variants:
+  growth_index:
+    parameters:
+    - Omegam
+    - gamma
+    - s8
+    - bs8
+    - beta_f
+    coefficients:
+      gg:
+        '0': bs8**2
+        '1': beta_f*bs8**2
+        '2': beta_f**2*bs8**2
+      gv:
+        '0': Omegam**gamma*bs8*s8
+        '1': Omegam**gamma*beta_f*bs8*s8
+      vv:
+        '0': Omegam**(2*gamma)*s8**2
+  growth_index_nobeta:
+    parameters:
+    - Omegam
+    - gamma
+    - s8
+    - bs8
+    coefficients:
+      gg:
+        '0': bs8**2
+        '1': Omegam**gamma*bs8*s8
+        '2': Omegam**(2*gamma)*s8**2
+      gv:
+        '0': Omegam**gamma*bs8*s8
+        '1': Omegam**(2*gamma)*s8**2
+      vv:
+        '0': Omegam**(2*gamma)*s8**2
+  nobeta:
+    parameters:
+    - fs8
+    - bs8
+    coefficients:
+      gg:
+        '0': bs8**2
+        '1': bs8*fs8
+        '2': fs8**2
+      gv:
+        '0': bs8*fs8
+        '1': fs8**2
+      vv:
+        '0': fs8**2
+  null:
+    parameters:
+    - fs8
+    - bs8
+    - beta_f
+    coefficients:
+      gg:
+        '0': bs8**2
+        '1': beta_f*bs8**2
+        '2': beta_f**2*bs8**2
+      gv:
+        '0': bs8*fs8
+        '1': beta_f*bs8*fs8
+      vv:
+        '0': fs8**2

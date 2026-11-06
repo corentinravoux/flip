@@ -1,0 +1,168 @@
+# Fisher partial-derivative generator configuration.
+# Each variant lists its parameters (Fisher matrix order) and the coefficients w_ab,n,
+# keyed by the term indices n of flip_terms.yml. null = default variant.
+# Regenerate with flip.covariance.analytical.symbolic.generate_fisher_terms("fisher_terms.yml").
+# gv terms 1_m of growth_index and null variants follow lai22/coefficients.py (b f beta_f), fixed 2026-11-06.
+variants:
+  growth_index:
+    parameters:
+    - Omegam
+    - gamma
+    - s8
+    - bs8
+    - beta_f
+    - sigg
+    coefficients:
+      gg:
+        '0_0': bs8**2
+        '0_1': bs8**2*sigg**2
+        '0_2': bs8**2*sigg**4
+        '0_3': bs8**2*sigg**6
+        '0_4': bs8**2*sigg**8
+        '0_5': bs8**2*sigg**10
+        '0_6': bs8**2*sigg**12
+        '1_0': beta_f*bs8**2
+        '1_1': beta_f*bs8**2*sigg**2
+        '1_2': beta_f*bs8**2*sigg**4
+        '1_3': beta_f*bs8**2*sigg**6
+        '1_4': beta_f*bs8**2*sigg**8
+        '1_5': beta_f*bs8**2*sigg**10
+        '1_6': beta_f*bs8**2*sigg**12
+        '2_0': beta_f**2*bs8**2
+        '2_1': beta_f**2*bs8**2*sigg**2
+        '2_2': beta_f**2*bs8**2*sigg**4
+        '2_3': beta_f**2*bs8**2*sigg**6
+        '2_4': beta_f**2*bs8**2*sigg**8
+        '2_5': beta_f**2*bs8**2*sigg**10
+        '2_6': beta_f**2*bs8**2*sigg**12
+      gv:
+        '0_0': Omegam**gamma*bs8*s8
+        '0_1': Omegam**gamma*bs8*s8*sigg**2
+        '0_2': Omegam**gamma*bs8*s8*sigg**4
+        '0_3': Omegam**gamma*bs8*s8*sigg**6
+        '1_0': Omegam**gamma*beta_f*bs8*s8
+        '1_1': Omegam**gamma*beta_f*bs8*s8*sigg**2
+        '1_2': Omegam**gamma*beta_f*bs8*s8*sigg**4
+        '1_3': Omegam**gamma*beta_f*bs8*s8*sigg**6
+      vv:
+        '0_0': Omegam**(2*gamma)*s8**2
+  growth_index_nobeta:
+    parameters:
+    - Omegam
+    - gamma
+    - s8
+    - bs8
+    - sigg
+    coefficients:
+      gg:
+        '0_0': bs8**2
+        '0_1': bs8**2*sigg**2
+        '0_2': bs8**2*sigg**4
+        '0_3': bs8**2*sigg**6
+        '0_4': bs8**2*sigg**8
+        '0_5': bs8**2*sigg**10
+        '0_6': bs8**2*sigg**12
+        '1_0': Omegam**gamma*bs8*s8
+        '1_1': Omegam**gamma*bs8*s8*sigg**2
+        '1_2': Omegam**gamma*bs8*s8*sigg**4
+        '1_3': Omegam**gamma*bs8*s8*sigg**6
+        '1_4': Omegam**gamma*bs8*s8*sigg**8
+        '1_5': Omegam**gamma*bs8*s8*sigg**10
+        '1_6': Omegam**gamma*bs8*s8*sigg**12
+        '2_0': Omegam**(2*gamma)*s8**2
+        '2_1': Omegam**(2*gamma)*s8**2*sigg**2
+        '2_2': Omegam**(2*gamma)*s8**2*sigg**4
+        '2_3': Omegam**(2*gamma)*s8**2*sigg**6
+        '2_4': Omegam**(2*gamma)*s8**2*sigg**8
+        '2_5': Omegam**(2*gamma)*s8**2*sigg**10
+        '2_6': Omegam**(2*gamma)*s8**2*sigg**12
+      gv:
+        '0_0': Omegam**gamma*bs8*s8
+        '0_1': Omegam**gamma*bs8*s8*sigg**2
+        '0_2': Omegam**gamma*bs8*s8*sigg**4
+        '0_3': Omegam**gamma*bs8*s8*sigg**6
+        '1_0': Omegam**(2*gamma)*s8**2
+        '1_1': Omegam**(2*gamma)*s8**2*sigg**2
+        '1_2': Omegam**(2*gamma)*s8**2*sigg**4
+        '1_3': Omegam**(2*gamma)*s8**2*sigg**6
+      vv:
+        '0_0': Omegam**(2*gamma)*s8**2
+  nobeta:
+    parameters:
+    - fs8
+    - bs8
+    - sigg
+    coefficients:
+      gg:
+        '0_0': bs8**2
+        '0_1': bs8**2*sigg**2
+        '0_2': bs8**2*sigg**4
+        '0_3': bs8**2*sigg**6
+        '0_4': bs8**2*sigg**8
+        '0_5': bs8**2*sigg**10
+        '0_6': bs8**2*sigg**12
+        '1_0': bs8*fs8
+        '1_1': bs8*fs8*sigg**2
+        '1_2': bs8*fs8*sigg**4
+        '1_3': bs8*fs8*sigg**6
+        '1_4': bs8*fs8*sigg**8
+        '1_5': bs8*fs8*sigg**10
+        '1_6': bs8*fs8*sigg**12
+        '2_0': fs8**2
+        '2_1': fs8**2*sigg**2
+        '2_2': fs8**2*sigg**4
+        '2_3': fs8**2*sigg**6
+        '2_4': fs8**2*sigg**8
+        '2_5': fs8**2*sigg**10
+        '2_6': fs8**2*sigg**12
+      gv:
+        '0_0': bs8*fs8
+        '0_1': bs8*fs8*sigg**2
+        '0_2': bs8*fs8*sigg**4
+        '0_3': bs8*fs8*sigg**6
+        '1_0': fs8**2
+        '1_1': fs8**2*sigg**2
+        '1_2': fs8**2*sigg**4
+        '1_3': fs8**2*sigg**6
+      vv:
+        '0_0': fs8**2
+  null:
+    parameters:
+    - fs8
+    - bs8
+    - beta_f
+    - sigg
+    coefficients:
+      gg:
+        '0_0': bs8**2
+        '0_1': bs8**2*sigg**2
+        '0_2': bs8**2*sigg**4
+        '0_3': bs8**2*sigg**6
+        '0_4': bs8**2*sigg**8
+        '0_5': bs8**2*sigg**10
+        '0_6': bs8**2*sigg**12
+        '1_0': beta_f*bs8**2
+        '1_1': beta_f*bs8**2*sigg**2
+        '1_2': beta_f*bs8**2*sigg**4
+        '1_3': beta_f*bs8**2*sigg**6
+        '1_4': beta_f*bs8**2*sigg**8
+        '1_5': beta_f*bs8**2*sigg**10
+        '1_6': beta_f*bs8**2*sigg**12
+        '2_0': beta_f**2*bs8**2
+        '2_1': beta_f**2*bs8**2*sigg**2
+        '2_2': beta_f**2*bs8**2*sigg**4
+        '2_3': beta_f**2*bs8**2*sigg**6
+        '2_4': beta_f**2*bs8**2*sigg**8
+        '2_5': beta_f**2*bs8**2*sigg**10
+        '2_6': beta_f**2*bs8**2*sigg**12
+      gv:
+        '0_0': bs8*fs8
+        '0_1': bs8*fs8*sigg**2
+        '0_2': bs8*fs8*sigg**4
+        '0_3': bs8*fs8*sigg**6
+        '1_0': beta_f*bs8*fs8
+        '1_1': beta_f*bs8*fs8*sigg**2
+        '1_2': beta_f*bs8*fs8*sigg**4
+        '1_3': beta_f*bs8*fs8*sigg**6
+      vv:
+        '0_0': fs8**2

@@ -1,0 +1,24 @@
+# flip_terms generator configuration: generic redshift-dependent vv model.
+# Regenerate with flip.covariance.analytical.symbolic.generate_flip_terms("flip_terms.yml").
+wide_angle: true
+additional_parameters:
+- kNL
+multi_index_model: false
+regularize_M_terms: null
+terms:
+  vv:
+    '0':
+      F: 10000*mu1*mu2/k**2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '1':
+      F: 10000*mu1*mu2/kNL**2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '2':
+      F: 10000*k**2*mu1*mu2/kNL**4
+      lmax: 2
+      l1max: 1
+      l2max: 1

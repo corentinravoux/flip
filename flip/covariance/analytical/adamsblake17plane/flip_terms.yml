@@ -1,0 +1,19 @@
+# flip_terms generator configuration: Adams & Blake 2017, plane-parallel.
+# Regenerate with flip.covariance.analytical.symbolic.generate_flip_terms("flip_terms.yml").
+wide_angle: false
+additional_parameters: []
+multi_index_model: false
+regularize_M_terms: null
+terms:
+  gg:
+    '0':
+      F: '1'
+      lmax: 0
+  gv:
+    '0':
+      F: 100*mu/k
+      lmax: 1
+  vv:
+    '0':
+      F: 10000*mu**2/k**2
+      lmax: 2

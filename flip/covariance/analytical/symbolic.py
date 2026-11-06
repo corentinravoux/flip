@@ -64,20 +64,23 @@ def simplify_term(
 
 
 def generate_MN_ab_i_l_function_wide_angle(
-    term_B,
+    term_F,
     ell,
     l1,
     l2,
+    term_N_prefactor,
 ):
     """
     The generate_MN_ab_i_l_function_wide_angle function generates the M and N terms for a given l, l', and l'' value.
 
     Args:
-        term_B: Define the integrand of the integral over mu_2
+        term_F: Geometric term F_ab,n(k, mu1, mu2) of the power spectrum
+            decomposition (Ravoux et al. 2025), expanded in Legendre
+            polynomials of mu1 and mu2 to give M_ab,n^{l1,l2}(k)
         l: Determine the order of the legendre polynomial
         l1: Define the first legendre polynomial in the integral
         l2: Determine the order of the legendre polynomial in the second integral
-        : Determine the number of terms in the sum
+        term_N_prefactor: The prefactor for the N term
 
     Returns:
         The terms m_l,l',l'' and n_l, l', l''
@@ -85,7 +88,7 @@ def generate_MN_ab_i_l_function_wide_angle(
     """
     theta, phi = sy.symbols("theta phi")
     mu1, mu2 = sy.symbols("mu1 mu2")
-    integral_mu1_M_l = sy.integrate(term_B * legendre_poly(l1, x=mu1), (mu1, -1, 1))
+    integral_mu1_M_l = sy.integrate(term_F * legendre_poly(l1, x=mu1), (mu1, -1, 1))
     integral_mu1_mu2_M_l = sy.integrate(
         integral_mu1_M_l * legendre_poly(l2, x=mu2), (mu2, -1, 1)
     )
@@ -99,9 +102,9 @@ def generate_MN_ab_i_l_function_wide_angle(
 
                 # The spherical harmonic terms are taken from Lai et al. 2022 matematica notebook
                 # The sy.pi phase is put to l2 term instead of l1, to obtain the same results as Lai et al. 2022
-                # This is understood by the asymetry term inside the B_ab modeling.
+                # This is understood by the asymetry term inside the F_ab,n modeling.
                 # Changing this will have an impact on the modeling.
-                # Be sure to accord B_ab terms with sperical harmonic definition here.
+                # Be sure to accord F_ab,n terms with sperical harmonic definition here.
 
                 # The sy.pi term with phi is directly linked to the definition of r chosen in flip.
                 # For the order of term chosen, the sy.pi must be added here.
@@ -113,7 +116,11 @@ def generate_MN_ab_i_l_function_wide_angle(
                 )
                 term_N_l_l1_l2 = term_N_l_l1_l2 + term_N_l_l1_l2_m_m1_m2
     term_M_l_l1_l2 = (1 / sy.Rational(4)) * integral_mu1_mu2_M_l.expand(func=True)
-    term_N_l_l1_l2 = (sy.Rational(4) * sy.pi) ** 2 * term_N_l_l1_l2.expand(func=True)
+    term_N_l_l1_l2 = (
+        term_N_prefactor
+        * (sy.Rational(4) * sy.pi) ** 2
+        * term_N_l_l1_l2.expand(func=True)
+    )
     term_M_l_l1_l2 = simplify_term(
         term_M_l_l1_l2,
         simplification_method="simplify_iteration",
@@ -126,14 +133,16 @@ def generate_MN_ab_i_l_function_wide_angle(
     return term_M_l_l1_l2, term_N_l_l1_l2
 
 
-def generate_MN_ab_i_l_function_parallel_plane(term_B, ell):
+def generate_MN_ab_i_l_function_parallel_plane(term_F, ell):
     """
-    The generate_MN_ab_i_l_function_parallel_plane function takes in a term_B and an l value.
-    It then generates the M_l and N_l functions for that particular term B, which is used to calculate the parallel plane integral.
+    The generate_MN_ab_i_l_function_parallel_plane function takes in a term_F and an l value.
+    It then generates the M_l and N_l functions for that particular term F_ab,n, which is used to calculate the parallel plane integral.
     The function returns both M_l and N_l as sympy expressions.
 
     Args:
-        term_B: Define the term b in the equation for m_l and n_l
+        term_F: Geometric term F_ab,n(k, mu) of the power spectrum
+            decomposition (Ravoux et al. 2025), expanded in Legendre
+            polynomials of mu to give M_ab,n^l(k)
         l: Determine the order of the legendre polynomial
 
     Returns:
@@ -143,7 +152,7 @@ def generate_MN_ab_i_l_function_parallel_plane(term_B, ell):
     phi = sy.symbols("phi")
     mu = sy.symbols("mu")
     M_l = sy.Rational(1 / 2) * sy.integrate(
-        term_B * legendre_poly(ell, x=mu), (mu, -1, 1)
+        term_F * legendre_poly(ell, x=mu), (mu, -1, 1)
     )
     # The sy.pi term is directly linked to the definition of r chosen in flip.
     # For the order of term chosen, the sy.pi must be added here.
@@ -296,7 +305,7 @@ def write_M_N_functions(
     type_list,
     term_index_list,
     lmax_list,
-    dict_B,
+    dict_F,
     additional_parameters=None,
     number_worker=1,
     wide_angle=False,
@@ -304,6 +313,7 @@ def write_M_N_functions(
     l2max_list=None,
     multi_index_model=False,
     regularize_M_terms="None",
+    dict_N_prefactors=None,
 ):
     """
     The write_M_N_functions function is used to generate the M_N functions for a given model.
@@ -315,7 +325,8 @@ def write_M_N_functions(
         type_list: Specify the type of terms that are to be included in the calculation
         term_index_list: Specify the index of each term in a given type
         lmax_list: Determine the maximum value of l for each term in the model
-        dict_B: Store the b_ab_i values
+        dict_F: Geometric terms F_ab,n, keyed "F_{type}_{index}"
+            (e.g. "F_vv_0"), following Ravoux et al. 2025 notation
         additional_parameters: Add additional parameters to the output file
         number_worker: Specify the number of processes to be used
         wide_angle: Determine if the function should be written for wide angle or not
@@ -334,15 +345,23 @@ def write_M_N_functions(
     for k, type in enumerate(type_list):
         for i, t in enumerate(term_index_list[k]):
             for ell in range(lmax_list[k][i] + 1):
-                B_ab_i = dict_B[f"B_{type}_{t}"]
+                F_ab_n = dict_F[f"F_{type}_{t}"]
                 if wide_angle:
                     for l1 in range(l1max_list[k][i] + 1):
                         for l2 in range(l2max_list[k][i] + 1):
-                            params_pool.append([B_ab_i, ell, l1, l2])
+                            if dict_N_prefactors is not None:
+                                prefactor_N_ab_n = dict_N_prefactors[
+                                    f"N_prefactor_{type}_{t}"
+                                ]
+                                params_pool.append(
+                                    [F_ab_n, ell, l1, l2, prefactor_N_ab_n]
+                                )
+                            else:
+                                params_pool.append([F_ab_n, ell, l1, l2, 1])
                             index_pool[f"{type}_{t}_{ell}_{l1}_{l2}"] = index
                             index = index + 1
                 else:
-                    params_pool.append([B_ab_i, ell])
+                    params_pool.append([F_ab_n, ell])
                     index_pool[f"{type}_{t}_{ell}"] = index
                     index = index + 1
 
@@ -408,10 +427,10 @@ def generate_generalized_genericzdep_functions(
     lmax_list = [[2, 2, 2]]
     l1max_list = [[1, 1, 1]]
     l2max_list = [[1, 1, 1]]
-    dict_B = {
-        "B_vv_0": mu1 * mu2 / k**2,
-        "B_vv_1": mu1 * mu2 / kNL**2,
-        "B_vv_2": mu1 * mu2 * k**2 / kNL**4,
+    dict_F = {
+        "F_vv_0": mu1 * mu2 / k**2,
+        "F_vv_1": mu1 * mu2 / kNL**2,
+        "F_vv_2": mu1 * mu2 * k**2 / kNL**4,
     }
 
     regularize_M_terms = "None"
@@ -420,7 +439,7 @@ def generate_generalized_genericzdep_functions(
         type_list,
         term_index_list,
         lmax_list,
-        dict_B,
+        dict_F,
         number_worker=number_worker,
         wide_angle=True,
         l1max_list=l1max_list,
@@ -438,10 +457,10 @@ def generate_generalized_adamsblake17plane_functions(
     type_list = ["gg", "gv", "vv"]
     term_index_list = [["0"], ["0"], ["0"]]
     lmax_list = [[0], [1], [2]]
-    dict_B = {
-        "B_gg_0": 1,
-        "B_gv_0": 100 * (mu / k),
-        "B_vv_0": 100**2 * mu**2 / k**2,
+    dict_F = {
+        "F_gg_0": 1,
+        "F_gv_0": 100 * (mu / k),
+        "F_vv_0": 100**2 * mu**2 / k**2,
     }
     regularize_M_terms = "None"
 
@@ -450,7 +469,7 @@ def generate_generalized_adamsblake17plane_functions(
         type_list,
         term_index_list,
         lmax_list,
-        dict_B,
+        dict_F,
         number_worker=number_worker,
         wide_angle=False,
         regularize_M_terms=regularize_M_terms,
@@ -468,10 +487,10 @@ def generate_generalized_adamsblake17_functions(
     lmax_list = [[2], [2], [2]]
     l1max_list = [[2], [2], [2]]
     l2max_list = [[2], [2], [2]]
-    dict_B = {
-        "B_gg_0": 1,
-        "B_gv_0": 100 * (mu2 / k),
-        "B_vv_0": 100**2 * mu1 * mu2 / k**2,
+    dict_F = {
+        "F_gg_0": 1,
+        "F_gv_0": 100 * (mu2 / k),
+        "F_vv_0": 100**2 * mu1 * mu2 / k**2,
     }
 
     regularize_M_terms = "None"
@@ -480,7 +499,7 @@ def generate_generalized_adamsblake17_functions(
         type_list,
         term_index_list,
         lmax_list,
-        dict_B,
+        dict_F,
         number_worker=number_worker,
         wide_angle=True,
         l1max_list=l1max_list,
@@ -510,13 +529,13 @@ def generate_generalized_adamsblake20_functions(
     term_index_list = [["0", "1", "2"], ["0", "1"], ["0"]]
     lmax_list = [[4, 4, 4], [3, 3], [2]]  # lmax list to stick to AD20
     # lmax_list = [[6, 6, 6], [5, 5], [2]]  # lmax list to generate lmax + 1
-    dict_B = {
-        "B_gg_0": sy.exp(-((k * sig_g * mu) ** 2)),
-        "B_gg_1": 2 * mu**2 * sy.exp(-((k * sig_g * mu) ** 2)),
-        "B_gg_2": mu**4 * sy.exp(-((k * sig_g * mu) ** 2)),
-        "B_gv_0": 100 * (mu / k) * sy.exp(-((k * sig_g * mu) ** 2) / 2),
-        "B_gv_1": 100 * (mu**3 / k) * sy.exp(-((k * sig_g * mu) ** 2) / 2),
-        "B_vv_0": 100**2 * mu**2 / k**2,
+    dict_F = {
+        "F_gg_0": sy.exp(-((k * sig_g * mu) ** 2)),
+        "F_gg_1": 2 * mu**2 * sy.exp(-((k * sig_g * mu) ** 2)),
+        "F_gg_2": mu**4 * sy.exp(-((k * sig_g * mu) ** 2)),
+        "F_gv_0": 100 * (mu / k) * sy.exp(-((k * sig_g * mu) ** 2) / 2),
+        "F_gv_1": 100 * (mu**3 / k) * sy.exp(-((k * sig_g * mu) ** 2) / 2),
+        "F_vv_0": 100**2 * mu**2 / k**2,
     }
     regularize_M_terms = """{"gg": "mpmath", "gv": "mpmath", "vv": None}"""
 
@@ -525,7 +544,7 @@ def generate_generalized_adamsblake20_functions(
         type_list,
         term_index_list,
         lmax_list,
-        dict_B,
+        dict_F,
         additional_parameters=["sig_g"],
         number_worker=number_worker,
         wide_angle=False,
@@ -563,7 +582,7 @@ def generate_generalized_lai22_functions(
     m_index_gg = np.arange(0, (qmax_gg + pmax_gg) + 1)
     iter_pq = np.array(list(itertools.product(p_index, q_index)))
     sum_iter_pq = np.sum(iter_pq, axis=1)
-    dict_B = {}
+    dict_F = {}
     for i in ["0", "1", "2"]:
         for m_value in m_index_gg:
             pq_index = iter_pq[sum_iter_pq == m_value]
@@ -581,7 +600,7 @@ def generate_generalized_lai22_functions(
                 l1max_list_gg.append(min(2 * (m_value + 1), 2 * (pmax_gg + 1)))
                 l2max_list_gg.append(min(2 * (m_value + 1), 2 * (qmax_gg + 1)))
 
-            B_gg_i = 0
+            F_gg_i = 0
             for pq in pq_index:
                 p, q = pq[0], pq[1]
 
@@ -591,8 +610,8 @@ def generate_generalized_lai22_functions(
                     add = mu1**2 + mu2**2
                 elif i == "2":
                     add = mu1**2 * mu2**2
-                B_gg_i = (
-                    B_gg_i
+                F_gg_i = (
+                    F_gg_i
                     + (
                         (-1) ** (p + q)
                         / (2 ** (p + q) * sy.factorial(p) * sy.factorial(q))
@@ -602,7 +621,7 @@ def generate_generalized_lai22_functions(
                     * mu2 ** (2 * q)
                     * add
                 )
-                dict_B[f"B_gg_{i}_{m_value}"] = B_gg_i
+                dict_F[f"F_gg_{i}_{m_value}"] = F_gg_i
 
     # gv
     term_index_list_gv = []
@@ -617,7 +636,7 @@ def generate_generalized_lai22_functions(
         for m_value in m_index_gv:
             term_index_list_gv.append(f"{i}_{m_value}")
             l2max_list_gv.append(1)
-            B_gv_i = 0
+            F_gv_i = 0
             if i == "0":
                 add = 1
                 lmax_list_gv.append(2 * m_value + 1)
@@ -626,22 +645,22 @@ def generate_generalized_lai22_functions(
                 add = mu1**2
                 lmax_list_gv.append(2 * m_value + 3)
                 l1max_list_gv.append(2 * m_value + 2)
-            B_gv_i = (
-                B_gv_i
+            F_gv_i = (
+                F_gv_i
                 + ((-1) ** (m_value) / (2 ** (m_value) * sy.factorial(m_value)))
                 * k ** (2 * m_value - 1)
                 * mu1 ** (2 * m_value)
                 * mu2
                 * add
             )
-            dict_B[f"B_gv_{i}_{m_value}"] = 100 * B_gv_i
+            dict_F[f"F_gv_{i}_{m_value}"] = 100 * F_gv_i
 
     # vv
     lmax_list_vv = [2]
     l1max_list_vv = [1]
     l2max_list_vv = [1]
     term_index_list_vv = ["0_0"]
-    dict_B["B_vv_0_0"] = 100**2 * mu1 * mu2 / k**2
+    dict_F["F_vv_0_0"] = 100**2 * mu1 * mu2 / k**2
 
     type_list = ["gg", "gv", "vv"]
     term_index_list = [term_index_list_gg, term_index_list_gv, term_index_list_vv]
@@ -655,7 +674,7 @@ def generate_generalized_lai22_functions(
         type_list,
         term_index_list,
         lmax_list,
-        dict_B,
+        dict_F,
         additional_parameters=None,
         number_worker=number_worker,
         wide_angle=True,
@@ -687,7 +706,7 @@ def generate_generalized_carreres23_functions(
     lmax_list = [[2]]
     l1max_list = [[1]]
     l2max_list = [[1]]
-    dict_B = {"B_vv_0": 100**2 * mu1 * mu2 / k**2}
+    dict_F = {"F_vv_0": 100**2 * mu1 * mu2 / k**2}
 
     regularize_M_terms = "None"
     write_M_N_functions(
@@ -695,7 +714,7 @@ def generate_generalized_carreres23_functions(
         type_list,
         term_index_list,
         lmax_list,
-        dict_B,
+        dict_F,
         number_worker=number_worker,
         wide_angle=True,
         l1max_list=l1max_list,
@@ -729,15 +748,15 @@ def generate_generalized_ravouxcarreres_functions(
     # lmax_list = [[6, 6, 6] , [5, 5] , [2]] # Lists to generate the model lmax + 1
     # l1max_list = [[4, 4, 4] , [4, 4] , [1]]
     # l2max_list = [[4, 4, 4] , [1, 1] , [1]]
-    dict_B = {
-        "B_gg_0": sy.exp(-((k * sig_g) ** 2) * (mu1**2 + mu2**2) / 2),
-        "B_gg_1": (mu1**2 + mu2**2)
+    dict_F = {
+        "F_gg_0": sy.exp(-((k * sig_g) ** 2) * (mu1**2 + mu2**2) / 2),
+        "F_gg_1": (mu1**2 + mu2**2)
         * sy.exp(-((k * sig_g) ** 2) * (mu1**2 + mu2**2) / 2),
-        "B_gg_2": (mu1**2 * mu2**2)
+        "F_gg_2": (mu1**2 * mu2**2)
         * sy.exp(-((k * sig_g) ** 2) * (mu1**2 + mu2**2) / 2),
-        "B_gv_0": 100 * (mu2 / k) * sy.exp(-((k * sig_g * mu1) ** 2) / 2),
-        "B_gv_1": 100 * (mu2 * mu1**2 / k) * sy.exp(-((k * sig_g * mu1) ** 2) / 2),
-        "B_vv_0": 100**2 * mu1 * mu2 / k**2,
+        "F_gv_0": 100 * (mu2 / k) * sy.exp(-((k * sig_g * mu1) ** 2) / 2),
+        "F_gv_1": 100 * (mu2 * mu1**2 / k) * sy.exp(-((k * sig_g * mu1) ** 2) / 2),
+        "F_vv_0": 100**2 * mu1 * mu2 / k**2,
     }
 
     regularize_M_terms = """{"gg": "mpmath", "gv": "mpmath", "vv": None}"""
@@ -746,7 +765,7 @@ def generate_generalized_ravouxcarreres_functions(
         type_list,
         term_index_list,
         lmax_list,
-        dict_B,
+        dict_F,
         additional_parameters=["sig_g"],
         number_worker=number_worker,
         wide_angle=True,
@@ -777,7 +796,7 @@ def generate_generalized_rcrk24_functions(
     lmax_list = [[2]]
     l1max_list = [[1]]
     l2max_list = [[1]]
-    dict_B = {"B_vv_0": 100**2 * mu1 * mu2 / k**2}
+    dict_F = {"F_vv_0": 100**2 * mu1 * mu2 / k**2}
 
     regularize_M_terms = "None"
     write_M_N_functions(
@@ -785,7 +804,7 @@ def generate_generalized_rcrk24_functions(
         type_list,
         term_index_list,
         lmax_list,
-        dict_B,
+        dict_F,
         number_worker=number_worker,
         wide_angle=True,
         l1max_list=l1max_list,

@@ -14,4 +14,5 @@ if not __minimal__:
         ravouxnoanchor25,
         ravouxqin26,
         rcrk24,
+        symbolic,
     )

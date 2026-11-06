@@ -30,7 +30,7 @@ except ImportError:
     pass
 
 __flip_dir_path__ = os.path.dirname(__file__)
-__version__ = "2.1.0"
+__version__ = "2.1.1"
 
 
 _LAZY_SUBPACKAGES = set(_subpackages.SUBPACKAGES)

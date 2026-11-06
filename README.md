@@ -31,7 +31,9 @@ Set `FLIP_MINIMAL=1` before `import flip`. Example (in the full repository): `sc
 
 ## Required packages
 
-Mandatory: numpy, scipy, matplotlib, iminuit, emcee, sympy
+Mandatory: numpy, scipy, matplotlib, sympy
+
+Fitters (`FitMinuit`, `FitMCMC`): iminuit, emcee. Install with `pip install ".[fit]"`
 
 Optional: classy, pyccl, pmesh, GPy, tensorflow, [cosmoprimo](https://github.com/adematti/cosmoprimo)
 

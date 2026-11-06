@@ -19,8 +19,6 @@ dependencies = [
     "scipy >= 1.15",
     "matplotlib",
     "importlib-metadata",
-    "emcee",
-    "iminuit",
     "astropy",
     "mpmath",
     "sympy",
@@ -28,6 +26,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+fit = [
+    "iminuit",
+    "emcee",
+]
 docs = [
     "zensical",
     "mkdocstrings[python]",

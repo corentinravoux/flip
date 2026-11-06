@@ -10,6 +10,13 @@ cd flip
 pip install .
 ```
 
+The built-in fitters ([`FitMinuit`][flip.covariance.fitter.FitMinuit] and
+[`FitMCMC`][flip.covariance.fitter.FitMCMC]) need `iminuit` and `emcee`, provided by the `fit` extra:
+
+```bash
+pip install ".[fit]"
+```
+
 For a development install (editable, with the documentation tooling):
 
 ```bash
@@ -18,15 +25,16 @@ pip install -e ".[docs]"
 
 ## Requirements
 
-**Mandatory:** `pandas`, `numpy`, `scipy >= 1.12`, `matplotlib`, `importlib-metadata`, `emcee`, `iminuit`,
-`astropy`, `mpmath`.
+**Mandatory:** `pandas`, `numpy`, `scipy >= 1.15`, `matplotlib`, `importlib-metadata`, `astropy`, `mpmath`,
+`sympy`, `pyarrow`.
 
 **Optional**, enabling extra subpackages or acceleration:
 
 | Package | Enables |
 | --- | --- |
+| `iminuit` (`fit` extra) | the Minuit fitter, `FitMinuit` |
+| `emcee` (`fit` extra) | the MCMC fitter, `FitMCMC` |
 | `jax` | JIT-compiled, accelerated `data_vector` and `covariance` code paths |
-| `sympy` | required by `flip.covariance` (symbolic term generation) |
 | `classy` (CLASS) | the CLASS power-spectrum engine |
 | `pyccl` | the pyCCL power-spectrum engine |
 | [`cosmoprimo`](https://github.com/cosmodesi/cosmoprimo) | the cosmoprimo power-spectrum engine |
@@ -34,8 +42,7 @@ pip install -e ".[docs]"
 | `torch` | the neural-network covariance emulator |
 | `jax-cosmo`, `tensorflow-probability` | required by `flip.forward` |
 
-`flip.covariance` additionally requires `sympy`, `mpmath`, `emcee`, `iminuit` and `pandas` to be importable
-(they're already part of the mandatory install above).
+`flip.covariance` imports without `iminuit` and `emcee`; only the fitters need them.
 
 ## Checking your environment
 

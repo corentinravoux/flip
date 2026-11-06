@@ -3,13 +3,21 @@ import multiprocessing as mp
 import os
 from contextlib import nullcontext
 
-import emcee
-import iminuit
 import numpy as np
 
 import flip.covariance.likelihood as flik
 from flip.covariance.covariance import CovMatrix
 from flip.utils import create_log
+
+try:
+    import iminuit
+except ImportError:
+    pass
+
+try:
+    import emcee
+except ImportError:
+    pass
 
 log = create_log()
 

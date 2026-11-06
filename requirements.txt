@@ -3,8 +3,6 @@ numpy
 scipy >= 1.15
 matplotlib
 importlib-metadata
-emcee
-iminuit
 astropy
 mpmath
 sympy

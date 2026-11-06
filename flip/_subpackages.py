@@ -38,8 +38,10 @@ SUBPACKAGES = {
         },
     },
     "covariance": {
-        "required": ["numpy", "scipy", "sympy", "mpmath", "emcee", "iminuit"],
+        "required": ["numpy", "scipy", "sympy", "mpmath"],
         "optional": {
+            "minuit fitter": ["iminuit"],
+            "mcmc fitter": ["emcee"],
             "jax (jit paths)": ["jax"],
             "parquet io": ["pyarrow"],
             "gp emulator": ["GPy"],

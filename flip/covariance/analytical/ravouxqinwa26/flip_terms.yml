@@ -1,0 +1,1574 @@
+# flip_terms generator configuration: SPT model of Qin et al. 2025 (arXiv:2512.03231) with Saito correction, wide-angle.
+# F and N_prefactor (<cos theta> terms) extracted from NERSC SPT_model_fei/sympy_spt_saito_fix_wideangle.ipynb;
+# lmax = total degree in (mu1, mu2), l1max/l2max = degree in mu1/mu2.
+# Regenerate with flip.covariance.analytical.symbolic.generate_flip_terms("flip_terms.yml").
+wide_angle: true
+additional_parameters: []
+multi_index_model: false
+regularize_M_terms: null
+terms:
+  gg:
+    '0':
+      F: '1'
+      lmax: 0
+      l1max: 0
+      l2max: 0
+    '1':
+      F: '2'
+      lmax: 0
+      l1max: 0
+      l2max: 0
+    '2':
+      F: '2'
+      lmax: 0
+      l1max: 0
+      l2max: 0
+    '3':
+      F: '2'
+      lmax: 0
+      l1max: 0
+      l2max: 0
+    '4':
+      F: 6*k**2
+      lmax: 0
+      l1max: 0
+      l2max: 0
+    '5':
+      F: 1/2
+      lmax: 0
+      l1max: 0
+      l2max: 0
+    '6':
+      F: 1/2
+      lmax: 0
+      l1max: 0
+      l2max: 0
+    '7':
+      F: '1'
+      lmax: 0
+      l1max: 0
+      l2max: 0
+    '8':
+      F: '2'
+      lmax: 0
+      l1max: 0
+      l2max: 0
+    '9':
+      F: mu1**2 + mu2**2
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '10':
+      F: 2*mu1**2 + 2*mu2**2
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '11':
+      F: 2*mu1**2 + 2*mu2**2
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '12':
+      F: 6*k**2*(mu1**2 + mu2**2)
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '13':
+      F: 6*k**2*(mu1**2 + mu2**2)
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '14':
+      F: -mu1**2 - mu2**2
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '15':
+      F: -mu1**2 - mu2**2
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '16':
+      F: -mu1**2 - mu2**2
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '17':
+      F: -mu1**2 - mu2**2
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '18':
+      F: -mu1**2 - mu2**2
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '19':
+      F: mu1**2/2 + mu2**2/2
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '20':
+      F: mu1**4/2 + mu2**4/2
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '21':
+      F: k**2*(mu1**2 + mu2**2)
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '22':
+      F: k**2*(mu1**4 + mu2**4)
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '23':
+      F: -k**2*(mu1**2 + mu2**2)/2
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '24':
+      F: -k**2*(mu1**2 + mu2**2)
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '25':
+      F: -k**2*(mu1**2 + mu2**2)
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '26':
+      F: -k**2*(mu1**2 + mu2**2)
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '27':
+      F: -3*k**4*(mu1**2 + mu2**2)
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '28':
+      F: -k**2*(mu1**2 + mu2**2)/4
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '29':
+      F: -k**2*(mu1**2 + mu2**2)/4
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '30':
+      F: -k**2*(mu1**2 + mu2**2)/2
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '31':
+      F: -k**2*(mu1**2 + mu2**2)
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '32':
+      F: mu1**2/2 + mu2**2/2
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '33':
+      F: mu1**2/2 + mu2**2/2
+      lmax: 2
+      l1max: 2
+      l2max: 2
+    '34':
+      F: mu1**4/2 + mu2**4/2
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '35':
+      F: mu1**4/2 + mu2**4/2
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '36':
+      F: -k**2*(mu1**4 + mu2**4)/2
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '37':
+      F: -k**2*(mu1**4 + mu2**4)
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '38':
+      F: -k**2*(mu1**4 + mu2**4)
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '39':
+      F: -3*k**4*(mu1**4 + mu2**4)
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '40':
+      F: -3*k**4*(mu1**4 + mu2**4)
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '41':
+      F: k**2*(mu1**4 + mu2**4)/2
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '42':
+      F: k**2*(mu1**4 + mu2**4)/2
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '43':
+      F: k**2*(mu1**4 + mu2**4)/2
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '44':
+      F: k**2*(mu1**4 + mu2**4)/2
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '45':
+      F: k**2*(mu1**4 + mu2**4)/2
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '46':
+      F: -k**2*(mu1**4 + mu2**4)/4
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '47':
+      F: -k**2*(mu1**2 + mu2**2)*(mu1**4 - mu1**2*mu2**2 + mu2**4)/4
+      lmax: 6
+      l1max: 6
+      l2max: 6
+    '48':
+      F: -k**4*(mu1**4 + mu2**4)/2
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '49':
+      F: -k**4*(mu1**2 + mu2**2)*(mu1**4 - mu1**2*mu2**2 + mu2**4)/2
+      lmax: 6
+      l1max: 6
+      l2max: 6
+    '50':
+      F: k**4*(mu1**4 + mu2**4)/8
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '51':
+      F: k**4*(mu1**4 + mu2**4)/4
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '52':
+      F: k**4*(mu1**4 + mu2**4)/4
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '53':
+      F: k**4*(mu1**4 + mu2**4)/4
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '54':
+      F: 3*k**6*(mu1**4 + mu2**4)/4
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '55':
+      F: k**4*(mu1**4 + mu2**4)/16
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '56':
+      F: k**4*(mu1**4 + mu2**4)/16
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '57':
+      F: k**4*(mu1**4 + mu2**4)/8
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '58':
+      F: k**4*(mu1**4 + mu2**4)/4
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '59':
+      F: k**4*(mu1**4 + mu2**4)/8
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '60':
+      F: k**4*(mu1**4 + mu2**4)/4
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '61':
+      F: k**4*(mu1**4 + mu2**4)/4
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '62':
+      F: k**4*(mu1**4 + mu2**4)/4
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '63':
+      F: 3*k**6*(mu1**4 + mu2**4)/4
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '64':
+      F: k**4*(mu1**4 + mu2**4)/16
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '65':
+      F: k**4*(mu1**4 + mu2**4)/16
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '66':
+      F: k**4*(mu1**4 + mu2**4)/8
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '67':
+      F: k**4*(mu1**4 + mu2**4)/4
+      lmax: 4
+      l1max: 4
+      l2max: 4
+    '68':
+      F: mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '69':
+      F: 2*mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '70':
+      F: 4*mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '71':
+      F: mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+      N_prefactor: cos(theta)
+    '72':
+      F: mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '73':
+      F: 12*k**2*mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '74':
+      F: 6*k**2*mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '75':
+      F: mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '76':
+      F: mu1**2*mu2**2*(mu1**2 + mu2**2)/2
+      lmax: 6
+      l1max: 4
+      l2max: 4
+    '77':
+      F: -mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '78':
+      F: -mu1**2*mu2**2*(mu1**2 + mu2**2)/2
+      lmax: 6
+      l1max: 4
+      l2max: 4
+    '79':
+      F: 2*k**2*mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '80':
+      F: k**2*mu1**2*mu2**2*(mu1**2 + mu2**2)
+      lmax: 6
+      l1max: 4
+      l2max: 4
+    '81':
+      F: -k**2*mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '82':
+      F: -2*k**2*mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '83':
+      F: -2*k**2*mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '84':
+      F: -6*k**4*mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '85':
+      F: -6*k**4*mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '86':
+      F: k**2*mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '87':
+      F: k**2*mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '88':
+      F: k**2*mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '89':
+      F: k**2*mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '90':
+      F: k**2*mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '91':
+      F: 2*k**2*mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '92':
+      F: 6*k**4*mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '93':
+      F: mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+      N_prefactor: '-2'
+    '94':
+      F: mu1*mu2*(mu1**2 + mu2**2)/2
+      lmax: 4
+      l1max: 3
+      l2max: 3
+      N_prefactor: 2*cos(theta)
+    '95':
+      F: -k**2*mu1**2*mu2**2*(mu1**2 + mu2**2)/2
+      lmax: 6
+      l1max: 4
+      l2max: 4
+    '96':
+      F: -k**2*mu1**2*mu2**2*(mu1**2 + mu2**2)
+      lmax: 6
+      l1max: 4
+      l2max: 4
+    '97':
+      F: -2*k**2*mu1**2*mu2**2*(mu1**2 + mu2**2)
+      lmax: 6
+      l1max: 4
+      l2max: 4
+    '98':
+      F: -3*k**4*mu1**2*mu2**2*(mu1**2 + mu2**2)
+      lmax: 6
+      l1max: 4
+      l2max: 4
+    '99':
+      F: -6*k**4*mu1**2*mu2**2*(mu1**2 + mu2**2)
+      lmax: 6
+      l1max: 4
+      l2max: 4
+    '100':
+      F: -k**2*mu1**2*mu2**2*(mu1**2 + mu2**2)/2
+      lmax: 6
+      l1max: 4
+      l2max: 4
+    '101':
+      F: -k**2*mu1*mu2*(mu1**2 + mu2**2)/2
+      lmax: 4
+      l1max: 3
+      l2max: 3
+      N_prefactor: cos(theta)
+    '102':
+      F: mu1**2*mu2**2/4
+      lmax: 4
+      l1max: 2
+      l2max: 2
+      N_prefactor: cos(theta)**2/6 + 1/12
+    '103':
+      F: mu1**3*mu2**3/4
+      lmax: 6
+      l1max: 3
+      l2max: 3
+      N_prefactor: cos(theta)/2
+    '104':
+      F: mu1**4*mu2**4/16
+      lmax: 8
+      l1max: 4
+      l2max: 4
+    '105':
+      F: 3*k**4*mu1**2*mu2**2/4
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '106':
+      F: 3*k**4*mu1**2*mu2**2/2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '107':
+      F: 3*k**4*mu1**2*mu2**2/2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '108':
+      F: 3*k**4*mu1**2*mu2**2/2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '109':
+      F: 9*k**6*mu1**2*mu2**2/2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '110':
+      F: 3*k**4*mu1**2*mu2**2/8
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '111':
+      F: 3*k**4*mu1**2*mu2**2/8
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '112':
+      F: 3*k**4*mu1**2*mu2**2/4
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '113':
+      F: 3*k**4*mu1**2*mu2**2/2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '114':
+      F: -k**2*mu1**2*mu2**2/2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '115':
+      F: -k**2*mu1**2*mu2**2*(mu1**2 + mu2**2)/4
+      lmax: 6
+      l1max: 4
+      l2max: 4
+    '116':
+      F: -k**4*mu1**2*mu2**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '117':
+      F: -k**4*mu1**2*mu2**2*(mu1**2 + mu2**2)/2
+      lmax: 6
+      l1max: 4
+      l2max: 4
+    '118':
+      F: -k**2*mu1**2*mu2**2/4
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '119':
+      F: -k**2*mu1**2*mu2**2/4
+      lmax: 4
+      l1max: 2
+      l2max: 2
+    '120':
+      F: -k**2*mu1**2*mu2**2*(mu1**2 + mu2**2)/8
+      lmax: 6
+      l1max: 4
+      l2max: 4
+    '121':
+      F: -k**2*mu1**2*mu2**2*(mu1**2 + mu2**2)/8
+      lmax: 6
+      l1max: 4
+      l2max: 4
+    '122':
+      F: -77*mu1**2*mu2**2*(mu1**2 + mu2**2)/64
+      lmax: 6
+      l1max: 4
+      l2max: 4
+    '123':
+      F: -77*mu1**3*mu2**3/64
+      lmax: 6
+      l1max: 3
+      l2max: 3
+      N_prefactor: -2*cos(theta)
+    '124':
+      F: 21*mu1**2*mu2**2*(mu1**2 + mu2**2)/32
+      lmax: 6
+      l1max: 4
+      l2max: 4
+    '125':
+      F: 21*mu1**3*mu2**3/32
+      lmax: 6
+      l1max: 3
+      l2max: 3
+      N_prefactor: -2*cos(theta)
+    '126':
+      F: 35*mu1**2*mu2**2*(mu1**2 + mu2**2)/64
+      lmax: 6
+      l1max: 4
+      l2max: 4
+    '127':
+      F: 35*mu1**3*mu2**3/64
+      lmax: 6
+      l1max: 3
+      l2max: 3
+      N_prefactor: -2*cos(theta)
+  gv:
+    '0':
+      F: mu2/k
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '1':
+      F: 2*mu2/k
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '2':
+      F: 2*mu2/k
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '3':
+      F: 6*k*mu2
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '4':
+      F: 6*k*mu2
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '5':
+      F: -mu2/k
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '6':
+      F: -mu2/k
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '7':
+      F: -mu2/k
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '8':
+      F: -mu2/k
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '9':
+      F: -mu2/k
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '10':
+      F: mu2/k
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '11':
+      F: mu2**3/k
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '12':
+      F: 2*k*mu2
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '13':
+      F: 2*k*mu2**3
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '14':
+      F: -k*mu2
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '15':
+      F: -k*mu2
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '16':
+      F: -k*mu2
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '17':
+      F: -2*k*mu2
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '18':
+      F: -6*k**3*mu2
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '19':
+      F: -k*mu2/2
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '20':
+      F: -k*mu2/2
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '21':
+      F: -k*mu2/2
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '22':
+      F: -k*mu2
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '23':
+      F: mu2/k
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '24':
+      F: mu2/k
+      lmax: 1
+      l1max: 0
+      l2max: 1
+    '25':
+      F: mu2**3/k
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '26':
+      F: mu2**3/k
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '27':
+      F: -3*k*mu2**3/2
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '28':
+      F: -3*k*mu2**3
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '29':
+      F: -3*k*mu2**3
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '30':
+      F: -9*k**3*mu2**3
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '31':
+      F: -9*k**3*mu2**3
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '32':
+      F: 3*k*mu2**3/2
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '33':
+      F: 3*k*mu2**3/2
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '34':
+      F: 3*k*mu2**3/2
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '35':
+      F: 3*k*mu2**3/2
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '36':
+      F: 3*k*mu2**3/2
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '37':
+      F: -k*mu2**3
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '38':
+      F: -k*mu2**5
+      lmax: 5
+      l1max: 0
+      l2max: 5
+    '39':
+      F: -2*k**3*mu2**3
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '40':
+      F: -2*k**3*mu2**5
+      lmax: 5
+      l1max: 0
+      l2max: 5
+    '41':
+      F: k**3*mu2**3/2
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '42':
+      F: k**3*mu2**3/2
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '43':
+      F: k**3*mu2**3/2
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '44':
+      F: k**3*mu2**3
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '45':
+      F: 3*k**5*mu2**3
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '46':
+      F: k**3*mu2**3/4
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '47':
+      F: k**3*mu2**3/4
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '48':
+      F: k**3*mu2**3/4
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '49':
+      F: k**3*mu2**3/2
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '50':
+      F: k**3*mu2**3/2
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '51':
+      F: k**3*mu2**3/2
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '52':
+      F: k**3*mu2**3/2
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '53':
+      F: k**3*mu2**3
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '54':
+      F: 3*k**5*mu2**3
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '55':
+      F: k**3*mu2**3/4
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '56':
+      F: k**3*mu2**3/4
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '57':
+      F: k**3*mu2**3/4
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '58':
+      F: k**3*mu2**3/2
+      lmax: 3
+      l1max: 0
+      l2max: 3
+    '59':
+      F: mu1**2*mu2/k
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '60':
+      F: 2*mu1**2*mu2/k
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '61':
+      F: 2*mu1**2*mu2/k
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '62':
+      F: mu1/k
+      lmax: 1
+      l1max: 1
+      l2max: 0
+      N_prefactor: cos(theta)
+    '63':
+      F: mu1**2*mu2/k
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '64':
+      F: 6*k*mu1**2*mu2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '65':
+      F: 6*k*mu1**2*mu2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '66':
+      F: 3*mu1**2*mu2/(2*k)
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '67':
+      F: mu1**2*mu2*(mu1**2 + 2*mu2**2)/(2*k)
+      lmax: 5
+      l1max: 4
+      l2max: 3
+    '68':
+      F: -3*mu1**2*mu2/(2*k)
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '69':
+      F: -mu1**2*mu2*(mu1**2 + 2*mu2**2)/(2*k)
+      lmax: 5
+      l1max: 4
+      l2max: 3
+    '70':
+      F: 3*k*mu1**2*mu2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '71':
+      F: k*mu1**2*mu2*(mu1**2 + 2*mu2**2)
+      lmax: 5
+      l1max: 4
+      l2max: 3
+    '72':
+      F: -3*k*mu1**2*mu2/2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '73':
+      F: -3*k*mu1**2*mu2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '74':
+      F: -3*k*mu1**2*mu2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '75':
+      F: -9*k**3*mu1**2*mu2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '76':
+      F: -9*k**3*mu1**2*mu2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '77':
+      F: 3*k*mu1**2*mu2/2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '78':
+      F: 3*k*mu1**2*mu2/2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '79':
+      F: 3*k*mu1**2*mu2/2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '80':
+      F: 3*k*mu1**2*mu2/2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '81':
+      F: 3*k*mu1**2*mu2/2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '82':
+      F: 3*k*mu1**2*mu2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '83':
+      F: 9*k**3*mu1**2*mu2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '84':
+      F: 3*mu1**2*mu2/(2*k)
+      lmax: 3
+      l1max: 2
+      l2max: 1
+      N_prefactor: '-2'
+    '85':
+      F: mu1*(mu1**2 + 2*mu2**2)/(2*k)
+      lmax: 3
+      l1max: 3
+      l2max: 2
+      N_prefactor: 2*cos(theta)
+    '86':
+      F: -k*mu1**2*mu2*(mu1**2 + 3*mu2**2)/2
+      lmax: 5
+      l1max: 4
+      l2max: 3
+    '87':
+      F: -k*mu1**2*mu2*(mu1**2 + 3*mu2**2)
+      lmax: 5
+      l1max: 4
+      l2max: 3
+    '88':
+      F: -k*mu1**2*mu2*(mu1**2 + 3*mu2**2)
+      lmax: 5
+      l1max: 4
+      l2max: 3
+    '89':
+      F: -3*k**3*mu1**2*mu2*(mu1**2 + 3*mu2**2)
+      lmax: 5
+      l1max: 4
+      l2max: 3
+    '90':
+      F: -3*k**3*mu1**2*mu2*(mu1**2 + 3*mu2**2)
+      lmax: 5
+      l1max: 4
+      l2max: 3
+    '91':
+      F: -k*mu1**2*mu2*(mu1**2 + 3*mu2**2)/2
+      lmax: 5
+      l1max: 4
+      l2max: 3
+    '92':
+      F: -k*mu1*(mu1**2 + 3*mu2**2)/2
+      lmax: 3
+      l1max: 3
+      l2max: 2
+      N_prefactor: cos(theta)
+    '93':
+      F: mu1**2*mu2/(2*k)
+      lmax: 3
+      l1max: 2
+      l2max: 1
+      N_prefactor: cos(theta)**2/6 + 1/12
+    '94':
+      F: mu1**3*mu2**2/(2*k)
+      lmax: 5
+      l1max: 3
+      l2max: 2
+      N_prefactor: cos(theta)/2
+    '95':
+      F: mu1**4*mu2**3/(8*k)
+      lmax: 7
+      l1max: 4
+      l2max: 3
+    '96':
+      F: 3*k**3*mu1**2*mu2/2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '97':
+      F: 3*k**3*mu1**2*mu2/2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '98':
+      F: 3*k**3*mu1**2*mu2/2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '99':
+      F: 3*k**3*mu1**2*mu2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '100':
+      F: 9*k**5*mu1**2*mu2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '101':
+      F: 3*k**3*mu1**2*mu2/4
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '102':
+      F: 3*k**3*mu1**2*mu2/4
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '103':
+      F: 3*k**3*mu1**2*mu2/4
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '104':
+      F: 3*k**3*mu1**2*mu2/2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '105':
+      F: -k*mu1**2*mu2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '106':
+      F: -k*mu1**2*mu2*(mu1**2 + mu2**2)/2
+      lmax: 5
+      l1max: 4
+      l2max: 3
+    '107':
+      F: -2*k**3*mu1**2*mu2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '108':
+      F: -k**3*mu1**2*mu2*(mu1**2 + mu2**2)
+      lmax: 5
+      l1max: 4
+      l2max: 3
+    '109':
+      F: -k*mu1**2*mu2/2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '110':
+      F: -k*mu1**2*mu2/2
+      lmax: 3
+      l1max: 2
+      l2max: 1
+    '111':
+      F: -k*mu1**2*mu2*(mu1**2 + mu2**2)/4
+      lmax: 5
+      l1max: 4
+      l2max: 3
+    '112':
+      F: -k*mu1**2*mu2*(mu1**2 + mu2**2)/4
+      lmax: 5
+      l1max: 4
+      l2max: 3
+    '113':
+      F: -77*mu1**2*mu2*(mu1**2 + mu2**2)/(32*k)
+      lmax: 5
+      l1max: 4
+      l2max: 3
+    '114':
+      F: -77*mu1**3*mu2**2/(32*k)
+      lmax: 5
+      l1max: 3
+      l2max: 2
+      N_prefactor: -2*cos(theta)
+    '115':
+      F: 21*mu1**2*mu2*(mu1**2 + mu2**2)/(16*k)
+      lmax: 5
+      l1max: 4
+      l2max: 3
+    '116':
+      F: 21*mu1**3*mu2**2/(16*k)
+      lmax: 5
+      l1max: 3
+      l2max: 2
+      N_prefactor: -2*cos(theta)
+    '117':
+      F: 35*mu1**2*mu2*(mu1**2 + mu2**2)/(32*k)
+      lmax: 5
+      l1max: 4
+      l2max: 3
+    '118':
+      F: 35*mu1**3*mu2**2/(32*k)
+      lmax: 5
+      l1max: 3
+      l2max: 2
+      N_prefactor: -2*cos(theta)
+  vv:
+    '0':
+      F: mu1*mu2/k**2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '1':
+      F: 2*mu1*mu2/k**2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '2':
+      F: 4*mu1*mu2/k**2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '3':
+      F: k**(-2)
+      lmax: 0
+      l1max: 0
+      l2max: 0
+      N_prefactor: cos(theta)
+    '4':
+      F: mu1*mu2/k**2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '5':
+      F: 12*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '6':
+      F: 6*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '7':
+      F: 2*mu1*mu2/k**2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '8':
+      F: mu1*mu2*(mu1**2 + mu2**2)/k**2
+      lmax: 4
+      l1max: 3
+      l2max: 3
+    '9':
+      F: -2*mu1*mu2/k**2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '10':
+      F: -mu1*mu2*(mu1**2 + mu2**2)/k**2
+      lmax: 4
+      l1max: 3
+      l2max: 3
+    '11':
+      F: 4*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '12':
+      F: 2*mu1*mu2*(mu1**2 + mu2**2)
+      lmax: 4
+      l1max: 3
+      l2max: 3
+    '13':
+      F: -2*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '14':
+      F: -4*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '15':
+      F: -4*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '16':
+      F: -12*k**2*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '17':
+      F: -12*k**2*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '18':
+      F: 2*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '19':
+      F: 2*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '20':
+      F: 2*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '21':
+      F: 2*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '22':
+      F: 2*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '23':
+      F: 4*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '24':
+      F: 12*k**2*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '25':
+      F: 2*mu1*mu2/k**2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+      N_prefactor: '-2'
+    '26':
+      F: (mu1**2 + mu2**2)/k**2
+      lmax: 2
+      l1max: 2
+      l2max: 2
+      N_prefactor: 2*cos(theta)
+    '27':
+      F: -3*mu1*mu2*(mu1**2 + mu2**2)/2
+      lmax: 4
+      l1max: 3
+      l2max: 3
+    '28':
+      F: -3*mu1*mu2*(mu1**2 + mu2**2)
+      lmax: 4
+      l1max: 3
+      l2max: 3
+    '29':
+      F: -6*mu1*mu2*(mu1**2 + mu2**2)
+      lmax: 4
+      l1max: 3
+      l2max: 3
+    '30':
+      F: -9*k**2*mu1*mu2*(mu1**2 + mu2**2)
+      lmax: 4
+      l1max: 3
+      l2max: 3
+    '31':
+      F: -18*k**2*mu1*mu2*(mu1**2 + mu2**2)
+      lmax: 4
+      l1max: 3
+      l2max: 3
+    '32':
+      F: -3*mu1*mu2*(mu1**2 + mu2**2)/2
+      lmax: 4
+      l1max: 3
+      l2max: 3
+    '33':
+      F: -3*mu1**2/2 - 3*mu2**2/2
+      lmax: 2
+      l1max: 2
+      l2max: 2
+      N_prefactor: cos(theta)
+    '34':
+      F: mu1*mu2/k**2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+      N_prefactor: cos(theta)**2/6 + 1/12
+    '35':
+      F: mu1**2*mu2**2/k**2
+      lmax: 4
+      l1max: 2
+      l2max: 2
+      N_prefactor: cos(theta)/2
+    '36':
+      F: mu1**3*mu2**3/(4*k**2)
+      lmax: 6
+      l1max: 3
+      l2max: 3
+    '37':
+      F: 3*k**2*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '38':
+      F: 6*k**2*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '39':
+      F: 6*k**2*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '40':
+      F: 6*k**2*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '41':
+      F: 18*k**4*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '42':
+      F: 3*k**2*mu1*mu2/2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '43':
+      F: 3*k**2*mu1*mu2/2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '44':
+      F: 3*k**2*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '45':
+      F: 6*k**2*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '46':
+      F: -2*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '47':
+      F: -mu1*mu2*(mu1**2 + mu2**2)
+      lmax: 4
+      l1max: 3
+      l2max: 3
+    '48':
+      F: -4*k**2*mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '49':
+      F: -2*k**2*mu1*mu2*(mu1**2 + mu2**2)
+      lmax: 4
+      l1max: 3
+      l2max: 3
+    '50':
+      F: -mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '51':
+      F: -mu1*mu2
+      lmax: 2
+      l1max: 1
+      l2max: 1
+    '52':
+      F: -mu1*mu2*(mu1**2 + mu2**2)/2
+      lmax: 4
+      l1max: 3
+      l2max: 3
+    '53':
+      F: -mu1*mu2*(mu1**2 + mu2**2)/2
+      lmax: 4
+      l1max: 3
+      l2max: 3
+    '54':
+      F: -77*mu1*mu2*(mu1**2 + mu2**2)/(16*k**2)
+      lmax: 4
+      l1max: 3
+      l2max: 3
+    '55':
+      F: -77*mu1**2*mu2**2/(16*k**2)
+      lmax: 4
+      l1max: 2
+      l2max: 2
+      N_prefactor: -2*cos(theta)
+    '56':
+      F: 21*mu1*mu2*(mu1**2 + mu2**2)/(8*k**2)
+      lmax: 4
+      l1max: 3
+      l2max: 3
+    '57':
+      F: 21*mu1**2*mu2**2/(8*k**2)
+      lmax: 4
+      l1max: 2
+      l2max: 2
+      N_prefactor: -2*cos(theta)
+    '58':
+      F: 35*mu1*mu2*(mu1**2 + mu2**2)/(16*k**2)
+      lmax: 4
+      l1max: 3
+      l2max: 3
+    '59':
+      F: 35*mu1**2*mu2**2/(16*k**2)
+      lmax: 4
+      l1max: 2
+      l2max: 2
+      N_prefactor: -2*cos(theta)

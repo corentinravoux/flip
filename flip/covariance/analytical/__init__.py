@@ -13,6 +13,7 @@ if not __minimal__:
         ravouxcarreres,
         ravouxnoanchor25,
         ravouxqin26,
+        ravouxqinwa26,
         rcrk24,
         symbolic,
     )

@@ -1,8 +1,8 @@
-# Fisher partial-derivative generator configuration.
+# Fisher partial-derivative generator configuration: Lai et al. 2022.
 # Each variant lists its parameters (Fisher matrix order) and the coefficients w_ab,n,
 # keyed by the term indices n of flip_terms.yml. null = default variant.
-# Regenerate with flip.covariance.analytical.symbolic.generate_fisher_terms("fisher_terms.yml").
-# gv terms 1_m of growth_index and null variants follow lai22/coefficients.py (b f beta_f), fixed 2026-11-06.
+# Written by flip.covariance.analytical.lai22.yaml_generator.write_lai22_yaml, do not edit by hand.
+# Regenerate fisher_terms.py with symbolic.generate_fisher_terms("fisher_terms.yml").
 variants:
   growth_index:
     parameters:

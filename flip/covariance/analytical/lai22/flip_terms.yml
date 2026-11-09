@@ -1,5 +1,6 @@
 # flip_terms generator configuration: Lai et al. 2022.
-# Regenerate with flip.covariance.analytical.symbolic.generate_flip_terms("flip_terms.yml").
+# Written by flip.covariance.analytical.lai22.yaml_generator.write_lai22_yaml, do not edit by hand.
+# Regenerate flip_terms.py with symbolic.generate_flip_terms("flip_terms.yml").
 wide_angle: true
 additional_parameters: []
 multi_index_model: true

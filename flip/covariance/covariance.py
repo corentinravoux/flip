@@ -35,6 +35,14 @@ _available_generation_methods = [
     "cholesky",
 ]
 
+# covariance blocks of each model kind; gv comes last (it needs the gg and vv sizes)
+_blocks_per_kind = {
+    "density": ["gg"],
+    "velocity": ["vv"],
+    "density_velocity": ["gg", "vv"],
+    "full": ["gg", "vv", "gv"],
+}
+
 
 def _read_free_par(
     model_name,
@@ -116,14 +124,7 @@ def compute_covariance_sum(
     Returns:
         array-like: Total covariance matrix `C`.
     """
-    if kind == "density":
-        keys = ["gg"]
-    elif kind == "velocity":
-        keys = ["vv"]
-    elif kind == "density_velocity":
-        keys = ["gg", "vv"]
-    elif kind == "full":
-        keys = ["gg", "vv", "gv"]
+    keys = _blocks_per_kind[kind]
 
     covariance_sum_ = {}
     number_tracers = []
@@ -967,3 +968,453 @@ class CovMatrix:
             emulator_flag=self.emulator_flag,
             covariance_prefactor_dict=self.covariance_prefactor_dict,
         )
+
+
+class ProjectedCovariance:
+    r"""Signal terms of a `CovMatrix` projected on a fixed basis.
+
+    flip assembles $C(\theta) = \sum_n a_n(\theta) C_n + D(\theta)$, with $D$ the
+    diagonal of data variance and diagonal coefficients, and factorises it densely at
+    every call. Here the signal terms are projected once on a basis chosen at fiducial
+    parameters, so that every call only involves $K \times K$ matrices:
+
+    - whitened fiducial signal $D_0^{-1/2} S_0 D_0^{-1/2} = V \Lambda V^T$; the modes with
+      signal-to-noise $\lambda_k > s$ are kept,
+    - $\Phi = D_0^{1/2} V_K$ and $\Psi = D_0^{-1/2} V_K$ (so $\Psi^T \Phi = I$),
+    - $W_n = \Psi^T C_n \Psi$ and the diagonal remainders
+      $r_n = \mathrm{diag}(C_n - \Phi W_n \Phi^T)$, precomputed.
+
+    Per call, $C(\theta) \simeq \hat D + \Phi W \Phi^T$ with $W = \sum_n a_n W_n$ and
+    $\hat D = D + \max(\sum_n a_n r_n, 0)$, evaluated with the Woodbury identity in a
+    form that never inverts $W$ (see
+    `flip.covariance.likelihood.log_likelihood_gaussian_woodbury`).
+
+    The projection is a local approximation: it is accurate for coefficients close to
+    the fiducial ones, not for any linear combination of the terms. Supported: scalar
+    coefficients, fixed per-object coefficients (genericzdep; not rcrk24, whose
+    coefficients depend on the parameters), a diagonal or a fixed 2D data variance,
+    exact densities (`exact_density`), and a shared basis along an interpolation grid
+    (`basis`). The derivation is in the note
+    ``woodbury_maths.pdf`` (flip-woodbury feasibility report, 2026-11-03).
+
+    Attributes:
+        covariance (CovMatrix): Source covariance, in matrix form.
+        blocks (list[str]): Covariance blocks of the model kind.
+        terms (list[tuple[str, int]]): `(block, index)` of every term, in coefficient order.
+        number_densities (int): Number of density entries.
+        number_velocities (int): Number of velocity entries.
+        eigenvalues (numpy.ndarray): Whitened S/N spectrum of the basis signal, decreasing.
+        k (int): Number of kept modes.
+        phi (array-like): Basis $\Phi$, shape `(N, K)`.
+        w_terms (array-like): Projected terms $W_n$, shape `(n_terms, K, K)`.
+        remainder_terms (array-like): Diagonal remainders $r_n$, shape `(n_terms, N)`.
+        remainder (bool): Whether the diagonal remainder correction is applied.
+        rotation (array-like or None): Rotation $Q$ of a fixed 2D data variance.
+        rotated_variance (array-like or None): Its eigenvalues $\lambda$.
+    """
+
+    def __init__(
+        self,
+        covariance,
+        parameter_values_fiducial,
+        vector_variance_fiducial,
+        snr_min=0.01,
+        k=None,
+        remainder=True,
+        exact_density=False,
+        basis=None,
+    ):
+        """Build the basis and project every term.
+
+        Args:
+            covariance (CovMatrix): Covariance with analytical terms (no emulator).
+            parameter_values_fiducial (dict or list[dict]): Fiducial parameters. A list
+                builds the basis from several design points: the whitening noise is
+                the smallest diagonal noise over the points and the basis signal is
+                the sum of their signals.
+            vector_variance_fiducial (array-like or list): Data variance at the
+                fiducial point(s): shape `(N,)`, or a fixed `(N, N)` matrix that does
+                not depend on the parameters. One per design point if a list.
+            snr_min (float): Keep the whitened modes with S/N above this threshold.
+            k (int, optional): Number of kept modes; overrides `snr_min`.
+            remainder (bool): Apply the diagonal remainder correction.
+            exact_density (bool): Keep every density entry exactly and truncate only
+                the velocity block (hybrid: density cells are signal dominated and do
+                not compress). `snr_min`, `k` and `eigenvalues` then refer to the
+                velocity modes only.
+            basis (ProjectedCovariance, optional): Reuse the basis of another projection
+                instead of building one (`snr_min`, `k` and `exact_density` are then
+                ignored). Used along an interpolation grid.
+
+        Raises:
+            NotImplementedError: For emulated covariances, a 2D data variance coupling
+                densities and velocities, or per-object (N x N) coefficients that
+                depend on the parameters.
+        """
+        if covariance.emulator_flag:
+            raise NotImplementedError(
+                "Projection of emulated covariances is not supported"
+            )
+        if not covariance.matrix_form:
+            covariance.compute_matrix_covariance()
+
+        self.covariance = covariance
+        self.blocks = _blocks_per_kind[covariance.model_kind]
+        self.remainder = remainder
+        self.number_densities = (
+            covariance.number_densities if "gg" in self.blocks else 0
+        )
+        self.number_velocities = (
+            covariance.number_velocities if "vv" in self.blocks else 0
+        )
+        self.terms = [
+            (block, i)
+            for block in self.blocks
+            for i in range(np.shape(covariance.covariance_dict[block])[0])
+        ]
+        # (rows, columns) of each block in the full matrix
+        density = slice(0, self.number_densities)
+        velocity = slice(self.number_densities, self.size)
+        self._block_slices = {
+            "gg": (density, density),
+            "vv": (velocity, velocity),
+            "gv": (density, velocity),
+        }
+
+        if isinstance(parameter_values_fiducial, dict):
+            parameter_values_fiducial = [parameter_values_fiducial]
+            vector_variance_fiducial = [vector_variance_fiducial]
+        vector_variance_fiducial = [
+            np.asarray(v, dtype=float) for v in vector_variance_fiducial
+        ]
+
+        # Fixed per-object (N x N) coefficients are folded into the terms
+        self._per_object_coefficients = None
+        reference = self._coefficients_dict(parameter_values_fiducial[0])
+        if any(reference[block].ndim > 1 for block in self.blocks):
+            self._init_per_object_coefficients(reference, parameter_values_fiducial[0])
+
+        if basis is None:
+            self._build_basis(
+                parameter_values_fiducial,
+                vector_variance_fiducial,
+                snr_min,
+                k,
+                exact_density,
+            )
+        else:
+            # share the basis and frame of another projection (interpolation grid)
+            for name in (
+                "rotation",
+                "rotated_variance",
+                "eigenvalues",
+                "k",
+                "phi",
+                "_whitening",
+            ):
+                setattr(self, name, getattr(basis, name))
+        self._project_terms()
+
+    def _build_basis(
+        self,
+        parameter_values_fiducial,
+        vector_variance_fiducial,
+        snr_min,
+        k,
+        exact_density,
+    ):
+        """Set `phi`, `k`, `eigenvalues`, the whitening and, for a 2D variance, the rotation."""
+        # A fixed 2D data variance V = Q diag(lambda) Q^T: the projection is built in the
+        # Q frame, where the noise lambda + diagonal coefficients is diagonal again
+        self.rotation, self.rotated_variance = None, None
+        if vector_variance_fiducial[0].ndim == 2:
+            self.rotation, self.rotated_variance = self._diagonalise(
+                vector_variance_fiducial[0]
+            )
+            vector_variance_fiducial = [self.rotated_variance] * len(
+                parameter_values_fiducial
+            )
+
+        # Whitening noise: the smallest diagonal noise over the design points
+        noise = [
+            vector_variance + np.asarray(self.diagonal(parameter_values_dict))
+            for parameter_values_dict, vector_variance in zip(
+                parameter_values_fiducial, vector_variance_fiducial
+            )
+        ]
+        self._whitening = 1.0 / np.sqrt(np.min(noise, axis=0))
+
+        # Basis: top whitened eigenmodes of the summed fiducial signal
+        signal = np.zeros((self.size, self.size))
+        for parameter_values_dict in parameter_values_fiducial:
+            signal += np.asarray(
+                self._signal(self._coefficients_dict(parameter_values_dict))
+            )
+        if self.rotation is not None:
+            signal = self.rotation.T @ signal @ self.rotation
+        signal *= self._whitening[:, None]
+        signal *= self._whitening[None, :]
+        if exact_density:
+            if "gg" not in self.blocks or "vv" not in self.blocks:
+                raise ValueError(
+                    "exact_density needs a model with densities and velocities"
+                )
+            velocity = self._block_slices["vv"][0]
+            signal = signal[velocity, velocity]
+        eigenvalues, eigenvectors = np.linalg.eigh(signal)
+        del signal
+        self.eigenvalues = eigenvalues[::-1]
+
+        number_modes = int(np.sum(self.eigenvalues > snr_min)) if k is None else int(k)
+        number_modes = max(number_modes, 1)
+        if k is None and number_modes > self.eigenvalues.size / 10:
+            log.add(
+                f"Projected covariance keeps {number_modes} of {self.eigenvalues.size} modes: "
+                "the data are signal dominated and the projection gains little."
+            )
+        basis = eigenvectors[:, ::-1][:, :number_modes]
+        if exact_density:
+            # [density unit vectors, velocity modes], in the whitened frame
+            basis = np.block(
+                [
+                    [
+                        np.eye(self.number_densities),
+                        np.zeros((self.number_densities, number_modes)),
+                    ],
+                    [np.zeros((self.number_velocities, self.number_densities)), basis],
+                ]
+            )
+        self.k = basis.shape[1]
+        self.phi = jnp.array(basis / self._whitening[:, None])
+        if self.rotation is not None:
+            self.rotation = jnp.array(self.rotation)
+            self.rotated_variance = jnp.array(self.rotated_variance)
+
+    def _project_terms(self):
+        """Set the projected terms $W_n = \\Psi^T C_n \\Psi$ and their diagonal remainders."""
+        phi = np.asarray(self.phi)
+        psi = phi * self._whitening[:, None] ** 2
+        rotation = None if self.rotation is None else np.asarray(self.rotation)
+        # Psi in the original frame, to project the terms as stored
+        psi_terms = psi if rotation is None else rotation @ psi
+
+        w_terms, remainder_terms = [], []
+        for block, i in self.terms:
+            term = np.asarray(self.covariance.covariance_dict[block][i])
+            if self._per_object_coefficients is not None:
+                term = term * self._per_object_coefficients[i]
+            rows, columns = self._block_slices[block]
+            w_n = psi_terms[rows].T @ term @ psi_terms[columns]
+            # gv enters as [[0, B], [B^T, 0]]: both off-diagonal blocks project
+            w_n = w_n + w_n.T if block == "gv" else 0.5 * (w_n + w_n.T)
+            w_terms.append(w_n)
+            if self.remainder:
+                # diagonal of the term in the frame of the projection (none for gv)
+                diagonal_n = np.zeros(self.size)
+                if block != "gv":
+                    if rotation is None:
+                        diagonal_n[rows] = np.diag(term)
+                    else:
+                        # diagonal of Q^T C_n Q on the block (Q is block diagonal)
+                        rotation_block = rotation[rows, rows]
+                        diagonal_n[rows] = np.sum(
+                            rotation_block * (term @ rotation_block), axis=0
+                        )
+                remainder_terms.append(diagonal_n - np.sum((phi @ w_n) * phi, axis=1))
+
+        self.w_terms = jnp.array(np.array(w_terms))
+        self.remainder_terms = (
+            jnp.array(np.array(remainder_terms)) if self.remainder else None
+        )
+
+    @classmethod
+    def init_from_data(cls, covariance, data, parameter_values_fiducial, **kwargs):
+        """Build the projection with the data variance of `data` at the fiducial point(s).
+
+        Args:
+            covariance (CovMatrix): Covariance with analytical terms.
+            data (DataVector): Data vector providing `give_data_and_variance`.
+            parameter_values_fiducial (dict or list[dict]): Fiducial point(s).
+            **kwargs: Other arguments of `ProjectedCovariance` (`snr_min`, `k`,
+                `remainder`, `exact_density`, `basis`).
+
+        Returns:
+            ProjectedCovariance: The projection.
+
+        Raises:
+            NotImplementedError: If a 2D data variance depends on the parameters.
+        """
+        if isinstance(parameter_values_fiducial, dict):
+            parameter_values_fiducial = [parameter_values_fiducial]
+        vector_variance_fiducial = [
+            data.give_data_and_variance(parameter_values_dict)[1]
+            for parameter_values_dict in parameter_values_fiducial
+        ]
+        if np.ndim(vector_variance_fiducial[0]) == 2:
+            # a 2D data variance is supported only if it is fixed
+            perturbed = cls._perturbed_parameters(parameter_values_fiducial[0])
+            if not np.allclose(
+                data.give_data_and_variance(perturbed)[1], vector_variance_fiducial[0]
+            ):
+                raise NotImplementedError(
+                    "The 2D data variance depends on the parameters: use the dense likelihood"
+                )
+        return cls(
+            covariance, parameter_values_fiducial, vector_variance_fiducial, **kwargs
+        )
+
+    @property
+    def free_par(self):
+        """list[str]: Free parameters of the covariance model."""
+        return self.covariance.free_par
+
+    @property
+    def size(self):
+        """int: Size `N` of the data vector."""
+        return self.number_densities + self.number_velocities
+
+    def _diagonalise(self, vector_variance):
+        """Eigendecomposition of a 2D data variance, block by block.
+
+        Returns:
+            tuple: Block-diagonal rotation `Q` of shape `(N, N)` and the eigenvalues
+            `lambda`, with `vector_variance = Q diag(lambda) Q^T`.
+
+        Raises:
+            NotImplementedError: If the variance couples densities and velocities.
+        """
+        density, velocity = self._block_slices["gv"]
+        if np.any(vector_variance[density, velocity]):
+            raise NotImplementedError(
+                "A 2D data variance coupling densities and velocities is not supported"
+            )
+        rotation = np.zeros_like(vector_variance)
+        eigenvalues = np.zeros(self.size)
+        for rows in (density, velocity):
+            if rows.stop > rows.start:
+                eigenvalues[rows], rotation[rows, rows] = np.linalg.eigh(
+                    vector_variance[rows, rows]
+                )
+        return rotation, eigenvalues
+
+    def to_frame(self, vector):
+        """Data vector in the frame of the projection (rotated for a 2D data variance)."""
+        return vector if self.rotation is None else self.rotation.T @ vector
+
+    @staticmethod
+    def _perturbed_parameters(parameter_values_dict):
+        """Parameter values all moved away from `parameter_values_dict` (zeros included).
+
+        Used to check that a quantity (coefficients, 2D data variance) does not depend
+        on the parameters.
+        """
+        return {k: 1.1 * v + 0.1 for k, v in parameter_values_dict.items()}
+
+    def _init_per_object_coefficients(self, reference, parameter_values_dict):
+        """Per-object (N x N) coefficients that do not depend on the parameters.
+
+        They are folded into the terms once, with unit coefficients (genericzdep).
+        Velocity models only.
+
+        Raises:
+            NotImplementedError: For another model kind, or coefficients that depend
+                on the parameters (e.g. rcrk24): use the dense likelihood.
+        """
+        if self.blocks != ["vv"]:
+            raise NotImplementedError(
+                "Per-object coefficients are supported for velocity models only"
+            )
+        perturbed = self._coefficients_dict(
+            self._perturbed_parameters(parameter_values_dict)
+        )
+        if not np.allclose(perturbed["vv"], reference["vv"]):
+            raise NotImplementedError(
+                "Per-object coefficients that depend on the parameters are not "
+                "supported by the projected covariance: use the dense likelihood"
+            )
+        self._per_object_coefficients = np.asarray(reference["vv"])
+
+    def _coefficients_dict(self, parameter_values_dict):
+        """Coefficients per block, as returned by the model."""
+        return {
+            block: jnp.array(coefficient)
+            for block, coefficient in self.covariance.coefficients.get_coefficients(
+                parameter_values_dict,
+                self.covariance.model_kind,
+                variant=self.covariance.variant,
+                covariance_prefactor_dict=self.covariance.covariance_prefactor_dict,
+            ).items()
+        }
+
+    def _signal(self, coefficients_dict):
+        """Dense signal $\\sum_n a_n C_n$ without noise, used once to build the basis."""
+        return compute_covariance_sum(
+            self.covariance.covariance_dict,
+            coefficients_dict,
+            {},
+            np.zeros(self.size),
+            kind=self.covariance.model_kind,
+        )
+
+    def coefficients(self, parameter_values_dict):
+        """Scalar coefficients $a_n(\\theta)$ in the order of `terms`.
+
+        Args:
+            parameter_values_dict (dict): Parameter values.
+
+        Returns:
+            array-like: Coefficients, shape `(n_terms,)`. Ones for fixed per-object
+            coefficients, which are folded into the terms.
+        """
+        if self._per_object_coefficients is not None:
+            return jnp.ones(len(self.terms))
+        coefficients_dict = self._coefficients_dict(parameter_values_dict)
+        return jnp.concatenate(
+            [jnp.atleast_1d(coefficients_dict[block]) for block in self.blocks]
+        )
+
+    def diagonal(self, parameter_values_dict):
+        """Diagonal coefficients (e.g. $\\sigma_v^2$ on vv) as a vector of size `N`.
+
+        Args:
+            parameter_values_dict (dict): Parameter values.
+
+        Returns:
+            array-like: Diagonal noise from the model, shape `(N,)`.
+        """
+        diagonal_dict = self.covariance.coefficients.get_diagonal_coefficients(
+            parameter_values_dict, self.covariance.model_kind
+        )
+        return jnp.concatenate(
+            [
+                diagonal_dict.get("gg", 0.0) * jnp.ones(self.number_densities),
+                diagonal_dict.get("vv", 0.0) * jnp.ones(self.number_velocities),
+            ]
+        )
+
+    def compute_projected_covariance(self, parameter_values_dict, vector_variance):
+        """Projected covariance at given parameters: $C \\simeq \\hat D + \\Phi W \\Phi^T$.
+
+        Counterpart of `compute_covariance_sum` for the dense path: it returns the
+        covariance, the likelihood is evaluated in `flip.covariance.likelihood`.
+
+        Args:
+            parameter_values_dict (dict): Parameter values.
+            vector_variance (array-like): Diagonal data variance, shape `(N,)`. Not
+                used for a fixed 2D data variance, which is stored at construction.
+
+        Returns:
+            tuple: `(w, noise)`, with $W = \\sum_n a_n W_n$ of shape `(K, K)` and the
+            diagonal noise $\\hat D$ (data variance, diagonal coefficients and, if
+            `remainder`, the clipped diagonal remainder) of shape `(N,)`, in the frame
+            of the projection (see `to_frame`).
+        """
+        if self.rotation is not None:
+            # fixed 2D data variance, diagonal in the frame of the projection
+            vector_variance = self.rotated_variance
+        coefficients = self.coefficients(parameter_values_dict)
+        w = jnp.tensordot(coefficients, self.w_terms, axes=1)
+        noise = vector_variance + self.diagonal(parameter_values_dict)
+        if self.remainder:
+            noise = noise + jnp.clip(coefficients @ self.remainder_terms, 0.0, None)
+        return w, noise

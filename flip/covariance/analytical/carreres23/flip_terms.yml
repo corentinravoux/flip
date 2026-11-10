@@ -1,0 +1,13 @@
+# flip_terms generator configuration: Carreres et al. 2023.
+# Regenerate with flip.covariance.analytical.symbolic.generate_flip_terms("flip_terms.yml").
+wide_angle: true
+additional_parameters: []
+multi_index_model: false
+regularize_M_terms: null
+terms:
+  vv:
+    '0':
+      F: 10000*mu1*mu2/k**2
+      lmax: 2
+      l1max: 1
+      l2max: 1

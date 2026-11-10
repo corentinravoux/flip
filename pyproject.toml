@@ -49,6 +49,8 @@ flip = [
     "data/*.txt",
     "data/*.json",
     "data/*.parquet",
-    "data/*.mplstyle"
+    "data/*.mplstyle",
+    "covariance/analytical/*/flip_terms.yml",
+    "covariance/analytical/*/fisher_terms.yml"
     ]
 

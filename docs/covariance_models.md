@@ -47,6 +47,7 @@ variants and the coordinate keys it needs.
 | `ravouxcarreres` | density + velocity | Ravoux & Carreres |
 | `ravouxnoanchor25` | velocity | no-anchor variant — fits `H0` instead of an anchor |
 | `ravouxqin26` | density + velocity | non-linear damping + full bias expansion, several variants |
+| `ravouxqinwa26` | density + velocity | wide-angle version of `ravouxqin26` (same parameters and variants) |
 | `genericzdep` | template | starting point for a new redshift-dependent model |
 
 ### Variants and free parameters

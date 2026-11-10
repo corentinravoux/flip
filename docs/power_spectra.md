@@ -50,7 +50,7 @@ The `power_spectrum_model` prescription turns the engine output into the mm / mt
 `normalization_power_spectrum` rescales the spectra:
 
 - `no_normalization` — leave the spectra as returned;
-- `growth_rate` — factor the growth rate $f\sigma_8$ out of the mt / tt terms;
+- `growth_rate` — multiply the mt / tt terms by the fiducial growth rate $f = f\sigma_8/\sigma_8$ ($f$ and $f^2$); mm unchanged;
 - `growth_amplitude` — divide all terms by $\sigma_8^2$.
 
 ## The power-spectrum dictionary

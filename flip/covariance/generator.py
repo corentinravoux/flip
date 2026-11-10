@@ -23,6 +23,7 @@ _avail_models = [
     "rcrk24",
     "genericzdep",
     "ravouxqin26",
+    "ravouxqinwa26",
 ]
 
 

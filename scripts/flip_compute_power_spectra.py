@@ -17,7 +17,7 @@ number_points = 1000
 logspace = True
 redshift = 0.0
 
-# Can be changed by "growth_rate" (fsigma_8^fid normalization) or "no_normalization"
+# "growth_rate": multiply mt / tt by fiducial f = fsigma_8/sigma_8; "no_normalization": raw spectra
 # Here, it normalize by sigma_8^fid
 normalization_power_spectrum = "growth_amplitude"
 

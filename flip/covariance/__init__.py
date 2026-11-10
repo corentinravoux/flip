@@ -23,6 +23,6 @@ else:
         generator,
         io,
         likelihood,
-        symbolic,
     )
+
 from .covariance import CovMatrix

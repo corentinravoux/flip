@@ -1,0 +1,19 @@
+# Fisher partial-derivative generator configuration.
+# Each variant lists its parameters (Fisher matrix order) and the coefficients w_ab,n,
+# keyed by the term indices n of flip_terms.yml. null = default variant.
+# Regenerate with flip.covariance.analytical.symbolic.generate_fisher_terms("fisher_terms.yml").
+variants:
+  growth_index:
+    parameters:
+    - Omegam
+    - gamma
+    - s8
+    coefficients:
+      vv:
+        '0': Omegam**(2*gamma)*s8**2
+  null:
+    parameters:
+    - fs8
+    coefficients:
+      vv:
+        '0': fs8**2

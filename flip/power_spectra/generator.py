@@ -101,7 +101,13 @@ def compute_power_spectra(
         maximal_wavenumber (float): Maximum $k$ in h/Mpc.
         number_points (int): Number of $k$ samples.
         logspace (bool): Sample $k$ in log-space if True.
-        normalization_power_spectrum (str): One of `_available_power_spectrum_normalizaton`.
+        normalization_power_spectrum (str): Rescaling applied to the spectra.
+            "no_normalization": spectra as computed.
+            "growth_rate": multiply P_mt by f_fid and P_tt by f_fid**2,
+                with f_fid = fsigma_8 / sigma_8 (fiducial). P_mm unchanged.
+                Not a normalisation: the fiducial f is applied, not removed.
+            "growth_amplitude": divide P_mm, P_mt, P_tt by sigma_8**2 (fiducial),
+                so the fitted fs8 / bs8 set the amplitude.
         power_spectrum_non_linear_model (str|None): Non-linear engine flag for CLASS.
         power_spectrum_model (str): One of `_available_power_spectrum_model`.
         save_path (str|None): Directory to save spectra.

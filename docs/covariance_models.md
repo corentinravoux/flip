@@ -30,6 +30,9 @@ Alternatively, a [data vector](DataVector.md) can build its own covariance direc
 !!! note
     Inside FLIP, RA/Dec are in **radians**, comoving distances in $\mathrm{Mpc}\,h^{-1}$, velocities in km/s
     and wavenumbers in $h\,\mathrm{Mpc}^{-1}$.
+    A warning is logged when the angles look like degrees (|dec| > π/2 or |ra| > 2π), and, for
+    data vectors holding both `rcom_zobs` and `zobs`, when the distances look like Mpc
+    (median of `rcom_zobs / (c zobs / 100)` above one, which is impossible in $\mathrm{Mpc}\,h^{-1}$).
 
 ## Available models
 

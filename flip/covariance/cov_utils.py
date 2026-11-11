@@ -443,3 +443,11 @@ def check_generator_need(model_kind, coordinates_density, coordinates_velocity):
             coordinates_density=coordinates_density,
             coordinates_velocity=coordinates_velocity,
         )
+    for name, coordinates in [
+        ("density coordinates", coordinates_density),
+        ("velocity coordinates", coordinates_velocity),
+    ]:
+        if coordinates is not None and len(coordinates) >= 2:
+            utils.check_coordinates_units(
+                ra=coordinates[0], dec=coordinates[1], name=name
+            )

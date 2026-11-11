@@ -281,9 +281,12 @@ class DirectVel(DataVector):
         return cond_keys
 
     def give_data_and_variance(self, *args):
+        velocity = vector_utils.subtract_zero_point_velocity(
+            self._data["velocity"], *args[:1]
+        )
         if self._covariance_observation is not None:
-            return self._data["velocity"], self._covariance_observation
-        return self._data["velocity"], self._data["velocity_error"] ** 2
+            return velocity, self._covariance_observation
+        return velocity, self._data["velocity_error"] ** 2
 
     def __init__(self, data, covariance_observation=None):
         super().__init__(data, covariance_observation=covariance_observation)
@@ -476,9 +479,12 @@ class DirectVelMesh(DirectVel, DensMesh):
             tuple: (velocity, velocity_error^2).
         """
 
+        velocity = vector_utils.subtract_zero_point_velocity(
+            self._data["velocity"], *args[:1]
+        )
         if self._covariance_observation is not None:
-            return self._data["velocity"], self._covariance_observation
-        return self._data["velocity"], self._data["velocity_error"] ** 2
+            return velocity, self._covariance_observation
+        return velocity, self._data["velocity_error"] ** 2
 
     def __init__(self, data, covariance_observation=None):
         super().__init__(data, covariance_observation=covariance_observation)
@@ -531,6 +537,9 @@ class VelFromHDres(DataVector):
         velocity = (
             distance_modulus_difference_to_velocity * self._data["dmu"]
             - distance_modulus_difference_to_velocity * parameter_values_dict["M_0"]
+        )
+        velocity = vector_utils.subtract_zero_point_velocity(
+            velocity, parameter_values_dict
         )
 
         if self._covariance_observation is None:

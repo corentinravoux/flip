@@ -165,6 +165,22 @@ def format_data_multiple_host(data, sparse_host_matrix):
     return data
 
 
+def subtract_zero_point_velocity(velocities, parameter_values_dict=None):
+    """Subtract the zero-point velocity `v0`, common to all objects, if it is fitted.
+
+    Args:
+        velocities (ndarray): Velocities, one per object or per group.
+        parameter_values_dict (dict|None): Parameter values. The velocities are
+            returned unchanged when it is None or does not contain `v0`.
+
+    Returns:
+        ndarray: `velocities - v0` when `v0` is given, `velocities` otherwise.
+    """
+    if parameter_values_dict is not None and "v0" in parameter_values_dict:
+        return velocities - parameter_values_dict["v0"]
+    return velocities
+
+
 def get_grouped_data_variance(sparse_host_matrix, velocities, velocity_variance):
     """Compute grouped velocities and their propagated variance.
 

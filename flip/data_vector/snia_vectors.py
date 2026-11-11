@@ -314,6 +314,10 @@ class VelTrippRelation(DataVector):
                 self._host_matrix, velocities, velocity_variance
             )
 
+        velocities = vector_utils.subtract_zero_point_velocity(
+            velocities, parameter_values_dict
+        )
+
         return velocities, velocity_variance
 
 
@@ -486,6 +490,10 @@ class VelCandleStandardized(DataVector):
             velocities, velocity_variance = vector_utils.get_grouped_data_variance(
                 self._host_matrix, velocities, velocity_variance
             )
+
+        velocities = vector_utils.subtract_zero_point_velocity(
+            velocities, parameter_values_dict
+        )
 
         return velocities, velocity_variance
 

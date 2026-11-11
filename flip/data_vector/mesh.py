@@ -613,6 +613,7 @@ def prepare_data_position(
     raobj = data_position_sky[:, 0]
     decobj = data_position_sky[:, 1]
     rcomobj = data_position_sky[:, 2]
+    utils.check_coordinates_units(ra=raobj, dec=decobj, name="data to grid")
     xobj, yobj, zobj = utils.spherical_to_cartesian(raobj, decobj, rcomobj)
     mask = jnp.abs(xobj) < rcom_max + overhead
     mask &= jnp.abs(yobj) < rcom_max + overhead

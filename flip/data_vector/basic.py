@@ -13,7 +13,7 @@ except ImportError:
 
 from flip._config import __use_jax__
 from flip.data_vector import mesh, mesh_utils
-from flip.utils import create_log
+from flip.utils import check_coordinates_units, create_log
 
 from . import vector_utils
 
@@ -135,6 +135,19 @@ class DataVector(abc.ABC):
         self.check_covariance_observation()
         self._data = copy.copy(data)
         self._kwargs = kwargs
+
+        check_coordinates_units(
+            **{
+                name: data[key] if key in data else None
+                for name, key in [
+                    ("ra", "ra"),
+                    ("dec", "dec"),
+                    ("rcom", "rcom_zobs"),
+                    ("zobs", "zobs"),
+                ]
+            },
+            name=f"{type(self).__name__} data",
+        )
 
         for k in self._data:
             self._data[k] = jnp.array(self._data[k])

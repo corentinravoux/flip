@@ -43,6 +43,122 @@ def Du(k, sigmau):
     return np.sin(k * sigmau) / (k * sigmau)
 
 
+# Tolerance applied on the bounds used to detect inputs given in wrong units.
+_ANGLE_UNIT_TOLERANCE_ = 1e-6
+_DISTANCE_UNIT_TOLERANCE_ = 0.02
+
+
+def _to_finite_numpy(array):
+    """Convert an input to a flat float numpy array, or None when not possible."""
+    try:
+        array = np.asarray(array, dtype=float).ravel()
+    except Exception:
+        return None
+    if array.size == 0:
+        return None
+    return array
+
+
+def check_angle_units(ra, dec, name="coordinates"):
+    """Warn when angular coordinates look like degrees instead of radians.
+
+    flip expects right ascension and declination in radians. A declination
+    outside [-pi/2, pi/2] or a right ascension outside [-2pi, 2pi] cannot be
+    in radians, so a warning is logged. Catalogs in degrees restricted to a
+    very small patch around the origin (|dec| < 1.57 deg and |ra| < 6.28 deg)
+    cannot be distinguished from radians and are not detected.
+
+    Args:
+        ra (array-like|None): Right ascension.
+        dec (array-like|None): Declination.
+        name (str): Label of the checked sample, used in the message.
+
+    Returns:
+        bool: True when a warning was emitted.
+    """
+    ra, dec = _to_finite_numpy(ra), _to_finite_numpy(dec)
+    reasons = []
+    if dec is not None and np.isfinite(dec).any():
+        max_dec = np.nanmax(np.abs(dec[np.isfinite(dec)]))
+        if max_dec > np.pi / 2 + _ANGLE_UNIT_TOLERANCE_:
+            reasons.append(f"max |dec| = {max_dec:.3f} > pi/2")
+    if ra is not None and np.isfinite(ra).any():
+        max_ra = np.nanmax(np.abs(ra[np.isfinite(ra)]))
+        if max_ra > 2 * np.pi + _ANGLE_UNIT_TOLERANCE_:
+            reasons.append(f"max |ra| = {max_ra:.3f} > 2pi")
+    if len(reasons) == 0:
+        return False
+    Logger.add(
+        f"The angles of the {name} seem to be in degrees ({', '.join(reasons)}). "
+        "flip expects ra and dec in radians, convert them with numpy.deg2rad.",
+        level="warning",
+    )
+    return True
+
+
+def check_distance_units(rcom, zobs, name="coordinates"):
+    """Warn when comoving distances look like Mpc instead of Mpc/h.
+
+    In Mpc/h units, the comoving distance is (c / 100) * int_0^z dz' / E(z'),
+    which does not depend on h and is always smaller than c * z / 100 since
+    E(z) >= 1. When the median of rcom / (c * z / 100) is larger than one,
+    the distances cannot be in Mpc/h and a warning is logged. Distances given
+    in Mpc are detected this way up to z ~ 1; above, the test is inconclusive
+    and nothing is reported.
+
+    Args:
+        rcom (array-like|None): Comoving distances.
+        zobs (array-like|None): Redshifts associated to the distances.
+        name (str): Label of the checked sample, used in the message.
+
+    Returns:
+        bool: True when a warning was emitted.
+    """
+    rcom, zobs = _to_finite_numpy(rcom), _to_finite_numpy(zobs)
+    if rcom is None or zobs is None or rcom.shape != zobs.shape:
+        return False
+    mask = np.isfinite(rcom) & np.isfinite(zobs) & (zobs > 0) & (rcom > 0)
+    if not mask.any():
+        return False
+    ratio = np.median(rcom[mask] / (_C_LIGHT_KMS_ * zobs[mask] / 100.0))
+    if ratio <= 1 + _DISTANCE_UNIT_TOLERANCE_:
+        return False
+    Logger.add(
+        f"The comoving distances of the {name} seem to be in Mpc "
+        f"(median of rcom / (c z / 100) = {ratio:.3f} > 1). "
+        "flip expects comoving distances in Mpc/h, multiply them by h.",
+        level="warning",
+    )
+    return True
+
+
+def check_coordinates_units(
+    ra=None, dec=None, rcom=None, zobs=None, name="coordinates"
+):
+    """Run the unit checks available for the given coordinates.
+
+    The angle check needs `ra` and/or `dec`. The distance check needs both
+    `rcom` and `zobs`: distances alone do not allow telling Mpc from Mpc/h.
+    These checks only log warnings and never raise.
+
+    Args:
+        ra (array-like|None): Right ascension.
+        dec (array-like|None): Declination.
+        rcom (array-like|None): Comoving distances.
+        zobs (array-like|None): Redshifts.
+        name (str): Label of the checked sample, used in the messages.
+
+    Returns:
+        tuple[bool, bool]: `(angle_warning, distance_warning)`.
+    """
+    try:
+        angle_warning = check_angle_units(ra, dec, name=name)
+        distance_warning = check_distance_units(rcom, zobs, name=name)
+    except Exception:
+        return False, False
+    return angle_warning, distance_warning
+
+
 def spherical_to_cartesian(ra, dec, rcom):
     """Convert spherical (r, ra, dec) to Cartesian (x, y, z).
 

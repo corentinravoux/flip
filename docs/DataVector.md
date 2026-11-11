@@ -65,6 +65,10 @@ catalog onto a Cartesian mesh (`DensMesh.init_from_catalog`), and
 
 ## Velocity
 
+All the velocity data vectors below accept an optional zero-point velocity `v0` (km/s), common to all
+objects. When `v0` is one of the fitted parameters (a `"v0"` entry in the fitter `parameter_dict`), it is
+subtracted from the velocity of each object; without it, the velocities are left unchanged.
+
 ### Direct velocities
 
 The [`DirectVel`][flip.data_vector.basic.DirectVel] class takes peculiar velocities (km/s) directly:

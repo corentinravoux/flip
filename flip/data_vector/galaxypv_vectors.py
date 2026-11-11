@@ -74,7 +74,9 @@ class VelFromLogDist(DataVector):
             )
         )
 
-        velocity = log_distance_to_velocity * self._data["eta"]
+        velocity = vector_utils.subtract_zero_point_velocity(
+            log_distance_to_velocity * self._data["eta"], parameter_values_dict
+        )
 
         if self._covariance_observation is None:
             velocity_variance = (
@@ -300,6 +302,10 @@ class VelFromTullyFisher(DataVector):
                 self._host_matrix, velocities, velocity_variance
             )
 
+        velocities = vector_utils.subtract_zero_point_velocity(
+            velocities, parameter_values_dict
+        )
+
         return velocities, velocity_variance
 
 
@@ -509,5 +515,9 @@ class VelFromFundamentalPlane(DataVector):
             velocities, velocity_variance = vector_utils.get_grouped_data_variance(
                 self._host_matrix, velocities, velocity_variance
             )
+
+        velocities = vector_utils.subtract_zero_point_velocity(
+            velocities, parameter_values_dict
+        )
 
         return velocities, velocity_variance

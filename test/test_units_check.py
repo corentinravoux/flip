@@ -57,11 +57,38 @@ def test_distance_check_needs_redshift():
 
 
 def test_bundled_data_do_not_warn(caplog):
+    _, density = load_data_test.load_density_data()
+    _, velocity = load_data_test.load_velocity_data()
     with caplog.at_level(logging.WARNING):
-        load_data_test.load_density_data()
-        load_data_test.load_velocity_data()
-    assert "degrees" not in caplog.text
-    assert "Mpc/h" not in caplog.text
+        assert utils.check_coordinates_units(ra=density["ra"], dec=density["dec"]) == (
+            False,
+            False,
+        )
+        assert utils.check_coordinates_units(
+            ra=velocity["ra"],
+            dec=velocity["dec"],
+            rcom=velocity["rcom_zobs"],
+            zobs=velocity["zobs"],
+        ) == (False, False)
+        data_vector.Dens(density)
+        data_vector.DirectVel(
+            {
+                **velocity,
+                "velocity": velocity["vpec"],
+                "velocity_error": velocity["vpec"],
+            }
+        )
+    assert caplog.records == []
+
+
+def test_bundled_velocity_data_in_wrong_units_warn():
+    _, velocity = load_data_test.load_velocity_data()
+    assert utils.check_coordinates_units(
+        ra=np.rad2deg(velocity["ra"]),
+        dec=np.rad2deg(velocity["dec"]),
+        rcom=np.array(velocity["rcom_zobs"]) / 0.7,
+        zobs=velocity["zobs"],
+    ) == (True, True)
 
 
 def test_data_vector_warns(caplog):
@@ -87,3 +114,10 @@ def test_generator_coordinates_warn(caplog):
     with caplog.at_level(logging.WARNING):
         cov_utils.check_generator_need("velocity", None, coordinates)
     assert "degrees" in caplog.text
+
+
+def test_generator_false_sentinel_is_skipped(caplog):
+    coordinates = np.array([[0.1, 0.2], [0.1, 0.2], [100.0, 120.0]])
+    with caplog.at_level(logging.WARNING):
+        cov_utils.check_generator_need("velocity", False, coordinates)
+    assert caplog.records == []

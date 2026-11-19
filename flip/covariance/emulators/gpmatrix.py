@@ -78,11 +78,14 @@ def train(
 
     for j in range(len(output_non_diagonal)):
 
+        # Each GP gets its own copy of the kernel: GPy links a kernel object to
+        # the model it is given, and optimizing a later model would overwrite
+        # the hyperparameters of the earlier ones.
         if square_covariance:
             model_variance = GPy.models.GPRegression(
                 parameter_values,
                 output_variance[j][:, np.newaxis],
-                kernel_variance,
+                kernel_variance.copy(),
             )
             model_variance.optimize(messages=verbose)
             if num_restarts_variance is not None:
@@ -91,7 +94,7 @@ def train(
             gp_models_variance.append(model_variance)
 
         model_non_diagonal = GPy.models.GPRegression(
-            parameter_values, output_non_diagonal[j], kernel_non_diagonal
+            parameter_values, output_non_diagonal[j], kernel_non_diagonal.copy()
         )
         model_non_diagonal.optimize(messages=verbose)
         if num_restarts_non_diagonal is not None:

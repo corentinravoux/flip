@@ -21,3 +21,7 @@
 ::: flip.covariance.plot_utils
 
 ::: flip.covariance.fit_utils
+
+::: flip.covariance.emulators.prepare
+
+::: flip.covariance.emulators.generator

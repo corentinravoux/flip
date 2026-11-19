@@ -3,6 +3,7 @@ import importlib
 import numpy as np
 
 from flip.covariance import cov_utils
+from flip.covariance.emulators import prepare
 from flip.utils import create_log
 
 log = create_log()
@@ -11,7 +12,35 @@ _avail_emulator_models = [
     "gpmatrix",
     "nnmatrix",
     "skgpmatrix",
+    "skgpscalar",
+    "skgppowerspectrum",
 ]
+
+_avail_emulator_types = [
+    "matrix",
+    "scalar",
+    "power_spectrum",
+]
+
+
+def load_emulator_module(emulator_model_name):
+    """Import an emulator backend module.
+
+    Args:
+        emulator_model_name: Backend name, one of ``_avail_emulator_models``.
+
+    Returns:
+        The backend module.
+
+    Raises:
+        ValueError: If the backend name is not available.
+    """
+    if emulator_model_name not in _avail_emulator_models:
+        raise ValueError(
+            f"Model {emulator_model_name} not available. "
+            f"Please choose between: {_avail_emulator_models}"
+        )
+    return importlib.import_module(f"flip.covariance.emulators.{emulator_model_name}")
 
 
 def compute_cov(
@@ -21,138 +50,223 @@ def compute_cov(
     emulator_parameter_names,
     covariance_type,
     test_emulator=False,
+    power_spectrum_list=None,
+    model_name=None,
+    coordinates_density=None,
+    coordinates_velocity=None,
+    additional_parameters_values=None,
+    los_definition="bisector",
     **kwargs,
 ):
     """Train an emulator for a given covariance type and return evaluators.
 
+    The training data are prepared by :mod:`flip.covariance.emulators.prepare`
+    according to the emulator type of the backend:
+
+    - ``matrix``: from ``covariance_list``;
+    - ``scalar`` and ``power_spectrum``: from ``power_spectrum_list`` and the
+      flip model ``model_name`` (and the catalogue coordinates).
+
     Args:
-        emulator_model_name: Backend name, one of ``gpmatrix``, ``nnmatrix``, ``skgpmatrix``.
-        covariance_list: List of covariance objects with precomputed matrices.
+        emulator_model_name: Backend name, one of ``_avail_emulator_models``.
+        covariance_list: List of covariance objects with precomputed matrices
+            (matrix emulators), None otherwise.
         parameter_values: Array ``(n_samples, n_params)`` training inputs.
         emulator_parameter_names: Names of parameters to pass at evaluation time.
         covariance_type: One of ``"gg"``, ``"vv"``, ``"gv"`` indicating block type.
-        test_emulator: If True, runs a quick evaluation vs. training data and logs errors.
-        **kwargs: Extra keyword arguments forwarded to backend ``train``.
+        test_emulator: If True, runs a quick evaluation vs. training data and
+            logs errors (matrix emulators only).
+        power_spectrum_list: List of flip power spectrum dictionaries, one per
+            parameter sample (scalar and power spectrum emulators).
+        model_name: flip analytical model (scalar and power spectrum emulators).
+        coordinates_density: Density coordinates (scalar and power spectrum emulators).
+        coordinates_velocity: Velocity coordinates (scalar and power spectrum emulators).
+        additional_parameters_values: Extra (fixed) parameters of the model kernels.
+        los_definition: Line-of-sight convention.
+        **kwargs: Extra keyword arguments forwarded to the preparation, to the
+            backend ``train`` and to the evaluation functions.
 
     Returns:
         List of callables, one per covariance term, taking a parameter dict and returning a matrix.
 
     Raises:
-        ValueError: If list lengths mismatch or model name is invalid.
+        ValueError: If list lengths mismatch, model name is invalid, or inputs
+            needed by the emulator type are missing.
     """
-    if len(covariance_list) != len(parameter_values):
+    emulator_module = load_emulator_module(emulator_model_name)
+    emulator_type = emulator_module._emulator_type
+    parameter_values = np.atleast_2d(np.asarray(parameter_values, dtype=float))
+    if parameter_values.shape[0] == 1 and len(emulator_parameter_names) == 1:
+        parameter_values = parameter_values.T
+    if parameter_values.shape[1] != len(emulator_parameter_names):
         raise ValueError(
-            "covariance_list and parameter_values must have the same length."
-        )
-    if emulator_model_name not in _avail_emulator_models:
-        log.add(
-            f"Model {emulator_model_name} not available."
-            f"Please choose between: {_avail_emulator_models}"
+            "parameter_values must have shape (n_samples, n_params) with "
+            "n_params = len(emulator_parameter_names)."
         )
 
-    emulator_module = importlib.import_module(
-        f"flip.covariance.emulators.{emulator_model_name}"
-    )
+    if emulator_type == "matrix":
+        if covariance_list is None:
+            raise ValueError("Matrix emulators need covariance_list.")
+        if len(covariance_list) != len(parameter_values):
+            raise ValueError(
+                "covariance_list and parameter_values must have the same length."
+            )
+        square_covariance, emulator_output_variance, emulator_output_non_diagonal = (
+            prepare.prepare_matrix(
+                covariance_list,
+                covariance_type,
+            )
+        )
 
-    # emulator_type = emulator_module._emulator_type
-    # Only implemented for matrix emulators, so far.
+        models = emulator_module.train(
+            square_covariance,
+            emulator_output_variance,
+            emulator_output_non_diagonal,
+            parameter_values,
+            **kwargs,
+        )
 
-    square_covariance, emulator_output_variance, emulator_output_non_diagonal = (
-        prepare_covariance_matrices(
-            covariance_list,
+        evaluation_functions = return_evaluation_functions(
+            models,
+            emulator_module,
+            emulator_parameter_names,
             covariance_type,
+            covariance_list[0].number_densities,
+            covariance_list[0].number_velocities,
+            **kwargs,
         )
-    )
 
-    models = emulator_module.train(
-        square_covariance,
-        emulator_output_variance,
-        emulator_output_non_diagonal,
-        parameter_values,
-        **kwargs,
-    )
+        if test_emulator:
+            parameter_values_dict = [
+                {
+                    emulator_parameter_names[j]: parameter_values[i][j]
+                    for j in range(len(emulator_parameter_names))
+                }
+                for i in range(len(parameter_values))
+            ]
+            test_training(
+                evaluation_functions,
+                covariance_list,
+                parameter_values_dict,
+                covariance_type,
+            )
+        return evaluation_functions
 
-    evaluation_functions = return_evaluation_functions(
-        models,
-        emulator_module,
-        emulator_parameter_names,
-        covariance_type,
-        covariance_list[0].number_densities,
-        covariance_list[0].number_velocities,
-        **kwargs,
-    )
-
+    if power_spectrum_list is None or model_name is None:
+        raise ValueError(
+            f"{emulator_type} emulators need power_spectrum_list and model_name."
+        )
     if test_emulator:
-        parameter_values_dict = [
-            {
-                emulator_parameter_names[j]: parameter_values[i][j]
-                for j in range(len(emulator_parameter_names))
-            }
-            for i in range(len(parameter_values))
-        ]
-        test_training(
-            evaluation_functions,
-            covariance_list,
-            parameter_values_dict,
-            covariance_type,
+        log.add(
+            "test_emulator is only available for matrix emulators.",
+            level="warning",
         )
 
-    return evaluation_functions
+    if emulator_type == "scalar":
+        pair_geometry = prepare.compute_pair_geometry(
+            covariance_type,
+            coordinates_density=coordinates_density,
+            coordinates_velocity=coordinates_velocity,
+            los_definition=los_definition,
+        )
+        r_max = kwargs.pop("r_max", None)
+        if r_max is None:
+            r_max = 1.05 * np.max(pair_geometry[0])
+        elif np.max(pair_geometry[0]) > r_max:
+            log.add(
+                f"Pair separations up to {np.max(pair_geometry[0]):.1f} exceed "
+                f"r_max = {r_max:.1f}: the scalar emulator extrapolates.",
+                level="warning",
+            )
+        (
+            square_covariance,
+            input_variance,
+            output_variance,
+            input_non_diagonal,
+            output_non_diagonal,
+            scalar_dictionary,
+        ) = prepare.prepare_scalar(
+            power_spectrum_list,
+            parameter_values,
+            model_name,
+            covariance_type,
+            r_max,
+            additional_parameters_values=additional_parameters_values,
+            **kwargs,
+        )
+        models = emulator_module.train(
+            square_covariance,
+            input_variance,
+            output_variance,
+            input_non_diagonal,
+            output_non_diagonal,
+            **kwargs,
+        )
+        return return_evaluation_functions_scalar(
+            models,
+            emulator_module,
+            emulator_parameter_names,
+            covariance_type,
+            scalar_dictionary,
+            pair_geometry,
+            **kwargs,
+        )
+
+    if emulator_type == "power_spectrum":
+        (
+            square_covariance,
+            coefficients,
+            basis_covariances,
+            spectrum_indices,
+            _,
+        ) = prepare.prepare_power_spectrum(
+            power_spectrum_list,
+            parameter_values,
+            model_name,
+            covariance_type,
+            coordinates_density=coordinates_density,
+            coordinates_velocity=coordinates_velocity,
+            additional_parameters_values=additional_parameters_values,
+            los_definition=los_definition,
+            **kwargs,
+        )
+        models = emulator_module.train(
+            coefficients,
+            parameter_values,
+            **kwargs,
+        )
+        return return_evaluation_functions_power_spectrum(
+            models,
+            emulator_module,
+            emulator_parameter_names,
+            covariance_type,
+            basis_covariances,
+            spectrum_indices,
+            **kwargs,
+        )
+
+    raise ValueError(
+        f"Emulator type {emulator_type} not available. "
+        f"Please choose between: {_avail_emulator_types}"
+    )
 
 
 def prepare_covariance_matrices(
     covariance_list,
     covariance_type,
 ):
-    """Extract and stack covariance training targets for emulator backends.
+    """Extract and stack covariance training targets for matrix emulators.
 
-    Converts each covariance object into arrays for diagonal and non-diagonal
-    parts depending on the covariance type.
-
-    Args:
-        covariance_list: List of covariance objects.
-        covariance_type: Block type ``("gg"|"vv"|"gv")``.
-
-    Returns:
-        Tuple ``(square_covariance, output_variance, output_non_diagonal)`` where
-        arrays have shapes compatible with backend trainers.
+    Kept for backward compatibility, see
+    :func:`flip.covariance.emulators.prepare.prepare_matrix`.
     """
-    if covariance_type[0] == covariance_type[1]:
-        square_covariance = True
-    else:
-        square_covariance = False
+    return prepare.prepare_matrix(covariance_list, covariance_type)
 
-    emulator_output_non_diagonal = [
-        [] for _ in range(len(covariance_list[0].covariance_dict[covariance_type]))
-    ]
-    if square_covariance:
-        emulator_output_variance = [
-            [] for _ in range(len(covariance_list[0].covariance_dict[covariance_type]))
-        ]
-    else:
-        emulator_output_variance = None
 
-    for i in range(len(covariance_list)):
-        covariance_list[i].compute_flat_covariance(verbose=False)
-        for j in range(len(covariance_list[i].covariance_dict[covariance_type])):
-
-            if square_covariance:
-                emulator_output_variance[j].append(
-                    covariance_list[i].covariance_dict[covariance_type][j][0]
-                )
-
-                emulator_output_non_diagonal[j].append(
-                    covariance_list[i].covariance_dict[covariance_type][j][1:]
-                )
-            else:
-                emulator_output_non_diagonal[j].append(
-                    covariance_list[i].covariance_dict[covariance_type][j]
-                )
-
-    return (
-        square_covariance,
-        np.array(emulator_output_variance),
-        np.array(emulator_output_non_diagonal),
+def _parameter_vector(parameter_values_dict, emulator_parameter_names):
+    return np.array(
+        [parameter_values_dict[name] for name in emulator_parameter_names],
+        dtype=float,
     )
 
 
@@ -161,14 +275,15 @@ def return_evaluation_functions(
     emulator_module,
     emulator_parameter_names,
     covariance_type,
-    number_densities = None, 
-    number_velocities = None,
+    number_densities=None,
+    number_velocities=None,
     **kwargs,
 ):
-    """Wrap backend models into per-term evaluation functions.
+    """Wrap matrix backend models into per-term evaluation functions.
 
     Each returned function accepts a parameter dict mapping names to values and
-    returns either a square matrix (gg/vv) or a flattened vector (gv).
+    returns a matrix. Each function is built by a factory, so it keeps the
+    models of its own term.
 
     Args:
         models: Tuple of backend-trained models and evaluation dictionaries.
@@ -182,96 +297,279 @@ def return_evaluation_functions(
     Returns:
         List of evaluation callables for each covariance term.
     """
+    (
+        models_variance,
+        models_non_diagonal,
+        evaluation_dictionary_variance,
+        evaluation_dictionary_non_diagonal,
+    ) = models
 
-    if covariance_type[0] == covariance_type[1]:
-        square_covariance = True
-        models_variance, models_non_diagonal = models[0], models[1]
-        evaluation_dictionary_variance, evaluation_dictionary_non_diagonal = (
-            models[2],
-            models[3],
+    def make_square_function(
+        model_variance,
+        model_non_diagonal,
+        dictionary_variance,
+        dictionary_non_diagonal,
+    ):
+        def evaluation_function(
+            parameter_values_dict,
+            return_emulator_variance=False,
+        ):
+            evaluation_value = _parameter_vector(
+                parameter_values_dict, emulator_parameter_names
+            )[np.newaxis, :]
+            output_non_diagonal = emulator_module.evaluate(
+                model_non_diagonal,
+                evaluation_value,
+                dictionary_non_diagonal,
+            )
+            output_diagonal = emulator_module.evaluate(
+                model_variance,
+                evaluation_value,
+                dictionary_variance,
+            )
+            output_covariance = np.insert(
+                np.ravel(output_non_diagonal[0]), 0, np.ravel(output_diagonal[0])[0]
+            )
+            output_covariance = cov_utils.return_matrix_covariance(output_covariance)
+            if return_emulator_variance:
+                variance_emulator = [output_diagonal[1], output_non_diagonal[1]]
+                return output_covariance, variance_emulator
+            return output_covariance
+
+        return evaluation_function
+
+    def make_cross_function(model_non_diagonal, dictionary_non_diagonal):
+        def evaluation_function(
+            parameter_values_dict,
+            number_densities,
+            number_velocities,
+            return_emulator_variance=False,
+        ):
+            evaluation_value = _parameter_vector(
+                parameter_values_dict, emulator_parameter_names
+            )[np.newaxis, :]
+            output_non_diagonal = emulator_module.evaluate(
+                model_non_diagonal,
+                evaluation_value,
+                dictionary_non_diagonal,
+            )
+            output_covariance = cov_utils.return_matrix_covariance_cross(
+                np.ravel(output_non_diagonal[0]), number_densities, number_velocities
+            )
+            if return_emulator_variance:
+                return output_covariance, output_non_diagonal[1]
+            return output_covariance
+
+        return evaluation_function
+
+    if prepare.is_square_covariance(covariance_type):
+        return [
+            make_square_function(
+                models_variance[j],
+                models_non_diagonal[j],
+                evaluation_dictionary_variance[j],
+                evaluation_dictionary_non_diagonal[j],
+            )
+            for j in range(len(models_non_diagonal))
+        ]
+    return [
+        make_cross_function(
+            models_non_diagonal[j],
+            evaluation_dictionary_non_diagonal[j],
         )
-    else:
-        square_covariance = False
-        models_non_diagonal = models[1]
-        evaluation_dictionary_non_diagonal = models[3]
+        for j in range(len(models_non_diagonal))
+    ]
 
-    evaluation_functions = []
 
-    for j in range(len(models_non_diagonal)):
-        if square_covariance:
-            model_variance = models_variance[j]
-        model_non_diagonal = models_non_diagonal[j]
+def _warn_outside_training(parameter_vector, parameter_bounds, warned):
+    if warned[0]:
+        return
+    if np.any(parameter_vector < parameter_bounds[:, 0]) or np.any(
+        parameter_vector > parameter_bounds[:, 1]
+    ):
+        log.add(
+            f"Emulator evaluated at {parameter_vector}, outside its training "
+            f"bounds {parameter_bounds.tolist()}: it extrapolates. "
+            "Warning given once per evaluation function.",
+            level="warning",
+        )
+        warned[0] = True
 
-        if square_covariance:
 
-            def evaluation_function(
-                parameter_values_dict,
-                return_emulator_variance=False,
-            ):
+def return_evaluation_functions_scalar(
+    models,
+    emulator_module,
+    emulator_parameter_names,
+    covariance_type,
+    scalar_dictionary,
+    pair_geometry,
+    positive_semidefinite=True,
+    size_chunk=10_000,
+    **kwargs,
+):
+    """Wrap scalar backend models into per-term evaluation functions.
 
-                parameter_value = [
-                    parameter_values_dict[name] for name in emulator_parameter_names
+    The scalar models predict one covariance element per pair of the
+    catalogue; the elements are then assembled into a matrix.
+
+    Args:
+        models: Tuple of backend-trained models and evaluation dictionaries.
+        emulator_module: Module providing ``evaluate(model, x, dict)`` function.
+        emulator_parameter_names: Names used to extract parameter order from dict.
+        covariance_type: Block type ``("gg"|"vv"|"gv")``.
+        scalar_dictionary: Parameter bounds and ``r_max`` of the training set.
+        pair_geometry: Array ``(3, n_pairs)`` with ``r, theta, phi`` of the catalogue.
+        positive_semidefinite: Clip the negative eigenvalues of the emulated
+            square blocks to zero. Element errors of the scalar emulators leave
+            negative eigenvalues, which can make the total covariance fail the
+            Cholesky decomposition at small noise.
+        size_chunk: Number of pairs predicted at once.
+        **kwargs: Extra keyword arguments (unused).
+
+    Returns:
+        List of evaluation callables for each covariance term.
+    """
+    (
+        models_variance,
+        models_non_diagonal,
+        evaluation_dictionary_variance,
+        evaluation_dictionary_non_diagonal,
+    ) = models
+    parameter_bounds = scalar_dictionary["parameter_bounds"]
+    r_max = scalar_dictionary["r_max"]
+    square_covariance = prepare.is_square_covariance(covariance_type)
+    r, theta, phi = pair_geometry
+
+    def predict_non_diagonal(model, dictionary, parameter_vector):
+        output = []
+        for i in range(0, len(r), size_chunk):
+            features = prepare.scalar_features(
+                parameter_vector,
+                r[i : i + size_chunk],
+                theta[i : i + size_chunk],
+                phi[i : i + size_chunk],
+                parameter_bounds,
+                r_max,
+            )
+            output.append(
+                np.ravel(emulator_module.evaluate(model, features, dictionary)[0])
+            )
+        return np.concatenate(output)
+
+    def make_function(j):
+        warned = [False]
+
+        def evaluation_function(
+            parameter_values_dict,
+            number_densities=None,
+            number_velocities=None,
+        ):
+            parameter_vector = _parameter_vector(
+                parameter_values_dict, emulator_parameter_names
+            )
+            _warn_outside_training(parameter_vector, parameter_bounds, warned)
+            output_non_diagonal = predict_non_diagonal(
+                models_non_diagonal[j],
+                evaluation_dictionary_non_diagonal[j],
+                parameter_vector,
+            )
+            if not square_covariance:
+                return cov_utils.return_matrix_covariance_cross(
+                    output_non_diagonal, number_densities, number_velocities
+                )
+            output_diagonal = emulator_module.evaluate(
+                models_variance[j],
+                prepare.scale_parameters(parameter_vector, parameter_bounds),
+                evaluation_dictionary_variance[j],
+            )
+            output_covariance = cov_utils.return_matrix_covariance(
+                np.insert(output_non_diagonal, 0, np.ravel(output_diagonal[0])[0])
+            )
+            if positive_semidefinite:
+                eigenvalues, eigenvectors = np.linalg.eigh(output_covariance)
+                output_covariance = (
+                    eigenvectors * np.clip(eigenvalues, 0, None)
+                ) @ eigenvectors.T
+            return output_covariance
+
+        return evaluation_function
+
+    return [make_function(j) for j in range(len(models_non_diagonal))]
+
+
+def return_evaluation_functions_power_spectrum(
+    models,
+    emulator_module,
+    emulator_parameter_names,
+    covariance_type,
+    basis_covariances,
+    spectrum_indices,
+    **kwargs,
+):
+    """Wrap power spectrum backend models into per-term evaluation functions.
+
+    The covariance of term ``t`` is ``sum_n a_sn(theta) C_t[b_sn]``, with the
+    coefficients ``a_sn`` predicted by the backend for the spectrum ``s`` of
+    term ``t``.
+
+    Args:
+        models: Tuple ``(models, evaluation_dictionaries)`` of the backend,
+            indexed by spectrum then basis component.
+        emulator_module: Module providing ``evaluate(model, x, dict)`` function.
+        emulator_parameter_names: Names used to extract parameter order from dict.
+        covariance_type: Block type ``("gg"|"vv"|"gv")``.
+        basis_covariances: Array ``(n_terms, n_basis, n_flat)`` of flat covariances.
+        spectrum_indices: Spectrum index of each term.
+        **kwargs: Extra keyword arguments (unused).
+
+    Returns:
+        List of evaluation callables for each covariance term.
+    """
+    coefficient_models, evaluation_dictionaries = models
+    square_covariance = prepare.is_square_covariance(covariance_type)
+
+    def make_function(j):
+        spectrum_index = spectrum_indices[j]
+        warned = [False]
+
+        def evaluation_function(
+            parameter_values_dict,
+            number_densities=None,
+            number_velocities=None,
+        ):
+            parameter_vector = _parameter_vector(
+                parameter_values_dict, emulator_parameter_names
+            )
+            _warn_outside_training(
+                parameter_vector,
+                evaluation_dictionaries[spectrum_index][0]["parameter_bounds"],
+                warned,
+            )
+            coefficients = np.array(
+                [
+                    np.ravel(
+                        emulator_module.evaluate(
+                            model,
+                            parameter_vector[np.newaxis, :],
+                            evaluation_dictionary,
+                        )[0]
+                    )[0]
+                    for model, evaluation_dictionary in zip(
+                        coefficient_models[spectrum_index],
+                        evaluation_dictionaries[spectrum_index],
+                    )
                 ]
-                evaluation_value = np.array(parameter_value)[np.newaxis, :]
-                output_non_diagonal = emulator_module.evaluate(
-                    model_non_diagonal,
-                    evaluation_value,
-                    evaluation_dictionary_non_diagonal[j],
-                )
-                output_covariance = output_non_diagonal[0][0]
-                output_diagonal = emulator_module.evaluate(
-                    model_variance,
-                    evaluation_value,
-                    evaluation_dictionary_variance[j],
-                )
-                output_covariance = np.insert(
-                    output_covariance, 0, output_diagonal[0][0]
-                )
-                output_covariance = cov_utils.return_matrix_covariance(
-                    output_covariance
-                )
-                if return_emulator_variance:
-                    variance_emulator = [
-                        output_diagonal[1][0, 0],
-                        output_non_diagonal[1][0, 0],
-                    ]
-                    return output_covariance, variance_emulator
-                else:
-                    return output_covariance
+            )
+            flat_covariance = coefficients @ basis_covariances[j]
+            if square_covariance:
+                return cov_utils.return_matrix_covariance(flat_covariance)
+            return cov_utils.return_matrix_covariance_cross(
+                flat_covariance, number_densities, number_velocities
+            )
 
-        else:
+        return evaluation_function
 
-            def evaluation_function(
-                parameter_values_dict,
-                number_densities, 
-                number_velocities,
-                return_emulator_variance=False,
-            ):
-
-                parameter_value = [
-                    parameter_values_dict[name] for name in emulator_parameter_names
-                ]
-                evaluation_value = np.array(parameter_value)[np.newaxis, :]
-                output_non_diagonal = emulator_module.evaluate(
-                    model_non_diagonal,
-                    evaluation_value,
-                    evaluation_dictionary_non_diagonal[j],
-                )
-                output_covariance = output_non_diagonal[0][0]
-                variance_emulator = output_non_diagonal[1][0, 0]
-
-                output_covariance = cov_utils.return_matrix_covariance_cross(
-                    output_covariance, number_densities, number_velocities
-                )
-
-                if return_emulator_variance:
-                    return output_covariance, variance_emulator
-                else:
-                    return output_covariance
-
-        evaluation_functions.append(evaluation_function)
-
-    return evaluation_functions
+    return [make_function(j) for j in range(len(basis_covariances))]
 
 
 def test_training(
@@ -295,29 +593,36 @@ def test_training(
     Returns:
         Nested list of errors per sample and term: ``[ [err_diag, rel_err_diag, err_all, rel_err_all], ... ]``.
     """
-    if covariance_type[0] == covariance_type[1]:
-        square_covariance = True
-    else:
-        square_covariance = False
+    square_covariance = prepare.is_square_covariance(covariance_type)
     errors = []
     for i in range(len(parameter_values_dict)):
-        covariance_list[i].compute_matrix_covariance(verbose=False)
         errors.append([])
         for j in range(len(evaluation_functions)):
-            covariance = covariance_list[i].covariance_dict[covariance_type][j]
+            covariance = np.asarray(
+                covariance_list[i].covariance_dict[covariance_type][j]
+            )
+            if not covariance_list[i].matrix_form:
+                if square_covariance:
+                    covariance = cov_utils.return_matrix_covariance(covariance)
+                else:
+                    covariance = cov_utils.return_matrix_covariance_cross(
+                        covariance,
+                        covariance_list[i].number_densities,
+                        covariance_list[i].number_velocities,
+                    )
 
             if square_covariance:
-                evaluation = evaluation_functions[j](
-                            parameter_values_dict[i]
-                            )
+                evaluation = evaluation_functions[j](parameter_values_dict[i])
                 error_diagonal = np.abs(evaluation[0][0] - covariance[0][0])
                 relative_error_diagonal = np.abs(
                     evaluation[0][0] - covariance[0][0]
                 ) / np.abs(covariance[0][0])
             else:
                 evaluation = evaluation_functions[j](
-                            parameter_values_dict[i],covariance_list[0].number_densities, covariance_list[0].number_velocities
-                            )
+                    parameter_values_dict[i],
+                    covariance_list[0].number_densities,
+                    covariance_list[0].number_velocities,
+                )
                 error_diagonal = None
                 relative_error_diagonal = None
             error_all = np.max(np.abs(evaluation - covariance))
@@ -364,10 +669,11 @@ def generate_covariance(
     Args:
         emulator_model_name: Backend name.
         model_kind: One of ``"density"``, ``"velocity"``, ``"full"``, ``"density_velocity"``.
-        covariance_list: List of covariance objects for training.
+        covariance_list: List of covariance objects for training (matrix
+            emulators), None otherwise.
         parameter_values: Array ``(n_samples, n_params)`` training inputs.
         emulator_parameter_names: Parameter names used at evaluation.
-        **kwargs: Forwarded to backend trainers.
+        **kwargs: Forwarded to :func:`compute_cov`.
 
     Returns:
         Dict with keys among ``{"gg","vv","gv"}`` mapping to lists of evaluator functions.

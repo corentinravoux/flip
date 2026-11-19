@@ -503,16 +503,49 @@ class CovMatrix:
         emulator_parameter_values,
         parameter_names,
         covariance_prefactor_dict=None,
+        power_spectrum_list=None,
+        model_name=None,
+        coordinates_velocity=None,
+        coordinates_density=None,
+        additional_parameters_values=None,
+        variant=None,
+        los_definition="bisector",
         **kwargs,
     ):
-        """Initialize covariance from an emulator over precomputed covariances.
+        """Initialize covariance from an emulator.
+
+        Three emulator types (see `flip.covariance.emulators`):
+
+        - matrix (`gpmatrix`, `skgpmatrix`, `nnmatrix`): trained on the
+          precomputed covariances of `covariance_list`.
+        - scalar (`skgpscalar`): trained on single covariance elements of the
+          flip model `model_name`, computed from `power_spectrum_list`.
+        - power spectrum (`skgppowerspectrum`): reduced basis of
+          `power_spectrum_list` and flip covariances of the basis spectra for
+          the model `model_name`.
 
         Args:
             emulator_model_name (str): Emulator model name.
             model_kind (str): Kind (`density`, `velocity`, `density_velocity`, `full`).
-            covariance_list (list[CovMatrix]): Base covariances forming the grid.
-            emulator_parameter_values (array-like): Emulator parameter vector.
+            covariance_list (list[CovMatrix]|None): Base covariances forming the
+                grid (matrix emulators); None for the other types.
+            emulator_parameter_values (array-like): Emulator parameter values,
+                shape `(n_samples, n_params)`.
             parameter_names (list[str]): Names aligned with emulator parameters.
+            covariance_prefactor_dict (dict, optional): Covariance prefactors.
+            power_spectrum_list (list[dict], optional): Power spectrum
+                dictionaries aligned with `emulator_parameter_values` (scalar and
+                power spectrum emulators).
+            model_name (str, optional): flip analytical model (scalar and power
+                spectrum emulators).
+            coordinates_velocity (array-like, optional): Velocity coordinates
+                (scalar and power spectrum emulators).
+            coordinates_density (array-like, optional): Density coordinates
+                (scalar and power spectrum emulators).
+            additional_parameters_values (tuple, optional): Fixed extra
+                parameters of the model kernels.
+            variant (str, optional): Model variant (scalar and power spectrum emulators).
+            los_definition (str): Line-of-sight definition.
             **kwargs: Extra emulator options.
 
         Returns:
@@ -521,12 +554,50 @@ class CovMatrix:
         begin = time.time()
         from flip.covariance.emulators import generator as generator_emulators
 
+        if covariance_list is not None:
+            free_par = covariance_list[0].free_par
+            los_definition = covariance_list[0].los_definition
+            variant = covariance_list[0].variant
+            coefficients = covariance_list[0].coefficients
+            number_densities = covariance_list[0].number_densities
+            number_velocities = covariance_list[0].number_velocities
+        else:
+            if model_name is None:
+                raise ValueError(
+                    "model_name is needed when covariance_list is not given."
+                )
+            cov_utils.check_generator_need(
+                model_kind,
+                coordinates_density,
+                coordinates_velocity,
+            )
+            free_par = _read_free_par(model_name, model_kind, variant=variant)
+            coefficients = importlib.import_module(
+                f"flip.covariance.analytical.{model_name}.coefficients"
+            )
+            number_densities = (
+                len(coordinates_density[0])
+                if model_kind in ["density", "full", "density_velocity"]
+                else None
+            )
+            number_velocities = (
+                len(coordinates_velocity[0])
+                if model_kind in ["velocity", "full", "density_velocity"]
+                else None
+            )
+
         emulator_covariance_dict = generator_emulators.generate_covariance(
             emulator_model_name,
             model_kind,
             covariance_list,
             emulator_parameter_values,
             parameter_names,
+            power_spectrum_list=power_spectrum_list,
+            model_name=model_name,
+            coordinates_density=coordinates_density,
+            coordinates_velocity=coordinates_velocity,
+            additional_parameters_values=additional_parameters_values,
+            los_definition=los_definition,
             **kwargs,
         )
         end = time.time()
@@ -536,14 +607,14 @@ class CovMatrix:
         return cls(
             model_name=emulator_model_name,
             model_kind=model_kind,
-            free_par=covariance_list[0].free_par,
-            los_definition=covariance_list[0].los_definition,
+            free_par=free_par,
+            los_definition=los_definition,
             covariance_dict=emulator_covariance_dict,
             matrix_form=False,
-            variant=covariance_list[0].variant,
-            coefficients=covariance_list[0].coefficients,
-            number_densities=covariance_list[0].number_densities,
-            number_velocities=covariance_list[0].number_velocities,
+            variant=variant,
+            coefficients=coefficients,
+            number_densities=number_densities,
+            number_velocities=number_velocities,
             emulator_flag=True,
             covariance_prefactor_dict=covariance_prefactor_dict,
         )

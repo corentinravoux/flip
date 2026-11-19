@@ -320,6 +320,19 @@ class BaseLikelihood(abc.ABC):
                 f"""Please choose between {_available_inversion_methods}"""
             )
 
+        covariances = (
+            self.covariance if isinstance(self.covariance, list) else [self.covariance]
+        )
+        if any(getattr(c, "emulator_flag", False) for c in covariances) and (
+            self.likelihood_properties["use_jit"]
+            or self.likelihood_properties["use_gradient"]
+        ):
+            raise ValueError(
+                "use_jit and use_gradient are not available with emulator "
+                "covariances: the emulators are evaluated with NumPy, "
+                "scikit-learn, GPy or torch, not JAX."
+            )
+
 
 class MultivariateGaussianLikelihood(BaseLikelihood):
     """Gaussian likelihood for a single covariance model.

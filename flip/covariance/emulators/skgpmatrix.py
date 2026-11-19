@@ -2,7 +2,7 @@ import numpy as np
 
 try:
     from sklearn.gaussian_process import GaussianProcessRegressor
-    from sklearn.gaussian_process.kernels import RBF, ConstantKernel
+    from sklearn.gaussian_process.kernels import RBF, ConstantKernel, WhiteKernel
 
     sklearngp_installed = True
 
@@ -12,11 +12,15 @@ except ImportError:
 
 _emulator_type = "matrix"
 
+# With normalize_y=True the targets have unit variance, so the kernel amplitude
+# starts at 1. The small white noise keeps the GP matrix positive definite.
 if sklearngp_installed:
-    default_kernel_variance = RBF(length_scale=1.0) + ConstantKernel(constant_value=1.0)
-    default_kernel_non_diagonal = RBF(length_scale=1.0) + ConstantKernel(
-        constant_value=1.0
-    )
+    default_kernel_variance = ConstantKernel(1.0) * RBF(
+        length_scale=1.0, length_scale_bounds=(1e-2, 1e3)
+    ) + WhiteKernel(noise_level=1e-10, noise_level_bounds=(1e-14, 1e-4))
+    default_kernel_non_diagonal = ConstantKernel(1.0) * RBF(
+        length_scale=1.0, length_scale_bounds=(1e-2, 1e3)
+    ) + WhiteKernel(noise_level=1e-10, noise_level_bounds=(1e-14, 1e-4))
 else:
     default_kernel_variance = None
     default_kernel_non_diagonal = None
@@ -29,8 +33,10 @@ def train(
     parameter_values,
     kernel_variance=None,
     kernel_non_diagonal=None,
-    num_restarts_variance=0,
-    num_restarts_non_diagonal=0,
+    num_restarts_variance=2,
+    num_restarts_non_diagonal=2,
+    normalize_y=True,
+    random_state=0,
     **kwargs,
 ):
     """Train scikit-learn GP emulators for covariance matrices.
@@ -40,10 +46,13 @@ def train(
         output_variance: Array ``(n_terms, n_samples)`` of diagonal entries; ignored if not square.
         output_non_diagonal: Array ``(n_terms, n_samples, n_nd)`` of flattened non-diagonals.
         parameter_values: Array ``(n_samples, n_params)`` emulator inputs.
-        kernel_variance: Kernel for variance GP; defaults to ``RBF + Constant``.
-        kernel_non_diagonal: Kernel for non-diagonal GP; defaults to ``RBF + Constant``.
+        kernel_variance: Kernel for variance GP; defaults to ``Constant * RBF + White``.
+        kernel_non_diagonal: Kernel for non-diagonal GP; defaults to ``Constant * RBF + White``.
         num_restarts_variance: Optimizer restarts for variance GP.
         num_restarts_non_diagonal: Optimizer restarts for non-diagonal GP.
+        normalize_y: Normalize the targets before fitting (recommended: the
+            covariance elements are far from unit scale).
+        random_state: Seed of the optimizer restarts.
         **kwargs: Extra keyword arguments (unused).
 
     Returns:
@@ -73,6 +82,8 @@ def train(
             model_variance = GaussianProcessRegressor(
                 kernel=kernel_variance,
                 n_restarts_optimizer=num_restarts_variance,
+                normalize_y=normalize_y,
+                random_state=random_state,
             )
             model_variance.fit(
                 parameter_values,
@@ -83,6 +94,8 @@ def train(
         model_non_diagonal = GaussianProcessRegressor(
             kernel=kernel_non_diagonal,
             n_restarts_optimizer=num_restarts_non_diagonal,
+            normalize_y=normalize_y,
+            random_state=random_state,
         )
         model_non_diagonal.fit(
             parameter_values,

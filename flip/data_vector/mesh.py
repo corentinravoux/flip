@@ -193,6 +193,63 @@ def _get_mesh_attrs(
     return nmesh, boxsize, boxcenter
 
 
+def move_kernels(
+    kernels,
+    ra_random,
+    dec_random,
+    rcom_random,
+):
+    """Move sky kernels so that their centres land on random positions.
+
+    Each kernel is rigidly rotated on the sphere so that its mean direction
+    points to `(ra_random, dec_random)`: rotation about z by `-ra_center`,
+    about y by `dec_center - dec_random`, then about z by `ra_random`. Its
+    comoving distances are rescaled by `rcom_random / mean(rcom_kernel)`.
+    The angular shape and the relative distance spread of each kernel are
+    preserved.
+
+    Args:
+        kernels (array-like): Kernels of shape `(M, 3, n)` with rows
+            `(ra, dec, rcom)`, angles in radians.
+        ra_random (array-like): Target right ascensions in radians, shape `(M,)`.
+        dec_random (array-like): Target declinations in radians, shape `(M,)`.
+        rcom_random (array-like): Target comoving distances, shape `(M,)`.
+
+    Returns:
+        jax.numpy.ndarray: Moved kernels of shape `(M, 3, n)` with rows
+        `(ra, dec, rcom)`.
+    """
+    ra_kernel = kernels[:, 0, :]
+    dec_kernel = kernels[:, 1, :]
+    rcom_kernel = kernels[:, 2, :]
+
+    # Kernel centre = mean direction of its samples
+    x_center = jnp.mean(jnp.cos(dec_kernel) * jnp.cos(ra_kernel), axis=1)
+    y_center = jnp.mean(jnp.cos(dec_kernel) * jnp.sin(ra_kernel), axis=1)
+    z_center = jnp.mean(jnp.sin(dec_kernel), axis=1)
+    ra_center = jnp.arctan2(y_center, x_center)
+    dec_center = jnp.arctan2(z_center, jnp.hypot(x_center, y_center))
+
+    # Rotation about z by -ra_center
+    x = jnp.cos(dec_kernel) * jnp.cos(ra_kernel - ra_center[:, None])
+    y = jnp.cos(dec_kernel) * jnp.sin(ra_kernel - ra_center[:, None])
+    z = jnp.sin(dec_kernel)
+
+    # Rotation about y by dec_center - dec_random
+    angle = (dec_center - dec_random)[:, None]
+    x, z = (
+        x * jnp.cos(angle) + z * jnp.sin(angle),
+        z * jnp.cos(angle) - x * jnp.sin(angle),
+    )
+
+    # Rotation about z by ra_random
+    ra_moved = jnp.mod(ra_random[:, None] + jnp.arctan2(y, x), 2 * jnp.pi)
+    dec_moved = jnp.arcsin(jnp.clip(z, -1.0, 1.0))
+    rcom_moved = rcom_kernel * (rcom_random / jnp.mean(rcom_kernel, axis=1))[:, None]
+
+    return jnp.stack([ra_moved, dec_moved, rcom_moved], axis=1)
+
+
 def define_randoms(
     random_method,
     xobj=None,
@@ -204,7 +261,9 @@ def define_randoms(
     Nrandom=None,
     coord_randoms=None,
     max_coordinates=None,
+    data_position_sky_kernel=None,
     seed=None,
+    d_rcom=10.0,
 ):
     """Generate random Cartesian positions for density gridding.
 
@@ -388,6 +447,89 @@ def define_randoms(
             ra_random, dec_random, rcom_random
         )
 
+    elif random_method == "choice_kernel":
+        _needed_params(data_position_sky_kernel=data_position_sky_kernel)
+        N = data_position_sky_kernel.shape[0]
+
+        ra_max, ra_min = jnp.max(data_position_sky_kernel[:, 0, :]), jnp.min(
+            data_position_sky_kernel[:, 0, :]
+        )
+        dec_max, dec_min = jnp.max(data_position_sky_kernel[:, 1, :]), jnp.min(
+            data_position_sky_kernel[:, 1, :]
+        )
+        if jax_installed:
+            jax_random_key, kx, ky = jax.random.split(jax_random_key, num=3)
+            ra_random = (ra_max - ra_min) * jax.random.uniform(
+                kx, shape=(Nrandom * N,)
+            ) + ra_min
+            dec_random = (dec_max - dec_min) * jax.random.uniform(
+                ky, shape=(Nrandom * N,)
+            ) + dec_min
+        else:
+            ra_random = (ra_max - ra_min) * jnp.random.random(size=Nrandom * N) + ra_min
+            dec_random = (dec_max - dec_min) * jnp.random.random(
+                size=Nrandom * N
+            ) + dec_min
+
+        # all_kernel_rcom = jnp.ravel(data_position_sky_kernel[:, 2, :])
+
+        average_rcom_kernel = jnp.mean(data_position_sky_kernel[:, 2, :], axis=1)
+        counts_kernel_rcom, bins_kernel_rcom = jnp.histogram(
+            average_rcom_kernel, bins=1000
+        )
+
+        if jax_installed:
+            jax_random_key, k = jax.random.split(jax_random_key)
+            rcom_random = jax.random.choice(
+                k,
+                (bins_kernel_rcom[1:] + bins_kernel_rcom[:-1]) / 2,
+                p=counts_kernel_rcom / float(counts_kernel_rcom.sum()),
+                shape=(Nrandom * N,),
+            )
+            diff = jnp.abs(rcom_random[:, None] - average_rcom_kernel[None, :])
+            score = jnp.where(
+                diff < d_rcom, jax.random.uniform(jax_random_key, diff.shape), -diff
+            )
+            kernel_randoms = data_position_sky_kernel[jnp.argmax(score, axis=1)]
+
+        else:
+            rcom_random = jnp.random.choice(
+                (bins_kernel_rcom[1:] + bins_kernel_rcom[:-1]) / 2,
+                p=counts_kernel_rcom / float(counts_kernel_rcom.sum()),
+                size=Nrandom * N,
+            )
+
+            diff = jnp.abs(rcom_random[:, None] - average_rcom_kernel[None, :])
+            score = jnp.where(diff < d_rcom, jnp.random.uniform(diff.shape), -diff)
+            kernel_randoms = data_position_sky_kernel[jnp.argmax(score, axis=1)]
+
+        kernel_randoms_centered = move_kernels(
+            kernel_randoms,
+            ra_random,
+            dec_random,
+            rcom_random,
+        )
+
+        x_kernel, y_kernel, z_kernel = utils.spherical_to_cartesian(
+            kernel_randoms_centered[:, 0, :],
+            kernel_randoms_centered[:, 1, :],
+            kernel_randoms_centered[:, 2, :],
+        )
+        kernel_randoms_centered_cartesian = jnp.stack(
+            [x_kernel, y_kernel, z_kernel], axis=-1
+        )
+
+        xobj_random, yobj_random, zobj_random = utils.spherical_to_cartesian(
+            ra_random, dec_random, rcom_random
+        )
+        return (
+            xobj_random,
+            yobj_random,
+            zobj_random,
+            None,
+            kernel_randoms_centered_cartesian,
+        )
+
     # From random file
     elif random_method == "file":
         _needed_params(coord_randoms=coord_randoms)
@@ -408,9 +550,9 @@ def define_randoms(
             yobj_random = yobj_random[mask_random]
             zobj_random = zobj_random[mask_random]
 
-            return xobj_random, yobj_random, zobj_random, mask_random
+            return xobj_random, yobj_random, zobj_random, mask_random, None
 
-    return xobj_random, yobj_random, zobj_random, None
+    return xobj_random, yobj_random, zobj_random, None, None
 
 
 def create_mesh(
@@ -554,30 +696,29 @@ def prepare_data_position_kernel(
     seed=None,
 ):
 
-    data_position_kernel = []
-    for i in range(len(data_position_sky_kernel)):
-        kernel = data_position_sky_kernel[i]
-        x_kernel, y_kernel, z_kernel = utils.spherical_to_cartesian(
-            kernel[0, :],
-            kernel[1, :],
-            kernel[2, :],
-        )
-        kernel_cartesian = jnp.array([x_kernel, y_kernel, z_kernel]).T
-        data_position_kernel.append(kernel_cartesian)
+    x_kernel, y_kernel, z_kernel = utils.spherical_to_cartesian(
+        data_position_sky_kernel[:, 0, :],
+        data_position_sky_kernel[:, 1, :],
+        data_position_sky_kernel[:, 2, :],
+    )
+    data_position_kernel = jnp.stack([x_kernel, y_kernel, z_kernel], axis=-1)
 
     if random_method is not None:
-        xobj_random, yobj_random, zobj_random, _ = define_randoms(
+        xobj_random, yobj_random, zobj_random, _, kernel_randoms = define_randoms(
             random_method,
             Nrandom=Nrandom,
             coord_randoms=coord_randoms,
             max_coordinates=rcom_max + overhead,
             seed=seed,
+            data_position_sky_kernel=data_position_sky_kernel,
         )
+
         randoms_positions = jnp.array([xobj_random, yobj_random, zobj_random]).T
     else:
+        kernel_randoms = None
         randoms_positions = None
 
-    return data_position_kernel, randoms_positions
+    return data_position_kernel, randoms_positions, kernel_randoms
 
 
 def prepare_data_position(
@@ -637,7 +778,7 @@ def prepare_data_position(
 
     raobj, decobj, rcomobj = raobj[mask], decobj[mask], rcomobj[mask]
     if random_method is not None:
-        xobj_random, yobj_random, zobj_random, mask_random = define_randoms(
+        xobj_random, yobj_random, zobj_random, mask_random, _ = define_randoms(
             random_method,
             xobj,
             yobj,
@@ -789,7 +930,7 @@ def grid_data_density(
         jnp.where(mask_randoms_nonzero, mesh_data.value / safe_randoms - 1, jnp.nan)
     )
 
-    count_randoms = jnp.ravel(mesh_count_randoms.value).astype(int)
+    count_randoms = jnp.ravel(mesh_count_randoms.value)
     mask = count_randoms > min_count_random
     safe_count_randoms = jnp.where(mask, count_randoms, 1)
     density_contrast_err = jnp.where(
@@ -996,7 +1137,7 @@ def grid_data_density_multivariate_kernel(
         )
     )
 
-    count_randoms = jnp.ravel(mesh_count_randoms.value).astype(int)
+    count_randoms = jnp.ravel(mesh_count_randoms.value)
     mask = count_randoms > min_count_random
     safe_count_randoms = jnp.where(mask, count_randoms, 1)
     density_contrast_err = jnp.where(
@@ -1283,7 +1424,7 @@ def grid_data_density_kernel_sampling(
         allowed = ", ".join(_grid_kind_avail)
         raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
 
-    data_position_kernel, randoms_positions = prepare_data_position_kernel(
+    data_position_kernel, randoms_positions, _ = prepare_data_position_kernel(
         data_position_sky_kernel,
         rcom_max,
         overhead,
@@ -1354,7 +1495,7 @@ def grid_data_density_kernel_sampling(
         assignement="ngp",
         weights=randoms_weights,
     )
-    count_randoms = jnp.ravel(mesh_count_randoms.value).astype(int)
+    count_randoms = jnp.ravel(mesh_count_randoms.value)
 
     mask_randoms_nonzero = mesh_randoms.value != 0.0
     safe_randoms = jnp.where(mask_randoms_nonzero, mesh_randoms.value, 1.0)
@@ -1401,11 +1542,12 @@ def grid_data_density_kernel_sum(
     Nrandom=10,
     random_method="cartesian",
     coord_randoms=None,
+    min_count_random=0,
     overhead=20,
     seed=None,
     data_weights=None,
     randoms_weights=None,
-    compute_density_contrast_error=False,
+    compute_density_contrast_error="None",
     cut_grid=False,
 ):
 
@@ -1414,26 +1556,26 @@ def grid_data_density_kernel_sum(
         allowed = ", ".join(_grid_kind_avail)
         raise ValueError(f"INVALID GRID TYPE! Allowed kinds: {allowed}")
 
-    data_position_kernel, randoms_positions = prepare_data_position_kernel(
-        data_position_sky_kernel,
-        rcom_max,
-        overhead,
-        random_method=random_method,
-        Nrandom=Nrandom,
-        coord_randoms=coord_randoms,
-        seed=seed,
+    data_position_kernel, randoms_positions, kernel_randoms = (
+        prepare_data_position_kernel(
+            data_position_sky_kernel,
+            rcom_max,
+            overhead,
+            random_method=random_method,
+            Nrandom=Nrandom,
+            coord_randoms=coord_randoms,
+            seed=seed,
+        )
     )
 
     counts = jnp.array([len(kernel_rows) for kernel_rows in data_position_kernel])
     if data_weights is None:
         data_weights_sum = jnp.repeat(1.0 / counts, counts)
-        object_weights = None
     else:
         total_sum_weights = np.sum(data_weights)
         data_weights_sum = jnp.repeat(
             data_weights / (counts * total_sum_weights), counts
         )
-        object_weights = data_weights / total_sum_weights
 
     data_position_kernel_sum = jnp.vstack(data_position_kernel)
 
@@ -1460,7 +1602,38 @@ def grid_data_density_kernel_sum(
         "value_data": jnp.ravel(mesh_data.value),
     }
 
-    if randoms_positions is not None:
+    if kernel_randoms is not None:
+        counts_random = jnp.array([len(kernel_rows) for kernel_rows in kernel_randoms])
+        if randoms_weights is None:
+            random_weights_sum = jnp.repeat(1.0 / counts_random, counts_random)
+        else:
+            total_sum_weights = np.sum(randoms_weights)
+            random_weights_sum = jnp.repeat(
+                randoms_weights / (counts_random * total_sum_weights), counts_random
+            )
+        kernel_randoms_sum = jnp.vstack(kernel_randoms)
+
+        scaling = jnp.sum(data_weights_sum) / jnp.sum(random_weights_sum)
+        mesh_randoms = create_mesh(
+            kernel_randoms_sum,
+            2 * (rcom_max + overhead),
+            grid_size,
+            assignement=kind,
+            weights=random_weights_sum,
+            scaling=scaling,
+        )
+        mask_randoms_nonzero = mesh_randoms.value != 0.0
+        safe_randoms = jnp.where(mask_randoms_nonzero, mesh_randoms.value, 1.0)
+
+        mesh_count_randoms = create_mesh(
+            kernel_randoms_sum,
+            2 * (rcom_max + overhead),
+            grid_size,
+            assignement="ngp",
+            weights=random_weights_sum,
+        )
+
+    else:
         if randoms_weights is None:
             randoms_weights = jnp.ones((randoms_positions.shape[0],))
 
@@ -1483,46 +1656,21 @@ def grid_data_density_kernel_sum(
             assignement="ngp",
             weights=randoms_weights,
         )
-        count_randoms = jnp.ravel(mesh_count_randoms.value).astype(int)
 
-        density_contrast = jnp.ravel(
-            jnp.where(mask_randoms_nonzero, mesh_data.value / safe_randoms - 1, jnp.nan)
-        )
-        grid["density"] = density_contrast
-        grid["count_random"] = count_randoms
-        grid["count_random_scaled"] = count_randoms * scaling
+    density_contrast = jnp.ravel(
+        jnp.where(mask_randoms_nonzero, mesh_data.value / safe_randoms - 1, jnp.nan)
+    )
+    count_randoms = jnp.ravel(mesh_count_randoms.value)
+    mask = count_randoms > min_count_random
+    safe_count_randoms = jnp.where(mask, count_randoms, 1)
+    density_contrast_err = jnp.where(
+        mask, jnp.sqrt(1 / (safe_count_randoms * scaling)), jnp.nan
+    )
 
-    else:
-        density_contrast = jnp.ravel(mesh_data.value / jnp.mean(mesh_data.value) - 1)
-        grid["density"] = density_contrast
-
-    if compute_density_contrast_error:
-        nmesh, boxsize, boxcenter = _get_mesh_attrs(
-            2 * (rcom_max + overhead), grid_size
-        )
-        groups = jnp.repeat(jnp.arange(len(counts)), counts)
-
-        var = paint_catalog_variance(
-            data_position_kernel_sum,
-            groups,
-            boxsize,
-            nmesh,
-            boxcenter=boxcenter,
-            resampler=kind,
-            object_weights=object_weights,
-        )
-        if randoms_positions is not None:
-            density_contrast_err = jnp.ravel(
-                jnp.where(
-                    mask_randoms_nonzero, jnp.sqrt(var.value) / safe_randoms, jnp.nan
-                )
-            )
-        else:
-            density_contrast_err = jnp.ravel(
-                jnp.sqrt(var.value) / jnp.mean(mesh_data.value)
-            )
-
-        grid["density_error"] = density_contrast_err
+    grid["density"] = density_contrast
+    grid["density_error"] = density_contrast_err
+    grid["count_random"] = count_randoms
+    grid["count_random_scaled"] = count_randoms * scaling
 
     if cut_grid:
         cut_grid_type(

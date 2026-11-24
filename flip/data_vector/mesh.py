@@ -417,16 +417,22 @@ def define_randoms(
             ra_random = (jnp.max(raobj) - jnp.min(raobj)) * jax.random.uniform(
                 kx, shape=(Nrandom * N,)
             ) + jnp.min(raobj)
-            dec_random = (jnp.max(decobj) - jnp.min(decobj)) * jax.random.uniform(
-                ky, shape=(Nrandom * N,)
-            ) + jnp.min(decobj)
+            # Uniform in sin(dec) for uniform density per solid angle
+            sin_dec_max, sin_dec_min = jnp.sin(jnp.max(decobj)), jnp.sin(jnp.min(decobj))
+            dec_random = jnp.arcsin(
+                (sin_dec_max - sin_dec_min)
+                * jax.random.uniform(ky, shape=(Nrandom * N,))
+                + sin_dec_min
+            )
         else:
             ra_random = (jnp.max(raobj) - jnp.min(raobj)) * jnp.random.random(
                 size=Nrandom * N
             ) + jnp.min(raobj)
-            dec_random = (jnp.max(decobj) - jnp.min(decobj)) * jnp.random.random(
-                size=Nrandom * N
-            ) + jnp.min(decobj)
+            sin_dec_max, sin_dec_min = jnp.sin(jnp.max(decobj)), jnp.sin(jnp.min(decobj))
+            dec_random = jnp.arcsin(
+                (sin_dec_max - sin_dec_min) * jnp.random.random(size=Nrandom * N)
+                + sin_dec_min
+            )
         counts_rcom, bins_rcom = jnp.histogram(rcomobj, bins=1000)
         if jax_installed:
             jax_random_key, k = jax.random.split(jax_random_key)
@@ -462,14 +468,19 @@ def define_randoms(
             ra_random = (ra_max - ra_min) * jax.random.uniform(
                 kx, shape=(Nrandom * N,)
             ) + ra_min
-            dec_random = (dec_max - dec_min) * jax.random.uniform(
-                ky, shape=(Nrandom * N,)
-            ) + dec_min
+            # Uniform in sin(dec) for uniform density per solid angle
+            dec_random = jnp.arcsin(
+                (jnp.sin(dec_max) - jnp.sin(dec_min))
+                * jax.random.uniform(ky, shape=(Nrandom * N,))
+                + jnp.sin(dec_min)
+            )
         else:
             ra_random = (ra_max - ra_min) * jnp.random.random(size=Nrandom * N) + ra_min
-            dec_random = (dec_max - dec_min) * jnp.random.random(
-                size=Nrandom * N
-            ) + dec_min
+            dec_random = jnp.arcsin(
+                (jnp.sin(dec_max) - jnp.sin(dec_min))
+                * jnp.random.random(size=Nrandom * N)
+                + jnp.sin(dec_min)
+            )
 
         # all_kernel_rcom = jnp.ravel(data_position_sky_kernel[:, 2, :])
 
@@ -500,7 +511,9 @@ def define_randoms(
             )
 
             diff = jnp.abs(rcom_random[:, None] - average_rcom_kernel[None, :])
-            score = jnp.where(diff < d_rcom, jnp.random.uniform(diff.shape), -diff)
+            score = jnp.where(
+                diff < d_rcom, jnp.random.uniform(size=diff.shape), -diff
+            )
             kernel_randoms = data_position_sky_kernel[jnp.argmax(score, axis=1)]
 
         kernel_randoms_centered = move_kernels(
@@ -694,6 +707,7 @@ def prepare_data_position_kernel(
     Nrandom=None,
     coord_randoms=None,
     seed=None,
+    d_rcom=10.0,
 ):
 
     x_kernel, y_kernel, z_kernel = utils.spherical_to_cartesian(
@@ -711,6 +725,7 @@ def prepare_data_position_kernel(
             max_coordinates=rcom_max + overhead,
             seed=seed,
             data_position_sky_kernel=data_position_sky_kernel,
+            d_rcom=d_rcom,
         )
 
         randoms_positions = jnp.array([xobj_random, yobj_random, zobj_random]).T
@@ -1395,6 +1410,7 @@ def grid_data_density_kernel_sampling(
     random_method="cartesian",
     coord_randoms=None,
     overhead=20,
+    d_rcom=10.0,
     seed=None,
 ):
     """Grid data with pypower and compute density contrast on a mesh.
@@ -1432,6 +1448,7 @@ def grid_data_density_kernel_sampling(
         Nrandom=Nrandom,
         coord_randoms=coord_randoms,
         seed=seed,
+        d_rcom=d_rcom,
     )
 
     data_weights = jnp.ones(len(data_position_kernel))
@@ -1547,8 +1564,8 @@ def grid_data_density_kernel_sum(
     seed=None,
     data_weights=None,
     randoms_weights=None,
-    compute_density_contrast_error="None",
     cut_grid=False,
+    d_rcom=10.0,
 ):
 
     kind = kind.lower()
@@ -1565,6 +1582,7 @@ def grid_data_density_kernel_sum(
             Nrandom=Nrandom,
             coord_randoms=coord_randoms,
             seed=seed,
+            d_rcom=d_rcom,
         )
     )
 
@@ -1572,10 +1590,7 @@ def grid_data_density_kernel_sum(
     if data_weights is None:
         data_weights_sum = jnp.repeat(1.0 / counts, counts)
     else:
-        total_sum_weights = np.sum(data_weights)
-        data_weights_sum = jnp.repeat(
-            data_weights / (counts * total_sum_weights), counts
-        )
+        data_weights_sum = jnp.repeat(data_weights / counts, counts)
 
     data_position_kernel_sum = jnp.vstack(data_position_kernel)
 
@@ -1607,9 +1622,8 @@ def grid_data_density_kernel_sum(
         if randoms_weights is None:
             random_weights_sum = jnp.repeat(1.0 / counts_random, counts_random)
         else:
-            total_sum_weights = np.sum(randoms_weights)
             random_weights_sum = jnp.repeat(
-                randoms_weights / (counts_random * total_sum_weights), counts_random
+                randoms_weights / counts_random, counts_random
             )
         kernel_randoms_sum = jnp.vstack(kernel_randoms)
 

@@ -34,10 +34,11 @@ except ImportError:
             level="warning",
         )
 
-# CR - forward modeling is not like covariance.
-# The likelihood is too specific to be stored at the sampler level
-# Try to make the simulator general enough. If not, put the likelihood in the simulator
-# And rename it models.
+# CR - Long term and only if several forward modeling are implemented
+# The forward modeling is not like covariance.
+# For now, the likelihood is too specific to be stored at the sampler level
+# Try to make the simulator general enough.
+# If if is not possible, put the likelihood in the simulator.
 
 
 class BaseSampler:

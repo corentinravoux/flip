@@ -3,8 +3,11 @@
 Point randoms (uniform Cartesian, drawn from the data sky and distance
 distributions, or read from a file) and kernel randoms, which copy data kernels
 (e.g. GW localisation posteriors) and move them onto random positions.
+`compute_random_counts_analytic` gives the expected counts per cell directly,
+without randoms (`random_method="analytic"` in the gridding functions).
 """
 
+import itertools
 import time
 
 import numpy as np
@@ -57,7 +60,11 @@ def _sky_kernels_to_cartesian(sky_kernels):
         cos_dec = np.cos(dec)
         kernels_cartesian.append(
             np.stack(
-                [rcom * cos_dec * np.cos(ra), rcom * cos_dec * np.sin(ra), rcom * np.sin(dec)],
+                [
+                    rcom * cos_dec * np.cos(ra),
+                    rcom * cos_dec * np.sin(ra),
+                    rcom * np.sin(dec),
+                ],
                 axis=-1,
             )
         )
@@ -260,8 +267,11 @@ def randoms_choice_kernel(
         ra_all, dec_all, rcom_all, offsets, sizes
     )
 
+    # RA wrapped to [0, 2 pi): otherwise samples outside it widen the range
+    # beyond 2 pi and the overlap is drawn twice
+    ra_wrapped = np.mod(ra_all, 2 * np.pi)
     key, ra_random, dec_random = _uniform_sky(
-        key, ra_all.min(), ra_all.max(), dec_all.min(), dec_all.max(), size
+        key, ra_wrapped.min(), ra_wrapped.max(), dec_all.min(), dec_all.max(), size
     )
     key, rcom_random = _choice_histogram(key, jnp.asarray(rcom_center), size)
     _, (u,) = _uniform(key, [(0.0, 1.0)], size)
@@ -340,6 +350,165 @@ def randoms_file(coord_randoms, max_coordinates=None):
     mask &= jnp.abs(y) < max_coordinates
     mask &= jnp.abs(z) < max_coordinates
     return x[mask], y[mask], z[mask], mask
+
+
+def _footprint_fraction_in_box(
+    rcom_edges, sin_dec_edges, ra_min, ra_max, box_half_size, n_directions=512, n_sub=8
+):
+    """Fraction of each `(rcom, sin dec)` bin of the footprint inside a centred cube.
+
+    Directions on a regular `(ra, sin dec)` grid of each bin, which is uniform
+    per solid angle; `n_sub` distances per bin, weighted by `rcom**2`.
+
+    Args:
+        rcom_edges (numpy.ndarray): Edges of the rcom bins.
+        sin_dec_edges (numpy.ndarray): Edges of the sin(dec) bins.
+        ra_min, ra_max (float): RA range of the footprint, in radians.
+        box_half_size (float): Half side of the cube.
+        n_directions (int): Directions per side of each sin(dec) bin.
+        n_sub (int): Distances per rcom bin.
+
+    Returns:
+        numpy.ndarray: Fraction of shape `(n_rcom_bins, n_sin_dec_bins)`.
+    """
+    t = (np.arange(n_directions) + 0.5) / n_directions
+    ra = ra_min + (ra_max - ra_min) * t
+    u = (np.arange(n_sub) + 0.5) / n_sub
+    rcom_sub = rcom_edges[:-1, None] + np.diff(rcom_edges)[:, None] * u[None, :]
+
+    fraction = np.empty((len(rcom_edges) - 1, len(sin_dec_edges) - 1))
+    for i in range(len(sin_dec_edges) - 1):
+        sin_dec = sin_dec_edges[i] + (sin_dec_edges[i + 1] - sin_dec_edges[i]) * t
+        sin_dec, ra_direction = np.meshgrid(sin_dec, ra)
+        cos_dec = np.sqrt(1.0 - sin_dec**2)
+        max_abs = np.maximum.reduce(
+            [
+                np.abs(cos_dec * np.cos(ra_direction)),
+                np.abs(cos_dec * np.sin(ra_direction)),
+                np.abs(sin_dec),
+            ]
+        )
+        # Distance at which each direction leaves the cube
+        rcom_exit = np.sort(np.ravel(box_half_size / max_abs))
+        n_inside = rcom_exit.size - np.searchsorted(rcom_exit, rcom_sub, side="right")
+        fraction[:, i] = np.sum(rcom_sub**2 * n_inside, axis=1) / (
+            np.sum(rcom_sub**2, axis=1) * rcom_exit.size
+        )
+    return fraction
+
+
+def _nbar_at_positions(
+    nbar, rcom_edges, sin_dec_edges, ra_min, ra_max, box_half_size, x, y, z
+):
+    """Expected density at Cartesian positions; 0 outside the bins, the footprint
+    or the cube."""
+    ra, dec, rcom = utils.cartesian_to_spherical(x, y, z)
+    ra = np.mod(ra, 2 * np.pi)
+    i_rcom = np.searchsorted(rcom_edges, rcom, side="right") - 1
+    i_dec = np.searchsorted(sin_dec_edges, np.sin(dec), side="right") - 1
+    inside = (i_rcom >= 0) & (i_rcom < len(rcom_edges) - 1)
+    inside &= (i_dec >= 0) & (i_dec < len(sin_dec_edges) - 1)
+    inside &= (ra >= ra_min) & (ra <= ra_max)
+    inside &= np.maximum.reduce([np.abs(x), np.abs(y), np.abs(z)]) < box_half_size
+    i_rcom = np.clip(i_rcom, 0, nbar.shape[0] - 1)
+    i_dec = np.clip(i_dec, 0, nbar.shape[1] - 1)
+    return np.where(inside, nbar[i_rcom, i_dec], 0.0)
+
+
+def compute_random_counts_analytic(
+    ra,
+    dec,
+    rcom,
+    weights,
+    xgrid,
+    ygrid,
+    zgrid,
+    grid_size,
+    box_half_size,
+    d_rcom=10.0,
+    n_bins_sin_dec=1,
+    n_sub_cell=None,
+):
+    """Expected number of data objects per cell, computed without randoms.
+
+    Analytic counterpart of the `choice_redshift` and `choice_kernel` randoms:
+    their limit for `Nrandom -> infinity`. The expected density is taken from
+    the data, uniform in ra within the data footprint (ra and dec ranges):
+
+        nbar(rcom, sin dec) = S(rcom, sin dec) / V(rcom, sin dec),
+
+    with `S` the weighted histogram of the data in bins of width `d_rcom` and
+    `n_bins_sin_dec` bins of sin(dec), and `V` the volume of each bin inside
+    the footprint and the cube `|x|, |y|, |z| < box_half_size`. Data outside
+    the cube are ignored: mesh painting is periodic, so they must be cut
+    before gridding. The count in a cell is `grid_size**3` times `nbar`
+    averaged over `n_sub_cell**3` points of the cell, since coarse cells are
+    wider than the radial structure of `nbar`.
+
+    Args:
+        ra (array-like): Data right ascensions in radians (kernel samples for
+            kernel data).
+        dec (array-like): Data declinations in radians.
+        rcom (array-like): Data comoving distances.
+        weights (array-like): Weight of each object or kernel sample; their
+            sum is the number of objects (kernel samples weigh `1 / n_kernel`).
+        xgrid, ygrid, zgrid (array-like): Cartesian cell centres.
+        grid_size (float): Cell size.
+        box_half_size (float): Half side of the cube holding the data.
+        d_rcom (float): Width of the rcom bins. Point data give a noisier
+            histogram than kernels: use a few `grid_size`.
+        n_bins_sin_dec (int): Number of sin(dec) bins; 1 gives an expected
+            density that depends on rcom only.
+        n_sub_cell (int, optional): Points per cell side used to average
+            `nbar`. `None` evaluates about 1e8 points in total (1 to 8 per side).
+
+    Returns:
+        numpy.ndarray: Expected number of objects per cell, the analytic
+        equivalent of the scaled random counts.
+    """
+    ra, dec, rcom, weights = (np.asarray(a) for a in (ra, dec, rcom, weights))
+    x, y, z = utils.spherical_to_cartesian(ra, dec, rcom)
+    mask = np.maximum.reduce([np.abs(x), np.abs(y), np.abs(z)]) < box_half_size
+    ra, dec, rcom, weights = ra[mask], dec[mask], rcom[mask], weights[mask]
+    ra = np.mod(ra, 2 * np.pi)
+    ra_min, ra_max = ra.min(), ra.max()
+
+    rcom_edges = np.arange(0.0, rcom.max() + d_rcom, d_rcom)
+    sin_dec_edges = np.linspace(
+        np.sin(dec.min()), np.sin(dec.max()), n_bins_sin_dec + 1
+    )
+    histogram, _, _ = np.histogram2d(
+        rcom, np.sin(dec), bins=[rcom_edges, sin_dec_edges], weights=weights
+    )
+    # Bin volume: integral of rcom**2 drcom dra dsin(dec), times the cube fraction
+    volume = (
+        (np.diff(rcom_edges**3) / 3)[:, None]
+        * np.diff(sin_dec_edges)[None, :]
+        * (ra_max - ra_min)
+        * _footprint_fraction_in_box(
+            rcom_edges, sin_dec_edges, ra_min, ra_max, box_half_size
+        )
+    )
+    nbar = np.divide(histogram, volume, out=np.zeros_like(histogram), where=volume > 0)
+
+    xgrid, ygrid, zgrid = (np.asarray(a) for a in (xgrid, ygrid, zgrid))
+    if n_sub_cell is None:
+        n_sub_cell = int(np.clip((1e8 / xgrid.size) ** (1 / 3), 1, 8))
+    offsets = ((np.arange(n_sub_cell) + 0.5) / n_sub_cell - 0.5) * grid_size
+    counts = np.zeros(xgrid.shape)
+    for dx, dy, dz in itertools.product(offsets, repeat=3):
+        counts += _nbar_at_positions(
+            nbar,
+            rcom_edges,
+            sin_dec_edges,
+            ra_min,
+            ra_max,
+            box_half_size,
+            xgrid + dx,
+            ygrid + dy,
+            zgrid + dz,
+        )
+    return counts * grid_size**3 / n_sub_cell**3
 
 
 def define_randoms(

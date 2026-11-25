@@ -25,6 +25,11 @@ else:
 
 from flip import utils
 from flip.data_vector.mesh_utils import paint_catalog
+from flip.data_vector.randoms import (  # noqa: F401  (re-exported)
+    _sky_kernels_to_cartesian,
+    define_randoms,
+    move_kernels,
+)
 
 _grid_kind_avail = ["ngp", "cic", "tsc", "pcs"]
 
@@ -191,406 +196,6 @@ def _get_mesh_attrs(
     nmesh = np.full((3,), nmesh, dtype="i4")
     boxcenter = np.full((3,), boxcenter, dtype="f8")
     return nmesh, boxsize, boxcenter
-
-
-def _sky_kernels_to_cartesian(sky_kernels):
-    """Convert sky kernels `(ra, dec, rcom)` to Cartesian, one kernel at a time.
-
-    Args:
-        sky_kernels (list or array-like): Kernels of shape `(3, n_i)`; sizes
-            `n_i` may differ between kernels.
-
-    Returns:
-        list[jax.numpy.ndarray]: One `(n_i, 3)` array per kernel.
-    """
-    kernels_cartesian = []
-    for kernel in sky_kernels:
-        x_kernel, y_kernel, z_kernel = utils.spherical_to_cartesian(
-            kernel[0], kernel[1], kernel[2]
-        )
-        kernels_cartesian.append(jnp.array([x_kernel, y_kernel, z_kernel]).T)
-    return kernels_cartesian
-
-
-def move_kernels(
-    kernels,
-    ra_random,
-    dec_random,
-    rcom_random,
-):
-    """Move sky kernels so that their centres land on random positions.
-
-    Each kernel is rigidly rotated on the sphere so that its mean direction
-    points to `(ra_random, dec_random)`: rotation about z by `-ra_center`,
-    about y by `dec_center - dec_random`, then about z by `ra_random`. Its
-    comoving distances are rescaled by `rcom_random / mean(rcom_kernel)`.
-    The angular shape and the relative distance spread of each kernel are
-    preserved.
-
-    Args:
-        kernels (array-like): Kernels of shape `(M, 3, n)` with rows
-            `(ra, dec, rcom)`, angles in radians.
-        ra_random (array-like): Target right ascensions in radians, shape `(M,)`.
-        dec_random (array-like): Target declinations in radians, shape `(M,)`.
-        rcom_random (array-like): Target comoving distances, shape `(M,)`.
-
-    Returns:
-        jax.numpy.ndarray: Moved kernels of shape `(M, 3, n)` with rows
-        `(ra, dec, rcom)`.
-    """
-    ra_kernel = kernels[:, 0, :]
-    dec_kernel = kernels[:, 1, :]
-    rcom_kernel = kernels[:, 2, :]
-
-    # Kernel centre = mean direction of its samples
-    x_center = jnp.mean(jnp.cos(dec_kernel) * jnp.cos(ra_kernel), axis=1)
-    y_center = jnp.mean(jnp.cos(dec_kernel) * jnp.sin(ra_kernel), axis=1)
-    z_center = jnp.mean(jnp.sin(dec_kernel), axis=1)
-    ra_center = jnp.arctan2(y_center, x_center)
-    dec_center = jnp.arctan2(z_center, jnp.hypot(x_center, y_center))
-
-    # Rotation about z by -ra_center
-    x = jnp.cos(dec_kernel) * jnp.cos(ra_kernel - ra_center[:, None])
-    y = jnp.cos(dec_kernel) * jnp.sin(ra_kernel - ra_center[:, None])
-    z = jnp.sin(dec_kernel)
-
-    # Rotation about y by dec_center - dec_random
-    angle = (dec_center - dec_random)[:, None]
-    x, z = (
-        x * jnp.cos(angle) + z * jnp.sin(angle),
-        z * jnp.cos(angle) - x * jnp.sin(angle),
-    )
-
-    # Rotation about z by ra_random
-    ra_moved = jnp.mod(ra_random[:, None] + jnp.arctan2(y, x), 2 * jnp.pi)
-    dec_moved = jnp.arcsin(jnp.clip(z, -1.0, 1.0))
-    rcom_moved = rcom_kernel * (rcom_random / jnp.mean(rcom_kernel, axis=1))[:, None]
-
-    return jnp.stack([ra_moved, dec_moved, rcom_moved], axis=1)
-
-
-def define_randoms(
-    random_method,
-    xobj=None,
-    yobj=None,
-    zobj=None,
-    raobj=None,
-    decobj=None,
-    rcomobj=None,
-    Nrandom=None,
-    coord_randoms=None,
-    max_coordinates=None,
-    data_position_sky_kernel=None,
-    seed=None,
-    d_rcom=10.0,
-):
-    """Generate random Cartesian positions for density gridding.
-
-    Supports uniform Cartesian sampling, random catalogs drawn from the
-    observed angular and radial distributions, or externally supplied randoms.
-
-    Args:
-        random_method (str): `cartesian`, `choice`, `choice_redshift`, or `file`.
-        xobj (array-like): Data x positions.
-        yobj (array-like): Data y positions.
-        zobj (array-like): Data z positions.
-        raobj (array-like): Data right ascensions.
-        decobj (array-like): Data declinations.
-        rcomobj (array-like): Data comoving distances.
-        Nrandom (int): Number of randoms per object.
-        coord_randoms (tuple, optional): `(ra, dec, rcom)` for `file` method.
-        max_coordinates (float, optional): Coordinate cutoff for `file` method.
-        seed (int, optional): Random seed used for reproducible draws.
-
-    Returns:
-        tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]: Random x, y, z positions.
-    """
-
-    def _needed_params(**needed_parameter):
-        for name, p in needed_parameter.items():
-            if p is None:
-                raise ValueError(
-                    f"random_method={random_method} requires {name} to be provided"
-                )
-
-    if seed is not None:
-        if jax_installed:
-            jax_random_key = jax.random.key(seed)
-        else:
-            jnp.random.seed(seed)
-    else:
-        if jax_installed:
-            jax_random_key = jax.random.key(int(time.time() * 1e6))
-
-    # Uniform in X,Y,Z
-    if random_method == "cartesian":
-        _needed_params(xobj=xobj, yobj=yobj, zobj=zobj)
-        N = xobj.size
-        if jax_installed:
-            jax_random_key, kx, ky, kz = jax.random.split(jax_random_key, num=4)
-            xobj_random = (jnp.max(xobj) - jnp.min(xobj)) * jax.random.uniform(
-                kx, shape=(Nrandom * N,)
-            ) + jnp.min(xobj)
-            yobj_random = (jnp.max(yobj) - jnp.min(yobj)) * jax.random.uniform(
-                ky, shape=(Nrandom * N,)
-            ) + jnp.min(yobj)
-            zobj_random = (jnp.max(zobj) - jnp.min(zobj)) * jax.random.uniform(
-                kz, shape=(Nrandom * N,)
-            ) + jnp.min(zobj)
-        else:
-            xobj_random = (jnp.max(xobj) - jnp.min(xobj)) * jnp.random.random(
-                size=Nrandom * N
-            ) + jnp.min(xobj)
-            yobj_random = (jnp.max(yobj) - jnp.min(yobj)) * jnp.random.random(
-                size=Nrandom * N
-            ) + jnp.min(yobj)
-            zobj_random = (jnp.max(zobj) - jnp.min(zobj)) * jnp.random.random(
-                size=Nrandom * N
-            ) + jnp.min(zobj)
-
-    elif random_method == "cartesian_max_coordinates":
-        if jax_installed:
-            jax_random_key, kx, ky, kz = jax.random.split(jax_random_key, num=4)
-            xobj_random = (2 * max_coordinates) * jax.random.uniform(
-                kx, shape=(Nrandom,)
-            ) - max_coordinates
-            yobj_random = (2 * max_coordinates) * jax.random.uniform(
-                ky, shape=(Nrandom,)
-            ) - max_coordinates
-            zobj_random = (2 * max_coordinates) * jax.random.uniform(
-                kz, shape=(Nrandom,)
-            ) - max_coordinates
-        else:
-            xobj_random = (2 * max_coordinates) * jnp.random.random(
-                size=Nrandom
-            ) - max_coordinates
-            yobj_random = (2 * max_coordinates) * jnp.random.random(
-                size=Nrandom
-            ) - max_coordinates
-            zobj_random = (2 * max_coordinates) * jnp.random.random(
-                size=Nrandom
-            ) - max_coordinates
-
-    # Choice in the ra, dec, and redshift data coordinates to create the random.
-    elif random_method == "choice":
-        _needed_params(raobj=raobj, decobj=decobj, rcomobj=rcomobj)
-        N = raobj.size
-        counts_ra, bins_ra = jnp.histogram(raobj, bins=1000)
-        if jax_installed:
-            jax_random_key, k = jax.random.split(jax_random_key)
-            ra_random = jax.random.choice(
-                k,
-                (bins_ra[1:] + bins_ra[:-1]) / 2,
-                p=counts_ra / float(counts_ra.sum()),
-                shape=(Nrandom * N,),
-            )
-        else:
-            ra_random = jnp.random.choice(
-                (bins_ra[1:] + bins_ra[:-1]) / 2,
-                p=counts_ra / float(counts_ra.sum()),
-                size=Nrandom * N,
-            )
-        counts_dec, bins_dec = jnp.histogram(decobj, bins=1000)
-        if jax_installed:
-            jax_random_key, k = jax.random.split(jax_random_key)
-            dec_random = jax.random.choice(
-                k,
-                (bins_dec[1:] + bins_dec[:-1]) / 2,
-                p=counts_dec / float(counts_dec.sum()),
-                shape=(Nrandom * N,),
-            )
-        else:
-            dec_random = jnp.random.choice(
-                (bins_dec[1:] + bins_dec[:-1]) / 2,
-                p=counts_dec / float(counts_dec.sum()),
-                size=Nrandom * N,
-            )
-        counts_rcom, bins_rcom = jnp.histogram(rcomobj, bins=1000)
-        if jax_installed:
-            jax_random_key, k = jax.random.split(jax_random_key)
-            rcom_random = jax.random.choice(
-                k,
-                (bins_rcom[1:] + bins_rcom[:-1]) / 2,
-                p=counts_rcom / float(counts_rcom.sum()),
-                shape=(Nrandom * N,),
-            )
-        else:
-            rcom_random = jnp.random.choice(
-                (bins_rcom[1:] + bins_rcom[:-1]) / 2,
-                p=counts_rcom / float(counts_rcom.sum()),
-                size=Nrandom * N,
-            )
-
-        xobj_random, yobj_random, zobj_random = utils.spherical_to_cartesian(
-            ra_random,
-            dec_random,
-            rcom_random,
-        )
-
-    # Uniform in ra and dec. Choice in the redshift data coordinates.
-    elif random_method == "choice_redshift":
-        _needed_params(raobj=raobj, decobj=decobj, rcomobj=rcomobj)
-        N = raobj.size
-        if jax_installed:
-            jax_random_key, kx, ky = jax.random.split(jax_random_key, num=3)
-            ra_random = (jnp.max(raobj) - jnp.min(raobj)) * jax.random.uniform(
-                kx, shape=(Nrandom * N,)
-            ) + jnp.min(raobj)
-            # Uniform in sin(dec) for uniform density per solid angle
-            sin_dec_max, sin_dec_min = jnp.sin(jnp.max(decobj)), jnp.sin(
-                jnp.min(decobj)
-            )
-            dec_random = jnp.arcsin(
-                (sin_dec_max - sin_dec_min)
-                * jax.random.uniform(ky, shape=(Nrandom * N,))
-                + sin_dec_min
-            )
-        else:
-            ra_random = (jnp.max(raobj) - jnp.min(raobj)) * jnp.random.random(
-                size=Nrandom * N
-            ) + jnp.min(raobj)
-            sin_dec_max, sin_dec_min = jnp.sin(jnp.max(decobj)), jnp.sin(
-                jnp.min(decobj)
-            )
-            dec_random = jnp.arcsin(
-                (sin_dec_max - sin_dec_min) * jnp.random.random(size=Nrandom * N)
-                + sin_dec_min
-            )
-        counts_rcom, bins_rcom = jnp.histogram(rcomobj, bins=1000)
-        if jax_installed:
-            jax_random_key, k = jax.random.split(jax_random_key)
-            rcom_random = jax.random.choice(
-                k,
-                (bins_rcom[1:] + bins_rcom[:-1]) / 2,
-                p=counts_rcom / float(counts_rcom.sum()),
-                shape=(Nrandom * N,),
-            )
-        else:
-            rcom_random = jnp.random.choice(
-                (bins_rcom[1:] + bins_rcom[:-1]) / 2,
-                p=counts_rcom / float(counts_rcom.sum()),
-                size=Nrandom * N,
-            )
-
-        xobj_random, yobj_random, zobj_random = utils.spherical_to_cartesian(
-            ra_random, dec_random, rcom_random
-        )
-
-    elif random_method == "choice_kernel":
-        _needed_params(data_position_sky_kernel=data_position_sky_kernel)
-        # Kernels may have different sizes: work kernel by kernel.
-        N = len(data_position_sky_kernel)
-        all_samples = jnp.concatenate(
-            [jnp.asarray(kernel) for kernel in data_position_sky_kernel], axis=1
-        )
-        ra_max, ra_min = jnp.max(all_samples[0]), jnp.min(all_samples[0])
-        dec_max, dec_min = jnp.max(all_samples[1]), jnp.min(all_samples[1])
-        if jax_installed:
-            jax_random_key, kx, ky = jax.random.split(jax_random_key, num=3)
-            ra_random = (ra_max - ra_min) * jax.random.uniform(
-                kx, shape=(Nrandom * N,)
-            ) + ra_min
-            # Uniform in sin(dec) for uniform density per solid angle
-            dec_random = jnp.arcsin(
-                (jnp.sin(dec_max) - jnp.sin(dec_min))
-                * jax.random.uniform(ky, shape=(Nrandom * N,))
-                + jnp.sin(dec_min)
-            )
-        else:
-            ra_random = (ra_max - ra_min) * jnp.random.random(size=Nrandom * N) + ra_min
-            dec_random = jnp.arcsin(
-                (jnp.sin(dec_max) - jnp.sin(dec_min))
-                * jnp.random.random(size=Nrandom * N)
-                + jnp.sin(dec_min)
-            )
-
-        # all_kernel_rcom = jnp.ravel(data_position_sky_kernel[:, 2, :])
-
-        average_rcom_kernel = jnp.array(
-            [jnp.mean(kernel[2]) for kernel in data_position_sky_kernel]
-        )
-        counts_kernel_rcom, bins_kernel_rcom = jnp.histogram(
-            average_rcom_kernel, bins=1000
-        )
-
-        if jax_installed:
-            jax_random_key, k = jax.random.split(jax_random_key)
-            rcom_random = jax.random.choice(
-                k,
-                (bins_kernel_rcom[1:] + bins_kernel_rcom[:-1]) / 2,
-                p=counts_kernel_rcom / float(counts_kernel_rcom.sum()),
-                shape=(Nrandom * N,),
-            )
-            jax_random_key, ku = jax.random.split(jax_random_key)
-            u = jax.random.uniform(ku, rcom_random.shape)
-
-        else:
-            rcom_random = jnp.random.choice(
-                (bins_kernel_rcom[1:] + bins_kernel_rcom[:-1]) / 2,
-                p=counts_kernel_rcom / float(counts_kernel_rcom.sum()),
-                size=Nrandom * N,
-            )
-            u = jnp.random.uniform(size=rcom_random.shape)
-
-        # Uniform choice among kernels with |<rcom> - rcom_random| <= d_rcom
-        order = jnp.argsort(average_rcom_kernel)
-        r_sorted = average_rcom_kernel[order]
-        lo = jnp.searchsorted(r_sorted, rcom_random - d_rcom, side="left")
-        hi = jnp.searchsorted(r_sorted, rcom_random + d_rcom, side="right")
-        if jnp.any(hi == lo):
-            raise ValueError(
-                "No kernel within d_rcom of a random rcom: increase d_rcom"
-            )
-        index_kernel = order[lo + jnp.floor(u * (hi - lo)).astype(int)]
-
-        # Move each chosen kernel onto its random position, one at a time
-        kernel_randoms_centered = [
-            move_kernels(
-                jnp.asarray(data_position_sky_kernel[i_kernel])[None],
-                ra_random[i : i + 1],
-                dec_random[i : i + 1],
-                rcom_random[i : i + 1],
-            )[0]
-            for i, i_kernel in enumerate(np.asarray(index_kernel))
-        ]
-        kernel_randoms_centered_cartesian = _sky_kernels_to_cartesian(
-            kernel_randoms_centered
-        )
-
-        xobj_random, yobj_random, zobj_random = utils.spherical_to_cartesian(
-            ra_random, dec_random, rcom_random
-        )
-        return (
-            xobj_random,
-            yobj_random,
-            zobj_random,
-            None,
-            kernel_randoms_centered_cartesian,
-        )
-
-    # From random file
-    elif random_method == "file":
-        _needed_params(coord_randoms=coord_randoms)
-        ra_random, dec_random, rcom_random = (
-            coord_randoms[:, 0],
-            coord_randoms[:, 1],
-            coord_randoms[:, 2],
-        )
-
-        xobj_random, yobj_random, zobj_random = utils.spherical_to_cartesian(
-            ra_random, dec_random, rcom_random
-        )
-        if max_coordinates is not None:
-            mask_random = jnp.abs(xobj_random) < max_coordinates
-            mask_random &= jnp.abs(yobj_random) < max_coordinates
-            mask_random &= jnp.abs(zobj_random) < max_coordinates
-            xobj_random = xobj_random[mask_random]
-            yobj_random = yobj_random[mask_random]
-            zobj_random = zobj_random[mask_random]
-
-            return xobj_random, yobj_random, zobj_random, mask_random, None
-
-    return xobj_random, yobj_random, zobj_random, None, None
 
 
 def create_mesh(
@@ -1612,7 +1217,8 @@ def grid_data_density_kernel_sum(
     else:
         data_weights_sum = jnp.repeat(data_weights / counts, counts)
 
-    data_position_kernel_sum = jnp.vstack(data_position_kernel)
+    # np.vstack: jnp.vstack on a list of numpy arrays is quadratic in the list length
+    data_position_kernel_sum = jnp.asarray(np.vstack(data_position_kernel))
 
     mesh_data = create_mesh(
         data_position_kernel_sum,
@@ -1638,63 +1244,69 @@ def grid_data_density_kernel_sum(
     }
 
     if kernel_randoms is not None:
-        counts_random = jnp.array([len(kernel_rows) for kernel_rows in kernel_randoms])
-        if randoms_weights is None:
-            random_weights_sum = jnp.repeat(1.0 / counts_random, counts_random)
-        else:
-            random_weights_sum = jnp.repeat(
-                randoms_weights / counts_random, counts_random
-            )
-        kernel_randoms_sum = jnp.vstack(kernel_randoms)
+        # Random kernels come in chunks: paint each chunk and accumulate, so
+        # that all random samples never sit in memory at once. Chunks are
+        # zero-padded to a multiple of 2**20 samples so that painting compiles
+        # for a few shapes only.
+        randoms_value, count_randoms_value, sum_random_weights = 0.0, 0.0, 0.0
+        for positions_chunk, sizes_chunk, start in kernel_randoms:
+            if randoms_weights is None:
+                weights_kernel = 1.0 / sizes_chunk
+            else:
+                weights_kernel = (
+                    np.asarray(randoms_weights)[start : start + len(sizes_chunk)]
+                    / sizes_chunk
+                )
+            weights_chunk = np.repeat(weights_kernel, sizes_chunk)
+            sum_random_weights += weights_chunk.sum()
+            n_pad = -len(weights_chunk) % 2**20
+            positions_chunk = np.pad(positions_chunk, ((0, n_pad), (0, 0)))
+            weights_chunk = np.pad(weights_chunk, (0, n_pad))
+            randoms_value = randoms_value + create_mesh(
+                positions_chunk,
+                2 * (rcom_max + overhead),
+                grid_size,
+                assignement=kind,
+                weights=weights_chunk,
+            ).value
+            count_randoms_value = count_randoms_value + create_mesh(
+                positions_chunk,
+                2 * (rcom_max + overhead),
+                grid_size,
+                assignement="ngp",
+                weights=weights_chunk,
+            ).value
 
-        scaling = jnp.sum(data_weights_sum) / jnp.sum(random_weights_sum)
-        mesh_randoms = create_mesh(
-            kernel_randoms_sum,
-            2 * (rcom_max + overhead),
-            grid_size,
-            assignement=kind,
-            weights=random_weights_sum,
-            scaling=scaling,
-        )
-        mask_randoms_nonzero = mesh_randoms.value != 0.0
-        safe_randoms = jnp.where(mask_randoms_nonzero, mesh_randoms.value, 1.0)
-
-        mesh_count_randoms = create_mesh(
-            kernel_randoms_sum,
-            2 * (rcom_max + overhead),
-            grid_size,
-            assignement="ngp",
-            weights=random_weights_sum,
-        )
+        scaling = jnp.sum(data_weights_sum) / sum_random_weights
+        randoms_value = randoms_value * scaling
 
     else:
         if randoms_weights is None:
             randoms_weights = jnp.ones((randoms_positions.shape[0],))
 
         scaling = jnp.sum(data_weights_sum) / jnp.sum(randoms_weights)
-        mesh_randoms = create_mesh(
+        randoms_value = create_mesh(
             randoms_positions,
             2 * (rcom_max + overhead),
             grid_size,
             assignement=kind,
             weights=randoms_weights,
             scaling=scaling,
-        )
-        mask_randoms_nonzero = mesh_randoms.value != 0.0
-        safe_randoms = jnp.where(mask_randoms_nonzero, mesh_randoms.value, 1.0)
-
-        mesh_count_randoms = create_mesh(
+        ).value
+        count_randoms_value = create_mesh(
             randoms_positions,
             2 * (rcom_max + overhead),
             grid_size,
             assignement="ngp",
             weights=randoms_weights,
-        )
+        ).value
 
+    mask_randoms_nonzero = randoms_value != 0.0
+    safe_randoms = jnp.where(mask_randoms_nonzero, randoms_value, 1.0)
     density_contrast = jnp.ravel(
         jnp.where(mask_randoms_nonzero, mesh_data.value / safe_randoms - 1, jnp.nan)
     )
-    count_randoms = jnp.ravel(mesh_count_randoms.value)
+    count_randoms = jnp.ravel(count_randoms_value)
     mask = count_randoms > min_count_random
     safe_count_randoms = jnp.where(mask, count_randoms, 1)
     density_contrast_err = jnp.where(

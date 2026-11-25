@@ -85,7 +85,6 @@ class GWDensMesh(DensMesh):
             grid_type,
             kind,
             cut_grid=False,  # needed for recomputing 3D grid
-            compute_density_contrast_error=True,
             **kwargs,
         )
 

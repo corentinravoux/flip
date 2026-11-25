@@ -24,7 +24,7 @@ else:
     jax_installed = False
 
 from flip import utils
-from flip.data_vector.mesh_utils import paint_catalog, paint_catalog_variance
+from flip.data_vector.mesh_utils import paint_catalog
 
 _grid_kind_avail = ["ngp", "cic", "tsc", "pcs"]
 
@@ -191,6 +191,25 @@ def _get_mesh_attrs(
     nmesh = np.full((3,), nmesh, dtype="i4")
     boxcenter = np.full((3,), boxcenter, dtype="f8")
     return nmesh, boxsize, boxcenter
+
+
+def _sky_kernels_to_cartesian(sky_kernels):
+    """Convert sky kernels `(ra, dec, rcom)` to Cartesian, one kernel at a time.
+
+    Args:
+        sky_kernels (list or array-like): Kernels of shape `(3, n_i)`; sizes
+            `n_i` may differ between kernels.
+
+    Returns:
+        list[jax.numpy.ndarray]: One `(n_i, 3)` array per kernel.
+    """
+    kernels_cartesian = []
+    for kernel in sky_kernels:
+        x_kernel, y_kernel, z_kernel = utils.spherical_to_cartesian(
+            kernel[0], kernel[1], kernel[2]
+        )
+        kernels_cartesian.append(jnp.array([x_kernel, y_kernel, z_kernel]).T)
+    return kernels_cartesian
 
 
 def move_kernels(
@@ -418,7 +437,9 @@ def define_randoms(
                 kx, shape=(Nrandom * N,)
             ) + jnp.min(raobj)
             # Uniform in sin(dec) for uniform density per solid angle
-            sin_dec_max, sin_dec_min = jnp.sin(jnp.max(decobj)), jnp.sin(jnp.min(decobj))
+            sin_dec_max, sin_dec_min = jnp.sin(jnp.max(decobj)), jnp.sin(
+                jnp.min(decobj)
+            )
             dec_random = jnp.arcsin(
                 (sin_dec_max - sin_dec_min)
                 * jax.random.uniform(ky, shape=(Nrandom * N,))
@@ -428,7 +449,9 @@ def define_randoms(
             ra_random = (jnp.max(raobj) - jnp.min(raobj)) * jnp.random.random(
                 size=Nrandom * N
             ) + jnp.min(raobj)
-            sin_dec_max, sin_dec_min = jnp.sin(jnp.max(decobj)), jnp.sin(jnp.min(decobj))
+            sin_dec_max, sin_dec_min = jnp.sin(jnp.max(decobj)), jnp.sin(
+                jnp.min(decobj)
+            )
             dec_random = jnp.arcsin(
                 (sin_dec_max - sin_dec_min) * jnp.random.random(size=Nrandom * N)
                 + sin_dec_min
@@ -455,14 +478,13 @@ def define_randoms(
 
     elif random_method == "choice_kernel":
         _needed_params(data_position_sky_kernel=data_position_sky_kernel)
-        N = data_position_sky_kernel.shape[0]
-
-        ra_max, ra_min = jnp.max(data_position_sky_kernel[:, 0, :]), jnp.min(
-            data_position_sky_kernel[:, 0, :]
+        # Kernels may have different sizes: work kernel by kernel.
+        N = len(data_position_sky_kernel)
+        all_samples = jnp.concatenate(
+            [jnp.asarray(kernel) for kernel in data_position_sky_kernel], axis=1
         )
-        dec_max, dec_min = jnp.max(data_position_sky_kernel[:, 1, :]), jnp.min(
-            data_position_sky_kernel[:, 1, :]
-        )
+        ra_max, ra_min = jnp.max(all_samples[0]), jnp.min(all_samples[0])
+        dec_max, dec_min = jnp.max(all_samples[1]), jnp.min(all_samples[1])
         if jax_installed:
             jax_random_key, kx, ky = jax.random.split(jax_random_key, num=3)
             ra_random = (ra_max - ra_min) * jax.random.uniform(
@@ -484,7 +506,9 @@ def define_randoms(
 
         # all_kernel_rcom = jnp.ravel(data_position_sky_kernel[:, 2, :])
 
-        average_rcom_kernel = jnp.mean(data_position_sky_kernel[:, 2, :], axis=1)
+        average_rcom_kernel = jnp.array(
+            [jnp.mean(kernel[2]) for kernel in data_position_sky_kernel]
+        )
         counts_kernel_rcom, bins_kernel_rcom = jnp.histogram(
             average_rcom_kernel, bins=1000
         )
@@ -497,11 +521,8 @@ def define_randoms(
                 p=counts_kernel_rcom / float(counts_kernel_rcom.sum()),
                 shape=(Nrandom * N,),
             )
-            diff = jnp.abs(rcom_random[:, None] - average_rcom_kernel[None, :])
-            score = jnp.where(
-                diff < d_rcom, jax.random.uniform(jax_random_key, diff.shape), -diff
-            )
-            kernel_randoms = data_position_sky_kernel[jnp.argmax(score, axis=1)]
+            jax_random_key, ku = jax.random.split(jax_random_key)
+            u = jax.random.uniform(ku, rcom_random.shape)
 
         else:
             rcom_random = jnp.random.choice(
@@ -509,27 +530,31 @@ def define_randoms(
                 p=counts_kernel_rcom / float(counts_kernel_rcom.sum()),
                 size=Nrandom * N,
             )
+            u = jnp.random.uniform(size=rcom_random.shape)
 
-            diff = jnp.abs(rcom_random[:, None] - average_rcom_kernel[None, :])
-            score = jnp.where(
-                diff < d_rcom, jnp.random.uniform(size=diff.shape), -diff
+        # Uniform choice among kernels with |<rcom> - rcom_random| <= d_rcom
+        order = jnp.argsort(average_rcom_kernel)
+        r_sorted = average_rcom_kernel[order]
+        lo = jnp.searchsorted(r_sorted, rcom_random - d_rcom, side="left")
+        hi = jnp.searchsorted(r_sorted, rcom_random + d_rcom, side="right")
+        if jnp.any(hi == lo):
+            raise ValueError(
+                "No kernel within d_rcom of a random rcom: increase d_rcom"
             )
-            kernel_randoms = data_position_sky_kernel[jnp.argmax(score, axis=1)]
+        index_kernel = order[lo + jnp.floor(u * (hi - lo)).astype(int)]
 
-        kernel_randoms_centered = move_kernels(
-            kernel_randoms,
-            ra_random,
-            dec_random,
-            rcom_random,
-        )
-
-        x_kernel, y_kernel, z_kernel = utils.spherical_to_cartesian(
-            kernel_randoms_centered[:, 0, :],
-            kernel_randoms_centered[:, 1, :],
-            kernel_randoms_centered[:, 2, :],
-        )
-        kernel_randoms_centered_cartesian = jnp.stack(
-            [x_kernel, y_kernel, z_kernel], axis=-1
+        # Move each chosen kernel onto its random position, one at a time
+        kernel_randoms_centered = [
+            move_kernels(
+                jnp.asarray(data_position_sky_kernel[i_kernel])[None],
+                ra_random[i : i + 1],
+                dec_random[i : i + 1],
+                rcom_random[i : i + 1],
+            )[0]
+            for i, i_kernel in enumerate(np.asarray(index_kernel))
+        ]
+        kernel_randoms_centered_cartesian = _sky_kernels_to_cartesian(
+            kernel_randoms_centered
         )
 
         xobj_random, yobj_random, zobj_random = utils.spherical_to_cartesian(
@@ -710,12 +735,7 @@ def prepare_data_position_kernel(
     d_rcom=10.0,
 ):
 
-    x_kernel, y_kernel, z_kernel = utils.spherical_to_cartesian(
-        data_position_sky_kernel[:, 0, :],
-        data_position_sky_kernel[:, 1, :],
-        data_position_sky_kernel[:, 2, :],
-    )
-    data_position_kernel = jnp.stack([x_kernel, y_kernel, z_kernel], axis=-1)
+    data_position_kernel = _sky_kernels_to_cartesian(data_position_sky_kernel)
 
     if random_method is not None:
         xobj_random, yobj_random, zobj_random, _, kernel_randoms = define_randoms(
@@ -1407,7 +1427,7 @@ def grid_data_density_kernel_sampling(
     Nsampling=100,
     n_subprocess_sampling=16,
     Nrandom=10,
-    random_method="cartesian",
+    random_method="cartesian_max_coordinates",
     coord_randoms=None,
     overhead=20,
     d_rcom=10.0,
@@ -1557,7 +1577,7 @@ def grid_data_density_kernel_sum(
     grid_type,
     kind,
     Nrandom=10,
-    random_method="cartesian",
+    random_method="cartesian_max_coordinates",
     coord_randoms=None,
     min_count_random=0,
     overhead=20,

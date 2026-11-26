@@ -13,6 +13,7 @@ except ImportError:
 
 from flip._config import __use_jax__
 from flip.data_vector import mesh, mesh_utils
+from flip import utils
 from flip.utils import create_log
 
 from . import vector_utils
@@ -434,7 +435,7 @@ class DensMesh(Dens):
         self.full_cube = self.cube_axis is not None
 
     def coarse_grain_density(self, grid, resampler="ngp"):
-        """Average this density over the cells of a coarser ``grid``.
+        """Average every field of this mesh over the cells of a coarser ``grid``.
 
         Use it to go from a fine to a coarser grid (``interpolate_density`` goes
         the other way). Both grids in 1D layout. This grid can be anything; the
@@ -442,25 +443,46 @@ class DensMesh(Dens):
         a full cube. ``grid`` can be cut or reordered but its nodes must lie on
         one regular lattice.
 
+        Every key of ``self.data`` is averaged with the same window, except the
+        node coordinates: ``x``, ``y``, ``z`` are taken from ``grid`` so that the
+        result lies on its lattice, and ``ra``, ``dec``, ``rcom_zobs`` (if
+        present) are recomputed from them, since averaging angles is wrong
+        (``ra`` wraps at 2π). Fine NaN values are ignored per key.
+        The observation covariance is not carried over.
+
         Args:
             grid (DensMesh): Target grid, with cells larger than this one.
             resampler (str): ``ngp`` (mean over each cell), ``cic``, ``tsc`` or ``pcs``.
 
         Returns:
-            array: Coarse-grained density at the nodes of ``grid``, NaN where no
-            fine node contributes.
+            DensMesh: New mesh of the same class on the nodes of ``grid``, each
+            field NaN where no fine node contributes.
         """
         x0, h, n, index = mesh_utils.lattice_index(
             grid.data["x"], grid.data["y"], grid.data["z"]
         )
-        x, y, z, density = (self.data[key] for key in ("x", "y", "z", "density"))
-        if not self.full_cube:
-            cube = mesh_utils.coarse_grain_points(
-                x, y, z, density, x0, h, n, resampler
-            )
-        else:
-            cube = mesh_utils.coarse_grain(density, self.cube_axis, x0, h, n, resampler)
-        return cube[index]
+        x, y, z = (self.data[key] for key in ("x", "y", "z"))
+        coordinates = ("x", "y", "z", "ra", "dec", "rcom_zobs")
+        coarse = {key: grid.data[key] for key in ("x", "y", "z")}
+        ra, dec, rcom = utils.cartesian_to_spherical(
+            coarse["x"], coarse["y"], coarse["z"]
+        )
+        for key, value in zip(coordinates[3:], (ra, dec, rcom)):
+            if key in self.data:
+                coarse[key] = value
+        for key, value in self.data.items():
+            if key in coordinates:
+                continue
+            if not self.full_cube:
+                cube = mesh_utils.coarse_grain_points(
+                    x, y, z, value, x0, h, n, resampler
+                )
+            else:
+                cube = mesh_utils.coarse_grain(
+                    value, self.cube_axis, x0, h, n, resampler
+                )
+            coarse[key] = cube[index]
+        return type(self)(coarse)
 
 
 class DirectVelMesh(DirectVel, DensMesh):

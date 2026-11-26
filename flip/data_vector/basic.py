@@ -28,6 +28,7 @@ if __use_jax__:
 
     except ImportError:
         import numpy as jnp
+        from numpy import random
         from scipy.interpolate import RegularGridInterpolator
 
         jax_installed = False

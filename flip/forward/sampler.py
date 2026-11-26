@@ -34,10 +34,11 @@ except ImportError:
             level="warning",
         )
 
-# CR - forward modeling is not like covariance.
-# The likelihood is too specific to be stored at the sampler level
-# Try to make the simulator general enough. If not, put the likelihood in the simulator
-# And rename it models.
+# CR - Long term and only if several forward modeling are implemented
+# The forward modeling is not like covariance.
+# For now, the likelihood is too specific to be stored at the sampler level
+# Try to make the simulator general enough.
+# If if is not possible, put the likelihood in the simulator.
 
 
 class BaseSampler:
@@ -80,6 +81,10 @@ class BaseSampler:
     def select_likelihood(likelihood_type):
         if likelihood_type == "candle_grid_gaussian":
             likelihood_class = forward_model_likelihood.CandleGridGaussianLikelihood
+        elif likelihood_type == "candle_galaxy_grid_gaussian":
+            likelihood_class = (
+                forward_model_likelihood.CandleGalaxyGridGaussianLikelihood
+            )
         return likelihood_class
 
     def init_parameters(self):

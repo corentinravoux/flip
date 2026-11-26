@@ -67,6 +67,34 @@ def density_from_delta_fourier(
     return density
 
 
+@jax.jit
+def galaxy_density_contrast_from_delta_fourier(
+    delta_fourier,
+    b_galaxy,
+    sigma8,
+):
+    # Linear galaxy bias, real space, box redshift.
+    return b_galaxy * sigma8 * jnp.fft.irfftn(delta_fourier)
+
+
+@jax.jit
+def galaxy_density_contrast_rsd_from_delta_fourier(
+    galaxy_rsd_kernels,
+    galaxy_rsd_radial_weights,
+    delta_fourier,
+    b_galaxy,
+    f,
+    sigma8,
+):
+    # Linear redshift-space distortions with radial lines of sight, box redshift:
+    # delta_g = sigma8 * (b_galaxy * delta + f * r_i r_j d_i d_j laplacian^-1 delta),
+    # the second term being -d_r v_r / (aH). One batched FFT for the 7 fields.
+    fields = jnp.fft.irfftn(galaxy_rsd_kernels * delta_fourier, axes=(1, 2, 3))
+    return sigma8 * (
+        b_galaxy * fields[0] + f * jnp.sum(galaxy_rsd_radial_weights * fields[1:], axis=0)
+    )
+
+
 # CR -  log normal model
 # delta_real = irfftn(delta_fourier)
 # density = exp(b * sigma8 * delta_real - 0.5 * (b * sigma8)**2 * sigma_delta**2)
@@ -102,6 +130,31 @@ class GaussianRandomFieldBox(FourierBox):
             power_spectrum[self.wavenumber > kmax] = fillvalue
         self.power_spectrum_grid = jnp.interp(
             jnp.sqrt(self.wavenumber_norm_squared), self.wavenumber, power_spectrum
+        )
+
+    def compute_galaxy_rsd_kernels(self):
+        """Precompute the kernels of the redshift-space galaxy density contrast.
+
+        Fourier kernels [1, k_i k_j / k^2] for the 6 independent (i, j) pairs, and the
+        real-space weights r_i r_j of the radial unit vector (x2 off the diagonal).
+        """
+        index_pairs = ((0, 0), (1, 1), (2, 2), (0, 1), (0, 2), (1, 2))
+        wavenumber_grid = jnp.moveaxis(self.wavenumber_grid, -1, 0)
+        wavenumber_norm_squared = self.wavenumber_norm_squared  # k = 0 set to 1
+        self.galaxy_rsd_kernels = jnp.stack(
+            [jnp.ones_like(wavenumber_norm_squared)]
+            + [
+                wavenumber_grid[i] * wavenumber_grid[j] / wavenumber_norm_squared
+                for i, j in index_pairs
+            ]
+        )
+        self.galaxy_rsd_radial_weights = jnp.stack(
+            [
+                self._radial_unit_grid[i]
+                * self._radial_unit_grid[j]
+                * (1.0 if i == j else 2.0)
+                for i, j in index_pairs
+            ]
         )
 
     def sample_delta_fourier(self, parameter_values_dict):
@@ -141,6 +194,27 @@ class GaussianRandomFieldBox(FourierBox):
         return velocity_from_delta_fourier(
             self.wavenumber_ratio,
             delta_fourier,
+            parameter_values_dict["f"],
+            parameter_values_dict["s8"],
+        )
+
+    def get_galaxy_density_contrast_from_delta_fourier(
+        self,
+        delta_fourier,
+        parameter_values_dict,
+        rsd=False,
+    ):
+        if not rsd:
+            return galaxy_density_contrast_from_delta_fourier(
+                delta_fourier,
+                parameter_values_dict["b_galaxy"],
+                parameter_values_dict["s8"],
+            )
+        return galaxy_density_contrast_rsd_from_delta_fourier(
+            self.galaxy_rsd_kernels,
+            self.galaxy_rsd_radial_weights,
+            delta_fourier,
+            parameter_values_dict["b_galaxy"],
             parameter_values_dict["f"],
             parameter_values_dict["s8"],
         )

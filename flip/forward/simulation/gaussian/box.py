@@ -50,6 +50,12 @@ class FourierBox(BaseSimulator):
         self._ra, self._dec, self._dist_mpch = jnp.stack(cartesian_to_spherical(*xyz))
         self._dist_mpch *= self.bins_to_physical  # in distance
 
+        # Radial unit vector of each voxel, shape (3, N, N, N), zero at the observer.
+        xyz_norm = jnp.linalg.norm(xyz, axis=0)
+        self._radial_unit_grid = (
+            xyz / jnp.where(xyz_norm == 0, 1.0, xyz_norm)
+        ).reshape(3, *self.shape)
+
         self._dist_mpch = self._dist_mpch.reshape(self.shape)
         self._ra = self._ra.reshape(self.shape)
         self._dec = self._dec.reshape(self.shape)

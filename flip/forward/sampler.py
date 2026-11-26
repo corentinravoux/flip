@@ -81,6 +81,10 @@ class BaseSampler:
     def select_likelihood(likelihood_type):
         if likelihood_type == "candle_grid_gaussian":
             likelihood_class = forward_model_likelihood.CandleGridGaussianLikelihood
+        elif likelihood_type == "candle_galaxy_grid_gaussian":
+            likelihood_class = (
+                forward_model_likelihood.CandleGalaxyGridGaussianLikelihood
+            )
         return likelihood_class
 
     def init_parameters(self):

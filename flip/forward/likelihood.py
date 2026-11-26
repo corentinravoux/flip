@@ -85,6 +85,28 @@ def log_likelihood_magnitude_distance_link(
     return jnp.sum(log_likelihood_magnitude_distance)
 
 
+@jax.jit
+def log_likelihood_galaxy_density(
+    observed_density_contrast,
+    observed_density_contrast_error,
+    galaxy_density_contrast,
+):
+    # Gaussian likelihood per voxel; the normalisation does not depend on the parameters.
+    # Voxels with a non-finite contrast or error (outside the survey) have no weight.
+    observed = jnp.isfinite(observed_density_contrast) & jnp.isfinite(
+        observed_density_contrast_error
+    )
+    inverse_variance = jnp.where(
+        observed,
+        1 / jnp.where(observed, observed_density_contrast_error, 1.0) ** 2,
+        0.0,
+    )
+    residual = jnp.where(
+        observed, observed_density_contrast - galaxy_density_contrast, 0.0
+    )
+    return -0.5 * jnp.sum(inverse_variance * residual**2)
+
+
 @partial(jax.jit, static_argnames=("box_size", "number_bins"))
 def log_prior_density_function(
     delta_fourier,
@@ -342,11 +364,16 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
                 parameter_values_dict, density
             )
 
+            log_likelihood_fields_val = self.get_log_likelihood_fields(
+                parameter_values_dict, delta_fourier
+            )
+
             log_likelihood_val = (
                 log_likelihood_targets_val
                 + log_prior_fields_val
                 + log_prior_distance_val
                 + self.parameter_prior(parameter_values_dict)
+                + log_likelihood_fields_val
             )
             return log_likelihood_val
 
@@ -369,6 +396,14 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
             self.simulator.box_size,
             self.simulator.number_bins,
         )
+
+    def get_log_likelihood_fields(
+        self,
+        parameter_values_dict,
+        delta_fourier,
+    ):
+        # Likelihood of gridded field data (e.g. a galaxy density field); none here.
+        return 0.0
 
     def get_log_prior_targets(
         self,
@@ -520,3 +555,52 @@ class CandleGridGaussianLikelihood(BaseLikelihood):
             float: Likelihood value, sign controlled by `negative_log_likelihood`.
         """
         return self.likelihood_evaluation(parameter_values)
+
+
+class CandleGalaxyGridGaussianLikelihood(CandleGridGaussianLikelihood):
+    """Candle likelihood plus a Gaussian likelihood on a gridded galaxy density field.
+
+    The galaxy data are given in ``likelihood_properties["galaxy"]``, with the keys of
+    ``DensMesh`` on the simulator grid: ``density`` (observed density contrast) and
+    ``density_error`` (NaN outside the survey), plus ``rsd`` (bool, default False).
+    Additional free parameter: ``b_galaxy``, linear bias of the galaxies.
+    """
+
+    def __init__(
+        self,
+        simulator=None,
+        velocity_data_vector=None,
+        coordinates_velocity=None,
+        parameter_names=None,
+        likelihood_properties=None,
+    ):
+        # Kernels are built before the likelihood is traced by jax.
+        if likelihood_properties["galaxy"].get("rsd", False):
+            simulator.compute_galaxy_rsd_kernels()
+
+        super(CandleGalaxyGridGaussianLikelihood, self).__init__(
+            simulator=simulator,
+            velocity_data_vector=velocity_data_vector,
+            coordinates_velocity=coordinates_velocity,
+            parameter_names=parameter_names,
+            likelihood_properties=likelihood_properties,
+        )
+
+    def get_log_likelihood_fields(
+        self,
+        parameter_values_dict,
+        delta_fourier,
+    ):
+        galaxy_properties = self.likelihood_properties["galaxy"]
+        galaxy_density_contrast = (
+            self.simulator.get_galaxy_density_contrast_from_delta_fourier(
+                delta_fourier,
+                parameter_values_dict,
+                rsd=galaxy_properties.get("rsd", False),
+            )
+        )
+        return log_likelihood_galaxy_density(
+            galaxy_properties["density"],
+            galaxy_properties["density_error"],
+            galaxy_density_contrast,
+        )
